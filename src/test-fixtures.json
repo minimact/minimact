@@ -1,0 +1,53 @@
+{
+  "ComplexState": {
+    "items": [
+      { "id": 1, "name": "Item 1", "price": 10.99, "quantity": 2, "image": "img1.jpg" },
+      { "id": 2, "name": "Item 2", "price": 25.50, "quantity": 1, "image": "img2.jpg" }
+    ],
+    "total": 47.48,
+    "discount": 10
+  },
+  "ConditionalRendering": {
+    "user": { "name": "John Doe", "email": "john@example.com", "isAdmin": true },
+    "loading": false
+  },
+  "ConditionalRenderingTest": {},
+  "Counter": {
+    "count": 5
+  },
+  "EventHandlers": {
+    "onSubmit": null
+  },
+  "EventHandlersTest": {},
+  "Fragments": {},
+  "HybridTest": {},
+  "ListRenderingTest": {},
+  "NestedComponents": {
+    "title": "Test Title"
+  },
+  "SpreadPropsTest": {},
+  "TodoList": {
+    "todos": [
+      { "id": 1, "text": "Learn Minimact", "completed": false },
+      { "id": 2, "text": "Build app", "completed": true }
+    ]
+  },
+  "TypedProps": {
+    "user": { "name": "Alice", "email": "alice@example.com" },
+    "loading": false
+  },
+  "UseEffectTest": {},
+  "UseRefTest": {},
+  "UseStateTest": {},
+  "ShoppingCart": {
+    "items": [
+      { "id": 1, "name": "Item 1", "price": 10.99, "quantity": 2, "image": "img1.jpg" }
+    ],
+    "total": 21.98,
+    "discount": 0
+  },
+  "UserProfile": {
+    "user": { "name": "Bob", "email": "bob@example.com", "isAdmin": false },
+    "loading": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "babel-plugin-props-to-state",
+  "version": "1.0.0",
+  "description": "Babel plugin to transform React component props into useState hooks",
+  "main": "index.cjs",
+  "keywords": [
+    "babel-plugin",
+    "react",
+    "props",
+    "useState",
+    "visual-compiler"
+  ],
+  "author": "Visual Compiler Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@babel/core": "^7.0.0"
+  }
+}

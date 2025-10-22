@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Tool configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>minimact</ToolCommandName>
+    <PackageId>Minimact.Cli</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Minimact</Authors>
+    <Description>CLI tool for testing Minimact Rust reconciliation engine</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <!-- Copy Rust library to output -->
+  <ItemGroup>
+    <None Include="..\target\release\minimact.dll" CopyToOutputDirectory="PreserveNewest" Condition="'$(OS)' == 'Windows_NT'" />
+    <None Include="..\target\release\libminimact.so" CopyToOutputDirectory="PreserveNewest" Condition="'$(OS)' != 'Windows_NT'" />
+    <None Include="..\target\release\libminimact.dylib" CopyToOutputDirectory="PreserveNewest" Condition="'$(OS)' == 'OSX'" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+{
+  "name": "babel-plugin-transform-import-css-patched",
+  "version": "1.0.0-patched.1",
+  "description": "Patched version of babel-plugin-transform-import-css that handles side-effect-only CSS imports",
+  "main": "index.js",
+  "keywords": [
+    "babel",
+    "css",
+    "css-modules"
+  ],
+  "author": "Patched for Visual Compiler",
+  "license": "MIT",
+  "dependencies": {
+    "load-styles": "^2.0.0",
+    "postcss-icss-selectors": "^2.0.3",
+    "postcss-load-config": "^2.0.0",
+    "postcss-modules-extract-imports": "^2.0.0",
+    "postcss-modules-resolve-imports": "^1.3.0",
+    "postcss-modules-scope": "^2.1.0",
+    "require-resolve": "0.0.2"
+  },
+  "peerDependencies": {
+    "@babel/template": "7.x",
+    "@babel/types": "7.x",
+    "postcss": "7.x.x"
+  }
+}

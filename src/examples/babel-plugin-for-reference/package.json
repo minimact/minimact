@@ -1,0 +1,48 @@
+{
+  "name": "babel-plugin-transform-import-css",
+  "version": "1.0.0-alpha.11",
+  "description": "Injects imported styles (css-modules) into js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-examples": "babel examples/ -d examples-dist/ --plugins ../index.js",
+    "postversion": "git push && git push --tags && npm publish"
+  },
+  "keywords": [
+    "babel",
+    "css",
+    "css-modules"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a-x-/babel-plugin-transform-import-css.git",
+    "web": "https://github.com/a-x-/babel-plugin-transform-import-css"
+  },
+  "author": "Alex Mextner <invntrm@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "load-styles": "^2.0.0",
+    "postcss-icss-selectors": "^2.0.3",
+    "postcss-load-config": "^2.0.0",
+    "postcss-modules-extract-imports": "^2.0.0",
+    "postcss-modules-resolve-imports": "^1.3.0",
+    "postcss-modules-scope": "^2.1.0",
+    "require-resolve": "0.0.2"
+  },
+  "peerDependencies": {
+    "@babel/template": "7.x",
+    "@babel/types": "7.x",
+    "postcss": "7.x.x"
+  },
+  "devDependencies": {
+    "@babel/template": "^7.4.4",
+    "@babel/types": "^7.4.4",
+    "eslint-plugin-immutable": "^1.0.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-react": "^7.7.0",
+    "postcss": "^7.0.16"
+  },
+  "engines": {
+    "node": ">=8.x"
+  }
+}

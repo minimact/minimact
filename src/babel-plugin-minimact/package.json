@@ -1,0 +1,27 @@
+{
+  "name": "babel-plugin-minimact",
+  "version": "0.1.0",
+  "description": "Babel plugin to transform JSX/TSX React components to C# Minimact components",
+  "main": "index.cjs",
+  "keywords": [
+    "babel-plugin",
+    "minimact",
+    "react",
+    "csharp",
+    "jsx",
+    "tsx"
+  ],
+  "author": "Minimact Contributors",
+  "license": "MIT",
+  "peerDependencies": {
+    "@babel/core": "^7.0.0"
+  },
+  "dependencies": {
+    "@babel/types": "^7.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-react": "^7.24.0",
+    "@babel/preset-typescript": "^7.24.0"
+  }
+}

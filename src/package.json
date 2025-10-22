@@ -1,0 +1,24 @@
+{
+  "name": "minimact",
+  "version": "0.1.0",
+  "description": "Server-side React framework with Rust reconciliation",
+  "scripts": {
+    "test:e2e": "node test-e2e.js",
+    "test:cli": "node test-cli.js",
+    "test:sim": "node test-client-sim.js",
+    "test:predictor": "node test-predictor-advanced.js",
+    "test:rust": "cargo test",
+    "build:rust": "cargo build --release",
+    "build:dotnet": "dotnet build Minimact.Cli/Minimact.Cli.csproj",
+    "build": "npm run build:rust && npm run build:dotnet",
+    "test": "npm run build && npm run test:sim",
+    "test:all": "npm run test:sim && npm run test:predictor"
+  },
+  "keywords": [
+    "react",
+    "server-side-rendering",
+    "rust",
+    "reconciliation"
+  ],
+  "license": "MIT"
+}

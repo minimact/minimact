@@ -1,0 +1,30 @@
+{
+  "name": "minimact-client",
+  "version": "0.1.0",
+  "description": "Client-side runtime for Minimact framework - DOM patching and SignalR integration",
+  "main": "dist/minimact.js",
+  "types": "dist/minimact.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest"
+  },
+  "keywords": [
+    "minimact",
+    "virtual-dom",
+    "signalr",
+    "reactive",
+    "dom-patching"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.9.6",
+    "typescript": "^5.3.3"
+  }
+}

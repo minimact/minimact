@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimact Hybrid Rendering Example</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .component {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    h2 {
+      color: #666;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      width: 300px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #218838;
+    }
+    .zone-label {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .client-zone-label {
+      background: #d4edda;
+      color: #155724;
+    }
+    .server-zone-label {
+      background: #cce5ff;
+      color: #004085;
+    }
+    .hybrid-zone-label {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #007bff;
+      padding: 15px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body data-minimact-auto-init data-minimact-debug>
+  <div class="component" data-minimact-component="search-1">
+    <h1>Hybrid Rendering Example</h1>
+    <p>This demonstrates client zones, server zones, and hybrid zones.</p>
+
+    <!-- Client Zone - Pure client state -->
+    <div data-minimact-client-scope>
+      <h2>
+        Client Zone
+        <span class="zone-label client-zone-label">CLIENT</span>
+      </h2>
+      <input
+        type="text"
+        data-state="query"
+        placeholder="Type to search... (client-only)"
+      />
+      <p>
+        Query: <span data-bind="query"></span>
+      </p>
+      <p>
+        Length: <span data-bind="query.length">0</span>
+      </p>
+    </div>
+
+    <!-- Server Zone - Server state only -->
+    <div data-minimact-server-scope>
+      <h2>
+        Server Zone
+        <span class="zone-label server-zone-label">SERVER</span>
+      </h2>
+      <button data-onclick="Search">Search</button>
+      <p>
+        Results: <span data-bind="resultCount">0</span>
+      </p>
+    </div>
+
+    <!-- Hybrid Zone - Mixed dependencies -->
+    <div>
+      <h2>
+        Hybrid Zone
+        <span class="zone-label hybrid-zone-label">HYBRID</span>
+      </h2>
+      <p>
+        Found
+        <span data-minimact-server-scope data-bind="resultCount">0</span>
+        results for
+        "<span data-minimact-client-scope data-bind="query"></span>"
+      </p>
+    </div>
+
+    <!-- Info box -->
+    <div class="info-box">
+      <strong>How it works:</strong>
+      <ul>
+        <li><strong>Client Zone:</strong> Input updates instantly without server round-trip (~1ms latency)</li>
+        <li><strong>Server Zone:</strong> Button click triggers server processing (~47ms latency)</li>
+        <li><strong>Hybrid Zone:</strong> Each span updates independently - client span instantly, server span on results</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Include SignalR client library -->
+  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+
+  <!-- Include Minimact client runtime -->
+  <script src="../dist/minimact.js"></script>
+
+  <script>
+    // Demo: Simulate client state computation (e.g., query.length)
+    window.addEventListener('load', () => {
+      const minimact = window.minimact;
+      if (!minimact) return;
+
+      // Subscribe to query changes and compute length
+      minimact.subscribeToState('search-1', 'query', (value) => {
+        minimact.setClientState('search-1', 'query.length', value.length);
+        console.log('Query length updated:', value.length);
+      });
+    });
+  </script>
+</body>
+</html>
