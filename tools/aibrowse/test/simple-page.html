@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - aibrowse</title>
+</head>
+<body>
+    <div data-minimact-component="Counter" data-minimact-id="counter-1">
+        <h1>Counter Component</h1>
+        <p class="count-display">Count: 0</p>
+        <button class="increment-btn" data-minimact-event="onClick">Increment</button>
+    </div>
+
+    <div data-minimact-component="Form" data-minimact-id="form-1">
+        <h2>Form Component</h2>
+        <input type="text" id="name-input" placeholder="Enter name" />
+        <button id="submit-btn">Submit</button>
+    </div>
+
+    <script>
+        // Simulate Minimact client
+        window.minimact = {
+            version: '0.1.0',
+            debugState: {
+                components: [
+                    { id: 'counter-1', name: 'Counter', state: { count: 0 } },
+                    { id: 'form-1', name: 'Form', state: { name: '' } }
+                ]
+            }
+        };
+
+        // Simulate button click logging
+        document.querySelector('.increment-btn').addEventListener('click', () => {
+            console.log('Button clicked!');
+            const display = document.querySelector('.count-display');
+            const currentCount = parseInt(display.textContent.match(/\d+/)[0]);
+            display.textContent = `Count: ${currentCount + 1}`;
+        });
+
+        console.log('Page loaded successfully');
+    </script>
+</body>
+</html>

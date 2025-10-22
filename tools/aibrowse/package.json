@@ -1,0 +1,31 @@
+{
+  "name": "aibrowse",
+  "version": "0.1.0",
+  "description": "AI-oriented browser inspector for Minimact applications",
+  "main": "src/index.js",
+  "bin": {
+    "aibrowse": "./bin/aibrowse.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "minimact",
+    "browser",
+    "inspector",
+    "ai",
+    "debugging",
+    "signalr"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "playwright": "^1.40.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

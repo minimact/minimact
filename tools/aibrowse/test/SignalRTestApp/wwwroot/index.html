@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimact SignalR Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .component {
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        #messageLog {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            background: white;
+        }
+        .message.sent {
+            border-left-color: #28a745;
+        }
+        .message.received {
+            border-left-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minimact SignalR Test Application</h1>
+
+    <div id="connectionStatus" class="status disconnected">
+        ⚠️ Disconnected
+    </div>
+
+    <div class="component" data-minimact-component="Counter" data-minimact-id="counter-1">
+        <h2>Counter Component</h2>
+        <p id="counterDisplay">Count: 0</p>
+        <p id="lastUpdate">Last update: Never</p>
+        <button id="incrementBtn" data-minimact-event="onClick">
+            Increment Counter
+        </button>
+    </div>
+
+    <div class="component" data-minimact-component="TodoList" data-minimact-id="todo-1">
+        <h2>Todo List Component</h2>
+        <input type="text" id="todoInput" placeholder="Enter a todo..." />
+        <button id="addTodoBtn" data-minimact-event="onClick">
+            Add Todo
+        </button>
+        <ul id="todoList"></ul>
+    </div>
+
+    <div class="component">
+        <h3>SignalR Message Log</h3>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="messageLog"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+    <script>
+        // Simulate Minimact client
+        window.minimact = {
+            version: '0.1.0',
+            debugState: {
+                components: [
+                    { id: 'counter-1', name: 'Counter', state: { count: 0 } },
+                    { id: 'todo-1', name: 'TodoList', state: { items: [] } }
+                ]
+            }
+        };
+
+        let count = 0;
+        const messageLog = document.getElementById('messageLog');
+        const statusDiv = document.getElementById('connectionStatus');
+
+        // Create SignalR connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/minimact')
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        // Handle connection events
+        connection.onclose(() => {
+            statusDiv.className = 'status disconnected';
+            statusDiv.textContent = '⚠️ Disconnected';
+            logMessage('Connection closed', 'system');
+        });
+
+        connection.onreconnecting(() => {
+            statusDiv.className = 'status disconnected';
+            statusDiv.textContent = '🔄 Reconnecting...';
+            logMessage('Reconnecting...', 'system');
+        });
+
+        connection.onreconnected(() => {
+            statusDiv.className = 'status connected';
+            statusDiv.textContent = '✅ Connected to SignalR Hub';
+            logMessage('Reconnected', 'system');
+        });
+
+        // Handle incoming SignalR messages
+        connection.on('ApplyPredictedPatch', (data) => {
+            console.log('Received predicted patch:', data);
+            logMessage(`ApplyPredictedPatch (${data.confidence * 100}% confidence)`, 'received', data);
+
+            // Apply the patch
+            if (data.patches && data.patches.length > 0) {
+                document.getElementById('lastUpdate').textContent =
+                    `Last update: ${data.patches[0].content} (predicted)`;
+            }
+        });
+
+        connection.on('ApplyVerifiedPatch', (data) => {
+            console.log('Received verified patch:', data);
+            logMessage(`ApplyVerifiedPatch (matched: ${data.matched})`, 'received', data);
+
+            // Apply the verified patch
+            if (data.patches && data.patches.length > 0) {
+                document.getElementById('lastUpdate').textContent =
+                    `Last update: ${data.patches[0].content} (verified ✓)`;
+                document.getElementById('lastUpdate').style.color = data.matched ? 'green' : 'red';
+            }
+        });
+
+        // Start connection
+        async function start() {
+            try {
+                await connection.start();
+                statusDiv.className = 'status connected';
+                statusDiv.textContent = '✅ Connected to SignalR Hub';
+                logMessage('Connected to SignalR hub at /minimact', 'system');
+                console.log('SignalR connected');
+            } catch (err) {
+                console.error('SignalR connection error:', err);
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = '❌ Connection failed';
+                setTimeout(start, 5000);
+            }
+        }
+
+        // Increment button click handler
+        document.getElementById('incrementBtn').addEventListener('click', async () => {
+            count++;
+            document.getElementById('counterDisplay').textContent = `Count: ${count}`;
+
+            console.log('Sending HandleEvent to server...');
+            logMessage('HandleEvent (counter-1, onClick)', 'sent', {
+                componentId: 'counter-1',
+                eventName: 'onClick',
+                eventArgs: { count }
+            });
+
+            try {
+                await connection.invoke('HandleEvent', 'counter-1', 'onClick', { count });
+            } catch (err) {
+                console.error('Error invoking HandleEvent:', err);
+                logMessage('Error: ' + err.message, 'error');
+            }
+        });
+
+        // Add todo button click handler
+        document.getElementById('addTodoBtn').addEventListener('click', async () => {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const li = document.createElement('li');
+            li.textContent = text;
+            document.getElementById('todoList').appendChild(li);
+            input.value = '';
+
+            console.log('Sending HandleEvent to server...');
+            logMessage('HandleEvent (todo-1, onClick)', 'sent', {
+                componentId: 'todo-1',
+                eventName: 'onClick',
+                eventArgs: { text }
+            });
+
+            try {
+                await connection.invoke('HandleEvent', 'todo-1', 'onClick', { text });
+            } catch (err) {
+                console.error('Error invoking HandleEvent:', err);
+                logMessage('Error: ' + err.message, 'error');
+            }
+        });
+
+        function logMessage(message, type, data = null) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+
+            const timestamp = new Date().toLocaleTimeString();
+            let content = `[${timestamp}] ${message}`;
+
+            if (data) {
+                content += `\n${JSON.stringify(data, null, 2)}`;
+            }
+
+            div.textContent = content;
+            messageLog.insertBefore(div, messageLog.firstChild);
+        }
+
+        function clearLog() {
+            messageLog.innerHTML = '';
+        }
+
+        // Start the connection
+        start();
+
+        console.log('Minimact SignalR Test App loaded');
+        console.log('Window.minimact:', window.minimact);
+    </script>
+</body>
+</html>
