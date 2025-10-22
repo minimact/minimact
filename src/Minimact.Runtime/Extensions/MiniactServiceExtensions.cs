@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Minimact.Runtime.Core;
-using Minimact.Runtime.SignalR;
+using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.SignalR;
+using Minimact.AspNetCore.Routing;
 
-namespace Minimact.Runtime.Extensions;
+namespace Minimact.AspNetCore.Extensions;
 
 /// <summary>
 /// Extension methods for configuring Minimact services
@@ -42,15 +44,18 @@ public static class MinimactServiceExtensions
     }
 
     /// <summary>
-    /// Map Minimact SignalR hub and configure middleware
+    /// Map Minimact SignalR hub, auto-discover pages, and configure middleware
     /// </summary>
-    public static IApplicationBuilder UseMinimact(this IApplicationBuilder app)
+    public static IApplicationBuilder UseMinimact(this IApplicationBuilder app, string manifestPath = "./Generated/routes.json")
     {
-        // Map SignalR hub
         app.UseRouting();
         app.UseEndpoints(endpoints =>
         {
+            // Map SignalR hub
             endpoints.MapHub<MinimactHub>("/minimact");
+
+            // Auto-discover and map pages from route manifest
+            endpoints.MapMinimactPages(manifestPath);
         });
 
         return app;

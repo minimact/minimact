@@ -5,12 +5,37 @@
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Minimact.AspNetCore</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Minimact Contributors</Authors>
+    <Company>Minimact</Company>
+    <Description>Server-side React framework for ASP.NET Core with Rust-powered reconciliation and predictive DOM updates</Description>
+    <PackageTags>react;aspnetcore;server-side-rendering;ssr;signalr;rust</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/minimact/minimact</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/minimact/minimact</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <RootNamespace>Minimact.AspNetCore</RootNamespace>
+    <AssemblyName>Minimact.AspNetCore</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Markdig" Version="0.37.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include README in package -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+
+    <!-- Include Rust native library (will be built separately) -->
+    <None Include="..\target\release\minimact.dll" Pack="true" PackagePath="runtimes\win-x64\native\" Condition="Exists('..\target\release\minimact.dll')" />
+    <None Include="..\target\release\libminimact.so" Pack="true" PackagePath="runtimes\linux-x64\native\" Condition="Exists('..\target\release\libminimact.so')" />
+    <None Include="..\target\release\libminimact.dylib" Pack="true" PackagePath="runtimes\osx-x64\native\" Condition="Exists('..\target\release\libminimact.dylib')" />
   </ItemGroup>
 
 </Project>
