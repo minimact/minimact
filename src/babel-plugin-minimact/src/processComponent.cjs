@@ -31,6 +31,10 @@ function processComponent(path, state) {
     useRef: [],
     useMarkdown: [],
     useTemplate: null,
+    useValidation: [],
+    useModal: [],
+    useToggle: [],
+    useDropdown: [],
     eventHandlers: [],
     localVariables: [], // Local variables (const/let/var) in function body
     renderBody: null,

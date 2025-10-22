@@ -16,11 +16,21 @@ function generateComponent(component) {
   lines.push('[Component]');
 
   const baseClass = component.useTemplate
-    ? `${component.useTemplate}Base`
+    ? component.useTemplate.name
     : 'MinimactComponent';
 
   lines.push(`public partial class ${component.name} : ${baseClass}`);
   lines.push('{');
+
+  // Template properties (from useTemplate)
+  if (component.useTemplate && component.useTemplate.props) {
+    for (const [propName, propValue] of Object.entries(component.useTemplate.props)) {
+      // Capitalize first letter for C# property name
+      const csharpPropName = propName.charAt(0).toUpperCase() + propName.slice(1);
+      lines.push(`    public override string ${csharpPropName} => "${propValue}";`);
+      lines.push('');
+    }
+  }
 
   // Prop fields (from function parameters)
   for (const prop of component.props) {
@@ -45,16 +55,69 @@ function generateComponent(component) {
 
   // Markdown fields (useMarkdown)
   for (const md of component.useMarkdown) {
+    lines.push(`    [Markdown]`);
     lines.push(`    [State]`);
     lines.push(`    private string ${md.name} = ${md.initialValue};`);
     lines.push('');
   }
 
-  // Render method
-  lines.push('    protected override VNode Render()');
+  // Validation fields (useValidation)
+  for (const validation of component.useValidation) {
+    lines.push(`    [Validation]`);
+    lines.push(`    private ValidationField ${validation.name} = new ValidationField`);
+    lines.push(`    {`);
+    lines.push(`        FieldKey = "${validation.fieldKey}",`);
+
+    // Add validation rules
+    if (validation.rules.required) {
+      lines.push(`        Required = ${validation.rules.required.toString().toLowerCase()},`);
+    }
+    if (validation.rules.minLength) {
+      lines.push(`        MinLength = ${validation.rules.minLength},`);
+    }
+    if (validation.rules.maxLength) {
+      lines.push(`        MaxLength = ${validation.rules.maxLength},`);
+    }
+    if (validation.rules.pattern) {
+      lines.push(`        Pattern = @"${validation.rules.pattern}",`);
+    }
+    if (validation.rules.message) {
+      lines.push(`        Message = "${validation.rules.message}"`);
+    }
+
+    lines.push(`    };`);
+    lines.push('');
+  }
+
+  // Modal fields (useModal)
+  for (const modal of component.useModal) {
+    lines.push(`    private ModalState ${modal.name} = new ModalState();`);
+    lines.push('');
+  }
+
+  // Toggle fields (useToggle)
+  for (const toggle of component.useToggle) {
+    lines.push(`    [State]`);
+    lines.push(`    private bool ${toggle.name} = ${toggle.initialValue};`);
+    lines.push('');
+  }
+
+  // Dropdown fields (useDropdown)
+  for (const dropdown of component.useDropdown) {
+    lines.push(`    private DropdownState ${dropdown.name} = new DropdownState();`);
+    lines.push('');
+  }
+
+  // Render method (or RenderContent for templates)
+  const renderMethodName = component.useTemplate ? 'RenderContent' : 'Render';
+  lines.push(`    protected override VNode ${renderMethodName}()`);
   lines.push('    {');
-  lines.push('        StateManager.SyncMembersToState(this);');
-  lines.push('');
+
+  // Only add StateManager sync if NOT using a template (templates handle this themselves)
+  if (!component.useTemplate) {
+    lines.push('        StateManager.SyncMembersToState(this);');
+    lines.push('');
+  }
 
   // Local variables
   for (const localVar of component.localVariables) {
@@ -120,6 +183,16 @@ function generateComponent(component) {
     lines.push(`    private void ${handler.name}()`);
     lines.push('    {');
     lines.push(`        // TODO: Implement ${handler.name}`);
+    lines.push('    }');
+  }
+
+  // Toggle methods (useToggle)
+  for (const toggle of component.useToggle) {
+    lines.push('');
+    lines.push(`    private void ${toggle.toggleFunc}()`);
+    lines.push('    {');
+    lines.push(`        ${toggle.name} = !${toggle.name};`);
+    lines.push(`        SetState("${toggle.name}", ${toggle.name});`);
     lines.push('    }');
   }
 

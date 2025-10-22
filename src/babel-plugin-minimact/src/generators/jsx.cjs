@@ -34,6 +34,26 @@ function generateJSXElement(node, component, indent) {
   const attributes = node.openingElement.attributes;
   const children = node.children;
 
+  // Check if this element has markdown attribute and markdown content
+  const hasMarkdownAttr = attributes.some(attr =>
+    t.isJSXAttribute(attr) && attr.name.name === 'markdown'
+  );
+
+  if (hasMarkdownAttr) {
+    // Check if child is a markdown state variable
+    if (children.length === 1 && t.isJSXExpressionContainer(children[0])) {
+      const expr = children[0].expression;
+      if (t.isIdentifier(expr)) {
+        const varName = expr.name;
+        // Check if this is a markdown state variable
+        if (component.stateTypes.get(varName) === 'markdown') {
+          // Return DivRawHtml with MarkdownHelper.ToHtml()
+          return `new DivRawHtml(MarkdownHelper.ToHtml(${varName}))`;
+        }
+      }
+    }
+  }
+
   // Detect if this needs runtime helpers (hybrid approach)
   const needsRuntimeHelper = hasSpreadProps(attributes) ||
                               hasDynamicChildren(children) ||

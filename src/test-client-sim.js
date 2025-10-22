@@ -279,6 +279,138 @@ function validateUseState(component) {
   };
 }
 
+function validateUseMarkdown(component) {
+  const csharp = component.csharp;
+
+  // Check for [Markdown] and [State] attributes together
+  const hasMarkdownAttribute = csharp.includes('[Markdown]');
+
+  // Check for markdown field with proper attributes
+  const markdownFieldMatches = csharp.match(/\[Markdown\]\s*\[State\]\s*private\s+string\s+\w+/g);
+  const markdownFieldCount = markdownFieldMatches ? markdownFieldMatches.length : 0;
+
+  // Check for DivRawHtml or similar raw HTML rendering
+  const hasRawHtmlRendering = csharp.includes('DivRawHtml') || csharp.includes('Markdown.ToHtml');
+
+  return {
+    passed: hasMarkdownAttribute && markdownFieldCount > 0,
+    feature: 'useMarkdown',
+    details: `Found ${markdownFieldCount} markdown field(s)${hasRawHtmlRendering ? ' with HTML rendering' : ''}`
+  };
+}
+
+function validateUseTemplate(component) {
+  const csharp = component.csharp;
+
+  // Check for class inheritance from a layout template
+  const layoutInheritance = csharp.match(/class\s+\w+\s*:\s*(DefaultLayout|SidebarLayout|AuthLayout|AdminLayout)/);
+
+  // Check for RenderContent override instead of Render
+  const hasRenderContent = csharp.includes('protected override VNode RenderContent(');
+
+  // Check for template properties (like Title)
+  const hasTemplateProps = csharp.includes('public override string Title');
+
+  return {
+    passed: layoutInheritance !== null || hasRenderContent,
+    feature: 'useTemplate',
+    details: layoutInheritance ? `Inherits from ${layoutInheritance[1]}` : 'No template detected'
+  };
+}
+
+function validateUseClientState(component) {
+  const csharp = component.csharp;
+
+  // Check for [ClientState] attribute
+  const hasClientStateAttribute = csharp.includes('[ClientState]');
+
+  // Check for client state field declarations
+  const clientStateMatches = csharp.match(/\[ClientState\]\s*private\s+\w+\s+\w+/g);
+  const clientStateCount = clientStateMatches ? clientStateMatches.length : 0;
+
+  // Check for data-client-scope attributes in rendered output
+  const hasClientScope = csharp.includes('data-client-scope');
+
+  return {
+    passed: hasClientStateAttribute && clientStateCount > 0,
+    feature: 'useClientState',
+    details: `Found ${clientStateCount} client state field(s)${hasClientScope ? ' with scope markers' : ''}`
+  };
+}
+
+function validateUseValidation(component) {
+  const csharp = component.csharp;
+
+  // Check for [Validation] attribute
+  const hasValidationAttribute = csharp.includes('[Validation]');
+
+  // Check for validation-related fields
+  const validationMatches = csharp.match(/\[Validation\]\s*private\s+ValidationField\s+\w+/g);
+  const validationCount = validationMatches ? validationMatches.length : 0;
+
+  // Check for validation error rendering
+  const hasErrorRendering = csharp.includes('error') || csharp.includes('valid');
+
+  return {
+    passed: hasValidationAttribute || validationCount > 0,
+    feature: 'useValidation',
+    details: `Found ${validationCount} validation field(s)`
+  };
+}
+
+function validateUseModal(component) {
+  const csharp = component.csharp;
+
+  // Check for modal state fields (isOpen, Open, Close methods)
+  const hasModalState = csharp.includes('isOpen') || csharp.includes('IsOpen');
+
+  // Check for modal methods
+  const hasOpenMethod = csharp.includes('Open(') || csharp.includes('HandleOpen');
+  const hasCloseMethod = csharp.includes('Close(') || csharp.includes('HandleClose');
+
+  // Check for modal backdrop rendering
+  const hasBackdrop = csharp.includes('modal-backdrop') || csharp.includes('ModalBackdrop');
+
+  return {
+    passed: hasModalState && (hasOpenMethod || hasCloseMethod),
+    feature: 'useModal',
+    details: hasModalState ? 'Modal state detected' : 'No modal detected'
+  };
+}
+
+function validateUseToggle(component) {
+  const csharp = component.csharp;
+
+  // Check for boolean state with toggle method
+  const hasBoolState = csharp.match(/\[State\]\s*private\s+bool\s+\w+/);
+  const hasToggleMethod = csharp.includes('Toggle') || csharp.includes('SetState(');
+
+  return {
+    passed: hasBoolState !== null && hasToggleMethod,
+    feature: 'useToggle',
+    details: hasBoolState ? 'Toggle state detected' : 'No toggle detected'
+  };
+}
+
+function validateUseDropdown(component) {
+  const csharp = component.csharp;
+
+  // Check for dropdown-related state (items, selectedItem, etc.)
+  const hasDropdownState = csharp.includes('items') || csharp.includes('Items');
+
+  // Check for select element or dropdown rendering
+  const hasSelectElement = csharp.includes('select') || csharp.includes('dropdown');
+
+  // Check for route-based data fetching
+  const hasRouteReference = csharp.includes('Routes.') || csharp.includes('Api.');
+
+  return {
+    passed: hasDropdownState && hasSelectElement,
+    feature: 'useDropdown',
+    details: hasRouteReference ? 'Dropdown with route reference' : (hasDropdownState ? 'Dropdown detected' : 'No dropdown')
+  };
+}
+
 function validateUseEffect(component) {
   const csharp = component.csharp;
 
@@ -405,6 +537,13 @@ function validateAllFeatures(component) {
     validateUseState(component),
     validateUseEffect(component),
     validateUseRef(component),
+    validateUseMarkdown(component),
+    validateUseTemplate(component),
+    validateUseClientState(component),
+    validateUseValidation(component),
+    validateUseModal(component),
+    validateUseToggle(component),
+    validateUseDropdown(component),
     validateEventHandlers(component),
     validateConditionalRendering(component),
     validateListRendering(component),
