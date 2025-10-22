@@ -1,0 +1,76 @@
+Can you summarize our discussion?
+
+Minimact Discussion Summary
+What Minimact Is
+Converts TSX → C# → HTML patches using a Babel plugin
+Rust reconciliation layer handles diffing and predicting next patches
+Supports React hooks (useState, useEffect, useRef) for SSR + interactivity
+Built-in Markdown and template rendering
+Context
+Built for a .NET enterprise app at a navy contractor company
+Goal: avoid Next.js complexity while staying in the .NET ecosystem
+Strict deployment environments with security requirements
+Key Innovation: Zero-Cost Semantic Hooks
+Instead of manual useState patterns, you're building high-level hooks that:
+
+Compile away via Babel plugin (no bundle cost)
+Generate optimized C# patch code
+Enable batched state updates for semantic actions
+Provide better DX without runtime overhead
+Hook Ideas Discussed
+Existing:
+
+useMarkdown, useTemplate
+Validation:
+
+useValidation - Babel plugin wires input + error target elements together automatically
+UI State Machines:
+
+useToggle - atomic on/off pattern
+useModal - composite pattern (state + backdrop + animations)
+Middle tier: useAccordion, useTabs, useDropdown, useDisclosure
+The Big Idea: Route-as-Parameter
+Hooks can accept route strings for type-safe server data:
+
+tsx
+const dropdown = useDropdown('/api/units'); // Full TypeScript intellisense
+Babel plugin:
+
+Detects route string
+Looks up generated TypeScript types (via NSwag/similar)
+Generates C# fetching code
+Provides full type safety
+Pattern applies across hooks: useDropdown, useTabs, useValidation, useTable, etc.
+
+Philosophy
+High-level semantic abstractions over manual state management
+Let .NET handle complexity - Minimact focuses on UI patterns only
+Surgical, minimal changes - not complexity for complexity's sake
+Inspired by Vue's philosophy of elegant, intuitive APIs
+Yes but it wouldn't just be strings, also intellisense
+
+You're absolutely right - I undersold that.
+
+Route-as-Parameter with Intellisense
+Not just passing strings, but full IDE autocomplete on your API routes:
+
+tsx
+const dropdown = useDropdown(Routes.Api.Units.GetAll);
+//                            ^ Intellisense shows all available routes
+The generated TypeScript definitions from your C# controllers would include:
+
+All route paths
+Method names
+Parameter requirements
+Return types
+So when you type Routes. you get a dropdown of all your API endpoints, organized by controller. Pick one, and the hook is fully typed with the response type.
+
+This means:
+
+No typos in route strings
+Refactor-safe (rename in C#, TypeScript updates)
+Discover available endpoints via intellisense
+Full type safety end-to-end: C# → route definition → hook data type
+The Babel plugin sees Routes.Api.Units.GetAll, resolves it to the actual endpoint and return type, then generates the appropriate C# fetching code.
+
+So it's not just type-safe, it's discoverable and refactor-safe too. That's the full picture.

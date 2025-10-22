@@ -1246,28 +1246,534 @@ export function Hello() {
 
 ---
 
+## Advanced Features & Hooks
+
+### Hybrid Client-Server State Management
+
+Minimact supports both server-side state (`useState`) and client-side state (`useClientState`) within the same component, enabling optimal performance for different interaction types.
+
+#### Client-Only State for Immediate Feedback
+
+```typescript
+import { useState, useClientState } from 'minimact';
+
+function SearchBox() {
+    const [query, setQuery] = useClientState('');  // Client-only, instant updates
+    const [results, setResults] = useState([]);    // Server-managed
+
+    const handleSearch = async () => {
+        // Debounced server call
+        setResults(await fetch(`/api/search?q=${query}`));
+    };
+
+    return (
+        <div>
+            <input
+                value={query}
+                onInput={(e) => setQuery(e.target.value)}  // Instant, no round-trip
+                placeholder="Type to search..."
+            />
+            <button onClick={handleSearch}>Search</button>
+            <ul>
+                {results.map(r => <li key={r.id}>{r.title}</li>)}
+            </ul>
+        </div>
+    );
+}
+```
+
+**How it works**:
+- `useClientState` renders entirely client-side via the Minimact.js runtime
+- No round-trip to server for typing, dragging, or transient UI interactions
+- Perfect for form validation, animations, drag-and-drop, hover states
+
+#### Smart Dependency Splitting
+
+When components mix both state types, the Babel plugin automatically partitions the DOM:
+
+```typescript
+function Hybrid() {
+    const [serverCount, setServerCount] = useState(0);      // Server state
+    const [clientInput, setClientInput] = useClientState(''); // Client state
+
+    return (
+        <div>
+            {/* Pure client zone - no server involvement */}
+            <input value={clientInput} onInput={e => setClientInput(e.target.value)} />
+
+            {/* Pure server zone */}
+            <button onClick={() => setServerCount(serverCount + 1)}>
+                Count: {serverCount}
+            </button>
+
+            {/* Mixed zone - automatically split by Babel */}
+            <p>
+                You typed <span data-client-scope>{clientInput.length}</span> chars,
+                count is <span data-server-scope>{serverCount}</span>
+            </p>
+        </div>
+    );
+}
+```
+
+**Compile-time dependency tracking**:
+- Babel analyzes which JSX expressions depend on which hooks
+- Automatically wraps mixed content in scoped spans
+- Client updates client-owned DOM, server updates server-owned DOM
+- Zero unnecessary re-renders or conflicts
+
+---
+
+### Built-in Markdown Support
+
+First-class support for markdown content with server-side parsing:
+
+```typescript
+import { useMarkdown } from 'minimact';
+
+function BlogPost() {
+    const [content, setContent] = useMarkdown(`
+# Hello World
+
+This is a **markdown** blog post with:
+- Server-side parsing
+- Safe HTML rendering
+- Full reactivity
+    `);
+
+    return <div markdown>{content}</div>;
+}
+```
+
+**Compiles to**:
+```csharp
+[Component]
+public partial class BlogPost
+{
+    [Markdown]
+    [State]
+    private string content = "# Hello World\n\nThis is a **markdown**...";
+
+    public override VirtualDomNode Render()
+    {
+        // Auto-parsed with Markdig/CommonMark.NET
+        return new DivRawHtml(Markdown.ToHtml(content));
+    }
+}
+```
+
+**Use cases**:
+- ✅ Blogs and documentation sites
+- ✅ Live markdown preview editors
+- ✅ CMS-driven content from databases
+- ✅ Mixed TSX + markdown layouts
+
+**Codebehind integration**:
+```csharp
+// BlogPost.codebehind.cs
+public partial class BlogPost
+{
+    private readonly AppDbContext _db;
+
+    public BlogPost(AppDbContext db) => _db = db;
+
+    public override async Task OnInitializedAsync()
+    {
+        var post = await _db.Posts.FindAsync(PostId);
+        content = post.MarkdownContent;
+        TriggerRender();
+    }
+}
+```
+
+---
+
+### Template System with `useTemplate`
+
+Define reusable layouts and templates for consistent UI structure across your app:
+
+```typescript
+import { useTemplate } from 'minimact';
+
+function Dashboard() {
+    useTemplate('SidebarLayout', { title: 'Dashboard' });
+
+    return (
+        <>
+            <h1>Welcome</h1>
+            <p>This content goes in the main area.</p>
+        </>
+    );
+}
+```
+
+**Compiles to**:
+```csharp
+[Component]
+public partial class Dashboard : SidebarLayout
+{
+    public override string Title => "Dashboard";
+
+    public override VirtualDomNode RenderContent()
+    {
+        return new Fragment(
+            new H1("Welcome"),
+            new P("This content goes in the main area.")
+        );
+    }
+}
+```
+
+**Template library (built-in)**:
+- `DefaultLayout` - Header, content, footer
+- `SidebarLayout` - Sidebar navigation + main content area
+- `AuthLayout` - Login/register wrappers
+- `AdminLayout` - Admin dashboard with toolbar and user menu
+
+**Custom templates**:
+```csharp
+public abstract class SidebarLayout : MinimactComponent
+{
+    public abstract string Title { get; }
+    public abstract VirtualDomNode RenderContent();
+
+    public override VirtualDomNode Render()
+    {
+        return new Div(
+            new Aside(/* sidebar navigation */),
+            new Main(
+                new Header(Title),
+                RenderContent()  // Child component's content
+            ),
+            new Footer(/* footer */)
+        );
+    }
+}
+```
+
+---
+
+### Zero-Cost Semantic Hooks
+
+High-level abstractions that compile away to optimized C# code with no runtime overhead.
+
+#### useValidation
+
+Automatic form validation with minimal boilerplate:
+
+```typescript
+import { useValidation } from 'minimact';
+
+function UserForm() {
+    const email = useValidation('email', {
+        required: true,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: 'Please enter a valid email'
+    });
+
+    const password = useValidation('password', {
+        required: true,
+        minLength: 8,
+        message: 'Password must be at least 8 characters'
+    });
+
+    return (
+        <form>
+            <input {...email.props} />
+            {email.error && <span class="error">{email.error}</span>}
+
+            <input {...password.props} type="password" />
+            {password.error && <span class="error">{password.error}</span>}
+
+            <button disabled={!email.valid || !password.valid}>Submit</button>
+        </form>
+    );
+}
+```
+
+**Babel compiles this to**:
+- Wired validation logic
+- Automatic error display targeting
+- Disabled button state management
+- All without manual useState boilerplate
+
+#### useToggle
+
+Atomic on/off pattern:
+
+```typescript
+const [isOpen, toggle] = useToggle(false);
+
+return (
+    <div>
+        <button onClick={toggle}>Toggle</button>
+        {isOpen && <Panel />}
+    </div>
+);
+```
+
+#### useModal
+
+Composite pattern with state + backdrop + animations:
+
+```typescript
+const modal = useModal();
+
+return (
+    <>
+        <button onClick={modal.open}>Open Modal</button>
+        {modal.isOpen && (
+            <div class="modal-backdrop" onClick={modal.close}>
+                <div class="modal-content">
+                    <h2>Modal Title</h2>
+                    <button onClick={modal.close}>Close</button>
+                </div>
+            </div>
+        )}
+    </>
+);
+```
+
+#### Additional Semantic Hooks
+
+- `useAccordion` - Collapsible sections with single/multiple expansion
+- `useTabs` - Tab navigation with active state
+- `useDropdown` - Dropdown menus with keyboard navigation
+- `useDisclosure` - Show/hide pattern with accessibility
+- `useTable` - Table state with sorting, filtering, pagination
+
+**Philosophy**: Let .NET handle complexity, Minimact focuses on elegant UI patterns.
+
+---
+
+### Type-Safe API Routes with IntelliSense
+
+Route-as-parameter pattern provides full type safety and discoverability:
+
+```typescript
+import { useDropdown, Routes } from 'minimact';
+
+function UnitSelector() {
+    const dropdown = useDropdown(Routes.Api.Units.GetAll);
+    //                            ^ Full IntelliSense autocomplete!
+
+    return (
+        <select {...dropdown.props}>
+            {dropdown.items.map(unit => (
+                <option key={unit.id} value={unit.id}>
+                    {unit.name}
+                </option>
+            ))}
+        </select>
+    );
+}
+```
+
+**How it works**:
+1. Your ASP.NET controllers are analyzed by NSwag or similar tool
+2. TypeScript route definitions are generated with full types
+3. Babel plugin detects route references in hooks
+4. Generates type-safe C# fetching code
+5. Return types automatically flow through to component
+
+**Generated route types**:
+```typescript
+// Generated/Routes.ts
+export const Routes = {
+    Api: {
+        Units: {
+            GetAll: {
+                path: '/api/units',
+                method: 'GET',
+                returns: 'Unit[]'
+            },
+            GetById: (id: number) => ({
+                path: `/api/units/${id}`,
+                method: 'GET',
+                returns: 'Unit'
+            })
+        }
+    }
+};
+```
+
+**Benefits**:
+- ✅ No typos in route strings
+- ✅ Refactor-safe (rename C# controller, TypeScript updates)
+- ✅ Discover available endpoints via IntelliSense
+- ✅ Full end-to-end type safety: C# → routes → hooks → components
+
+**Works across all hooks**:
+```typescript
+const tabs = useTabs(Routes.Api.Dashboard.Sections);
+const table = useTable(Routes.Api.Users.Search);
+const form = useValidation(Routes.Api.Users.Create);
+```
+
+---
+
+### Server-Initialized State with EF Core
+
+Leverage ASP.NET's dependency injection and Entity Framework to pre-populate component state:
+
+```typescript
+// UserProfile.tsx
+export function UserProfile() {
+    const [user, setUser] = useState(null);
+
+    return user ? <div>{user.name}</div> : <div>Loading...</div>;
+}
+```
+
+**Codebehind file**:
+```csharp
+// UserProfile.codebehind.cs
+public partial class UserProfile
+{
+    private readonly AppDbContext _db;
+
+    public UserProfile(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public override async Task OnInitializedAsync()
+    {
+        user = await _db.Users.FirstOrDefaultAsync();
+        TriggerRender();
+    }
+}
+```
+
+**Result**:
+- Server renders fully hydrated HTML on first load
+- Data loaded from database via EF Core
+- Full dependency injection support
+- Optionally patch via SignalR if data changes
+- Can use any .NET service (ILogger, custom services, etc.)
+
+---
+
+### Reconciliation Engine Architecture
+
+The Rust reconciliation engine can run in multiple modes:
+
+#### Server-Side (Default)
+- Runs on ASP.NET server
+- Computes diffs between VDOM trees
+- Predicts patches based on state transitions
+- Sends HTML patches via SignalR
+- Maintains prediction cache in memory/Redis
+
+**Benefits**:
+- Centralized rendering logic
+- Easier caching and prediction
+- Works with .NET + Rust FFI
+
+#### Client-Side WASM (Advanced)
+- Same Rust engine compiled to WebAssembly
+- Runs in browser for low-latency apps
+- Accepts state & VDOM from server
+- Reconciles patches locally
+- Supports offline mode
+
+**Benefits**:
+- Instant interactivity
+- Reduced server load
+- Ideal for dashboards or offline-capable apps
+
+#### Predictive Learning Modes
+
+**Per-Component (Default)**:
+- Each component maintains its own transition map
+- State change → HTML patch fingerprint
+- Lightweight, fast to train (~5-10 samples)
+
+**Per-App Cache**:
+- Centralized prediction service (Redis/in-memory)
+- Shared across processes
+- Component + state snapshot → patch
+
+**Cross-Deployment (Advanced)**:
+- Train global model from telemetry
+- Track state transition → render cost
+- Learn which transitions are stable/predictable
+- Export/import training data
+
+---
+
+## Comparison to Alternatives
+
+### vs. Next.js / Remix
+
+| Feature | Minimact | Next.js / Remix |
+|---------|---------|-----------------|
+| Bundle size | ~5KB | ~50-150KB |
+| Server language | C# / .NET | Node.js |
+| Hydration | None (or minimal client zones) | Required |
+| Prediction | ✅ Rust-powered | ❌ |
+| Client-side state | useClientState | useState |
+| SEO | ✅ True SSR | ✅ |
+| Template system | Built-in | Manual |
+| Markdown support | Built-in useMarkdown | Manual/plugins |
+| Type-safe routes | IntelliSense via codegen | tRPC/manual |
+
+### vs. Blazor Server
+
+| Feature | Minimact | Blazor Server |
+|---------|---------|---------------|
+| Syntax | JSX/TSX (React) | Razor (C#) |
+| Learning curve | Low (React devs) | Medium (C# devs) |
+| Performance | Predicted updates | SignalR patches |
+| Bundle size | ~5KB | ~300KB |
+| Hybrid state | useClientState + useState | Server-only |
+| Community | React ecosystem | .NET ecosystem |
+| Semantic hooks | Built-in (useModal, etc.) | Manual |
+
+### vs. HTMX
+
+| Feature | Minimact | HTMX |
+|---------|---------|------|
+| Syntax | React components | HTML attributes |
+| State management | Hooks (useState/Client) | Server session |
+| Prediction | ✅ Rust engine | ❌ |
+| Component model | ✅ Full | ❌ Limited |
+| TypeScript | ✅ Full support | ❌ |
+| Client state | useClientState | JavaScript |
+
+---
+
 ## Conclusion
 
-Minimact brings **React's developer experience** to **server-side rendering** with **predictive performance optimization**, all powered by **ASP.NET Core** and **Rust**.
+Minimact brings **React's developer experience** to **server-side rendering** with **predictive performance optimization** and **hybrid state management**, all powered by **ASP.NET Core** and **Rust**.
 
 **Key Differentiators**:
-1. ✅ Familiar React syntax (TSX/JSX)
+1. ✅ Familiar React syntax (TSX/JSX) with full hooks support
 2. ✅ Minimal JavaScript bundle (~5KB)
 3. ✅ Predictive updates (50%+ faster perceived latency)
-4. ✅ Server-side security and control
-5. ✅ ASP.NET Core ecosystem
+4. ✅ Hybrid client/server state with `useClientState`
+5. ✅ Built-in markdown and template support
+6. ✅ Zero-cost semantic hooks (useModal, useValidation, etc.)
+7. ✅ Type-safe API routes with IntelliSense
+8. ✅ Server-side security and control
+9. ✅ ASP.NET Core + EF Core integration
 
 **Target Audience**:
 - React developers who want server-side rendering without complexity
 - .NET developers who want modern frontend DX
 - Teams prioritizing performance, SEO, and security
+- Enterprise applications with strict deployment requirements
+- Navy contractors and regulated environments
 
 **Next Steps**:
 1. Finish Rust reconciliation robustness (REQUIREMENTS.md)
-2. Build C# runtime and SignalR hub
-3. Create Babel transformation plugin
-4. Develop client library
-5. Launch alpha with sample apps
+2. Build C# runtime with hybrid state management
+3. Create Babel transformation plugin with dependency tracking
+4. Develop client library with useClientState support
+5. Implement semantic hooks (useValidation, useModal, etc.)
+6. Build route codegen + IntelliSense integration
+7. Create template library (DefaultLayout, SidebarLayout, etc.)
+8. Launch alpha with sample apps
 
 ---
 
@@ -1275,10 +1781,10 @@ Minimact brings **React's developer experience** to **server-side rendering** wi
 
 This is the vision. The Rust core is built. Now we need:
 - C# runtime developers
-- Babel plugin developers
+- Babel plugin developers (with AST/dependency analysis expertise)
 - JavaScript/React developers
 - DevTools developers
 - Technical writers
 - Early adopters / testers
 
-**Let's build the future of server-side React!**
+**Let's build the future of server-side React with the power of .NET!**
