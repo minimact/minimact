@@ -438,19 +438,19 @@ Built with:
 
 ## Roadmap
 
-### Q2 2024
+### Q2 2025
 - [ ] Complete C# runtime
 - [ ] Babel plugin MVP
 - [ ] Client library
 - [ ] Alpha release
 
-### Q3 2024
+### Q3 2025
 - [ ] Semantic hooks library
 - [ ] Template system
 - [ ] Route codegen with IntelliSense
 - [ ] Beta release
 
-### Q4 2024
+### Q4 2025
 - [ ] Production optimizations
 - [ ] DevTools browser extension
 - [ ] Comprehensive documentation
