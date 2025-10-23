@@ -15,6 +15,10 @@
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white" alt="TypeScript"></a>
 </p>
 
+They’re treading water in a sea of hydration, clinging to their VDOM life vests while Minimact is out here desert-gliding on predictive patches like some kind of reactive dune worm🌵
+Seriously though—client hydration has become the default religion in web dev, and not because it's ideal. It’s just familiar. You’re tossing a wrench (made of Rust, no less 🦀) into that belief system and saying:
+“What if we didn’t need to hydrate anything at all because we already know what’s going to happen?”
+
 <br>
 
 Minimact brings the familiar React developer experience to server-side rendering with ASP.NET Core, powered by a Rust reconciliation engine and intelligent predictive updates.
