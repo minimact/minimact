@@ -21,9 +21,21 @@ function extractLocalVariables(path, component) {
       }
     }
 
-    // Extract variable name and initial value
+    // Check if this is an event handler (arrow function or function expression)
     if (t.isIdentifier(declarator.id) && declarator.init) {
       const varName = declarator.id.name;
+
+      // If it's an arrow function or function expression, treat it as an event handler
+      if (t.isArrowFunctionExpression(declarator.init) || t.isFunctionExpression(declarator.init)) {
+        component.eventHandlers.push({
+          name: varName,
+          body: declarator.init.body,
+          params: declarator.init.params
+        });
+        continue;
+      }
+
+      // Otherwise, treat as a regular local variable
       const initValue = generateCSharpExpression(declarator.init);
 
       // Try to infer type from TypeScript annotation or initial value

@@ -108,6 +108,70 @@ function generateComponent(component) {
     lines.push('');
   }
 
+  // Pub/Sub fields (usePub)
+  if (component.usePub) {
+    for (const pub of component.usePub) {
+      const channelStr = pub.channel ? `"${pub.channel}"` : 'null';
+      lines.push(`    // usePub: ${pub.name}`);
+      lines.push(`    private string ${pub.name}_channel = ${channelStr};`);
+      lines.push('');
+    }
+  }
+
+  // Pub/Sub fields (useSub)
+  if (component.useSub) {
+    for (const sub of component.useSub) {
+      const channelStr = sub.channel ? `"${sub.channel}"` : 'null';
+      lines.push(`    // useSub: ${sub.name}`);
+      lines.push(`    private string ${sub.name}_channel = ${channelStr};`);
+      lines.push(`    private dynamic ${sub.name}_value = null;`);
+      lines.push('');
+    }
+  }
+
+  // Task scheduling fields (useMicroTask)
+  if (component.useMicroTask) {
+    for (let i = 0; i < component.useMicroTask.length; i++) {
+      lines.push(`    // useMicroTask ${i}`);
+      lines.push(`    private bool _microTaskScheduled_${i} = false;`);
+      lines.push('');
+    }
+  }
+
+  // Task scheduling fields (useMacroTask)
+  if (component.useMacroTask) {
+    for (let i = 0; i < component.useMacroTask.length; i++) {
+      const task = component.useMacroTask[i];
+      lines.push(`    // useMacroTask ${i} (delay: ${task.delay}ms)`);
+      lines.push(`    private bool _macroTaskScheduled_${i} = false;`);
+      lines.push('');
+    }
+  }
+
+  // SignalR fields (useSignalR)
+  if (component.useSignalR) {
+    for (const signalR of component.useSignalR) {
+      const hubUrlStr = signalR.hubUrl ? `"${signalR.hubUrl}"` : 'null';
+      lines.push(`    // useSignalR: ${signalR.name}`);
+      lines.push(`    private string ${signalR.name}_hubUrl = ${hubUrlStr};`);
+      lines.push(`    private bool ${signalR.name}_connected = false;`);
+      lines.push(`    private string ${signalR.name}_connectionId = null;`);
+      lines.push(`    private string ${signalR.name}_error = null;`);
+      lines.push('');
+    }
+  }
+
+  // Predict hint fields (usePredictHint)
+  if (component.usePredictHint) {
+    for (let i = 0; i < component.usePredictHint.length; i++) {
+      const hint = component.usePredictHint[i];
+      const hintIdStr = hint.hintId ? `"${hint.hintId}"` : `"hint_${i}"`;
+      lines.push(`    // usePredictHint: ${hintIdStr}`);
+      lines.push(`    private string _hintId_${i} = ${hintIdStr};`);
+      lines.push('');
+    }
+  }
+
   // Render method (or RenderContent for templates)
   const renderMethodName = component.useTemplate ? 'RenderContent' : 'Render';
   lines.push(`    protected override VNode ${renderMethodName}()`);
@@ -180,9 +244,33 @@ function generateComponent(component) {
   // Event handlers
   for (const handler of component.eventHandlers) {
     lines.push('');
-    lines.push(`    private void ${handler.name}()`);
+
+    // Generate parameter list
+    const params = handler.params || [];
+    const paramStr = params.length > 0
+      ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg').join(', ')
+      : '';
+
+    lines.push(`    private void ${handler.name}(${paramStr})`);
     lines.push('    {');
-    lines.push(`        // TODO: Implement ${handler.name}`);
+
+    // Generate method body
+    if (handler.body) {
+      if (t.isBlockStatement(handler.body)) {
+        // Block statement: { ... }
+        for (const statement of handler.body.body) {
+          const csharpStmt = generateCSharpStatement(statement);
+          if (csharpStmt) {
+            lines.push(`        ${csharpStmt}`);
+          }
+        }
+      } else {
+        // Expression body: () => expression
+        const csharpExpr = generateCSharpExpression(handler.body);
+        lines.push(`        ${csharpExpr};`);
+      }
+    }
+
     lines.push('    }');
   }
 
@@ -194,6 +282,54 @@ function generateComponent(component) {
     lines.push(`        ${toggle.name} = !${toggle.name};`);
     lines.push(`        SetState("${toggle.name}", ${toggle.name});`);
     lines.push('    }');
+  }
+
+  // Pub/Sub methods (usePub)
+  if (component.usePub) {
+    for (const pub of component.usePub) {
+      lines.push('');
+      lines.push(`    // Publish to ${pub.name}_channel`);
+      lines.push(`    private void ${pub.name}(dynamic value, PubSubOptions? options = null)`);
+      lines.push('    {');
+      lines.push(`        EventAggregator.Instance.Publish(${pub.name}_channel, value, options);`);
+      lines.push('    }');
+    }
+  }
+
+  // Pub/Sub methods (useSub)
+  if (component.useSub) {
+    for (const sub of component.useSub) {
+      lines.push('');
+      lines.push(`    // Subscribe to ${sub.name}_channel`);
+      lines.push(`    protected override void OnInitialized()`);
+      lines.push('    {');
+      lines.push(`        base.OnInitialized();`);
+      lines.push(`        `);
+      lines.push(`        // Subscribe to ${sub.name}_channel`);
+      lines.push(`        EventAggregator.Instance.Subscribe(${sub.name}_channel, (msg) => {`);
+      lines.push(`            ${sub.name}_value = msg.Value;`);
+      lines.push(`            SetState("${sub.name}_value", ${sub.name}_value);`);
+      lines.push(`        });`);
+      lines.push('    }');
+    }
+  }
+
+  // SignalR methods (useSignalR)
+  if (component.useSignalR) {
+    for (const signalR of component.useSignalR) {
+      lines.push('');
+      lines.push(`    // SignalR send method for ${signalR.name}`);
+      lines.push(`    // Note: useSignalR is primarily client-side.`);
+      lines.push(`    // Server-side SignalR invocation can use HubContext directly if needed.`);
+      lines.push(`    private async Task ${signalR.name}_send(string methodName, params object[] args)`);
+      lines.push('    {');
+      lines.push(`        if (HubContext != null && ConnectionId != null)`);
+      lines.push(`        {`);
+      lines.push(`            // Send message to specific client connection`);
+      lines.push(`            await HubContext.Clients.Client(ConnectionId).SendAsync(methodName, args);`);
+      lines.push(`        }`);
+      lines.push('    }');
+    }
   }
 
   lines.push('}');

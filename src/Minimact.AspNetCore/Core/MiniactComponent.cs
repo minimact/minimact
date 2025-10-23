@@ -235,11 +235,21 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Initialize component state synchronously
+    /// Called once when component is first created
+    /// </summary>
+    protected virtual void OnInitialized()
+    {
+        // Override in derived components for synchronous initialization
+    }
+
+    /// <summary>
     /// Initialize component state and perform async setup
     /// Called once when component is first created
     /// </summary>
     public virtual Task OnInitializedAsync()
     {
+        OnInitialized(); // Call synchronous init first
         return Task.CompletedTask;
     }
 
