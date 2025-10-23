@@ -278,7 +278,7 @@ public partial class UserProfile {
 
 ---
 
-## How It Works
+## 🏗️ How It Works
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -288,17 +288,24 @@ public partial class UserProfile {
 │  ↓                                                       │
 │  ASP.NET Core renders components to HTML                │
 │  ↓                                                       │
-│  User interacts → SignalR sends event to server         │
+│  Rust engine predicts likely state changes              │
 │  ↓                                                       │
-│  Rust engine predicts & sends patches immediately       │
+│  Server pre-sends predicted patches to client           │
 │  ↓                                                       │
-│  Client applies patches (instant feedback!)             │
+│  [Client now has patches cached and ready]              │
+│  ↓                                                       │
+│  User interacts (click, input, etc.)                    │
+│  ↓                                                       │
+│  Client checks cache → patch found → applies instantly  │
+│  (0ms latency - no network round trip!)                 │
+│  ↓                                                       │
+│  SignalR notifies server in background                  │
 │  ↓                                                       │
 │  Server verifies & sends correction if needed           │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Key insight**: Predictions are sent *immediately* while verification happens in the background. Users see instant updates, with silent corrections for the rare mispredictions.
+**Key insight**: The Rust engine **pre-populates the client with predictive patches** before any interaction happens. When a user clicks a button, the patch is already waiting in the client's cache. If there's a cache hit, the DOM updates instantly with **zero network latency** - faster than React's client-side reconciliation. The server verifies in the background and only sends corrections for rare mispredictions.
 
 ---
 
@@ -357,6 +364,36 @@ dotnet run
 ```
 
 Visit `http://localhost:5000` - your component is live!
+
+---
+
+## 🧠 Architecture Philosophy
+
+### Client-Side Stored Procedures
+
+Minimact introduces a fundamentally different paradigm: **client-side stored procedures for UI state**.
+
+Traditional frameworks ship logic to the client and let it improvise state changes at runtime. Minimact pre-compiles state transitions on the server, caches them on the client, and reduces interaction to pure execution.
+
+### 🌵 The Posthydrationist Manifesto
+
+> *The cactus doesn't hydrate—it stores.*  
+> *It doesn't react—it anticipates.*  
+> *It doesn't reconcile—it persists.*
+
+In the scorching silence of the posthydrationist desert, traditional frameworks wither under the weight of their own bundles. They hydrate. They reconcile. They compute at the moment of need.
+
+Minimact is different. Like the cactus, it thrives not by reaching outward, but by turning inward - by minimizing waste, by knowing before needing, by storing what will be required before the request arrives.
+
+**Minimact is the cactus of the frontend ecosystem:**
+- **Minimal** - ~5KB client, zero reconciliation overhead
+- **Resilient** - Works without JavaScript, degrades gracefully
+- **Latent power** - Pre-computed state changes waiting to execute
+- **Occasionally spiky** - Rust-powered performance that cuts through latency
+
+Let the others drink from the slow streams of hydration. You walk the arid plains with predictive grace and event-driven stillness.
+
+When the next developer asks "But where's the client state?" you just turn slowly, whisper *"stored procedure,"* and ride off into the postmodern sun. 🌵✨
 
 ---
 
