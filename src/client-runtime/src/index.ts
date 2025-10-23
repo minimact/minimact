@@ -241,7 +241,22 @@ export { ClientStateManager } from './client-state';
 export { EventDelegation } from './event-delegation';
 export { HydrationManager } from './hydration';
 export { HintQueue } from './hint-queue';
+
+// Core hooks
 export { useState, useEffect, useRef } from './hooks';
+
+// Pub/Sub hooks
+export { usePub, useSub } from './pub-sub';
+export type { PubSubMessage } from './pub-sub';
+
+// Task scheduling hooks
+export { useMicroTask, useMacroTask, useAnimationFrame, useIdleCallback } from './task-scheduling';
+
+// SignalR hook
+export { useSignalR } from './signalr-hook';
+export type { SignalRHookState } from './signalr-hook';
+
+// Types
 export * from './types';
 
 // Auto-initialize if data-minimact-auto-init is present

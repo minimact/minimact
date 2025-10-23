@@ -47,6 +47,24 @@ function extractHook(path, component) {
     case 'useDropdown':
       extractUseDropdown(path, component);
       break;
+    case 'usePub':
+      extractUsePub(path, component);
+      break;
+    case 'useSub':
+      extractUseSub(path, component);
+      break;
+    case 'useMicroTask':
+      extractUseMicroTask(path, component);
+      break;
+    case 'useMacroTask':
+      extractUseMacroTask(path, component);
+      break;
+    case 'useSignalR':
+      extractUseSignalR(path, component);
+      break;
+    case 'usePredictHint':
+      extractUsePredictHint(path, component);
+      break;
   }
 }
 
@@ -268,6 +286,101 @@ function extractUseDropdown(path, component) {
   });
 }
 
+/**
+ * Extract usePub
+ */
+function extractUsePub(path, component) {
+  const parent = path.parent;
+  if (!t.isVariableDeclarator(parent)) return;
+
+  const pubName = parent.id.name;
+  const channel = path.node.arguments[0];
+
+  component.usePub = component.usePub || [];
+  component.usePub.push({
+    name: pubName,
+    channel: t.isStringLiteral(channel) ? channel.value : null
+  });
+}
+
+/**
+ * Extract useSub
+ */
+function extractUseSub(path, component) {
+  const parent = path.parent;
+  if (!t.isVariableDeclarator(parent)) return;
+
+  const subName = parent.id.name;
+  const channel = path.node.arguments[0];
+  const callback = path.node.arguments[1];
+
+  component.useSub = component.useSub || [];
+  component.useSub.push({
+    name: subName,
+    channel: t.isStringLiteral(channel) ? channel.value : null,
+    hasCallback: !!callback
+  });
+}
+
+/**
+ * Extract useMicroTask
+ */
+function extractUseMicroTask(path, component) {
+  const callback = path.node.arguments[0];
+
+  component.useMicroTask = component.useMicroTask || [];
+  component.useMicroTask.push({
+    body: callback
+  });
+}
+
+/**
+ * Extract useMacroTask
+ */
+function extractUseMacroTask(path, component) {
+  const callback = path.node.arguments[0];
+  const delay = path.node.arguments[1];
+
+  component.useMacroTask = component.useMacroTask || [];
+  component.useMacroTask.push({
+    body: callback,
+    delay: t.isNumericLiteral(delay) ? delay.value : 0
+  });
+}
+
+/**
+ * Extract useSignalR
+ */
+function extractUseSignalR(path, component) {
+  const parent = path.parent;
+  if (!t.isVariableDeclarator(parent)) return;
+
+  const signalRName = parent.id.name;
+  const hubUrl = path.node.arguments[0];
+  const onMessage = path.node.arguments[1];
+
+  component.useSignalR = component.useSignalR || [];
+  component.useSignalR.push({
+    name: signalRName,
+    hubUrl: t.isStringLiteral(hubUrl) ? hubUrl.value : null,
+    hasOnMessage: !!onMessage
+  });
+}
+
+/**
+ * Extract usePredictHint
+ */
+function extractUsePredictHint(path, component) {
+  const hintId = path.node.arguments[0];
+  const predictedState = path.node.arguments[1];
+
+  component.usePredictHint = component.usePredictHint || [];
+  component.usePredictHint.push({
+    hintId: t.isStringLiteral(hintId) ? hintId.value : null,
+    predictedState: predictedState
+  });
+}
+
 module.exports = {
   extractHook,
   extractUseState,
@@ -278,5 +391,11 @@ module.exports = {
   extractUseValidation,
   extractUseModal,
   extractUseToggle,
-  extractUseDropdown
+  extractUseDropdown,
+  extractUsePub,
+  extractUseSub,
+  extractUseMicroTask,
+  extractUseMacroTask,
+  extractUseSignalR,
+  extractUsePredictHint
 };
