@@ -3,6 +3,7 @@ import { DOMPatcher } from './dom-patcher';
 import { ClientStateManager } from './client-state';
 import { EventDelegation } from './event-delegation';
 import { HydrationManager } from './hydration';
+import { HintQueue } from './hint-queue';
 import { MinimactOptions, Patch } from './types';
 
 /**
@@ -14,6 +15,7 @@ export class Minimact {
   private domPatcher: DOMPatcher;
   private clientState: ClientStateManager;
   private hydration: HydrationManager;
+  private hintQueue: HintQueue;
   private eventDelegation: EventDelegation | null = null;
   private options: Required<MinimactOptions>;
   private rootElement: HTMLElement;
@@ -52,6 +54,10 @@ export class Minimact {
     });
 
     this.hydration = new HydrationManager(this.clientState, {
+      debugLogging: this.options.enableDebugLogging
+    });
+
+    this.hintQueue = new HintQueue({
       debugLogging: this.options.enableDebugLogging
     });
 
@@ -134,6 +140,15 @@ export class Minimact {
         this.domPatcher.applyPatches(component.element, patches as Patch[]);
         this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
       }
+    });
+
+    // Handle hint queueing (usePredictHint)
+    this.signalR.on('queueHint', (data) => {
+      this.hintQueue.queueHint(data);
+      this.log(`Hint '${data.hintId}' queued for component ${data.componentId}`, {
+        patchCount: data.patches.length,
+        confidence: (data.confidence * 100).toFixed(0) + '%'
+      });
     });
 
     // Handle reconnection
@@ -225,6 +240,8 @@ export { DOMPatcher } from './dom-patcher';
 export { ClientStateManager } from './client-state';
 export { EventDelegation } from './event-delegation';
 export { HydrationManager } from './hydration';
+export { HintQueue } from './hint-queue';
+export { useState, useEffect, useRef } from './hooks';
 export * from './types';
 
 // Auto-initialize if data-minimact-auto-init is present
