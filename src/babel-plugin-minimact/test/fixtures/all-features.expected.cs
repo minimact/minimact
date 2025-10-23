@@ -1,4 +1,4 @@
-using Minimact.Runtime.Core;
+using Minimact.AspNetCore.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

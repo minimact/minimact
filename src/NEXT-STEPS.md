@@ -40,7 +40,7 @@
 #### Components to Build:
 
 ```
-Minimact.Runtime/
+Minimact.AspNetCore/
 ├── Core/
 │   ├── MinimactComponent.cs          // Base class for all components
 │   ├── VNode.cs                     // Virtual DOM types (VElement, VText, etc.)

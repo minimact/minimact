@@ -79,7 +79,7 @@ export function Counter() {
 
 **Output (Counter.cs):**
 ```csharp
-using Minimact.Runtime.Core;
+using Minimact.AspNetCore.Core;
 
 namespace MyApp.Components;
 

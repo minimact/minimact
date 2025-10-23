@@ -61,7 +61,7 @@ Minimact.createElement("div", props,
 
 ### Phase 1: Runtime Helpers (C# Side)
 
-Add to `Minimact.Runtime.Core`:
+Add to `Minimact.AspNetCore.Core`:
 
 ```csharp
 public static class Minimact

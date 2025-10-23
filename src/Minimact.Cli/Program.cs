@@ -278,7 +278,7 @@ static bool TestComponentProcessing(bool verbose)
     try
     {
         // Check if example components exist
-        var runtimeDir = Path.Combine("..", "Minimact.Runtime");
+        var runtimeDir = Path.Combine("..", "Minimact.AspNetCore");
 
         if (!Directory.Exists(runtimeDir))
         {

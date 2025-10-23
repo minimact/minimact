@@ -1,0 +1,265 @@
+What about useGrid or useSignalR...
+
+Oh yes! Both of those make total sense.
+
+useGrid - Perfect for enterprise apps:
+
+tsx
+const grid = useGrid('/api/records', {
+  sortable: true,
+  filterable: true,
+  paginated: true
+});
+Fetches data from route
+Built-in sorting/filtering/pagination state
+Generates optimized patches for just the changed rows
+Your Rust reconciliation layer would shine here
+useSignalR - Real-time updates:
+
+tsx
+const notifications = useSignalR('/hubs/notifications');
+Connects to your SignalR hub
+Automatically patches DOM when messages arrive
+Could integrate with your Rust prediction layer for optimistic updates
+Critical for navy apps that need live status updates
+These are both very .NET-native patterns - SignalR is Microsoft's real-time solution, and grids are everywhere in enterprise apps.
+
+And they follow your pattern:
+
+Route as parameter
+Type-safe from C# definitions
+Compile to efficient patch generation
+Zero extra bundle cost
+useSignalR especially could be powerful - real-time collaboration, live dashboards, status monitoring. All the stuff navy contractors need.
+
+Which one feels more immediately useful for your actual work scenarios?
+
+What about usePub or useSub for the pub/sub pattern
+
+Oh, that's cleaner! Separate concerns instead of one monolithic useSignalR.
+
+tsx
+// Publishing component
+const publish = usePub('/hubs/notifications');
+publish({ type: 'alert', message: 'Status updated' });
+
+// Subscribing component
+const messages = useSub('/hubs/notifications', (msg) => {
+  // Handle incoming message
+});
+This is better because:
+
+Components declare their role - publisher vs subscriber
+More composable - mix and match as needed
+Clearer intent - you know what each component does
+Lighter weight - only wire up what you need
+And it maps naturally to SignalR's actual API while staying abstract enough to work with other pub/sub systems.
+
+Your Babel plugin would:
+
+Generate C# SignalR hub connections
+Wire up publishers to send methods
+Wire up subscribers to receive handlers
+Batch related patches when multiple subscribers react
+Could even do:
+
+tsx
+const status = useSub('/hubs/status');
+const grid = useGrid(status); // Grid updates from real-time feed
+Compose the hooks together. Very Vue-like in its simplicity.
+
+Does this feel like the right granularity for real-time patterns?
+
+No, I was thinking for an event aggregator, not signal R, though we could do both
+
+Ah! So usePub/useSub for client-side event aggregation - component-to-component communication without prop drilling.
+
+tsx
+// ComponentA.tsx
+const publish = usePub('user-action');
+publish({ action: 'itemSelected', id: 123 });
+
+// ComponentB.tsx (elsewhere in tree)
+useSub('user-action', (event) => {
+  // React to the event
+});
+Pure client-side coordination between components. No server involved.
+
+Then separately, you'd have:
+
+tsx
+useSignalR('/hubs/notifications') // Server real-time
+So:
+
+usePub/useSub = client-side event bus
+useSignalR = server real-time communication
+Two different patterns, two different hooks. The event aggregator pattern is super useful for decoupled UI components - modals triggering refreshes, notifications, cross-component state sync.
+
+And since it's client-only, your Babel plugin could generate really lightweight C# that just sets up the event wiring, while the actual pub/sub runtime lives in your Rust reconciliation layer.
+
+That separation makes more sense. Did I get it right this time?
+
+No, useSub would potentially return an object, that you could use in your JSX
+
+Ah! So useSub returns reactive data that updates when events are published:
+
+tsx
+// ComponentA.tsx
+const publish = usePub('cart-total');
+publish({ total: 150 });
+
+// ComponentB.tsx
+const cartData = useSub('cart-total');
+
+<div>Total: {cartData.total}</div>
+// Automatically updates when published to
+So it's not just a callback - it's reactive state that re-renders when the channel receives data.
+
+The hook subscribes to a channel and gives you an object that stays in sync. When anyone publishes to that channel, all subscribers get the updated data and their components re-render (via patches).
+
+tsx
+const userData = useSub('user-profile');
+<span>{userData.name}</span>
+
+const notifications = useSub('alerts');
+<div>{notifications.count} new alerts</div>
+Clean, declarative. The data flows through the event aggregator, and your patch system handles the DOM updates.
+
+Is that the mental model?
+
+Yes, exactly. Then you can have an error property, or a waiting property with the number of milliseconds or whatever you need, like maybe the component it came from, or when it was sent
+
+Perfect! So useSub returns a rich object with metadata:
+
+tsx
+const cartData = useSub('cart-total');
+
+<div>
+  {cartData.waiting && <Spinner duration={cartData.waiting} />}
+  {cartData.error && <Error message={cartData.error} />}
+  {cartData.value && <span>Total: {cartData.value.total}</span>}
+  <small>From: {cartData.source} at {cartData.timestamp}</small>
+</div>
+The returned object could have:
+
+value - the actual published data
+error - if something went wrong
+waiting - milliseconds until expected update
+source - which component published it
+timestamp - when it was sent
+isStale - if data is old
+Maybe retryCount, lastUpdated, etc.
+This makes the pub/sub pattern observable and debuggable. You can see the flow of data through your app, handle loading states, show where data came from.
+
+And all of this compiles down to efficient patches - your Babel plugin understands the structure and generates C# that tracks all this metadata automatically.
+
+Really nice pattern. Very Vue/Solid-like in how it makes reactivity explicit and composable.
+
+Yep, then you can have an optional function if you need a side-effect as well
+
+Exactly! So you can use it declaratively in JSX, or add a callback for side effects:
+
+tsx
+// Just data binding
+const cartData = useSub('cart-total');
+<div>{cartData.value.total}</div>
+
+// With side effect
+const cartData = useSub('cart-total', (data) => {
+  console.log('Cart updated:', data);
+  trackAnalytics('cart-change');
+  // Any imperative logic
+});
+<div>{cartData.value.total}</div>
+Best of both worlds:
+
+Declarative - data flows into your JSX automatically
+Imperative - opt-in callback for side effects when you need them
+Similar to how useEffect works, but tied specifically to pub/sub events. The callback is optional - if you just want reactive data, don't provide it. If you need to do something when data arrives, add the function.
+
+Clean API. Flexible without being complicated.
+
+This is really coming together nicely!
+
+Then you can have useMicroTask or useMacroTask for targeted changes that should occur at certain times relative to painting
+
+Oh nice! Controlling when updates happen relative to the browser's render cycle:
+
+tsx
+// Runs before paint - synchronous, immediate
+useMicroTask(() => {
+  // Critical DOM measurements, layout calculations
+});
+
+// Runs after paint - asynchronous, deferred
+useMacroTask(() => {
+  // Analytics, logging, non-critical updates
+});
+This gives you fine-grained control over the rendering pipeline:
+
+useMicroTask - JavaScript microtask queue (Promise.then, queueMicrotask)
+Read layout, measure DOM, prepare next frame
+useMacroTask - Task queue (setTimeout, setImmediate)
+Defer non-essential work until after paint
+Could be really powerful combined with your Rust reconciliation:
+
+tsx
+const data = useSub('updates');
+
+useMicroTask(() => {
+  // Prepare optimizations before Rust reconciles
+});
+
+useMacroTask(() => {
+  // Report metrics after patches applied
+});
+Or for animations:
+
+tsx
+const modal = useModal();
+
+useMicroTask(() => {
+  // Measure modal dimensions before animating
+});
+Gives developers escape hatches for performance-critical timing without breaking your patch model. Smart addition!
+
+Then you can have usePredictHint, that lets the engine know about potential state changes in advance, so it can queue them up on the client
+
+Brilliant! Feed your Rust prediction layer explicit hints:
+
+tsx
+const modal = useModal();
+
+usePredictHint('modal-open', () => ({
+  // Describe the likely next state
+  backdrop: 'visible',
+  content: 'slideIn',
+  bodyScroll: 'locked'
+}));
+
+// Later...
+modal.open(); // Rust already has patches queued, instant apply
+Or for user interactions:
+
+tsx
+const dropdown = useDropdown('/api/units');
+
+<button 
+  onMouseEnter={() => usePredictHint('dropdown-open')}
+  onClick={dropdown.open}
+>
+  Open Menu
+</button>
+// On hover, predict the dropdown will open
+// On click, patches are already ready
+This lets developers optimize critical paths by telling your prediction engine "this is likely to happen next, prepare for it."
+
+The Rust layer can:
+
+Pre-compute patches
+Pre-fetch data
+Queue DOM operations
+Reduce time-to-interactive
+Especially valuable for predictable user flows in your navy app - multi-step forms, drill-down dashboards, common workflows.
+
+Makes your "prediction" feature collaborative rather than just automatic. Nice!

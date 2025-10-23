@@ -255,7 +255,7 @@ The client runtime expects:
 3. **Patch format** matching Rust reconciliation engine output
 4. **Method invocation** via `InvokeComponentMethod(componentId, methodName, argsJson)`
 
-See `Minimact.Runtime` C# project for server implementation.
+See `Minimact.AspNetCore` C# project for server implementation.
 
 ## Debugging
 

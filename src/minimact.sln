@@ -4,7 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minimact.Cli", "Minimact.Cli\Minimact.Cli.csproj", "{72482F8C-6030-6B4A-7147-2A11C12256A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minimact.Runtime", "Minimact.Runtime\Minimact.Runtime.csproj", "{CDD67CAB-3156-14D2-28AA-ACF2043106DD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minimact.AspNetCore", "Minimact.AspNetCore\Minimact.AspNetCore.csproj", "{CDD67CAB-3156-14D2-28AA-ACF2043106DD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCli", "TestCli\TestCli.csproj", "{6E820729-8AF1-4C6A-0C36-F829C7FA02D5}"
 EndProject

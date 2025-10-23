@@ -1,6 +1,6 @@
-using Minimact.Runtime.Core;
-using Minimact.Runtime.Extensions;
-using MinimactHelpers = Minimact.Runtime.Core.Minimact;
+using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Extensions;
+using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,16 +34,16 @@ public partial class Index : MinimactComponent
 
     private void Handle0()
     {
-        // TODO: Implement Handle0
+        SetState(nameof(count), count + 1);
     }
 
     private void Handle1()
     {
-        // TODO: Implement Handle1
+        SetState(nameof(count), count - 1);
     }
 
     private void Handle2()
     {
-        // TODO: Implement Handle2
+        SetState(nameof(count), 0);
     }
 }

@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Minimact.Runtime/Minimact.Runtime.csproj" />
+    <ProjectReference Include="../../Minimact.AspNetCore/Minimact.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

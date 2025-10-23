@@ -43,13 +43,13 @@ async function runCSharpTest(code, description) {
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Minimact.Runtime/Minimact.Runtime.csproj" />
+    <ProjectReference Include="../../Minimact.AspNetCore/Minimact.AspNetCore.csproj" />
   </ItemGroup>
 </Project>`;
 
     // Create Program.cs (using top-level statements for .NET 8+)
-    const programCs = `using Minimact.Runtime.Core;
-using MinimactHelpers = Minimact.Runtime.Core.Minimact;
+    const programCs = `using Minimact.AspNetCore.Core;
+using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
 using Newtonsoft.Json;
 using System;
 using System.Linq;

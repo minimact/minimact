@@ -119,7 +119,7 @@ async function compileCSharp(csharpCode, fallbackComponentName, testProps = {}) 
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Minimact.Runtime/Minimact.Runtime.csproj" />
+    <ProjectReference Include="../../Minimact.AspNetCore/Minimact.AspNetCore.csproj" />
   </ItemGroup>
 </Project>`;
 
@@ -157,7 +157,7 @@ async function compileCSharp(csharpCode, fallbackComponentName, testProps = {}) 
     }).join('\n');
 
     // Create Program.cs that instantiates the component and calls RenderComponent()
-    const programCs = `using Minimact.Runtime.Core;
+    const programCs = `using Minimact.AspNetCore.Core;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

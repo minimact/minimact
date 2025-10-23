@@ -289,8 +289,8 @@ function generateCSharpFile(components, state) {
   const lines = [];
 
   // Usings
-  lines.push('using Minimact.Runtime.Core;');
-  lines.push('using MinimactHelpers = Minimact.Runtime.Core.Minimact;');
+  lines.push('using Minimact.AspNetCore.Core;');
+  lines.push('using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;');
   lines.push('using System.Collections.Generic;');
   lines.push('using System.Linq;');
   lines.push('using System.Threading.Tasks;');

@@ -32,7 +32,7 @@
 
 ### 2. C# Runtime (100% Complete)
 
-**Location:** `E:\allocation\minimact\Minimact.Runtime\`
+**Location:** `E:\allocation\minimact\Minimact.AspNetCore\`
 
 **Files:**
 - `Core/VNode.cs` - Virtual DOM types matching Rust
@@ -288,7 +288,7 @@ node transform-example.js examples/Counter.tsx > Generated/Counter.cs
 ```bash
 dotnet new web -n MinimactDemo
 cd MinimactDemo
-dotnet add reference ../Minimact.Runtime/Minimact.Runtime.csproj
+dotnet add reference ../Minimact.AspNetCore/Minimact.AspNetCore.csproj
 ```
 
 ### 5. Configure Startup
