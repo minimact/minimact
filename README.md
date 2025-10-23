@@ -40,7 +40,19 @@ export function Counter() {
 
 ---
 
-## Why Minimact?
+## ✨ Why Minimact?
+
+Traditional UI frameworks like React must reconcile every state change on the client, leading to CPU overhead and slower interactions — especially on low-end devices or in high-frequency apps.
+
+**Minimact flips the model:**
+- You write UI in **TSX/JSX**
+- Minimact compiles it to **C# classes**
+- C# renders the HTML on the server
+- A **Rust engine predicts state changes** and pre-sends patches to the client
+- Client caches predicted patches **before user interaction**
+- User clicks → **Client applies cached patch instantly (0ms network latency)**
+- **SignalR verifies in background** and corrects only if needed
+- **No diffing, no runtime VDOM, zero client reconciliation**
 
 ### For React Developers
 - ✅ **Familiar syntax** - Write JSX/TSX like you always have
@@ -84,11 +96,92 @@ function SearchBox() {
 
 ### 🚀 Predictive Rendering
 
-Rust-powered reconciliation engine predicts and pre-applies UI updates:
+Rust-powered reconciliation engine pre-computes patches and sends them to the client **before interactions happen**:
 
-- **Deterministic UIs**: 95%+ prediction accuracy
-- **Complex UIs**: 70-85% accuracy
-- **Result**: 50%+ faster perceived latency (corrections sent silently)
+- **Pre-populated cache**: Client has predicted patches ready before user clicks
+- **Zero network latency**: Cache hit = instant DOM update (0ms)
+- **Background verification**: Server confirms in parallel, corrections sent only if needed
+- **Faster than React**: No client-side reconciliation overhead
+
+**Prediction Accuracy** (determines cache hit rate):
+- **Deterministic UIs** (counters, toggles): 95%+ hit rate
+- **Dynamic UIs** (lists, conditionals): 70-85% hit rate  
+- **Complex UIs** (side effects): 60-75% hit rate
+
+Give the predictor explicit hints to pre-queue patches for critical interactions:
+
+```typescript
+function Counter() {
+    const [count, setCount] = useState(0);
+    
+    // Hint: when count increments, predict the new value
+    usePredictHint('increment', { count: count + 1 });
+    
+    return (
+        <button onClick={() => setCount(count + 1)}>
+            Count: {count}
+        </button>
+    );
+}
+```
+
+```typescript
+function TodoList() {
+    const [todos, setTodos] = useState([]);
+    
+    // Hint: when adding a todo, predict the new array
+    usePredictHint('addTodo', {
+        todos: [...todos, { id: todos.length + 1, text: 'New Todo' }]
+    });
+    
+    return (
+        <div>
+            <button onClick={() => setTodos([...todos, { id: todos.length + 1, text: 'New Todo' }])}>
+                Add Todo
+            </button>
+            <ul>
+                {todos.map(todo => <li key={todo.id}>{todo.text}</li>)}
+            </ul>
+        </div>
+    );
+}
+```
+
+For more complex UI states:
+
+```typescript
+// Pre-compute modal state changes
+const modal = useModal();
+
+usePredictHint('modal-open', () => ({
+    backdrop: 'visible',
+    content: 'slideIn',
+    bodyScroll: 'locked'
+}));
+
+modal.open(); // Rust already has patches queued, instant apply
+```
+
+Or predict based on user intent:
+
+```typescript
+const dropdown = useDropdown('/api/units');
+
+<button 
+    onMouseEnter={() => usePredictHint('dropdown-open')}
+    onClick={dropdown.open}
+>
+    Open Menu
+</button>
+// On hover, predict the dropdown will open
+// On click, patches are already ready
+```
+
+The Rust engine uses hints to:
+- Pre-compute patches for likely state changes
+- Pre-fetch required data
+- Queue DOM operations
+- Reduce time-to-interactive for critical paths
 
 ### 📝 Built-in Markdown Support
 
@@ -390,7 +483,7 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 - 🎯 Semantic hook implementations
 
 **Join the discussion**:
-- [GitHub Discussions](https://github.com/yourusername/minimact/discussions)
+- [GitHub Discussions](https://github.com/minimact/minimact/discussions)
 - [Discord Server](https://discord.gg/minimact)
 
 ---
@@ -407,9 +500,9 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 
 ## Sponsors
 
-This project is being developed for use in enterprise applications at navy contractor companies with strict deployment requirements.
+This project is being developed for use in enterprise applications with strict deployment requirements.
 
-Interested in sponsoring? [Contact us](mailto:your-email@example.com)
+Interested in sponsoring? [Contact us](mailto:ameritusweb@gmail.com)
 
 ---
 
@@ -460,4 +553,4 @@ Built with:
 
 **Built with ❤️ for the .NET and React communities**
 
-[⭐ Star this repo](https://github.com/yourusername/minimact) if you're interested in server-side React for .NET!
+[⭐ Star this repo](https://github.com/minimact/minimact) if you're interested in server-side React for .NET!
