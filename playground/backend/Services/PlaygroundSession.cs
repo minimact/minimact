@@ -1,4 +1,5 @@
 using Minimact.AspNetCore.Core;
+using Minimact.Playground.Models;
 
 namespace Minimact.Playground.Services;
 

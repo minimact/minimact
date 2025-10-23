@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { MetricsResponse } from '../types/playground';
 
 interface MetricsDashboardProps {
@@ -30,12 +30,13 @@ export function MetricsDashboard({ metrics, isLoading = false }: MetricsDashboar
     },
   ];
 
-  const recentData = metrics.recentInteractions.slice(-10).map((interaction, idx) => ({
-    index: idx,
-    type: interaction.eventType.charAt(0).toUpperCase(),
-    latency: interaction.latencyMs,
-    hit: interaction.cacheHit ? 1 : 0,
-  }));
+  // Prepare recent interactions data (reserved for future chart)
+  // const recentData = metrics.recentInteractions.slice(-10).map((interaction, idx) => ({
+  //   index: idx,
+  //   type: interaction.eventType.charAt(0).toUpperCase(),
+  //   latency: interaction.latencyMs,
+  //   hit: interaction.cacheHit ? 1 : 0,
+  // }));
 
   return (
     <div className="flex flex-col h-full gap-4 p-4 bg-slate-900 rounded-lg overflow-auto">

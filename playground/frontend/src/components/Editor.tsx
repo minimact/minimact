@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Editor as MonacoEditor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { transformTsxToCSharp } from '../utils/babelTransform';
@@ -53,7 +53,6 @@ const DEFAULT_CSHARP_CODE = `public class Counter : MinimactComponent
 }`;
 
 export function Editor({
-  value,
   onChange,
   isCompiling = false,
   onCompile,

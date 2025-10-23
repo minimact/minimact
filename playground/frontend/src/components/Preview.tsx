@@ -157,10 +157,7 @@ export function Preview({
               ref={iframeRef}
               title="preview"
               className="w-full h-full border-none"
-              sandbox={{
-                allowScripts: true,
-                allowSameOrigin: true,
-              }}
+              sandbox="allow-scripts allow-same-origin"
             />
             {showOverlay && lastInteraction && (
               <PredictionOverlay interaction={lastInteraction} />

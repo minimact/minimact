@@ -18,9 +18,8 @@ export default defineConfig({
       },
       '/babel-plugin': {
         target: 'file://' + path.resolve(__dirname, '../../src/babel-plugin-minimact/dist'),
-        bypass(req) {
+        bypass() {
           // Serve files directly from the dist folder
-          const filePath = path.resolve(__dirname, '../../src/babel-plugin-minimact/dist', req.url.replace('/babel-plugin/', ''));
           return null; // Let vite handle it
         },
       },

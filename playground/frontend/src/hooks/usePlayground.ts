@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
 import { playgroundApi } from '../services/playground.api';
-import {
+import type {
   CompileRequest,
-  CompileResponse,
   InteractionRequest,
   InteractionResponse,
   MetricsResponse,
