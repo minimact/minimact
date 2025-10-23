@@ -96,6 +96,18 @@ function SearchBox() {
 
 ### 🚀 Predictive Rendering
 
+**Think of it as stored procedures for the DOM.**
+
+Just like database stored procedures pre-compile queries for instant execution, Minimact pre-compiles UI state changes and caches them on the client. When the user interacts, they're not triggering computation - they're triggering **execution** of pre-computed patches.
+
+```typescript
+// Like a stored procedure: pre-compiled, cached, ready to execute
+usePredictHint('increment', { count: count + 1 });
+
+// User clicks → executes the cached "procedure" instantly
+<button onClick={() => setCount(count + 1)}>Count: {count}</button>
+```
+
 Rust-powered reconciliation engine pre-computes patches and sends them to the client **before interactions happen**:
 
 - **Pre-populated cache**: Client has predicted patches ready before user clicks
