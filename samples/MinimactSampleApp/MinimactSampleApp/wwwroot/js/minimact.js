@@ -3370,6 +3370,16 @@ var Minimact = (function (exports) {
                 this.log('ApplyPatches', { componentId, patches });
                 this.emit('applyPatches', { componentId, patches });
             });
+            // Handle predicted patches (sent immediately for instant feedback)
+            this.connection.on('ApplyPrediction', (data) => {
+                this.log(`ApplyPrediction (${(data.confidence * 100).toFixed(0)}% confident)`, { componentId: data.componentId, patches: data.patches });
+                this.emit('applyPrediction', { componentId: data.componentId, patches: data.patches, confidence: data.confidence });
+            });
+            // Handle correction if prediction was wrong
+            this.connection.on('ApplyCorrection', (data) => {
+                this.log('ApplyCorrection (prediction was incorrect)', { componentId: data.componentId, patches: data.patches });
+                this.emit('applyCorrection', { componentId: data.componentId, patches: data.patches });
+            });
             // Handle errors from server
             this.connection.on('Error', (message) => {
                 console.error('[Minimact] Server error:', message);
@@ -4383,6 +4393,22 @@ var Minimact = (function (exports) {
                 if (component) {
                     this.domPatcher.applyPatches(component.element, patches);
                     this.log('Patches applied', { componentId, patchCount: patches.length });
+                }
+            });
+            // Handle predicted patches (instant UI updates!)
+            this.signalR.on('applyPrediction', ({ componentId, patches, confidence }) => {
+                const component = this.hydration.getComponent(componentId);
+                if (component) {
+                    this.domPatcher.applyPatches(component.element, patches);
+                    this.log(`Prediction applied (${(confidence * 100).toFixed(0)}% confident)`, { componentId, patchCount: patches.length });
+                }
+            });
+            // Handle corrections if prediction was wrong
+            this.signalR.on('applyCorrection', ({ componentId, patches }) => {
+                const component = this.hydration.getComponent(componentId);
+                if (component) {
+                    this.domPatcher.applyPatches(component.element, patches);
+                    this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
                 }
             });
             // Handle reconnection

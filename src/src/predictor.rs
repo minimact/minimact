@@ -279,69 +279,195 @@ impl Predictor {
         Ok(())
     }
 
+    /// Pre-compute patches for a hinted state change (for usePredictHint)
+    /// This allows developers to explicitly tell the predictor what might happen next
+    pub fn predict_hint(
+        &mut self,
+        hint_id: &str,
+        component_id: &str,
+        state_changes: Vec<StateChange>,
+        current_tree: &VNode
+    ) -> Option<Prediction> {
+        crate::log_info!("Processing hint '{}' for component {}", hint_id, component_id);
+
+        // For now, handle single state change hints
+        // Future: support multiple simultaneous state changes
+        if state_changes.len() != 1 {
+            crate::log_warn!("Multi-state hints not yet supported");
+            return None;
+        }
+
+        let state_change = &state_changes[0];
+
+        // Use the same prediction logic, but mark it as a hint
+        let mut prediction = self.predict(state_change, current_tree)?;
+
+        // Add hint metadata
+        crate::log_info!("Hint '{}' predicted {} patches with {:.2} confidence",
+                        hint_id, prediction.predicted_patches.len(), prediction.confidence);
+
+        Some(prediction)
+    }
+
     /// Predict patches for a given state change
     pub fn predict(&mut self, state_change: &StateChange, current_tree: &VNode) -> Option<Prediction> {
         let start = std::time::Instant::now();
         let pattern_key = self.make_pattern_key(state_change);
 
-        let patterns = self.patterns.get_mut(&pattern_key)?;
-
         // Detect pattern type for this state change
         let requested_pattern_type = Self::detect_pattern_type(state_change);
 
-        crate::log_debug!("Predicting for {}::{}, found {} patterns, looking for {:?}",
-                         state_change.component_id, state_change.state_key, patterns.len(), requested_pattern_type);
+        // Try learned patterns first
+        if let Some(patterns) = self.patterns.get_mut(&pattern_key) {
+            crate::log_debug!("Predicting for {}::{}, found {} patterns, looking for {:?}",
+                             state_change.component_id, state_change.state_key, patterns.len(), requested_pattern_type);
 
-        // Find patterns matching the requested type (collect indices only)
-        let matching_indices: Vec<usize> = patterns.iter()
-            .enumerate()
-            .filter(|(_, p)| p.pattern_type == requested_pattern_type)
-            .map(|(idx, _)| idx)
-            .collect();
+            // Find patterns matching the requested type
+            let matching_indices: Vec<usize> = patterns.iter()
+                .enumerate()
+                .filter(|(_, p)| p.pattern_type == requested_pattern_type)
+                .map(|(idx, _)| idx)
+                .collect();
 
-        if matching_indices.is_empty() {
-            crate::log_debug!("No patterns found matching type {:?}", requested_pattern_type);
-            crate::metrics::METRICS.record_prediction(start.elapsed(), false);
-            return None;
+            if !matching_indices.is_empty() {
+                // Find the most observed pattern of the matching type
+                let best_idx = *matching_indices.iter()
+                    .max_by_key(|&&idx| patterns[idx].observation_count)?;
+
+                // Calculate confidence based on observation frequency
+                let total_observations: usize = matching_indices.iter()
+                    .map(|&idx| patterns[idx].observation_count)
+                    .sum();
+                let confidence = patterns[best_idx].observation_count as f32 / total_observations as f32;
+
+                if confidence >= self.config.min_confidence {
+                    crate::log_info!("Learned prediction with confidence {:.2} ({} observations)",
+                                    confidence, patterns[best_idx].observation_count);
+
+                    patterns[best_idx].predictions_made += 1;
+
+                    let predicted_patches = Self::adapt_patches(&patterns[best_idx].patches, current_tree);
+                    let predicted_tree = patterns[best_idx].new_tree.clone();
+
+                    crate::metrics::METRICS.record_prediction(start.elapsed(), true);
+
+                    return Some(Prediction {
+                        state_change: state_change.clone(),
+                        predicted_patches,
+                        confidence,
+                        predicted_tree,
+                    });
+                }
+            }
         }
 
-        // Find the most observed pattern of the matching type
-        let best_idx = *matching_indices.iter()
-            .max_by_key(|&&idx| patterns[idx].observation_count)?;
+        // No learned patterns or low confidence - try built-in pattern prediction
+        crate::log_debug!("No learned patterns, trying built-in prediction for {:?}", requested_pattern_type);
+        let builtin_prediction = Self::predict_builtin_pattern(state_change, current_tree, requested_pattern_type);
 
-        // Calculate confidence based on observation frequency WITHIN THIS PATTERN TYPE
-        let total_observations: usize = matching_indices.iter()
-            .map(|&idx| patterns[idx].observation_count)
-            .sum();
-        let confidence = patterns[best_idx].observation_count as f32 / total_observations as f32;
-
-        if confidence < self.config.min_confidence {
-            crate::log_debug!("Confidence {:.2} below threshold {:.2}, no prediction",
-                             confidence, self.config.min_confidence);
+        if builtin_prediction.is_some() {
+            crate::metrics::METRICS.record_prediction(start.elapsed(), true);
+        } else {
             crate::metrics::METRICS.record_prediction(start.elapsed(), false);
-            return None;
         }
 
-        crate::log_info!("Prediction made with confidence {:.2} ({} observations)",
-                        confidence, patterns[best_idx].observation_count);
+        builtin_prediction
+    }
 
-        // Increment prediction count
-        patterns[best_idx].predictions_made += 1;
+    /// Predict patches using built-in knowledge of common patterns
+    /// This allows instant predictions for simple cases without needing to learn first
+    fn predict_builtin_pattern(
+        state_change: &StateChange,
+        current_tree: &VNode,
+        pattern_type: PatternType
+    ) -> Option<Prediction> {
+        use serde_json::Value;
 
-        // For now, we use the learned patches directly
-        // In a more sophisticated version, we could try to apply transformations
-        // based on the current tree structure
-        let predicted_patches = Self::adapt_patches(&patterns[best_idx].patches, current_tree);
-        let predicted_tree = patterns[best_idx].new_tree.clone();
+        match pattern_type {
+            PatternType::NumericIncrement | PatternType::NumericDecrement => {
+                // Predict text content will change to show new number
+                if let Value::Number(new_val) = &state_change.new_value {
+                    let new_text = new_val.to_string();
 
-        crate::metrics::METRICS.record_prediction(start.elapsed(), true);
+                    // Try to find text nodes in the tree that might contain the old value
+                    if let Some(patches) = Self::find_and_replace_number_text(current_tree, state_change, &new_text) {
+                        crate::log_info!("Built-in prediction for {:?}: {} patch(es)", pattern_type, patches.len());
+                        return Some(Prediction {
+                            state_change: state_change.clone(),
+                            predicted_patches: patches,
+                            confidence: 0.85, // High confidence for simple numeric changes
+                            predicted_tree: None,
+                        });
+                    }
+                }
+            }
+            PatternType::BooleanToggle => {
+                // Predict checkbox checked state or class changes
+                crate::log_info!("Built-in prediction for BooleanToggle (simplified)");
+                // For now, return None - would need more context to predict boolean changes
+                // Future: analyze tree for checkboxes, conditional classes, etc.
+            }
+            PatternType::Literal => {
+                // No built-in prediction for arbitrary changes
+            }
+        }
 
-        Some(Prediction {
-            state_change: state_change.clone(),
-            predicted_patches,
-            confidence,
-            predicted_tree,
-        })
+        None
+    }
+
+    /// Find text nodes containing the old value and predict UpdateText patches
+    fn find_and_replace_number_text(
+        tree: &VNode,
+        state_change: &StateChange,
+        new_text: &str
+    ) -> Option<Vec<Patch>> {
+        use serde_json::Value;
+
+        let old_text = if let Value::Number(old_val) = &state_change.old_value {
+            old_val.to_string()
+        } else {
+            return None;
+        };
+
+        let mut patches = Vec::new();
+        Self::find_text_patches_recursive(tree, &old_text, new_text, &mut Vec::new(), &mut patches);
+
+        if patches.is_empty() {
+            None
+        } else {
+            Some(patches)
+        }
+    }
+
+    /// Recursively search tree for text nodes containing the old value
+    fn find_text_patches_recursive(
+        node: &VNode,
+        old_text: &str,
+        new_text: &str,
+        path: &mut Vec<usize>,
+        patches: &mut Vec<Patch>
+    ) {
+        match node {
+            VNode::Text(text_node) => {
+                // Check if text contains the old value
+                if text_node.content.contains(old_text) {
+                    // Replace old value with new value in the text
+                    let new_content = text_node.content.replace(old_text, new_text);
+                    patches.push(Patch::UpdateText {
+                        path: path.clone(),
+                        content: new_content,
+                    });
+                }
+            }
+            VNode::Element(element) => {
+                // Recursively check children
+                for (i, child) in element.children.iter().enumerate() {
+                    path.push(i);
+                    Self::find_text_patches_recursive(child, old_text, new_text, path, patches);
+                    path.pop();
+                }
+            }
+        }
     }
 
     /// Verify if a prediction was correct by comparing predicted tree with actual tree

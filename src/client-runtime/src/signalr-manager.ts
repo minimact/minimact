@@ -42,6 +42,33 @@ export class SignalRManager {
       this.emit('applyPatches', { componentId, patches });
     });
 
+    // Handle predicted patches (sent immediately for instant feedback)
+    this.connection.on('ApplyPrediction', (data: { componentId: string, patches: Patch[], confidence: number }) => {
+      this.log(`ApplyPrediction (${(data.confidence * 100).toFixed(0)}% confident)`, { componentId: data.componentId, patches: data.patches });
+      this.emit('applyPrediction', { componentId: data.componentId, patches: data.patches, confidence: data.confidence });
+    });
+
+    // Handle correction if prediction was wrong
+    this.connection.on('ApplyCorrection', (data: { componentId: string, patches: Patch[] }) => {
+      this.log('ApplyCorrection (prediction was incorrect)', { componentId: data.componentId, patches: data.patches });
+      this.emit('applyCorrection', { componentId: data.componentId, patches: data.patches });
+    });
+
+    // Handle hint queueing (usePredictHint)
+    this.connection.on('QueueHint', (data: {
+      componentId: string,
+      hintId: string,
+      patches: Patch[],
+      confidence: number,
+      predictedState: Record<string, any>
+    }) => {
+      this.log(`QueueHint '${data.hintId}' (${(data.confidence * 100).toFixed(0)}% confident)`, {
+        componentId: data.componentId,
+        patches: data.patches
+      });
+      this.emit('queueHint', data);
+    });
+
     // Handle errors from server
     this.connection.on('Error', (message: string) => {
       console.error('[Minimact] Server error:', message);

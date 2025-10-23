@@ -48,6 +48,11 @@ public static class MinimactServiceExtensions
     /// </summary>
     public static IApplicationBuilder UseMinimact(this IApplicationBuilder app, string manifestPath = "./Generated/routes.json")
     {
+        // Initialize global predictor from DI
+        var predictor = app.ApplicationServices.GetRequiredService<RustBridge.Predictor>();
+        MinimactComponent.GlobalPredictor = predictor;
+        Console.WriteLine("[Minimact] Predictive rendering enabled");
+
         app.UseRouting();
         app.UseEndpoints(endpoints =>
         {

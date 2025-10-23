@@ -118,6 +118,24 @@ export class Minimact {
       }
     });
 
+    // Handle predicted patches (instant UI updates!)
+    this.signalR.on('applyPrediction', ({ componentId, patches, confidence }) => {
+      const component = this.hydration.getComponent(componentId);
+      if (component) {
+        this.domPatcher.applyPatches(component.element, patches as Patch[]);
+        this.log(`Prediction applied (${(confidence * 100).toFixed(0)}% confident)`, { componentId, patchCount: patches.length });
+      }
+    });
+
+    // Handle corrections if prediction was wrong
+    this.signalR.on('applyCorrection', ({ componentId, patches }) => {
+      const component = this.hydration.getComponent(componentId);
+      if (component) {
+        this.domPatcher.applyPatches(component.element, patches as Patch[]);
+        this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
+      }
+    });
+
     // Handle reconnection
     this.signalR.on('reconnected', async () => {
       this.log('Reconnected - re-registering components');

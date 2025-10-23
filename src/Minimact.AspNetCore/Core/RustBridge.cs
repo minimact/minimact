@@ -41,6 +41,15 @@ public static class RustBridge
     );
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr minimact_predictor_predict_hint(
+        IntPtr predictor,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string hint_id,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string component_id,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string state_changes_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string current_tree_json
+    );
+
+    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr minimact_predictor_stats(IntPtr predictor);
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
@@ -158,6 +167,34 @@ public static class RustBridge
         }
 
         /// <summary>
+        /// Predict patches for a hint (for usePredictHint)
+        /// </summary>
+        public PredictHintResult? PredictHint(string hintId, string componentId, List<StateChange> stateChanges, VNode currentTree)
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(Predictor));
+
+            var stateChangesJson = JsonConvert.SerializeObject(stateChanges);
+            var treeJson = JsonConvert.SerializeObject(currentTree);
+
+            var resultPtr = minimact_predictor_predict_hint(_handle, hintId, componentId, stateChangesJson, treeJson);
+            var resultJson = MarshalAndFreeString(resultPtr);
+
+            if (string.IsNullOrEmpty(resultJson))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<PredictHintResult>(resultJson);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Get predictor statistics
         /// </summary>
         public PredictorStats GetStats()
@@ -213,11 +250,14 @@ public class StateChange
     [JsonProperty("component_id")]
     public string ComponentId { get; set; } = "";
 
-    [JsonProperty("key")]
-    public string Key { get; set; } = "";
+    [JsonProperty("state_key")]
+    public string StateKey { get; set; } = "";
 
-    [JsonProperty("value_type")]
-    public string ValueType { get; set; } = "";
+    [JsonProperty("old_value")]
+    public object? OldValue { get; set; }
+
+    [JsonProperty("new_value")]
+    public object? NewValue { get; set; }
 }
 
 /// <summary>
@@ -269,4 +309,22 @@ public class PredictorStats
 
     [JsonProperty("successful_predictions")]
     public int SuccessfulPredictions { get; set; }
+}
+
+/// <summary>
+/// Result of a predict hint operation
+/// </summary>
+public class PredictHintResult
+{
+    [JsonProperty("ok")]
+    public bool Ok { get; set; }
+
+    [JsonProperty("hint_id")]
+    public string? HintId { get; set; }
+
+    [JsonProperty("data")]
+    public Prediction? Data { get; set; }
+
+    [JsonProperty("error")]
+    public string? Error { get; set; }
 }

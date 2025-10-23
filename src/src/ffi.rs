@@ -239,6 +239,76 @@ pub unsafe extern "C" fn minimact_predictor_predict(
     }
 }
 
+/// Predict patches based on hint (for usePredictHint)
+///
+/// # Safety
+/// - All JSON pointers must be valid null-terminated UTF-8 strings
+/// - The returned pointer must be freed using minimact_free_string
+#[no_mangle]
+pub unsafe extern "C" fn minimact_predictor_predict_hint(
+    handle: PredictorHandle,
+    hint_id: *const c_char,
+    component_id: *const c_char,
+    state_changes_json: *const c_char,
+    current_tree_json: *const c_char,
+) -> *mut c_char {
+    let hint_id_str = match CStr::from_ptr(hint_id).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let component_id_str = match CStr::from_ptr(component_id).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let state_changes_str = match CStr::from_ptr(state_changes_json).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let current_tree_str = match CStr::from_ptr(current_tree_json).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let state_changes: Vec<StateChange> = match serde_json::from_str(state_changes_str) {
+        Ok(sc) => sc,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let validation_config = crate::validation::ValidationConfig::default();
+    let current_tree: VNode = match crate::validation::deserialize_vnode_safe(current_tree_str, &validation_config) {
+        Ok(t) => t,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    if let Some(mut predictor) = PREDICTORS.get_mut(&handle) {
+        if let Some(prediction) = predictor.predict_hint(hint_id_str, component_id_str, state_changes, &current_tree) {
+            let result = serde_json::json!({
+                "ok": true,
+                "hint_id": hint_id_str,
+                "data": prediction
+            });
+            match serde_json::to_string(&result) {
+                Ok(json) => CString::new(json).unwrap().into_raw(),
+                Err(_) => std::ptr::null_mut(),
+            }
+        } else {
+            let error_response = serde_json::json!({
+                "ok": false,
+                "error": "No prediction available for hint"
+            });
+            match serde_json::to_string(&error_response) {
+                Ok(json) => CString::new(json).unwrap().into_raw(),
+                Err(_) => std::ptr::null_mut(),
+            }
+        }
+    } else {
+        std::ptr::null_mut()
+    }
+}
+
 /// Get predictor statistics as JSON
 ///
 /// # Safety

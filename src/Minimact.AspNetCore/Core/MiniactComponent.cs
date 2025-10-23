@@ -39,6 +39,11 @@ public abstract class MinimactComponent
     /// </summary>
     internal IHubContext<MinimactHub>? HubContext { get; set; }
 
+    /// <summary>
+    /// Global predictor instance (shared across all components)
+    /// </summary>
+    internal static RustBridge.Predictor? GlobalPredictor { get; set; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
@@ -101,34 +106,105 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
-    /// Trigger a re-render cycle
+    /// Trigger a re-render cycle with predictive patching
     /// </summary>
     protected void TriggerRender()
     {
-        // Render new VNode tree and normalize it (combine adjacent text nodes)
-        // This ensures the VNode structure matches the actual DOM structure
+        if (CurrentVNode == null || HubContext == null || ConnectionId == null)
+        {
+            // First render - no prediction needed
+            CurrentVNode = VNode.Normalize(Render());
+            PreviousState = new Dictionary<string, object>(State);
+            return;
+        }
+
+        // Get changed state keys
+        var changedKeys = State.Keys
+            .Where(k => !PreviousState.ContainsKey(k) || !Equals(State[k], PreviousState[k]))
+            .ToArray();
+
+        if (changedKeys.Length == 0)
+        {
+            return; // No state changes
+        }
+
+        // Call lifecycle hook
+        OnStateChanged(changedKeys);
+
+        // Try to predict patches for instant feedback
+        Prediction? prediction = null;
+        if (GlobalPredictor != null && changedKeys.Length == 1)
+        {
+            var key = changedKeys[0];
+            var stateChange = new StateChange
+            {
+                ComponentId = ComponentId,
+                StateKey = key,
+                OldValue = PreviousState.ContainsKey(key) ? PreviousState[key] : null,
+                NewValue = State[key]
+            };
+
+            prediction = GlobalPredictor.Predict(stateChange, CurrentVNode);
+
+            if (prediction != null && prediction.Confidence >= 0.7)
+            {
+                Console.WriteLine($"[Minimact] Prediction: {prediction.Patches.Count} patches with {prediction.Confidence:F2} confidence");
+
+                // Send prediction immediately for instant UI feedback
+                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyPrediction", new
+                {
+                    componentId = ComponentId,
+                    patches = prediction.Patches,
+                    confidence = prediction.Confidence
+                });
+            }
+        }
+
+        // Now render the actual new tree
         var newVNode = VNode.Normalize(Render());
 
-        // If we have a previous tree, compute patches
-        if (CurrentVNode != null && HubContext != null && ConnectionId != null)
+        // Compute actual patches using Rust reconciliation engine
+        var actualPatches = RustBridge.Reconcile(CurrentVNode, newVNode);
+
+        if (actualPatches.Count > 0)
         {
-            // Get changed state keys
-            var changedKeys = State.Keys
-                .Where(k => !PreviousState.ContainsKey(k) || !Equals(State[k], PreviousState[k]))
-                .ToArray();
+            // Check if prediction was correct
+            bool predictionCorrect = prediction != null &&
+                                    PatchesMatch(prediction.Patches, actualPatches);
 
-            // Call lifecycle hook
-            OnStateChanged(changedKeys);
-
-            // Compute patches using Rust reconciliation engine
-            // Both trees are normalized, so paths will match the actual DOM
-            var patches = RustBridge.Reconcile(CurrentVNode, newVNode);
-
-            if (patches.Count > 0)
+            if (prediction != null && !predictionCorrect)
             {
-                // Send patches to client
-                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyPatches", ComponentId, patches);
+                Console.WriteLine($"[Minimact] Prediction was wrong, sending correction");
+
+                // Send correction
+                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyCorrection", new
+                {
+                    componentId = ComponentId,
+                    patches = actualPatches
+                });
             }
+            else if (prediction == null)
+            {
+                // No prediction was made, send patches normally
+                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyPatches", ComponentId, actualPatches);
+            }
+            // If prediction was correct, do nothing - client already has the correct state!
+        }
+
+        // Learn from this state change for future predictions
+        if (GlobalPredictor != null && changedKeys.Length == 1)
+        {
+            var key = changedKeys[0];
+            var stateChange = new StateChange
+            {
+                ComponentId = ComponentId,
+                StateKey = key,
+                OldValue = PreviousState.ContainsKey(key) ? PreviousState[key] : null,
+                NewValue = State[key]
+            };
+
+            GlobalPredictor.Learn(stateChange, CurrentVNode, newVNode);
+            Console.WriteLine($"[Minimact] Learned pattern for {ComponentId}::{key}");
         }
 
         // Update current tree
@@ -136,6 +212,26 @@ public abstract class MinimactComponent
 
         // Reset previous state
         PreviousState = new Dictionary<string, object>(State);
+    }
+
+    /// <summary>
+    /// Check if two patch lists are equivalent
+    /// </summary>
+    private bool PatchesMatch(List<Patch> a, List<Patch> b)
+    {
+        if (a.Count != b.Count) return false;
+
+        for (int i = 0; i < a.Count; i++)
+        {
+            if (a[i].Type != b[i].Type) return false;
+            if (!a[i].Path.SequenceEqual(b[i].Path)) return false;
+
+            // For UpdateText, check content matches
+            if (a[i].Type == "UpdateText" && a[i].Content != b[i].Content)
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -189,5 +285,53 @@ public abstract class MinimactComponent
     protected void ForceUpdate()
     {
         TriggerRender();
+    }
+
+    /// <summary>
+    /// Register a prediction hint for usePredictHint
+    /// This pre-computes patches for likely state changes
+    /// </summary>
+    protected void RegisterHint(string hintId, Dictionary<string, object> predictedState)
+    {
+        if (CurrentVNode == null || HubContext == null || ConnectionId == null || GlobalPredictor == null)
+        {
+            return;
+        }
+
+        // Build state changes from predicted state
+        var stateChanges = new List<StateChange>();
+        foreach (var (key, newValue) in predictedState)
+        {
+            var oldValue = State.ContainsKey(key) ? State[key] : null;
+            stateChanges.Add(new StateChange
+            {
+                ComponentId = ComponentId,
+                StateKey = key,
+                OldValue = oldValue,
+                NewValue = newValue
+            });
+        }
+
+        // Get prediction from Rust engine
+        var result = GlobalPredictor.PredictHint(hintId, ComponentId, stateChanges, CurrentVNode);
+
+        if (result?.Ok == true && result.Data != null)
+        {
+            Console.WriteLine($"[Minimact] Hint '{hintId}': {result.Data.Patches.Count} patches queued with {result.Data.Confidence:F2} confidence");
+
+            // Send hint to client to queue
+            _ = HubContext.Clients.Client(ConnectionId).SendAsync("QueueHint", new
+            {
+                componentId = ComponentId,
+                hintId = hintId,
+                patches = result.Data.Patches,
+                confidence = result.Data.Confidence,
+                predictedState = predictedState
+            });
+        }
+        else
+        {
+            Console.WriteLine($"[Minimact] Hint '{hintId}': No prediction available");
+        }
     }
 }
