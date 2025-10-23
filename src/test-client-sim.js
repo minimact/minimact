@@ -529,6 +529,112 @@ function validateJSXtoVNode(component) {
   };
 }
 
+function validateUsePub(component) {
+  const csharp = component.csharp;
+
+  // Check for pub-related fields or method calls
+  const hasPubField = csharp.includes('publish') || csharp.includes('Publish');
+  const hasChannelReference = csharp.includes('channel') || csharp.includes('Channel');
+
+  // Check for event aggregation or publish patterns
+  const hasPublishPattern = csharp.includes('EventAggregator') || csharp.includes('Publish(');
+
+  return {
+    passed: hasPubField || hasPublishPattern,
+    feature: 'usePub',
+    details: hasPublishPattern ? 'Publish pattern found' : (hasPubField ? 'Pub field detected' : 'No pub detected')
+  };
+}
+
+function validateUseSub(component) {
+  const csharp = component.csharp;
+
+  // Check for sub-related fields or method calls
+  const hasSubField = csharp.includes('notifications') || csharp.includes('Subscribe');
+  const hasChannelReference = csharp.includes('channel') || csharp.includes('Channel');
+
+  // Check for subscription patterns or callbacks
+  const hasSubPattern = csharp.includes('EventAggregator') || csharp.includes('Subscribe(') || csharp.includes('OnMessage');
+
+  return {
+    passed: hasSubField || hasSubPattern,
+    feature: 'useSub',
+    details: hasSubPattern ? 'Subscribe pattern found' : (hasSubField ? 'Sub field detected' : 'No sub detected')
+  };
+}
+
+function validateUseMicroTask(component) {
+  const csharp = component.csharp;
+
+  // Check for microtask scheduling patterns
+  const hasMicroTask = csharp.includes('queueMicrotask') || csharp.includes('MicroTask');
+
+  // Check for Task.Run or similar async patterns that might be used for microtasks
+  const hasTaskPattern = csharp.includes('Task.Run') || csharp.includes('ValueTask');
+
+  return {
+    passed: hasMicroTask || hasTaskPattern,
+    feature: 'useMicroTask',
+    details: hasMicroTask ? 'Microtask found' : (hasTaskPattern ? 'Task pattern found' : 'No microtask detected')
+  };
+}
+
+function validateUseMacroTask(component) {
+  const csharp = component.csharp;
+
+  // Check for macrotask scheduling patterns (setTimeout equivalent)
+  const hasMacroTask = csharp.includes('setTimeout') || csharp.includes('MacroTask') || csharp.includes('Delay');
+
+  // Check for Task.Delay or timer patterns
+  const hasDelayPattern = csharp.includes('Task.Delay') || csharp.includes('Timer');
+
+  return {
+    passed: hasMacroTask || hasDelayPattern,
+    feature: 'useMacroTask',
+    details: hasMacroTask ? 'Macrotask found' : (hasDelayPattern ? 'Delay pattern found' : 'No macrotask detected')
+  };
+}
+
+function validateUseSignalR(component) {
+  const csharp = component.csharp;
+
+  // Check for SignalR-related fields
+  const hasSignalRField = csharp.includes('signalR') || csharp.includes('SignalR');
+
+  // Check for hub URL or connection patterns
+  const hasHubUrl = csharp.includes('/hubs/') || csharp.includes('HubUrl');
+  const hasConnectionState = csharp.includes('connected') || csharp.includes('Connected') || csharp.includes('connectionId');
+
+  // Check for SignalR methods (send, on, off)
+  const hasSignalRMethods = csharp.includes('Send(') || csharp.includes('On(') || csharp.includes('Invoke(');
+
+  return {
+    passed: hasSignalRField || hasConnectionState || hasSignalRMethods,
+    feature: 'useSignalR',
+    details: hasSignalRMethods ? 'SignalR methods found' : (hasSignalRField ? 'SignalR field detected' : 'No SignalR detected')
+  };
+}
+
+function validateUsePredictHint(component) {
+  const csharp = component.csharp;
+
+  // Check for predict hint patterns
+  const hasPredictHint = csharp.includes('PredictHint') || csharp.includes('predictHint');
+
+  // Check for hint ID or predicted state patterns
+  const hasHintId = csharp.includes('hintId') || csharp.includes('HintId');
+  const hasPredictedState = csharp.includes('predictedState') || csharp.includes('PredictedState');
+
+  // Check for hint queue or prediction patterns
+  const hasHintPattern = csharp.includes('HintQueue') || csharp.includes('QueueHint') || csharp.includes('ApplyPrediction');
+
+  return {
+    passed: hasPredictHint || hasHintPattern,
+    feature: 'usePredictHint',
+    details: hasHintPattern ? 'Hint pattern found' : (hasPredictHint ? 'Predict hint detected' : 'No predict hint detected')
+  };
+}
+
 /**
  * Run all validations for a component
  */
@@ -544,6 +650,12 @@ function validateAllFeatures(component) {
     validateUseModal(component),
     validateUseToggle(component),
     validateUseDropdown(component),
+    validateUsePub(component),
+    validateUseSub(component),
+    validateUseMicroTask(component),
+    validateUseMacroTask(component),
+    validateUseSignalR(component),
+    validateUsePredictHint(component),
     validateEventHandlers(component),
     validateConditionalRendering(component),
     validateListRendering(component),
