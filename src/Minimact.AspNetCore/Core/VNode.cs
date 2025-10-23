@@ -17,6 +17,87 @@ public abstract class VNode
     /// Estimate the size of this VNode in bytes
     /// </summary>
     public abstract int EstimateSize();
+
+    /// <summary>
+    /// Normalize a VNode tree by combining adjacent text nodes
+    /// (matches browser behavior where adjacent text nodes are automatically merged)
+    /// </summary>
+    public static VNode Normalize(VNode node)
+    {
+        if (node is VElement element)
+        {
+            // Normalize children and combine adjacent text nodes
+            var normalizedChildren = new List<VNode>();
+            string? pendingText = null;
+
+            foreach (var child in element.Children)
+            {
+                var normalizedChild = Normalize(child);
+
+                if (normalizedChild is VText text)
+                {
+                    // Accumulate adjacent text nodes
+                    pendingText = (pendingText ?? "") + text.Content;
+                }
+                else
+                {
+                    // Flush pending text if any
+                    if (pendingText != null)
+                    {
+                        normalizedChildren.Add(new VText(pendingText));
+                        pendingText = null;
+                    }
+                    normalizedChildren.Add(normalizedChild);
+                }
+            }
+
+            // Flush any remaining pending text
+            if (pendingText != null)
+            {
+                normalizedChildren.Add(new VText(pendingText));
+            }
+
+            return new VElement(element.Tag, element.Props, normalizedChildren.ToArray())
+            {
+                Key = element.Key
+            };
+        }
+        else if (node is Fragment fragment)
+        {
+            // Normalize fragment children too
+            var normalizedChildren = new List<VNode>();
+            string? pendingText = null;
+
+            foreach (var child in fragment.Children)
+            {
+                var normalizedChild = Normalize(child);
+
+                if (normalizedChild is VText text)
+                {
+                    pendingText = (pendingText ?? "") + text.Content;
+                }
+                else
+                {
+                    if (pendingText != null)
+                    {
+                        normalizedChildren.Add(new VText(pendingText));
+                        pendingText = null;
+                    }
+                    normalizedChildren.Add(normalizedChild);
+                }
+            }
+
+            if (pendingText != null)
+            {
+                normalizedChildren.Add(new VText(pendingText));
+            }
+
+            return new Fragment(normalizedChildren.ToArray());
+        }
+
+        // Text nodes and other types are already normalized
+        return node;
+    }
 }
 
 /// <summary>

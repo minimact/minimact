@@ -136,9 +136,7 @@ public static class MinimactRouting
     </style>
 </head>
 <body>
-    <div id=""minimact-root"" data-minimact-component=""{component.ComponentId}"">
-        {componentHtml}
-    </div>
+    <div id=""minimact-root"" data-minimact-component=""{component.ComponentId}"">{componentHtml}</div>
 
     <script>
         // Initialize Minimact client runtime

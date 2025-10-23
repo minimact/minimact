@@ -4118,10 +4118,17 @@ var Minimact = (function (exports) {
          */
         hydrateComponent(componentId, rootElement) {
             this.log('Hydrating component', { componentId });
+            // The actual component element is the first child of the container
+            // (rootElement is #minimact-root, first child is the actual component div)
+            const componentElement = rootElement.firstElementChild;
+            if (!componentElement) {
+                console.error('[Minimact Hydration] No component element found in root');
+                return;
+            }
             // Create component metadata
             const metadata = {
                 componentId,
-                element: rootElement,
+                element: componentElement, // Use the actual component element, not the container
                 clientState: {},
                 serverState: {}
             };

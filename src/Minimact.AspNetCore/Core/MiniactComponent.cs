@@ -105,8 +105,9 @@ public abstract class MinimactComponent
     /// </summary>
     protected void TriggerRender()
     {
-        // Render new VNode tree
-        var newVNode = Render();
+        // Render new VNode tree and normalize it (combine adjacent text nodes)
+        // This ensures the VNode structure matches the actual DOM structure
+        var newVNode = VNode.Normalize(Render());
 
         // If we have a previous tree, compute patches
         if (CurrentVNode != null && HubContext != null && ConnectionId != null)
@@ -120,6 +121,7 @@ public abstract class MinimactComponent
             OnStateChanged(changedKeys);
 
             // Compute patches using Rust reconciliation engine
+            // Both trees are normalized, so paths will match the actual DOM
             var patches = RustBridge.Reconcile(CurrentVNode, newVNode);
 
             if (patches.Count > 0)
@@ -176,7 +178,8 @@ public abstract class MinimactComponent
     internal async Task<VNode> InitializeAndRenderAsync()
     {
         await OnInitializedAsync();
-        CurrentVNode = Render();
+        // Normalize the initial render to match DOM structure
+        CurrentVNode = VNode.Normalize(Render());
         return CurrentVNode;
     }
 
