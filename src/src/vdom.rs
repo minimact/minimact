@@ -27,7 +27,7 @@ pub struct VText {
 
 /// Represents a change operation for the DOM
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "op")]
+#[serde(tag = "type")]
 pub enum Patch {
     /// Create a new node at the given path
     Create {

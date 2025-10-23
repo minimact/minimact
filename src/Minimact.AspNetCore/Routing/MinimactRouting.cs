@@ -109,7 +109,7 @@ public static class MinimactRouting
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>{componentName} - Minimact</title>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js""></script>
+    <script src=""/js/minimact.js""></script>
     <style>
         body {{
             font-family: system-ui, -apple-system, sans-serif;
@@ -141,41 +141,11 @@ public static class MinimactRouting
     </div>
 
     <script>
-        // Minimact Client Runtime
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl('/minimact')
-            .build();
-
-        connection.on('UpdateComponent', (componentId, html) => {{
-            console.log('📦 Received update for:', componentId);
-            const element = document.querySelector(`[data-minimact-component=""${{componentId}}""]`);
-            if (element) {{
-                element.innerHTML = html;
-            }}
+        // Initialize Minimact client runtime
+        const minimact = new Minimact.Minimact('#minimact-root', {{
+            enableDebugLogging: true
         }});
-
-        connection.start()
-            .then(() => {{
-                console.log('✅ Connected to Minimact hub');
-                connection.invoke('RegisterComponent', '{component.ComponentId}');
-            }})
-            .catch(err => console.error('❌ Connection error:', err));
-
-        // Handle all click events
-        document.addEventListener('click', (e) => {{
-            if (e.target.tagName === 'BUTTON') {{
-                const componentEl = e.target.closest('[data-minimact-component]');
-                if (!componentEl) return;
-
-                const componentId = componentEl.getAttribute('data-minimact-component');
-                const methodName = e.target.getAttribute('onclick');
-
-                if (methodName) {{
-                    console.log('🖱️  Click:', methodName);
-                    connection.invoke('InvokeComponentMethod', componentId, methodName, '{{}}');
-                }}
-            }}
-        }});
+        minimact.start();
     </script>
 </body>
 </html>";

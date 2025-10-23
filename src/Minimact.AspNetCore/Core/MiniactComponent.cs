@@ -119,10 +119,14 @@ public abstract class MinimactComponent
             // Call lifecycle hook
             OnStateChanged(changedKeys);
 
-            // TODO: Call RustBridge to compute patches
-            // For now, send full HTML (will be optimized later)
-            var html = newVNode.ToHtml();
-            _ = HubContext.Clients.Client(ConnectionId).SendAsync("UpdateComponent", ComponentId, html);
+            // Compute patches using Rust reconciliation engine
+            var patches = RustBridge.Reconcile(CurrentVNode, newVNode);
+
+            if (patches.Count > 0)
+            {
+                // Send patches to client
+                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyPatches", ComponentId, patches);
+            }
         }
 
         // Update current tree

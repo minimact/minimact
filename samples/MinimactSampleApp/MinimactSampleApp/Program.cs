@@ -7,6 +7,9 @@ builder.Services.AddMinimact();
 
 var app = builder.Build();
 
+// Serve static files (for minimact.js)
+app.UseStaticFiles();
+
 // Auto-discover pages and configure routing (reads Generated/routes.json)
 app.UseMinimact();
 

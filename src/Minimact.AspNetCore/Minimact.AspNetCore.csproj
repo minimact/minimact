@@ -32,10 +32,15 @@
     <!-- Include README in package -->
     <None Include="README.md" Pack="true" PackagePath="\" />
 
-    <!-- Include Rust native library (will be built separately) -->
+    <!-- Include Rust native library in NuGet package -->
     <None Include="..\target\release\minimact.dll" Pack="true" PackagePath="runtimes\win-x64\native\" Condition="Exists('..\target\release\minimact.dll')" />
     <None Include="..\target\release\libminimact.so" Pack="true" PackagePath="runtimes\linux-x64\native\" Condition="Exists('..\target\release\libminimact.so')" />
     <None Include="..\target\release\libminimact.dylib" Pack="true" PackagePath="runtimes\osx-x64\native\" Condition="Exists('..\target\release\libminimact.dylib')" />
+
+    <!-- Copy Rust native library to output directory for local development -->
+    <Content Include="..\target\release\minimact.dll" Link="minimact.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\target\release\minimact.dll')" />
+    <Content Include="..\target\release\libminimact.so" Link="libminimact.so" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\target\release\libminimact.so')" />
+    <Content Include="..\target\release\libminimact.dylib" Link="libminimact.dylib" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\target\release\libminimact.dylib')" />
   </ItemGroup>
 
 </Project>
