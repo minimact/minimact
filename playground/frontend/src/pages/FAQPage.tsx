@@ -1,0 +1,470 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+interface FAQItem {
+  emoji: string;
+  question: string;
+  answer: string;
+}
+
+const faqs: FAQItem[] = [
+  {
+    emoji: '❓',
+    question: 'Why did you build Minimact?',
+    answer: `Because I got tired of pretending hydration was acceptable just because it's familiar. I wanted a better model—one that didn't rely on overburdened clients, giant bundles, and reconciliation cycles happening after the user acts.
+
+Minimact was born from a simple, almost heretical question:
+
+"What if the client didn't need to reconcile anything at all... because it already knew what would happen?"`
+  },
+  {
+    emoji: '🤖',
+    question: 'Where did the idea of prediction come from?',
+    answer: `From AI.
+
+Modern AI systems—particularly transformers and reinforcement learners—excel at one thing: prediction.
+
+Whether it's next tokens, future states, or optimal actions, they all revolve around:
+• Observing patterns
+• Modeling likely outcomes
+• Acting before complete information is available
+
+That inspired me to ask: What if we could apply predictive modeling principles to the UI itself?
+
+And not through neural nets, but through deterministic, cacheable state transitions.`
+  },
+  {
+    emoji: '🔭',
+    question: 'Did AI play a direct role in the architecture?',
+    answer: `Indirectly, yes.
+
+I wasn't trying to stuff machine learning into a web framework. But I was asking questions that are common in AI design:
+• Can we precompute probable futures?
+• Can we reduce latency by betting on the most likely paths?
+• Can we let the system adapt to user behavior?
+
+The answers led to a reconciliation engine in Rust, predictive hints, and the entire stored-procedure-for-the-DOM model.`
+  },
+  {
+    emoji: '📜',
+    question: 'What inspired the predictive patch system?',
+    answer: `Patterns. Repeated patterns. And hours of staring at logs.
+
+I spent a lot of time chasing down weird bugs and performance issues in large-scale cloud-hosted apps. I saw the same actions happening over and over. Same inputs. Same flows. Same timing. But every interaction was treated like a blank slate.
+
+That felt... deeply inefficient.
+
+Why were we reacting in real-time to things we've seen thousands of times?
+
+I wanted to preempt the predictable. That's where the predictive patch cache came from.`
+  },
+  {
+    emoji: '🛠️',
+    question: 'What was the first thing you prototyped?',
+    answer: `A counter. The simplest UI on Earth.
+
+But instead of updating the DOM reactively, I had a server compute what the DOM would look like after a click, then send it down ahead of time. The patch was ready before the user clicked.
+
+That tiny moment—click → instant change → no network delay—felt electric ⚡
+
+I knew then that this wasn't just an optimization. It was a shift in how we think about UI responsiveness.`
+  },
+  {
+    emoji: '💡',
+    question: 'Where did usePredictHint() come from?',
+    answer: `From wanting to empower developers to optimize their own experiences—without writing custom cache logic or prediction models.
+
+Hints are like hooks for the future. Instead of managing complex state transitions, you just say:
+
+"Hey, when they click this, they're probably going to want this state."
+
+And the engine handles the rest—generating and sending the patch ahead of time. It's the dev saying, "Trust me, this is gonna happen." And the system answering, "Cool. I'm on it."`
+  },
+  {
+    emoji: '🔄',
+    question: 'Why compile TypeScript into C#?',
+    answer: `Because I was already working in .NET environments, where business logic, data access, and deployment were C#-centric. But frontend devs still wanted to write React.
+
+Instead of splitting logic across two universes (with brittle APIs and duplicate types), I thought:
+
+What if React UI code could become first-class citizens in C# land?
+
+So I built a Babel plugin that turns JSX/TSX into C# component classes with preserved structure, hooks, and state.
+
+TypeScript handles the ergonomics. C# handles the execution. Rust handles the prediction. 🧠`
+  },
+  {
+    emoji: '🌐',
+    question: 'Why not just use HTMX, Blazor, or RSC?',
+    answer: `Because none of them fully solved the core problems I was focused on:
+
+• Latency: React Server Components still hydrate; Blazor Server does full roundtrips; HTMX requires manual control
+• Prediction: None of them precompute state transitions based on future interactions
+• Developer experience: I wanted React ergonomics, not handcrafted event attributes or Razor code
+• Optimization: I wanted proactive rendering, not reactive patching
+
+Minimact is a response to all of that. It's not "like React but on the server." It's React reimagined through predictive execution.`
+  },
+  {
+    emoji: '🧠',
+    question: 'What philosophy drives Minimact?',
+    answer: `Don't hydrate. Anticipate.
+
+Hydration is a patch. Reconciliation is a reaction. Minimact asks: What if the work was done before the user ever clicked?
+
+It's built on:
+• Pattern observation
+• Predictive modeling
+• Latency minimization
+• Developer empowerment
+• Simplicity over cleverness
+
+The cactus metaphor isn't just cute—it's functional. Cacti thrive by storing what they need before the drought. So should your UI.`
+  },
+  {
+    emoji: '🗺️',
+    question: 'What\'s the long-term vision?',
+    answer: `To make web development faster, safer, and smarter by default.
+
+• Give developers tools to express performance-critical intent
+• Eliminate the burden of hydration, bundles, and client state bugs
+• Use prediction not as a gimmick, but as an architectural pillar
+• Make UIs feel native-speed without shipping 100KB of JS
+
+Eventually? Predictive UI should feel obvious. Hydration should feel like legacy tech. And Minimact will be the friendly cactus that led the way.`
+  },
+  {
+    emoji: '🚀',
+    question: 'What is Minimact?',
+    answer: `Minimact is a server-side React framework for ASP.NET Core that eliminates client-side hydration using a predictive rendering engine written in Rust.
+
+• You write JSX/TSX with familiar React hooks
+• It's transpiled into C# components
+• The Rust engine precomputes likely UI state transitions
+• The client caches these transitions (patches) ahead of time
+• On user interaction, patches are applied instantly with 0ms perceived latency
+• The server verifies in the background
+
+No hydration. No VDOM diffing. No nonsense.`
+  },
+  {
+    emoji: '🤖',
+    question: 'How does prediction work in a UI framework?',
+    answer: `Prediction is based on state transitions, not user intent guesses.
+
+Minimact precomputes what the DOM would look like if a specific state change occurred. This is similar to speculative execution in CPUs or stored procedures in databases.
+
+If the user performs the predicted action (e.g., clicks a button, opens a dropdown), the corresponding DOM patch is already cached on the client. It gets applied instantly—without roundtrips or reconciliation.`
+  },
+  {
+    emoji: '💡',
+    question: 'What are usePredictHint() hooks?',
+    answer: `usePredictHint() lets you hint to the prediction engine that a certain state change is likely.
+
+Example:
+usePredictHint('increment', { count: count + 1 });
+
+This tells the system: "Hey, I'm pretty sure the user's going to increment this counter—queue the patch now."
+
+Hints improve prediction accuracy and ensure sub-5ms response for latency-sensitive interactions.`
+  },
+  {
+    emoji: '⏱️',
+    question: 'What happens if the prediction is wrong?',
+    answer: `No sweat 😅
+
+• The client applies the wrong patch (visually)
+• The server notices and corrects the DOM in the background
+• In most cases, the mismatch is corrected within ~50ms and users don't even notice
+
+Think of it like optimistic UI but grounded in actual compiled transitions.`
+  },
+  {
+    emoji: '🌐',
+    question: 'Does this require JavaScript on the client?',
+    answer: `Nope. Minimact works with progressive enhancement in mind.
+
+• With JS: You get predictive patches, instant UI, and background verification
+• Without JS: You fall back to full server-rendered HTML with standard form posts or link clicks
+
+Either way, you ship ~5KB of client JS. That's less than the average favicon.`
+  },
+  {
+    emoji: '🛠️',
+    question: 'Do I need to learn a new syntax or DSL?',
+    answer: `No! You use:
+
+• JSX/TSX for UI
+• React hooks (useState, useEffect, useRef, etc.)
+• Optional semantic hooks (useToggle, useDropdown, useModal)
+• All your existing ASP.NET Core backend skills
+
+Minimact is more "How you write it stays the same", not "Relearn your tools from scratch."`
+  },
+  {
+    emoji: '🔁',
+    question: 'What is hybrid state?',
+    answer: `Hybrid state means some state is:
+
+• Client-local (e.g. search box input)
+• Server-managed (e.g. search results, DB-backed lists)
+
+Example:
+const [query, setQuery] = useClientState('');
+const [results, setResults] = useState([]);
+
+This keeps the UX snappy and secure. You get instant feedback, but the real work happens server-side.`
+  },
+  {
+    emoji: '🔐',
+    question: 'Is this secure? What about business logic?',
+    answer: `Yes. Since all logic and rendering happen server-side:
+
+• Business logic stays on the server (not exposed to the browser)
+• No API keys or tokens are shipped to the client
+• Predictive patches only affect the DOM, not actual application state
+
+And with SignalR in the loop, you always get a verified source of truth.`
+  },
+  {
+    emoji: '⚙️',
+    question: 'What are the platform requirements?',
+    answer: `You'll need:
+
+• Node.js 18+
+• .NET 8.0+
+• Rust (for building the predictive engine from source)`
+  },
+  {
+    emoji: '💬',
+    question: 'Why not just use React Server Components (RSC)?',
+    answer: `You could… but:
+
+• RSC still relies on hydration and client bundles
+• It's tightly coupled to Node/Edge runtimes
+• It doesn't offer precomputed UI patches
+• You have to re-learn a bunch of rules and limitations around where hooks can be used
+
+Minimact says: keep your hooks, keep your mental model, and go faster.`
+  },
+  {
+    emoji: '🛣️',
+    question: 'Why compile TSX into C#?',
+    answer: `Because C# + ASP.NET Core gives you:
+
+• Dependency injection
+• EF Core
+• .NET ecosystem power
+• Compile-time type safety
+• A secure, mature hosting model
+
+You're still writing in TypeScript, but you're compiling into a highly optimized server-native runtime.`
+  },
+  {
+    emoji: '🦀',
+    question: 'Why is Rust involved?',
+    answer: `Because Rust is:
+
+• Fast: for VDOM diffing and patch computation
+• Safe: memory-safety guarantees
+• Compact: great for precomputed patch payloads
+
+It handles the reconciliation + prediction side with zero GC pauses, and can be compiled to WASM in the future.`
+  },
+  {
+    emoji: '🔍',
+    question: 'What happens during an interaction?',
+    answer: `• The client checks its cache for a predicted patch
+• If found → apply patch instantly
+• SignalR sends the event to the server
+• Server verifies or sends correction patch
+• If not found → fallback to server-rendered HTML`
+  },
+  {
+    emoji: '🧪',
+    question: 'How accurate are predictions?',
+    answer: `On average:
+
+• Counters, toggles, modals → 95%+
+• Lists, dropdowns → 70–85%
+• Complex workflows → 60–75%
+
+Hinting, telemetry, and usage data can raise these numbers further.`
+  },
+  {
+    emoji: '🧰',
+    question: 'What tools does Minimact come with?',
+    answer: `• CLI for project scaffolding and dev server
+• Babel plugin to compile TSX → C#
+• Semantic hooks for common UX patterns
+• Type-safe route generation from your C# API
+• Built-in templates for dashboards, auth, admin, etc.`
+  },
+  {
+    emoji: '📊',
+    question: 'What are real-world benefits?',
+    answer: `🚀 2× faster interactions vs traditional SSR
+📉 Drastically reduced CPU load on low-end clients
+🔐 Centralized logic and state = better security
+🌐 Minimal JS = faster first paint
+💪 React familiarity = low learning curve`
+  },
+  {
+    emoji: '🧭',
+    question: 'Who is Minimact for?',
+    answer: `✅ Teams with .NET backends
+✅ React developers tired of hydration hell
+✅ Apps where performance, security, and UX matter
+✅ Enterprises with regulatory or deployment constraints
+✅ Devs who want predictable behavior—not runtime roulette`
+  },
+  {
+    emoji: '🙅',
+    question: 'Who is Minimact not for?',
+    answer: `❌ Fully offline-first apps
+❌ Multiplayer collaborative editors
+❌ Canvas/WebGL-heavy frontends
+❌ Projects that want bleeding-edge React features (e.g. Suspense streaming)`
+  },
+  {
+    emoji: '📦',
+    question: 'How big is the client bundle?',
+    answer: `About 5KB, gzipped.
+
+For comparison:
+• React: ~30KB+
+• Vue: ~20KB+
+• HTMX: ~14KB
+• Minimact: tiny cactus mode engaged 🌵`
+  },
+  {
+    emoji: '🛣️',
+    question: 'Is this production-ready?',
+    answer: `The core predictor engine is solid. The runtime and Babel tooling are under active development, aiming for alpha Q2 2025.
+
+Follow progress in VISION.md or join the Discord.`
+  },
+  {
+    emoji: '🌵',
+    question: 'What\'s "posthydrationism"?',
+    answer: `A tongue-in-cheek term for rejecting client hydration as the default paradigm. Posthydrationism prefers:
+
+• Precomputation over runtime diffing
+• Stored state transitions over reconciliation
+• Latency minimalism over JS maximalism
+
+In short: Don't hydrate. Anticipate.`
+  }
+];
+
+function FAQAccordion({ item, isOpen, onClick }: { item: FAQItem; isOpen: boolean; onClick: () => void }) {
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-blue-600/50 transition-all">
+      <button
+        onClick={onClick}
+        className="w-full px-6 py-5 flex items-start gap-4 text-left hover:bg-slate-800/50 transition-colors"
+      >
+        <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-white">{item.question}</h3>
+        </div>
+        <span className={`text-slate-400 text-xl flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+          ▼
+        </span>
+      </button>
+      {isOpen && (
+        <div className="px-6 pb-6 pt-2 border-t border-slate-800">
+          <div className="text-slate-300 leading-relaxed whitespace-pre-line pl-10">
+            {item.answer}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function FAQPage() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Navigation */}
+      <nav className="border-b border-slate-800 bg-slate-950/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <span className="text-3xl">🌵</span>
+            <h1 className="text-2xl font-bold text-white">Minimact</h1>
+          </Link>
+          <div className="flex items-center gap-6">
+            <Link to="/" className="text-slate-300 hover:text-white transition-colors">
+              Home
+            </Link>
+            <a href="/#features" className="text-slate-300 hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="https://github.com/minimact/minimact" target="_blank" className="text-slate-300 hover:text-white transition-colors">
+              GitHub
+            </a>
+            <Link
+              to="/playground"
+              className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              Try Playground →
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="max-w-5xl mx-auto px-6 py-16 text-center">
+        <h2 className="text-5xl font-bold text-white mb-6">
+          Frequently Asked Questions
+        </h2>
+        <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+          Everything you need to know about Minimact, predictive rendering, and the posthydrationist philosophy
+        </p>
+      </section>
+
+      {/* FAQ Accordion */}
+      <section className="max-w-5xl mx-auto px-6 pb-24">
+        <div className="space-y-4">
+          {faqs.map((item, index) => (
+            <FAQAccordion
+              key={index}
+              item={item}
+              isOpen={openIndex === index}
+              onClick={() => setOpenIndex(openIndex === index ? null : index)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="max-w-5xl mx-auto px-6 pb-24">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-center">
+          <h3 className="text-3xl font-bold text-white mb-4">
+            Ready to try predictive rendering?
+          </h3>
+          <p className="text-xl text-blue-100 mb-8">
+            Experience the future of server-side React in the interactive playground
+          </p>
+          <Link
+            to="/playground"
+            className="inline-block px-10 py-4 bg-white text-blue-600 rounded-lg font-bold text-lg hover:bg-blue-50 transition-all shadow-2xl hover:scale-105"
+          >
+            Launch Playground →
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800 bg-slate-950/50">
+        <div className="max-w-7xl mx-auto px-6 py-8 text-center text-slate-400 text-sm">
+          <p>
+            Built with ❤️ for the .NET and React communities • © 2025 Minimact
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}

@@ -17,6 +17,9 @@ export function LandingPage() {
             <a href="#examples" className="text-slate-300 hover:text-white transition-colors">
               Examples
             </a>
+            <Link to="/faq" className="text-slate-300 hover:text-white transition-colors">
+              FAQ
+            </Link>
             <a href="https://github.com/minimact/minimact" target="_blank" className="text-slate-300 hover:text-white transition-colors">
               GitHub
             </a>
@@ -284,10 +287,10 @@ export function LandingPage() {
             <div>
               <h5 className="text-white font-semibold mb-4">Resources</h5>
               <ul className="space-y-2 text-slate-400 text-sm">
+                <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                 <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Getting Started</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Examples</a></li>
               </ul>
             </div>
 
