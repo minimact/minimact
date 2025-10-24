@@ -582,6 +582,248 @@ Built with:
 
 ---
 
+## Future Enhancements
+
+### 🌟 useDomElementState: The Most Consequential Hook Since Captain Hook™
+
+**Making the DOM itself reactive, queryable, and predictive.**
+
+While traditional frameworks force you to choose between React state and DOM access, Minimact is developing `useDomElementState()` - a revolutionary hook that makes **every element in your DOM a first-class reactive value**.
+
+```typescript
+const items = useDomElementState('.list-item');
+
+return (
+  <>
+    {/* Query DOM structure like a database */}
+    {items.count > 10 && <PaginationControls />}
+    {items.vals.avg() > 50 && <HighValueBadge />}
+
+    {/* React to pseudo-states */}
+    {items.some(i => i.state.hover) && <GlobalTooltip />}
+
+    {/* Track temporal patterns */}
+    {items.history.changeCount > 100 && <PerformanceWarning />}
+    {items.history.hasStabilized && <AutoSaveButton />}
+  </>
+);
+```
+
+**"All can be state."** - Inspired by Allstate Insurance, but for your DOM elements.
+
+#### Part 1: Base Features (Structure + Statistics)
+
+Turn DOM elements into queryable reactive data sources:
+
+```typescript
+const box = useDomElementState('.container');
+
+{box.childrenCount > 5 && <CollapseButton />}
+{box.isIntersecting && <LazyLoadContent />}
+{box.parent.classList.includes('active') && <ActiveIndicator />}
+
+const prices = useDomElementState('.price');
+{prices.vals.avg() > 100 && <PremiumBadge />}
+{prices.vals.sum() > 1000 && <BulkDiscount />}
+```
+
+**Features:**
+- Element properties as reactive state (tagName, id, className, childrenCount)
+- Collection queries (count, map, filter, find)
+- Statistical aggregates (.vals.avg(), .vals.sum(), .vals.median())
+- IntersectionObserver integration (isIntersecting, intersectionRatio)
+- MutationObserver for automatic re-renders on DOM changes
+
+**Use Cases:**
+- Virtualization decisions based on child count
+- Lazy loading based on viewport intersection
+- Analytics based on DOM metrics
+- Responsive layouts based on container queries
+
+#### Part 2: Advanced Features (Pseudo-State + Theme + Canvas)
+
+**Pseudo-State Reactivity:**
+```typescript
+const buttons = useDomElementState('button');
+
+{buttons.some(b => b.state.hover) && <GlobalTooltipManager />}
+{button.state.active && <PressAnimation />}
+{button.state.focus && <KeyboardOutline />}
+```
+
+**Theme & Breakpoint Reactivity (Tailwind-style):**
+```typescript
+const app = useDomElementState('#root');
+
+{app.theme.isDark && <DarkModeStyles />}
+{app.breakpoint.sm && <MobileNav />}
+{app.breakpoint.between('md', 'xl') && <TabletLayout />}
+```
+
+**Spatial Queries (Regex for DOM):**
+```typescript
+{items[0].lookahead(2).every(i => i.classList.includes('completed')) &&
+  <BatchCompleteAction />}
+
+{items[5].lookbehind(3).some(i => i.attributes['data-error']) &&
+  <RecentErrorsWarning />}
+```
+
+**Canvas & SVG Content Queries:**
+```typescript
+const canvas = useDomElementState('canvas');
+{canvas.ctx.dominantColor === 'red' && <AlertTheme />}
+{canvas.ctx.pixelData.avg() < 128 && <DarkImageDetected />}
+
+const svg = useDomElementState('svg');
+{svg.shapes.circles.length > 5 && <SimplifyVisualization />}
+{svg.shapes.anyIntersecting() && <OverlapWarning />}
+```
+
+**Gap Detection (The Space Between):**
+```typescript
+{grid.gaps.some(gap => gap.height > 100) && <LayoutWarning />}
+```
+
+**Use Cases:**
+- CSS pseudo-classes driving React logic
+- Dark/light mode theme-aware components
+- Responsive breakpoints as reactive values
+- Canvas-based image analysis
+- SVG shape collision detection
+- Layout anomaly detection
+
+#### Part 3: Temporal Features (State History + Trends)
+
+**State Archaeology - Time as a reactive dimension:**
+
+```typescript
+const widget = useDomElementState('.widget');
+
+{/* Performance monitoring */}
+{widget.history.changesPerSecond > 10 &&
+  <PerformanceWarning rate={widget.history.changesPerSecond} />}
+
+{/* Data freshness */}
+{stockPrice.history.timeSinceLastChange > 60000 && <StaleDataWarning />}
+{stockPrice.history.trend === 'increasing' && <BullishIndicator />}
+
+{/* User engagement tracking */}
+{form.history.changeCount === 0 &&
+ form.history.ageInSeconds > 30 &&
+  <AbandonmentWarning />}
+
+{/* Stability detection */}
+{dashboard.history.hasStabilized && <TakeScreenshotButton />}
+{dashboard.history.isOscillating && <DataLoadingIssue />}
+
+{/* Auto-save on stabilization */}
+{editor.history.wasStableFor(5000) &&
+ editor.history.changeCount > 0 &&
+  <AutoSave />}
+```
+
+**Complete History API:**
+```typescript
+element.history = {
+  // Basic tracking
+  changeCount: 47,
+  renderCount: 103,
+
+  // Temporal data
+  firstRendered: Date,
+  lastChanged: Date,
+  ageInSeconds: 127,
+  timeSinceLastChange: 3400,
+
+  // Change patterns
+  changesPerSecond: 0.37,
+  hasStabilized: true,
+  isOscillating: false,
+
+  // Trend analysis
+  trend: 'increasing' | 'decreasing' | 'stable' | 'volatile',
+  volatility: 0.23,
+
+  // History queries
+  updatedInLast(ms): boolean,
+  wasStableFor(ms): boolean,
+
+  // Change log
+  changes: Array<{timestamp, property, oldValue, newValue}>,
+  previousState: {...},
+}
+```
+
+**Use Cases:**
+- Performance monitoring and render loop detection
+- Data freshness indicators
+- User engagement analytics
+- Auto-save based on stability patterns
+- Debugging and development insights
+- Predictive behavior based on temporal patterns
+
+#### The Complete Vision: 8 Dimensions of DOM Querying
+
+Every element becomes queryable across:
+
+1. **Structure** - DOM topology, parent/child relationships
+2. **Statistics** - Numeric aggregates of collections
+3. **Pseudo-State** - :hover, :active, :focus as reactive values
+4. **Theme** - Dark/light mode, breakpoints, media queries
+5. **Spatial** - Lookahead/lookbehind, gaps between elements
+6. **Graphics** - Canvas pixels, SVG shapes, dominant colors
+7. **Time** - State history, trends, change patterns
+8. **Predictions** - Future state based on temporal patterns
+
+**One hook. Eight dimensions. Infinite possibilities.**
+
+```typescript
+const widget = useDomElementState('.widget');
+
+return (
+  <>
+    {/* Structural */}
+    {widget.childrenCount > 5 && <Pagination />}
+
+    {/* Statistical */}
+    {widget.children.vals.avg() > 100 && <HighValueBadge />}
+
+    {/* Pseudo-state */}
+    {widget.state.hover && <Tooltip />}
+
+    {/* Theme */}
+    {widget.theme.isDark && <DarkStyles />}
+
+    {/* Spatial */}
+    {widget.lookahead(2).every(w => w.isIntersecting) && <LoadMore />}
+
+    {/* Graphics */}
+    {widget.find('canvas').ctx.dominantColor === 'red' && <Alert />}
+
+    {/* Temporal */}
+    {widget.history.hasStabilized && <AutoSave />}
+    {widget.history.trend === 'increasing' && <TrendIndicator />}
+  </>
+);
+```
+
+#### Implementation Status
+
+See detailed implementation plans:
+- [Part 1: Base Features](./USEDOMELEMENTSTATE_IMPLEMENTATION_PLAN.md) - Structure + Statistics (~7 weeks)
+- [Part 2: Advanced Features](./USEDOMELEMENTSTATE_ADVANCED_FEATURES.md) - Pseudo-state + Theme + Canvas (~6 weeks)
+- [Part 3: Temporal Features](./USEDOMELEMENTSTATE_TEMPORAL_FEATURES.md) - History + Trends (~5 weeks)
+- [Difficulty Analysis](./USEDOMELEMENTSTATE_DIFFICULTY_RANKING.md) - Technical feasibility assessment
+
+**Estimated Timeline:** 12-18 weeks for complete implementation
+
+**Philosophy:** Not "abstract away from the DOM" but "elevate the DOM to first-class reactive state."
+
+This is React meeting jQuery meeting SQL meeting time-series analytics. All can be state. 🌵
+
+---
+
 ## Roadmap
 
 ### Q2 2025
@@ -595,12 +837,19 @@ Built with:
 - [ ] Template system
 - [ ] Route codegen with IntelliSense
 - [ ] Beta release
+- [ ] useDomElementState Part 1 (Base Features)
 
 ### Q4 2025
 - [ ] Production optimizations
 - [ ] DevTools browser extension
 - [ ] Comprehensive documentation
+- [ ] useDomElementState Part 2 (Advanced Features)
 - [ ] v1.0 release
+
+### 2026
+- [ ] useDomElementState Part 3 (Temporal Features)
+- [ ] Predictive DOM integration
+- [ ] v2.0 release
 
 ---
 
