@@ -1,0 +1,428 @@
+VISUAL COMPILER REPORT
+══════════════════════════════════════════════════
+Overall Score: 0/100
+Total Render Time: 1656ms
+Issues Found: 27 (22 errors, 1 warnings, 4 info)
+Grouped Issues: 10 (3 critical, 0 major, 3 minor)
+
+🎯 PRIORITIZED ISSUES & FIXES
+══════════════════════════════════════════════════
+🔴 P2 [CRITICAL] Component overlap cluster affecting MainLayout, FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: MainLayout, FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between MainLayout and FailSquareCard and FailSquareButton
+      CSS: [data-component="MainLayout"], [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .mainlayout {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarecard {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 3 detailed issues grouped
+
+🟡 P2 [MINOR] Component overlap cluster affecting FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between FailSquareCard and FailSquareButton
+      CSS: [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .failsquarecard {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarebutton {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout and FailSquareCard properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout and FailSquareCard properly aligned
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] FailSquareCard: FailSquareCard and FailSquareButton properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: FailSquareCard and FailSquareButton properly aligned
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔴 P2 [CRITICAL] Component overlap cluster affecting MainLayout, FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: MainLayout, FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between MainLayout and FailSquareCard and FailSquareButton
+      CSS: [data-component="MainLayout"], [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .mainlayout {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarecard {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 3 detailed issues grouped
+
+🟡 P2 [MINOR] Component overlap cluster affecting FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between FailSquareCard and FailSquareButton
+      CSS: [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .failsquarecard {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarebutton {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout and FailSquareCard properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout and FailSquareCard properly aligned
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] FailSquareCard: FailSquareCard and FailSquareButton properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: FailSquareCard and FailSquareButton properly aligned
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔴 P2 [CRITICAL] Component overlap cluster affecting MainLayout, FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: MainLayout, FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between MainLayout and FailSquareCard and FailSquareButton
+      CSS: [data-component="MainLayout"], [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .mainlayout {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarecard {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 3 detailed issues grouped
+
+🟡 P2 [MINOR] Component overlap cluster affecting FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between FailSquareCard and FailSquareButton
+      CSS: [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .failsquarecard {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarebutton {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 1 detailed issues grouped
+
+RESOLUTION: MOBILE (390x844)
+──────────────────────────────
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "342x514.234375 pixels",
+     "percentageA": "53.4",
+     "percentageB": "100.0",
+     "area": 175868.15625
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "136x242.234375 pixels",
+     "percentageA": "10.0",
+     "percentageB": "100.0",
+     "area": 32943.875
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "136x242.234375 pixels",
+     "percentageA": "10.0",
+     "percentageB": "100.0",
+     "area": 32943.875
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "124.25x34 pixels",
+     "percentageA": "1.3",
+     "percentageB": "100.0",
+     "area": 4224.5
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "142.96875x34 pixels",
+     "percentageA": "1.5",
+     "percentageB": "100.0",
+     "area": 4860.9375
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "overlap": "136x242.234375 pixels",
+     "percentageA": "18.7",
+     "percentageB": "100.0",
+     "area": 32943.875
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "overlap": "136x242.234375 pixels",
+     "percentageA": "18.7",
+     "percentageB": "100.0",
+     "area": 32943.875
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "124.25x34 pixels",
+     "percentageA": "2.4",
+     "percentageB": "100.0",
+     "area": 4224.5
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "142.96875x34 pixels",
+     "percentageA": "2.8",
+     "percentageB": "100.0",
+     "area": 4860.9375
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareButton properly aligned
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: TABLET (768x1024)
+──────────────────────────────
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "698.15625x338.078125 pixels",
+     "percentageA": "30.0",
+     "percentageB": "100.0",
+     "area": 236031.35595703125
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "314.078125x114.078125 pixels",
+     "percentageA": "4.6",
+     "percentageB": "100.0",
+     "area": 35829.443603515625
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "314.078125x114.078125 pixels",
+     "percentageA": "4.6",
+     "percentageB": "100.0",
+     "area": 35829.443603515625
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "124.25x34 pixels",
+     "percentageA": "0.5",
+     "percentageB": "100.0",
+     "area": 4224.5
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "142.96875x34 pixels",
+     "percentageA": "0.6",
+     "percentageB": "100.0",
+     "area": 4860.9375
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "overlap": "314.078125x114.078125 pixels",
+     "percentageA": "15.2",
+     "percentageB": "100.0",
+     "area": 35829.443603515625
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "overlap": "314.078125x114.078125 pixels",
+     "percentageA": "15.2",
+     "percentageB": "100.0",
+     "area": 35829.443603515625
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "124.25x34 pixels",
+     "percentageA": "1.8",
+     "percentageB": "100.0",
+     "area": 4224.5
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "142.96875x34 pixels",
+     "percentageA": "2.1",
+     "percentageB": "100.0",
+     "area": 4860.9375
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareButton properly aligned
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: DESKTOP (1920x1080)
+──────────────────────────────
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "698.15625x338.078125 pixels",
+     "percentageA": "11.4",
+     "percentageB": "100.0",
+     "area": 236031.35595703125
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "124.25x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 4224.5
+   }
+❌ E101: FailSquareCard overlaps FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "overlap": "314.078125x114.078125 pixels",
+     "percentageA": "15.2",
+     "percentageB": "100.0",
+     "area": 35829.443603515625
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "124.25x34 pixels",
+     "percentageA": "1.8",
+     "percentageB": "100.0",
+     "area": 4224.5
+   }
+
+RESPONSIVE ISSUES
+──────────────────────────────
+🟡 SPACING-INCONSISTENCY: MainLayout has dramatic size changes across resolutions
+   Affected: mobile, desktop

@@ -1,0 +1,89 @@
+VISUAL COMPILER REPORT
+══════════════════════════════════════════════════
+Overall Score: 37/100
+Total Render Time: 1545ms
+Issues Found: 9 (6 errors, 0 warnings, 3 info)
+
+RESOLUTION: MOBILE (390x844)
+──────────────────────────────
+❌ E101RM: FailSquareCard overlaps FailSquareAuthInput
+   Components: FailSquareCard ↔ FailSquareAuthInput
+   Details: {
+     "overlap": "308x38 pixels",
+     "percentageA": "12.3",
+     "percentageB": "100.0",
+     "area": 11704
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareAuthInput properly aligned
+   Components: FailSquareCard ↔ FailSquareAuthInput
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareSelect
+   Components: FailSquareCard ↔ FailSquareSelect
+   Details: {
+     "overlap": "308x40 pixels",
+     "percentageA": "12.9",
+     "percentageB": "100.0",
+     "area": 12320
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareSelect properly aligned
+   Components: FailSquareCard ↔ FailSquareSelect
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareAuthInput and FailSquareSelect properly aligned
+   Components: FailSquareAuthInput ↔ FailSquareSelect
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: TABLET (768x1024)
+──────────────────────────────
+❌ E101RT: FailSquareCard overlaps FailSquareAuthInput
+   Components: FailSquareCard ↔ FailSquareAuthInput
+   Details: {
+     "overlap": "321x38 pixels",
+     "percentageA": "9.0",
+     "percentageB": "100.0",
+     "area": 12198
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareSelect
+   Components: FailSquareCard ↔ FailSquareSelect
+   Details: {
+     "overlap": "321x40 pixels",
+     "percentageA": "9.5",
+     "percentageB": "100.0",
+     "area": 12840
+   }
+
+RESOLUTION: DESKTOP (1920x1080)
+──────────────────────────────
+❌ E101: FailSquareCard overlaps FailSquareAuthInput
+   Components: FailSquareCard ↔ FailSquareAuthInput
+   Details: {
+     "overlap": "357x38 pixels",
+     "percentageA": "9.1",
+     "percentageB": "100.0",
+     "area": 13566
+   }
+❌ E101: FailSquareCard overlaps FailSquareSelect
+   Components: FailSquareCard ↔ FailSquareSelect
+   Details: {
+     "overlap": "357x40 pixels",
+     "percentageA": "9.6",
+     "percentageB": "100.0",
+     "area": 14280
+   }

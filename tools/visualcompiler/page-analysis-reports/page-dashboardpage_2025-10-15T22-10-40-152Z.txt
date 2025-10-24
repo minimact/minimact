@@ -1,0 +1,3399 @@
+VISUAL COMPILER REPORT
+══════════════════════════════════════════════════
+Overall Score: 0/100
+Total Render Time: 1551ms
+Issues Found: 327 (87 errors, 154 warnings, 86 info)
+Grouped Issues: 19 (3 critical, 0 major, 16 minor)
+
+🎯 PRIORITIZED ISSUES & FIXES
+══════════════════════════════════════════════════
+🔴 P2 [CRITICAL] Component overlap cluster affecting MainLayout, FailSquareCard, MeritIndicator, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: MainLayout, FailSquareCard, MeritIndicator, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between MainLayout and FailSquareCard and MeritIndicator and FailSquareButton
+      CSS: [data-component="MainLayout"], [data-component="FailSquareCard"], [data-component="MeritIndicator"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .mainlayout {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarecard {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 3 detailed issues grouped
+
+🟡 P1 [MINOR] MainLayout layout causes mobile viewport overflow
+   Impact: blocks-interaction | Users: 60% of users | Fix Effort: low | Confidence: 90%
+   Root Cause: Fixed-width layout not responsive to mobile constraints
+   Affected Components: MainLayout, FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Convert MainLayout to responsive flexbox layout for mobile
+      CSS: [data-component="MainLayout"], .mainlayout
+      
+      /* Mobile responsive fix for MainLayout */
+      @media (max-width: 768px) {
+        .sidebar-layout {
+          flex-direction: column;
+          gap: 16px;
+          padding: 16px;
+        }
+      
+        .sidebar {
+          width: 100%;
+          margin-bottom: 16px;
+        }
+      
+        .main-content {
+          width: 100%;
+        }
+      }
+      Explanation: Changes horizontal sidebar layout to vertical stack on mobile, preventing viewport overflow
+      Alternative fixes:
+        • Add horizontal scroll (not recommended): mainlayout { overflow-x: auto; }
+   Related issues: 12 detailed issues grouped
+
+🟡 P2 [MINOR] Component overlap cluster affecting FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between FailSquareCard and FailSquareButton
+      CSS: [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .failsquarecard {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarebutton {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 1 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in MainLayout components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      Standardize spacing for MainLayout components
+      CSS: [data-component="MainLayout"]
+      
+      /* Consistent spacing system */
+      .mainlayout {
+        margin: 16px 0;
+      }
+      
+      .mainlayout + .mainlayout {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 7 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareCard components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareCard components
+      CSS: [data-component="FailSquareCard"]
+      
+      /* Consistent spacing system */
+      .failsquarecard {
+        margin: 16px 0;
+      }
+      
+      .failsquarecard + .failsquarecard {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 55 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in MeritIndicator components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: MeritIndicator
+   💡 SUGGESTED FIX:
+      Standardize spacing for MeritIndicator components
+      CSS: [data-component="MeritIndicator"]
+      
+      /* Consistent spacing system */
+      .meritindicator {
+        margin: 16px 0;
+      }
+      
+      .meritindicator + .meritindicator {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 17 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareButton components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareButton
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareButton components
+      CSS: [data-component="FailSquareButton"]
+      
+      /* Consistent spacing system */
+      .failsquarebutton {
+        margin: 16px 0;
+      }
+      
+      .failsquarebutton + .failsquarebutton {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 20 detailed issues grouped
+
+🔴 P2 [CRITICAL] Component overlap cluster affecting MainLayout, FailSquareCard, MeritIndicator, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: MainLayout, FailSquareCard, MeritIndicator, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between MainLayout and FailSquareCard and MeritIndicator and FailSquareButton
+      CSS: [data-component="MainLayout"], [data-component="FailSquareCard"], [data-component="MeritIndicator"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .mainlayout {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarecard {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 3 detailed issues grouped
+
+🟡 P2 [MINOR] MainLayout layout causes tablet viewport overflow
+   Impact: blocks-interaction | Users: 25% of users | Fix Effort: low | Confidence: 90%
+   Root Cause: Fixed-width layout not responsive to tablet constraints
+   Affected Components: MainLayout, FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Add responsive constraints to MainLayout
+      CSS: [data-component="MainLayout"]
+      max-width: 100%; overflow-x: auto;
+      Explanation: Prevents horizontal overflow with scrollable content
+   Related issues: 11 detailed issues grouped
+
+🟡 P2 [MINOR] Component overlap cluster affecting FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between FailSquareCard and FailSquareButton
+      CSS: [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .failsquarecard {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarebutton {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 1 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in MainLayout components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      Standardize spacing for MainLayout components
+      CSS: [data-component="MainLayout"]
+      
+      /* Consistent spacing system */
+      .mainlayout {
+        margin: 16px 0;
+      }
+      
+      .mainlayout + .mainlayout {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 7 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareCard components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareCard components
+      CSS: [data-component="FailSquareCard"]
+      
+      /* Consistent spacing system */
+      .failsquarecard {
+        margin: 16px 0;
+      }
+      
+      .failsquarecard + .failsquarecard {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 54 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in MeritIndicator components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: MeritIndicator
+   💡 SUGGESTED FIX:
+      Standardize spacing for MeritIndicator components
+      CSS: [data-component="MeritIndicator"]
+      
+      /* Consistent spacing system */
+      .meritindicator {
+        margin: 16px 0;
+      }
+      
+      .meritindicator + .meritindicator {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 17 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareButton components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareButton
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareButton components
+      CSS: [data-component="FailSquareButton"]
+      
+      /* Consistent spacing system */
+      .failsquarebutton {
+        margin: 16px 0;
+      }
+      
+      .failsquarebutton + .failsquarebutton {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 19 detailed issues grouped
+
+🔴 P2 [CRITICAL] Component overlap cluster affecting MainLayout, FailSquareCard, MeritIndicator, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: MainLayout, FailSquareCard, MeritIndicator, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between MainLayout and FailSquareCard and MeritIndicator and FailSquareButton
+      CSS: [data-component="MainLayout"], [data-component="FailSquareCard"], [data-component="MeritIndicator"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .mainlayout {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarecard {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 3 detailed issues grouped
+
+🟡 P2 [MINOR] MainLayout layout causes desktop viewport overflow
+   Impact: blocks-interaction | Users: 15% of users | Fix Effort: low | Confidence: 90%
+   Root Cause: Fixed-width layout not responsive to desktop constraints
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      Add responsive constraints to MainLayout
+      CSS: [data-component="MainLayout"]
+      max-width: 100%; overflow-x: auto;
+      Explanation: Prevents horizontal overflow with scrollable content
+   Related issues: 1 detailed issues grouped
+
+🟡 P2 [MINOR] Component overlap cluster affecting FailSquareCard, FailSquareButton
+   Impact: blocks-interaction | Users: 100% | Fix Effort: medium | Confidence: 80%
+   Root Cause: Layout positioning conflicts
+   Affected Components: FailSquareCard, FailSquareButton
+   💡 SUGGESTED FIX:
+      Fix positioning conflicts between FailSquareCard and FailSquareButton
+      CSS: [data-component="FailSquareCard"], [data-component="FailSquareButton"]
+      
+      /* Fix overlapping components */
+      .failsquarecard {
+        position: relative;
+        z-index: 1;
+        margin-bottom: 16px;
+      }
+      
+      .failsquarebutton {
+        position: relative;
+        clear: both;
+        margin-top: 8px;
+      }
+      Explanation: Establishes proper stacking order and spacing to prevent overlaps
+      Alternative fixes:
+        • Use CSS Grid for precise positioning: display: grid; grid-template-columns: 1fr; gap: 16px;
+   Related issues: 1 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareCard components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareCard components
+      CSS: [data-component="FailSquareCard"]
+      
+      /* Consistent spacing system */
+      .failsquarecard {
+        margin: 16px 0;
+      }
+      
+      .failsquarecard + .failsquarecard {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 25 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareButton components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareButton
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareButton components
+      CSS: [data-component="FailSquareButton"]
+      
+      /* Consistent spacing system */
+      .failsquarebutton {
+        margin: 16px 0;
+      }
+      
+      .failsquarebutton + .failsquarebutton {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 19 detailed issues grouped
+
+RESOLUTION: MOBILE (390x844)
+──────────────────────────────
+❌ E301RM: MainLayout extends beyond viewport
+   Component: MainLayout
+   Details: {
+     "overflowX": 0,
+     "overflowY": 1023.15625,
+     "componentBounds": {
+       "x": 0,
+       "y": 0,
+       "width": 390,
+       "height": 1867.15625,
+       "component": "MainLayout",
+       "instance": "1",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 70.078125,
+     "componentBounds": {
+       "x": 16,
+       "y": 769.078125,
+       "width": 358,
+       "height": 145,
+       "component": "FailSquareCard",
+       "instance": "3",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 226.078125,
+     "componentBounds": {
+       "x": 16,
+       "y": 946.078125,
+       "width": 358,
+       "height": 124,
+       "component": "FailSquareCard",
+       "instance": "4",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 801.078125,
+     "componentBounds": {
+       "x": 16,
+       "y": 1110.078125,
+       "width": 358,
+       "height": 535,
+       "component": "FailSquareCard",
+       "instance": "5",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 325.078125,
+     "componentBounds": {
+       "x": 266.21875,
+       "y": 1135.078125,
+       "width": 82.78125,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "1",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 392.078125,
+     "componentBounds": {
+       "x": 267.90625,
+       "y": 1202.078125,
+       "width": 64.09375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "2",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 537.078125,
+     "componentBounds": {
+       "x": 267.90625,
+       "y": 1347.078125,
+       "width": 64.09375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "3",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 682.078125,
+     "componentBounds": {
+       "x": 267.90625,
+       "y": 1492.078125,
+       "width": 64.09375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "4",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 991.15625,
+     "componentBounds": {
+       "x": 16,
+       "y": 1661.078125,
+       "width": 358,
+       "height": 174.078125,
+       "component": "FailSquareCard",
+       "instance": "6",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 920.15625,
+     "componentBounds": {
+       "x": 41,
+       "y": 1730.15625,
+       "width": 156.15625,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "5",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 920.15625,
+     "componentBounds": {
+       "x": 209.15625,
+       "y": 1730.15625,
+       "width": 136.71875,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "6",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 966.15625,
+     "componentBounds": {
+       "x": 41,
+       "y": 1776.15625,
+       "width": 123.234375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "7",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "358x294.078125 pixels",
+     "percentageA": "14.5",
+     "percentageB": "100.0",
+     "area": 105279.96875
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps MeritIndicator
+   Components: MainLayout ↔ MeritIndicator
+   Details: {
+     "overlap": "358x134 pixels",
+     "percentageA": "6.6",
+     "percentageB": "100.0",
+     "area": 47972
+   }
+ℹ️ I401RM: MainLayout and MeritIndicator properly aligned
+   Components: MainLayout ↔ MeritIndicator
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "358x145 pixels",
+     "percentageA": "7.1",
+     "percentageB": "100.0",
+     "area": 51910
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "358x145 pixels",
+     "percentageA": "7.1",
+     "percentageB": "100.0",
+     "area": 51910
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "358x124 pixels",
+     "percentageA": "6.1",
+     "percentageB": "100.0",
+     "area": 44392
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "358x535 pixels",
+     "percentageA": "26.3",
+     "percentageB": "100.0",
+     "area": 191530
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "82.78125x34 pixels",
+     "percentageA": "0.4",
+     "percentageB": "100.0",
+     "area": 2814.5625
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.3",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.3",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.3",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RM: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "358x174.078125 pixels",
+     "percentageA": "8.6",
+     "percentageB": "100.0",
+     "area": 62319.96875
+   }
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "156.15625x34 pixels",
+     "percentageA": "0.7",
+     "percentageB": "100.0",
+     "area": 5309.3125
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "136.71875x34 pixels",
+     "percentageA": "0.6",
+     "percentageB": "100.0",
+     "area": 4648.4375
+   }
+❌ E101RM: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "123.234375x34 pixels",
+     "percentageA": "0.6",
+     "percentageB": "100.0",
+     "area": 4189.96875
+   }
+ℹ️ I401RM: FailSquareCard and MeritIndicator properly aligned
+   Components: FailSquareCard ↔ MeritIndicator
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "282px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "459px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "636px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "800px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "825px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "892px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1037px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1182px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "1351px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1420.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1420.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1466.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "132px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "309px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "486px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "650px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "675px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "742px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "887px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1032px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "1201px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1270.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1270.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1316.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "209px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "373px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "398px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "465px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "610px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "755px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "924px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "993.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "993.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1039.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "196px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "221px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "288px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "433px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "578px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "747px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "816.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "816.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "862.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "132px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "277px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "422px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "591px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "660.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "660.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "706.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "82.78125x34 pixels",
+     "percentageA": "1.5",
+     "percentageB": "100.0",
+     "area": 2814.5625
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.1",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.1",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.1",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "131.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "178px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "323px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "492px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "561.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "111px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "256px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "425px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "494.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "111px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "280px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "349.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "135px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "204.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "156.15625x34 pixels",
+     "percentageA": "8.5",
+     "percentageB": "100.0",
+     "area": 5309.3125
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "136.71875x34 pixels",
+     "percentageA": "7.5",
+     "percentageB": "100.0",
+     "area": 4648.4375
+   }
+❌ E101RM: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "123.234375x34 pixels",
+     "percentageA": "6.7",
+     "percentageB": "100.0",
+     "area": 4189.96875
+   }
+ℹ️ I401RM: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: TABLET (768x1024)
+──────────────────────────────
+❌ E301RT: MainLayout extends beyond viewport
+   Component: MainLayout
+   Details: {
+     "overflowX": 0,
+     "overflowY": 701.15625,
+     "componentBounds": {
+       "x": 0,
+       "y": 0,
+       "width": 768,
+       "height": 1725.15625,
+       "component": "MainLayout",
+       "instance": "1",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 22.078125,
+     "componentBounds": {
+       "x": 138.9375,
+       "y": 922.078125,
+       "width": 490.109375,
+       "height": 124,
+       "component": "FailSquareCard",
+       "instance": "4",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 525.078125,
+     "componentBounds": {
+       "x": 138.9375,
+       "y": 1086.078125,
+       "width": 490.109375,
+       "height": 463,
+       "component": "FailSquareCard",
+       "instance": "5",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 121.078125,
+     "componentBounds": {
+       "x": 521.265625,
+       "y": 1111.078125,
+       "width": 82.78125,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "1",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 188.078125,
+     "componentBounds": {
+       "x": 522.953125,
+       "y": 1178.078125,
+       "width": 64.09375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "2",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 309.078125,
+     "componentBounds": {
+       "x": 522.953125,
+       "y": 1299.078125,
+       "width": 64.09375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "3",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 430.078125,
+     "componentBounds": {
+       "x": 522.953125,
+       "y": 1420.078125,
+       "width": 64.09375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "4",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareCard extends beyond viewport
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 669.15625,
+     "componentBounds": {
+       "x": 138.9375,
+       "y": 1565.078125,
+       "width": 490.109375,
+       "height": 128.078125,
+       "component": "FailSquareCard",
+       "instance": "6",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 644.15625,
+     "componentBounds": {
+       "x": 163.9375,
+       "y": 1634.15625,
+       "width": 156.15625,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "5",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 644.15625,
+     "componentBounds": {
+       "x": 332.09375,
+       "y": 1634.15625,
+       "width": 136.71875,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "6",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E301RT: FailSquareButton extends beyond viewport
+   Component: FailSquareButton
+   Details: {
+     "overflowX": 0,
+     "overflowY": 644.15625,
+     "componentBounds": {
+       "x": 480.8125,
+       "y": 1634.15625,
+       "width": 123.234375,
+       "height": 34,
+       "component": "FailSquareButton",
+       "instance": "7",
+       "selector": "button"
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x294.078125 pixels",
+     "percentageA": "10.9",
+     "percentageB": "100.0",
+     "area": 144130.44604492188
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps MeritIndicator
+   Components: MainLayout ↔ MeritIndicator
+   Details: {
+     "overlap": "490.109375x134 pixels",
+     "percentageA": "5.0",
+     "percentageB": "100.0",
+     "area": 65674.65625
+   }
+ℹ️ I401RT: MainLayout and MeritIndicator properly aligned
+   Components: MainLayout ↔ MeritIndicator
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x145 pixels",
+     "percentageA": "5.4",
+     "percentageB": "100.0",
+     "area": 71065.859375
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x145 pixels",
+     "percentageA": "5.4",
+     "percentageB": "100.0",
+     "area": 71065.859375
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x124 pixels",
+     "percentageA": "4.6",
+     "percentageB": "100.0",
+     "area": 60773.5625
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x463 pixels",
+     "percentageA": "17.1",
+     "percentageB": "100.0",
+     "area": 226920.640625
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "82.78125x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 2814.5625
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RT: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x128.078125 pixels",
+     "percentageA": "4.7",
+     "percentageB": "100.0",
+     "area": 62772.289794921875
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "156.15625x34 pixels",
+     "percentageA": "0.4",
+     "percentageB": "100.0",
+     "area": 5309.3125
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "136.71875x34 pixels",
+     "percentageA": "0.4",
+     "percentageB": "100.0",
+     "area": 4648.4375
+   }
+❌ E101RT: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "123.234375x34 pixels",
+     "percentageA": "0.3",
+     "percentageB": "100.0",
+     "area": 4189.96875
+   }
+ℹ️ I401RT: FailSquareCard and MeritIndicator properly aligned
+   Components: FailSquareCard ↔ MeritIndicator
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "258px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "435px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "612px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "776px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "801px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "868px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "989px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1110px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "1255px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1324.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1324.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1324.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "108px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "285px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "462px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "626px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "651px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "718px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "839px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "960px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareCard
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "1105px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: MeritIndicator and FailSquareCard properly aligned
+   Components: MeritIndicator ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1174.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1174.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between MeritIndicator and FailSquareButton
+   Components: MeritIndicator ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "1174.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "209px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "373px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "398px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "465px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "586px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "707px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "852px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "921.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "921.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "921.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "196px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "221px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "288px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "409px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "530px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "675px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "132px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "253px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "374px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "519px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "588.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "588.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "588.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "82.78125x34 pixels",
+     "percentageA": "1.2",
+     "percentageB": "100.0",
+     "area": 2814.5625
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.0",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.0",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.0",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "154px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "275px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "420px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "489.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": false,
+     "rightAligned": true,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "208px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "353px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "422.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401RT: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "232px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "301.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "111px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "180.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "156.15625x34 pixels",
+     "percentageA": "8.5",
+     "percentageB": "100.0",
+     "area": 5309.3125
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "136.71875x34 pixels",
+     "percentageA": "7.4",
+     "percentageB": "100.0",
+     "area": 4648.4375
+   }
+❌ E101RT: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "123.234375x34 pixels",
+     "percentageA": "6.7",
+     "percentageB": "100.0",
+     "area": 4189.96875
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "160.71875px",
+     "yGap": "0px",
+     "horizontal": true,
+     "vertical": false
+   }
+
+RESOLUTION: DESKTOP (1920x1080)
+──────────────────────────────
+❌ E301: MainLayout extends beyond viewport
+   Component: MainLayout
+   Details: {
+     "overflowX": 0,
+     "overflowY": 24.078125,
+     "componentBounds": {
+       "x": 0,
+       "y": 0,
+       "width": 1920,
+       "height": 1104.078125,
+       "component": "MainLayout",
+       "instance": "1",
+       "selector": "div"
+     },
+     "viewport": {
+       "name": "desktop",
+       "width": 1920,
+       "height": 1080
+     }
+   }
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "250x294.078125 pixels",
+     "percentageA": "3.5",
+     "percentageB": "100.0",
+     "area": 73519.53125
+   }
+❌ E101: MainLayout overlaps MeritIndicator
+   Components: MainLayout ↔ MeritIndicator
+   Details: {
+     "overlap": "250x134 pixels",
+     "percentageA": "1.6",
+     "percentageB": "100.0",
+     "area": 33500
+   }
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "237.046875x145 pixels",
+     "percentageA": "1.6",
+     "percentageB": "100.0",
+     "area": 34371.796875
+   }
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "237.0625x145 pixels",
+     "percentageA": "1.6",
+     "percentageB": "100.0",
+     "area": 34374.0625
+   }
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "237.046875x124 pixels",
+     "percentageA": "1.4",
+     "percentageB": "100.0",
+     "area": 29393.8125
+   }
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x463 pixels",
+     "percentageA": "10.7",
+     "percentageB": "100.0",
+     "area": 226920.640625
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "82.78125x34 pixels",
+     "percentageA": "0.1",
+     "percentageB": "100.0",
+     "area": 2814.5625
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.1",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.1",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "0.1",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101: MainLayout overlaps FailSquareCard
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "overlap": "490.109375x128.078125 pixels",
+     "percentageA": "3.0",
+     "percentageB": "100.0",
+     "area": 62772.289794921875
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "156.15625x34 pixels",
+     "percentageA": "0.3",
+     "percentageB": "100.0",
+     "area": 5309.3125
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "136.71875x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 4648.4375
+   }
+❌ E101: MainLayout overlaps FailSquareButton
+   Components: MainLayout ↔ FailSquareButton
+   Details: {
+     "overlap": "123.234375x34 pixels",
+     "percentageA": "0.2",
+     "percentageB": "100.0",
+     "area": 4189.96875
+   }
+ℹ️ I401: FailSquareCard and MeritIndicator properly aligned
+   Components: FailSquareCard ↔ MeritIndicator
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "277.046875px",
+     "yGap": "0px",
+     "horizontal": true,
+     "vertical": false
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "196px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "675px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "196px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": true,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "221px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "288px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "409px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "530px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "675px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": true,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "744.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "519px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "588.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareCard and FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "588.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "82.78125x34 pixels",
+     "percentageA": "1.2",
+     "percentageB": "100.0",
+     "area": 2814.5625
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.0",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.0",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "64.09375x34 pixels",
+     "percentageA": "1.0",
+     "percentageB": "100.0",
+     "area": 2179.1875
+   }
+ℹ️ I401: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "154px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "275px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "420px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "489.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": false,
+     "rightAligned": true,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "208px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "353px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "422.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I401: FailSquareButton and FailSquareButton properly aligned
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "232px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "301.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "111px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "0px",
+     "yGap": "180.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "156.15625x34 pixels",
+     "percentageA": "8.5",
+     "percentageB": "100.0",
+     "area": 5309.3125
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "136.71875x34 pixels",
+     "percentageA": "7.4",
+     "percentageB": "100.0",
+     "area": 4648.4375
+   }
+❌ E101: FailSquareCard overlaps FailSquareButton
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "overlap": "123.234375x34 pixels",
+     "percentageA": "6.7",
+     "percentageB": "100.0",
+     "area": 4189.96875
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareButton
+   Components: FailSquareButton ↔ FailSquareButton
+   Details: {
+     "xGap": "160.71875px",
+     "yGap": "0px",
+     "horizontal": true,
+     "vertical": false
+   }

@@ -1,0 +1,263 @@
+{
+  "reports": [
+    {
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "components": [
+        {
+          "x": 20,
+          "y": 20,
+          "width": 350,
+          "height": 272,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div.failsquare-card"
+        },
+        {
+          "x": 41,
+          "y": 137,
+          "width": 308,
+          "height": 38,
+          "component": "FailSquareAuthInput",
+          "instance": "1",
+          "selector": "input.failsquare-input"
+        },
+        {
+          "x": 41,
+          "y": 211,
+          "width": 308,
+          "height": 40,
+          "component": "FailSquareSelect",
+          "instance": "1",
+          "selector": "select.failsquare-input"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareAuthInput",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareAuthInput",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "308x38 pixels",
+            "percentageA": "12.3",
+            "percentageB": "100.0",
+            "area": 11704
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareAuthInput properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareAuthInput",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareSelect",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareSelect",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "308x40 pixels",
+            "percentageA": "12.9",
+            "percentageB": "100.0",
+            "area": 12320
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareSelect properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareSelect",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareAuthInput and FailSquareSelect properly aligned",
+          "componentA": "FailSquareAuthInput",
+          "componentB": "FailSquareSelect",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760563087053,
+      "renderTime": 518
+    },
+    {
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      },
+      "components": [
+        {
+          "x": 20,
+          "y": 20,
+          "width": 728,
+          "height": 186,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div.failsquare-card"
+        },
+        {
+          "x": 53,
+          "y": 113,
+          "width": 321,
+          "height": 38,
+          "component": "FailSquareAuthInput",
+          "instance": "1",
+          "selector": "input.failsquare-input"
+        },
+        {
+          "x": 394,
+          "y": 113,
+          "width": 321,
+          "height": 40,
+          "component": "FailSquareSelect",
+          "instance": "1",
+          "selector": "select.failsquare-input"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareAuthInput",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareAuthInput",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "321x38 pixels",
+            "percentageA": "9.0",
+            "percentageB": "100.0",
+            "area": 12198
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareSelect",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareSelect",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "321x40 pixels",
+            "percentageA": "9.5",
+            "percentageB": "100.0",
+            "area": 12840
+          }
+        }
+      ],
+      "timestamp": 1760563087563,
+      "renderTime": 510
+    },
+    {
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      },
+      "components": [
+        {
+          "x": 560,
+          "y": 20,
+          "width": 800,
+          "height": 186,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div.failsquare-card"
+        },
+        {
+          "x": 593,
+          "y": 113,
+          "width": 357,
+          "height": 38,
+          "component": "FailSquareAuthInput",
+          "instance": "1",
+          "selector": "input.failsquare-input"
+        },
+        {
+          "x": 970,
+          "y": 113,
+          "width": 357,
+          "height": 40,
+          "component": "FailSquareSelect",
+          "instance": "1",
+          "selector": "select.failsquare-input"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareAuthInput",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareAuthInput",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "357x38 pixels",
+            "percentageA": "9.1",
+            "percentageB": "100.0",
+            "area": 13566
+          }
+        },
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareSelect",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareSelect",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "357x40 pixels",
+            "percentageA": "9.6",
+            "percentageB": "100.0",
+            "area": 14280
+          }
+        }
+      ],
+      "timestamp": 1760563088080,
+      "renderTime": 517
+    }
+  ],
+  "summary": {
+    "totalIssues": 9,
+    "errorCount": 6,
+    "warningCount": 0,
+    "infoCount": 3,
+    "responsiveIssues": [],
+    "overallScore": 37
+  },
+  "timestamp": 1760563088081,
+  "totalRenderTime": 1545
+}

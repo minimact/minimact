@@ -1,0 +1,1230 @@
+{
+  "reports": [
+    {
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div"
+        },
+        {
+          "x": 24,
+          "y": 24,
+          "width": 342,
+          "height": 514.234375,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div"
+        },
+        {
+          "x": 49,
+          "y": 197,
+          "width": 136,
+          "height": 242.234375,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div"
+        },
+        {
+          "x": 205,
+          "y": 197,
+          "width": 136,
+          "height": 242.234375,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div"
+        },
+        {
+          "x": 49,
+          "y": 479.234375,
+          "width": 124.25,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button"
+        },
+        {
+          "x": 185.25,
+          "y": 479.234375,
+          "width": 142.96875,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "342x514.234375 pixels",
+            "percentageA": "53.4",
+            "percentageB": "100.0",
+            "area": 175868.15625
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "136x242.234375 pixels",
+            "percentageA": "10.0",
+            "percentageB": "100.0",
+            "area": 32943.875
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "136x242.234375 pixels",
+            "percentageA": "10.0",
+            "percentageB": "100.0",
+            "area": 32943.875
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "1.3",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "142.96875x34 pixels",
+            "percentageA": "1.5",
+            "percentageB": "100.0",
+            "area": 4860.9375
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "136x242.234375 pixels",
+            "percentageA": "18.7",
+            "percentageB": "100.0",
+            "area": 32943.875
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "136x242.234375 pixels",
+            "percentageA": "18.7",
+            "percentageB": "100.0",
+            "area": 32943.875
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "2.4",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "142.96875x34 pixels",
+            "percentageA": "2.8",
+            "percentageB": "100.0",
+            "area": 4860.9375
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760567570443,
+      "renderTime": 519
+    },
+    {
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 768,
+          "height": 1024,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div"
+        },
+        {
+          "x": 34.921875,
+          "y": 24,
+          "width": 698.15625,
+          "height": 338.078125,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div"
+        },
+        {
+          "x": 59.921875,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div"
+        },
+        {
+          "x": 394,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div"
+        },
+        {
+          "x": 59.921875,
+          "y": 303.078125,
+          "width": 124.25,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button"
+        },
+        {
+          "x": 196.171875,
+          "y": 303.078125,
+          "width": 142.96875,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "698.15625x338.078125 pixels",
+            "percentageA": "30.0",
+            "percentageB": "100.0",
+            "area": 236031.35595703125
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "4.6",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "4.6",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "0.5",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "142.96875x34 pixels",
+            "percentageA": "0.6",
+            "percentageB": "100.0",
+            "area": 4860.9375
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "15.2",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "15.2",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "1.8",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "142.96875x34 pixels",
+            "percentageA": "2.1",
+            "percentageB": "100.0",
+            "area": 4860.9375
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760567571004,
+      "renderTime": 513
+    },
+    {
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div"
+        },
+        {
+          "x": 610.921875,
+          "y": 24,
+          "width": 698.15625,
+          "height": 338.078125,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div"
+        },
+        {
+          "x": 635.921875,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div"
+        },
+        {
+          "x": 970,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div"
+        },
+        {
+          "x": 635.921875,
+          "y": 303.078125,
+          "width": 124.25,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button"
+        },
+        {
+          "x": 772.171875,
+          "y": 303.078125,
+          "width": 142.96875,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "698.15625x338.078125 pixels",
+            "percentageA": "11.4",
+            "percentageB": "100.0",
+            "area": 236031.35595703125
+          }
+        },
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "0.2",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "15.2",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        },
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "1.8",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        }
+      ],
+      "timestamp": 1760567571536,
+      "renderTime": 506
+    }
+  ],
+  "groupedIssues": [
+    {
+      "id": "overlap-group-0-mobile",
+      "title": "Component overlap cluster affecting MainLayout, FailSquareCard, FailSquareButton",
+      "severity": "critical",
+      "priority": 2,
+      "impact": "blocks-interaction",
+      "usersAffected": "100%",
+      "fixEffort": "medium",
+      "confidence": 0.8,
+      "rootCause": "Layout positioning conflicts",
+      "pattern": "Absolute/fixed positioning without proper constraints",
+      "affectedComponents": [
+        "MainLayout",
+        "FailSquareCard",
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "342x514.234375 pixels",
+            "percentageA": "53.4",
+            "percentageB": "100.0",
+            "area": 175868.15625
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "1.3",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "136x242.234375 pixels",
+            "percentageA": "18.7",
+            "percentageB": "100.0",
+            "area": 32943.875
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "layout",
+        "description": "Fix positioning conflicts between MainLayout and FailSquareCard and FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"], [data-component=\"FailSquareCard\"], [data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Fix overlapping components */\n.mainlayout {\n  position: relative;\n  z-index: 1;\n  margin-bottom: 16px;\n}\n\n.failsquarecard {\n  position: relative;\n  clear: both;\n  margin-top: 8px;\n}",
+          "explanation": "Establishes proper stacking order and spacing to prevent overlaps"
+        },
+        "alternativeFixes": [
+          {
+            "description": "Use CSS Grid for precise positioning",
+            "css": "display: grid; grid-template-columns: 1fr; gap: 16px;",
+            "pros": [
+              "Precise control",
+              "Modern layout"
+            ],
+            "cons": [
+              "More complex",
+              "Requires layout restructure"
+            ]
+          }
+        ]
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "overlap-group-1-mobile",
+      "title": "Component overlap cluster affecting FailSquareCard, FailSquareButton",
+      "severity": "minor",
+      "priority": 2,
+      "impact": "blocks-interaction",
+      "usersAffected": "100%",
+      "fixEffort": "medium",
+      "confidence": 0.8,
+      "rootCause": "Layout positioning conflicts",
+      "pattern": "Absolute/fixed positioning without proper constraints",
+      "affectedComponents": [
+        "FailSquareCard",
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "2.4",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "layout",
+        "description": "Fix positioning conflicts between FailSquareCard and FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"], [data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Fix overlapping components */\n.failsquarecard {\n  position: relative;\n  z-index: 1;\n  margin-bottom: 16px;\n}\n\n.failsquarebutton {\n  position: relative;\n  clear: both;\n  margin-top: 8px;\n}",
+          "explanation": "Establishes proper stacking order and spacing to prevent overlaps"
+        },
+        "alternativeFixes": [
+          {
+            "description": "Use CSS Grid for precise positioning",
+            "css": "display: grid; grid-template-columns: 1fr; gap: 16px;",
+            "pros": [
+              "Precise control",
+              "Modern layout"
+            ],
+            "cons": [
+              "More complex",
+              "Requires layout restructure"
+            ]
+          }
+        ]
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "single-I401RM-MainLayout-FailSquareCard",
+      "title": "MainLayout: MainLayout and FailSquareCard properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout and FailSquareCard properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "single-I401RM-FailSquareCard-FailSquareButton",
+      "title": "FailSquareCard: FailSquareCard and FailSquareButton properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "FailSquareCard and FailSquareButton properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "overlap-group-0-tablet",
+      "title": "Component overlap cluster affecting MainLayout, FailSquareCard, FailSquareButton",
+      "severity": "critical",
+      "priority": 2,
+      "impact": "blocks-interaction",
+      "usersAffected": "100%",
+      "fixEffort": "medium",
+      "confidence": 0.8,
+      "rootCause": "Layout positioning conflicts",
+      "pattern": "Absolute/fixed positioning without proper constraints",
+      "affectedComponents": [
+        "MainLayout",
+        "FailSquareCard",
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "698.15625x338.078125 pixels",
+            "percentageA": "30.0",
+            "percentageB": "100.0",
+            "area": 236031.35595703125
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "0.5",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "15.2",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "layout",
+        "description": "Fix positioning conflicts between MainLayout and FailSquareCard and FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"], [data-component=\"FailSquareCard\"], [data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Fix overlapping components */\n.mainlayout {\n  position: relative;\n  z-index: 1;\n  margin-bottom: 16px;\n}\n\n.failsquarecard {\n  position: relative;\n  clear: both;\n  margin-top: 8px;\n}",
+          "explanation": "Establishes proper stacking order and spacing to prevent overlaps"
+        },
+        "alternativeFixes": [
+          {
+            "description": "Use CSS Grid for precise positioning",
+            "css": "display: grid; grid-template-columns: 1fr; gap: 16px;",
+            "pros": [
+              "Precise control",
+              "Modern layout"
+            ],
+            "cons": [
+              "More complex",
+              "Requires layout restructure"
+            ]
+          }
+        ]
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "overlap-group-1-tablet",
+      "title": "Component overlap cluster affecting FailSquareCard, FailSquareButton",
+      "severity": "minor",
+      "priority": 2,
+      "impact": "blocks-interaction",
+      "usersAffected": "100%",
+      "fixEffort": "medium",
+      "confidence": 0.8,
+      "rootCause": "Layout positioning conflicts",
+      "pattern": "Absolute/fixed positioning without proper constraints",
+      "affectedComponents": [
+        "FailSquareCard",
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "1.8",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "layout",
+        "description": "Fix positioning conflicts between FailSquareCard and FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"], [data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Fix overlapping components */\n.failsquarecard {\n  position: relative;\n  z-index: 1;\n  margin-bottom: 16px;\n}\n\n.failsquarebutton {\n  position: relative;\n  clear: both;\n  margin-top: 8px;\n}",
+          "explanation": "Establishes proper stacking order and spacing to prevent overlaps"
+        },
+        "alternativeFixes": [
+          {
+            "description": "Use CSS Grid for precise positioning",
+            "css": "display: grid; grid-template-columns: 1fr; gap: 16px;",
+            "pros": [
+              "Precise control",
+              "Modern layout"
+            ],
+            "cons": [
+              "More complex",
+              "Requires layout restructure"
+            ]
+          }
+        ]
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I401RT-MainLayout-FailSquareCard",
+      "title": "MainLayout: MainLayout and FailSquareCard properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout and FailSquareCard properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I401RT-FailSquareCard-FailSquareButton",
+      "title": "FailSquareCard: FailSquareCard and FailSquareButton properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "FailSquareCard and FailSquareButton properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "overlap-group-0-desktop",
+      "title": "Component overlap cluster affecting MainLayout, FailSquareCard, FailSquareButton",
+      "severity": "critical",
+      "priority": 2,
+      "impact": "blocks-interaction",
+      "usersAffected": "100%",
+      "fixEffort": "medium",
+      "confidence": 0.8,
+      "rootCause": "Layout positioning conflicts",
+      "pattern": "Absolute/fixed positioning without proper constraints",
+      "affectedComponents": [
+        "MainLayout",
+        "FailSquareCard",
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareCard",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "698.15625x338.078125 pixels",
+            "percentageA": "11.4",
+            "percentageB": "100.0",
+            "area": 236031.35595703125
+          }
+        },
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "MainLayout overlaps FailSquareButton",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareButton",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "0.2",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        },
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "314.078125x114.078125 pixels",
+            "percentageA": "15.2",
+            "percentageB": "100.0",
+            "area": 35829.443603515625
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "layout",
+        "description": "Fix positioning conflicts between MainLayout and FailSquareCard and FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"], [data-component=\"FailSquareCard\"], [data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Fix overlapping components */\n.mainlayout {\n  position: relative;\n  z-index: 1;\n  margin-bottom: 16px;\n}\n\n.failsquarecard {\n  position: relative;\n  clear: both;\n  margin-top: 8px;\n}",
+          "explanation": "Establishes proper stacking order and spacing to prevent overlaps"
+        },
+        "alternativeFixes": [
+          {
+            "description": "Use CSS Grid for precise positioning",
+            "css": "display: grid; grid-template-columns: 1fr; gap: 16px;",
+            "pros": [
+              "Precise control",
+              "Modern layout"
+            ],
+            "cons": [
+              "More complex",
+              "Requires layout restructure"
+            ]
+          }
+        ]
+      },
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "id": "overlap-group-1-desktop",
+      "title": "Component overlap cluster affecting FailSquareCard, FailSquareButton",
+      "severity": "minor",
+      "priority": 2,
+      "impact": "blocks-interaction",
+      "usersAffected": "100%",
+      "fixEffort": "medium",
+      "confidence": 0.8,
+      "rootCause": "Layout positioning conflicts",
+      "pattern": "Absolute/fixed positioning without proper constraints",
+      "affectedComponents": [
+        "FailSquareCard",
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "FailSquareCard overlaps FailSquareButton",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "124.25x34 pixels",
+            "percentageA": "1.8",
+            "percentageB": "100.0",
+            "area": 4224.5
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "layout",
+        "description": "Fix positioning conflicts between FailSquareCard and FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"], [data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Fix overlapping components */\n.failsquarecard {\n  position: relative;\n  z-index: 1;\n  margin-bottom: 16px;\n}\n\n.failsquarebutton {\n  position: relative;\n  clear: both;\n  margin-top: 8px;\n}",
+          "explanation": "Establishes proper stacking order and spacing to prevent overlaps"
+        },
+        "alternativeFixes": [
+          {
+            "description": "Use CSS Grid for precise positioning",
+            "css": "display: grid; grid-template-columns: 1fr; gap: 16px;",
+            "pros": [
+              "Precise control",
+              "Modern layout"
+            ],
+            "cons": [
+              "More complex",
+              "Requires layout restructure"
+            ]
+          }
+        ]
+      },
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  ],
+  "summary": {
+    "totalIssues": 27,
+    "errorCount": 22,
+    "warningCount": 1,
+    "infoCount": 4,
+    "responsiveIssues": [
+      {
+        "type": "spacing-inconsistency",
+        "message": "MainLayout has dramatic size changes across resolutions",
+        "affectedResolutions": [
+          "mobile",
+          "desktop"
+        ],
+        "component": "MainLayout",
+        "severity": "medium"
+      }
+    ],
+    "overallScore": 0,
+    "criticalIssues": 3,
+    "majorIssues": 0,
+    "minorIssues": 3
+  },
+  "timestamp": 1760567571581,
+  "totalRenderTime": 1656
+}

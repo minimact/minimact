@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FailSquare HomePage Analysis - Layout Analysis</title>
+    <style>
+        
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header-content h1 {
+            margin: 0 0 1rem 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .score-badge {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .score-badge.excellent { background: #10b981; }
+        .score-badge.good { background: #f59e0b; }
+        .score-badge.fair { background: #ef4444; }
+        .score-badge.poor { background: #dc2626; }
+
+        .score-number { font-size: 3rem; }
+        .score-label { font-size: 1.2rem; opacity: 0.8; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .timestamp {
+            margin: 1rem 0 0 0;
+            opacity: 0.8;
+            font-size: 0.875rem;
+        }
+
+        .screenshots-section, .issues-section, .detailed-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .screenshot-item img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            margin-top: 1rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 500;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            background: #f1f5f9;
+        }
+
+        .tab-button.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tab-button.active .badge {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+            font-size: 1.125rem;
+        }
+
+        .issue-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .issue-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .issue-card.critical { border-left: 4px solid #dc2626; }
+        .issue-card.major { border-left: 4px solid #f59e0b; }
+        .issue-card.minor { border-left: 4px solid #eab308; }
+        .issue-card.cosmetic { border-left: 4px solid #3b82f6; }
+
+        .issue-header {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .issue-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .issue-title h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            flex: 1;
+        }
+
+        .priority-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .priority-1 { background: #dc2626; }
+        .priority-2 { background: #f59e0b; }
+        .priority-3 { background: #eab308; }
+        .priority-4 { background: #3b82f6; }
+        .priority-5 { background: #64748b; }
+
+        .issue-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .issue-body {
+            padding: 1.5rem;
+        }
+
+        .issue-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .issue-details p {
+            margin: 0.5rem 0;
+        }
+
+        .fix-suggestion {
+            background: #f0f9ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #0ea5e9;
+        }
+
+        .fix-suggestion h4 {
+            margin: 0 0 1rem 0;
+            color: #0c4a6e;
+        }
+
+        .code-block {
+            margin: 1rem 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #d1d5db;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #374151;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 1rem;
+            background: #1f2937;
+            color: #f9fafb;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .code-block.small pre {
+            padding: 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .explanation {
+            font-style: italic;
+            color: #0c4a6e;
+            margin-top: 1rem;
+        }
+
+        .alternatives, .related-issues {
+            margin-top: 1rem;
+        }
+
+        .alternatives summary, .related-issues summary {
+            cursor: pointer;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            color: #374151;
+        }
+
+        .alternative {
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+
+        .alternative h5 {
+            margin: 0 0 0.75rem 0;
+            color: #374151;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .pros ul, .cons ul {
+            margin: 0.5rem 0;
+            padding-left: 1.25rem;
+        }
+
+        .related-list {
+            margin-top: 0.75rem;
+        }
+
+        .related-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .related-item:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .related-code {
+            background: #e2e8f0;
+            padding: 0.125rem 0.375rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            min-width: 60px;
+        }
+
+        .resolution-report {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .resolution-stats {
+            display: flex;
+            gap: 1rem;
+            margin: 0.75rem 0;
+            font-size: 0.875rem;
+        }
+
+        .raw-issues {
+            margin-top: 1rem;
+        }
+
+        .raw-issue {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .raw-issue.error { background: #fef2f2; border-left: 3px solid #dc2626; }
+        .raw-issue.warning { background: #fffbeb; border-left: 3px solid #f59e0b; }
+        .raw-issue.info { background: #f0f9ff; border-left: 3px solid #3b82f6; }
+
+        .issue-code {
+            font-family: monospace;
+            background: rgba(0,0,0,0.1);
+            padding: 0.125rem 0.375rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+        }
+
+        .more-issues {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            margin-top: 1rem;
+        }
+
+        .no-issues {
+            text-align: center;
+            color: #10b981;
+            font-weight: 500;
+            padding: 1rem;
+        }
+
+        .report-footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-stats { flex-direction: column; gap: 1rem; }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .tab-buttons { flex-wrap: wrap; }
+            .pros-cons { grid-template-columns: 1fr; }
+            .raw-issue { grid-template-columns: 1fr; gap: 0.5rem; }
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        
+    <header class="report-header">
+        <div class="header-content">
+            <h1>🔍 FailSquare HomePage Analysis</h1>
+            <div class="header-stats">
+                <div class="score-badge poor">
+                    <span class="score-number">0</span>
+                    <span class="score-label">/100</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <span class="stat-value">52</span>
+                        <span class="stat-label">Total Issues</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">14</span>
+                        <span class="stat-label">Issue Groups</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">1849ms</span>
+                        <span class="stat-label">Analysis Time</span>
+                    </div>
+                </div>
+            </div>
+            <p class="timestamp">Generated: 10/15/2025, 9:00:10 PM</p>
+        </div>
+    </header>
+        
+    <section class="screenshots-section">
+        <h2>📱 Resolution Screenshots</h2>
+        <div class="screenshots-grid">
+            
+        <div class="screenshot-item">
+            <h3>Mobile</h3>
+            <img src="screenshot-mobile-1760576409517.png" alt="mobile screenshot" loading="lazy" />
+        </div>
+      
+        <div class="screenshot-item">
+            <h3>Tablet</h3>
+            <img src="screenshot-tablet-1760576410096.png" alt="tablet screenshot" loading="lazy" />
+        </div>
+      
+        <div class="screenshot-item">
+            <h3>Desktop</h3>
+            <img src="screenshot-desktop-1760576410713.png" alt="desktop screenshot" loading="lazy" />
+        </div>
+      
+        </div>
+    </section>
+        
+    <section class="issues-section">
+        <h2>🎯 Issues by Severity</h2>
+        <div class="tabs">
+            <div class="tab-buttons">
+                
+        <button class="tab-button active"
+                onclick="showTab('critical')"
+                data-tab="critical">
+            🔴 CRITICAL
+            <span class="badge">0</span>
+        </button>
+      
+        <button class="tab-button "
+                onclick="showTab('major')"
+                data-tab="major">
+            🟠 MAJOR
+            <span class="badge">0</span>
+        </button>
+      
+        <button class="tab-button "
+                onclick="showTab('minor')"
+                data-tab="minor">
+            🟡 MINOR
+            <span class="badge">7</span>
+        </button>
+      
+        <button class="tab-button "
+                onclick="showTab('cosmetic')"
+                data-tab="cosmetic">
+            🔵 COSMETIC
+            <span class="badge">7</span>
+        </button>
+      
+            </div>
+            <div class="tab-contents">
+                
+        <div class="tab-content active" id="tab-critical">
+            <div class="empty-state">
+        <p>🎉 No critical issues found!</p>
+      </div>
+        </div>
+      
+        <div class="tab-content " id="tab-major">
+            <div class="empty-state">
+        <p>🎉 No major issues found!</p>
+      </div>
+        </div>
+      
+        <div class="tab-content " id="tab-minor">
+            
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-1">P1</span>
+                <h3>FailSquareCard layout causes mobile viewport overflow</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 90%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 60% of users</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Fixed-width layout not responsive to mobile constraints</p>
+                <p><strong>Pattern:</strong> Non-responsive container layout</p>
+                <p><strong>Impact:</strong> blocks-interaction</p>
+                <p><strong>Components:</strong> FailSquareCard</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>Add responsive constraints to FailSquareCard</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>max-width: 100%; overflow-x: auto;</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Prevents horizontal overflow with scrollable content</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (5)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">E301RM</span>
+                            <span class="related-message">FailSquareCard extends beyond viewport horizontally</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">E301RM</span>
+                            <span class="related-message">FailSquareCard extends beyond viewport horizontally</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">E301RM</span>
+                            <span class="related-message">FailSquareCard extends beyond viewport horizontally</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">E301RM</span>
+                            <span class="related-message">FailSquareCard extends beyond viewport horizontally</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">E301RM</span>
+                            <span class="related-message">FailSquareCard extends beyond viewport horizontally</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-3">P3</span>
+                <h3>FailSquareCard: Large gap between FailSquareCard and FailSquareCard</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Large gap between FailSquareCard and FailSquareCard</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> visual-degradation</p>
+                <p><strong>Components:</strong> FailSquareCard</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for FailSquareCard</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-3">P3</span>
+                <h3>FailSquareButton: Large gap between FailSquareButton and FailSquareCard</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Large gap between FailSquareButton and FailSquareCard</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> visual-degradation</p>
+                <p><strong>Components:</strong> FailSquareButton</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for FailSquareButton</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-4">P4</span>
+                <h3>Inconsistent spacing in FailSquareCard components</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 70%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Inconsistent spacing system</p>
+                <p><strong>Pattern:</strong> Missing design system spacing tokens</p>
+                <p><strong>Impact:</strong> visual-degradation</p>
+                <p><strong>Components:</strong> FailSquareCard</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>Standardize spacing for FailSquareCard components</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>
+/* Consistent spacing system */
+.failsquarecard {
+  margin: 16px 0;
+}
+
+.failsquarecard + .failsquarecard {
+  margin-top: 24px;
+}</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Applies consistent spacing using design system tokens</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (16)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RM</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-4">P4</span>
+                <h3>Inconsistent spacing in FailSquareButton components</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 70%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Inconsistent spacing system</p>
+                <p><strong>Pattern:</strong> Missing design system spacing tokens</p>
+                <p><strong>Impact:</strong> visual-degradation</p>
+                <p><strong>Components:</strong> FailSquareButton</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>Standardize spacing for FailSquareButton components</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>
+/* Consistent spacing system */
+.failsquarebutton {
+  margin: 16px 0;
+}
+
+.failsquarebutton + .failsquarebutton {
+  margin-top: 24px;
+}</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Applies consistent spacing using design system tokens</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (6)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RM</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-4">P4</span>
+                <h3>Inconsistent spacing in FailSquareCard components</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 70%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Inconsistent spacing system</p>
+                <p><strong>Pattern:</strong> Missing design system spacing tokens</p>
+                <p><strong>Impact:</strong> visual-degradation</p>
+                <p><strong>Components:</strong> FailSquareCard</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>Standardize spacing for FailSquareCard components</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>
+/* Consistent spacing system */
+.failsquarecard {
+  margin: 16px 0;
+}
+
+.failsquarecard + .failsquarecard {
+  margin-top: 24px;
+}</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Applies consistent spacing using design system tokens</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (12)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareCard and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">FailSquareCard and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card minor">
+        <div class="issue-header">
+            <div class="issue-title">
+                🟡
+                <span class="priority-badge priority-4">P4</span>
+                <h3>Inconsistent spacing in FailSquareButton components</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 70%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> Inconsistent spacing system</p>
+                <p><strong>Pattern:</strong> Missing design system spacing tokens</p>
+                <p><strong>Impact:</strong> visual-degradation</p>
+                <p><strong>Components:</strong> FailSquareButton</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>Standardize spacing for FailSquareButton components</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>
+/* Consistent spacing system */
+.failsquarebutton {
+  margin: 16px 0;
+}
+
+.failsquarebutton + .failsquarebutton {
+  margin-top: 24px;
+}</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Applies consistent spacing using design system tokens</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (3)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                        <div class="related-item">
+                            <span class="related-code">W201RT</span>
+                            <span class="related-message">Large gap between FailSquareButton and FailSquareCard</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+        </div>
+      
+        <div class="tab-content " id="tab-cosmetic">
+            
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>MainLayout: MainLayout extends below viewport (scrollable content)</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> MainLayout extends below viewport (scrollable content)</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> MainLayout</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for MainLayout</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I403RM</span>
+                            <span class="related-message">MainLayout extends below viewport (scrollable content)</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>MainLayout: MainLayout extends below viewport (scrollable content)</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> MainLayout extends below viewport (scrollable content)</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> MainLayout</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for MainLayout</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I403RT</span>
+                            <span class="related-message">MainLayout extends below viewport (scrollable content)</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>FailSquareCard: FailSquareCard extends below viewport (scrollable content)</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> FailSquareCard extends below viewport (scrollable content)</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> FailSquareCard</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for FailSquareCard</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I403RT</span>
+                            <span class="related-message">FailSquareCard extends below viewport (scrollable content)</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>MainLayout: MainLayout and FailSquareCard properly aligned</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> MainLayout and FailSquareCard properly aligned</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> MainLayout</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for MainLayout</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">MainLayout and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>MainLayout: MainLayout and FailSquareCard properly aligned</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> MainLayout and FailSquareCard properly aligned</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> MainLayout</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for MainLayout</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I401RT</span>
+                            <span class="related-message">MainLayout and FailSquareCard properly aligned</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>MainLayout: MainLayout extends below viewport (scrollable content)</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> MainLayout extends below viewport (scrollable content)</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> MainLayout</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for MainLayout</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I403</span>
+                            <span class="related-message">MainLayout extends below viewport (scrollable content)</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="issue-card cosmetic">
+        <div class="issue-header">
+            <div class="issue-title">
+                🔵
+                <span class="priority-badge priority-4">P4</span>
+                <h3>FailSquareCard: FailSquareCard extends below viewport (scrollable content)</h3>
+            </div>
+            <div class="issue-meta">
+                <span class="confidence">🎯 60%</span>
+                <span class="effort">⚡ low</span>
+                <span class="users">👥 100%</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+            <div class="issue-details">
+                <p><strong>Root Cause:</strong> FailSquareCard extends below viewport (scrollable content)</p>
+                <p><strong>Pattern:</strong> Individual component issue</p>
+                <p><strong>Impact:</strong> cosmetic</p>
+                <p><strong>Components:</strong> FailSquareCard</p>
+            </div>
+
+            <div class="fix-suggestion">
+                <h4>💡 Suggested Fix</h4>
+                <p>General fix for FailSquareCard</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS</span>
+                        <button onclick="copyCode(this)" class="copy-btn">📋 Copy</button>
+                    </div>
+                    <pre><code>/* Add specific CSS based on issue details */</code></pre>
+                </div>
+                <p class="explanation"><strong>Why this works:</strong> Generic component fix</p>
+
+                
+            </div>
+
+            <details class="related-issues">
+                <summary>Related Issues (1)</summary>
+                <div class="related-list">
+                    
+                        <div class="related-item">
+                            <span class="related-code">I403</span>
+                            <span class="related-message">FailSquareCard extends below viewport (scrollable content)</span>
+                        </div>
+                    
+                </div>
+            </details>
+        </div>
+    </div>
+        </div>
+      
+            </div>
+        </div>
+    </section>
+        
+    <section class="detailed-section">
+        <h2>📊 Detailed Analysis by Resolution</h2>
+        
+    <div class="resolution-report">
+        <h3>📱 mobile (390×844)</h3>
+        <div class="resolution-stats">
+            <span class="error-count">❌ 5 errors</span>
+            <span class="warning-count">⚠️ 12 warnings</span>
+            <span class="info-count">ℹ️ 11 info</span>
+        </div>
+
+        
+        <div class="raw-issues">
+            
+                <div class="raw-issue error">
+                    <span class="issue-code">E301RM</span>
+                    <span class="issue-message">FailSquareCard extends beyond viewport horizontally</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue error">
+                    <span class="issue-code">E301RM</span>
+                    <span class="issue-message">FailSquareCard extends beyond viewport horizontally</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue error">
+                    <span class="issue-code">E301RM</span>
+                    <span class="issue-message">FailSquareCard extends beyond viewport horizontally</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue error">
+                    <span class="issue-code">E301RM</span>
+                    <span class="issue-message">FailSquareCard extends beyond viewport horizontally</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue error">
+                    <span class="issue-code">E301RM</span>
+                    <span class="issue-message">FailSquareCard extends beyond viewport horizontally</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RM</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RM</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RM</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RM</span>
+                    <span class="issue-message">Large gap between FailSquareButton and FailSquareCard</span>
+                    <span class="components">FailSquareButton ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RM</span>
+                    <span class="issue-message">Large gap between FailSquareButton and FailSquareCard</span>
+                    <span class="components">FailSquareButton ↔ FailSquareCard</span>
+                </div>
+            
+            <p class="more-issues">... and 18 more issues</p>
+        </div>
+        
+    </div>
+    <div class="resolution-report">
+        <h3>📱 tablet (768×1024)</h3>
+        <div class="resolution-stats">
+            <span class="error-count">❌ 0 errors</span>
+            <span class="warning-count">⚠️ 7 warnings</span>
+            <span class="info-count">ℹ️ 12 info</span>
+        </div>
+
+        
+        <div class="raw-issues">
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareButton and FailSquareCard</span>
+                    <span class="components">FailSquareButton ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareButton and FailSquareCard</span>
+                    <span class="components">FailSquareButton ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareButton and FailSquareCard</span>
+                    <span class="components">FailSquareButton ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201RT</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue info">
+                    <span class="issue-code">I403RT</span>
+                    <span class="issue-message">MainLayout extends below viewport (scrollable content)</span>
+                    <span class="component">MainLayout</span>
+                </div>
+            
+                <div class="raw-issue info">
+                    <span class="issue-code">I403RT</span>
+                    <span class="issue-message">FailSquareCard extends below viewport (scrollable content)</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue info">
+                    <span class="issue-code">I401RT</span>
+                    <span class="issue-message">MainLayout and FailSquareCard properly aligned</span>
+                    <span class="components">MainLayout ↔ FailSquareCard</span>
+                </div>
+            
+            <p class="more-issues">... and 9 more issues</p>
+        </div>
+        
+    </div>
+    <div class="resolution-report">
+        <h3>📱 desktop (1920×1080)</h3>
+        <div class="resolution-stats">
+            <span class="error-count">❌ 0 errors</span>
+            <span class="warning-count">⚠️ 2 warnings</span>
+            <span class="info-count">ℹ️ 2 info</span>
+        </div>
+
+        
+        <div class="raw-issues">
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201</span>
+                    <span class="issue-message">Large gap between FailSquareCard and FailSquareCard</span>
+                    <span class="components">FailSquareCard ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue warning">
+                    <span class="issue-code">W201</span>
+                    <span class="issue-message">Large gap between FailSquareButton and FailSquareCard</span>
+                    <span class="components">FailSquareButton ↔ FailSquareCard</span>
+                </div>
+            
+                <div class="raw-issue info">
+                    <span class="issue-code">I403</span>
+                    <span class="issue-message">MainLayout extends below viewport (scrollable content)</span>
+                    <span class="component">MainLayout</span>
+                </div>
+            
+                <div class="raw-issue info">
+                    <span class="issue-code">I403</span>
+                    <span class="issue-message">FailSquareCard extends below viewport (scrollable content)</span>
+                    <span class="component">FailSquareCard</span>
+                </div>
+            
+            
+        </div>
+        
+    </div>
+    </section>
+        
+    <footer class="report-footer">
+        <p>Generated by <strong>Visual Compiler</strong> - AI-powered layout analysis</p>
+        <p>🔧 Focus on high-priority issues first • 🎯 Use specific CSS fixes • 📱 Test across all resolutions</p>
+    </footer>
+    </div>
+
+    <script>
+        
+        function showTab(severity) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById('tab-' + severity).classList.add('active');
+
+            // Add active class to clicked button
+            document.querySelector('[data-tab="' + severity + '"]').classList.add('active');
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block').querySelector('code');
+            const text = codeBlock.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Auto-focus on critical issues if they exist
+        window.addEventListener('load', () => {
+            const criticalTab = document.querySelector('[data-tab="critical"]');
+            if (criticalTab && document.getElementById('tab-critical').children.length > 1) {
+                // Only auto-switch to critical if there are actual issues (not just empty state)
+                const criticalContent = document.getElementById('tab-critical');
+                if (!criticalContent.querySelector('.empty-state')) {
+                    showTab('critical');
+                }
+            }
+        });
+    
+    </script>
+</body>
+</html>

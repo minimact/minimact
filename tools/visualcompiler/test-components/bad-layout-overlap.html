@@ -1,0 +1,17 @@
+<!-- BAD LAYOUT: Overlapping components -->
+<div class="container" style="padding: 20px; position: relative;">
+  <div class="card" data-component="Card" data-instance="1" style="
+    position: absolute; top: 20px; left: 20px; width: 300px; height: 200px;
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;
+  ">
+    <h3>Overlapping Card 1</h3>
+    <p>This card overlaps with the next one.</p>
+  </div>
+  <div class="card" data-component="Card" data-instance="2" style="
+    position: absolute; top: 20px; left: 200px; width: 300px; height: 200px;
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;
+  ">
+    <h3>Overlapping Card 2</h3>
+    <p>This creates a layout issue that Visual Compiler will detect.</p>
+  </div>
+</div>

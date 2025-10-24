@@ -1,0 +1,803 @@
+VISUAL COMPILER REPORT
+══════════════════════════════════════════════════
+Overall Score: 0/100
+Total Render Time: 1849ms
+Issues Found: 52 (5 errors, 22 warnings, 25 info)
+Grouped Issues: 14 (0 critical, 0 major, 7 minor)
+
+🎯 PRIORITIZED ISSUES & FIXES
+══════════════════════════════════════════════════
+🟡 P1 [MINOR] FailSquareCard layout causes mobile viewport overflow
+   Impact: blocks-interaction | Users: 60% of users | Fix Effort: low | Confidence: 90%
+   Root Cause: Fixed-width layout not responsive to mobile constraints
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      Add responsive constraints to FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      max-width: 100%; overflow-x: auto;
+      Explanation: Prevents horizontal overflow with scrollable content
+   Related issues: 5 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareCard components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareCard components
+      CSS: [data-component="FailSquareCard"]
+      
+      /* Consistent spacing system */
+      .failsquarecard {
+        margin: 16px 0;
+      }
+      
+      .failsquarecard + .failsquarecard {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 16 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareButton components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareButton
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareButton components
+      CSS: [data-component="FailSquareButton"]
+      
+      /* Consistent spacing system */
+      .failsquarebutton {
+        margin: 16px 0;
+      }
+      
+      .failsquarebutton + .failsquarebutton {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 6 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout extends below viewport (scrollable content)
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout extends below viewport (scrollable content)
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareCard components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareCard components
+      CSS: [data-component="FailSquareCard"]
+      
+      /* Consistent spacing system */
+      .failsquarecard {
+        margin: 16px 0;
+      }
+      
+      .failsquarecard + .failsquarecard {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 12 detailed issues grouped
+
+🟡 P4 [MINOR] Inconsistent spacing in FailSquareButton components
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 70%
+   Root Cause: Inconsistent spacing system
+   Affected Components: FailSquareButton
+   💡 SUGGESTED FIX:
+      Standardize spacing for FailSquareButton components
+      CSS: [data-component="FailSquareButton"]
+      
+      /* Consistent spacing system */
+      .failsquarebutton {
+        margin: 16px 0;
+      }
+      
+      .failsquarebutton + .failsquarebutton {
+        margin-top: 24px;
+      }
+      Explanation: Applies consistent spacing using design system tokens
+   Related issues: 3 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout extends below viewport (scrollable content)
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout extends below viewport (scrollable content)
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] FailSquareCard: FailSquareCard extends below viewport (scrollable content)
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: FailSquareCard extends below viewport (scrollable content)
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout and FailSquareCard properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout and FailSquareCard properly aligned
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout and FailSquareCard properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout and FailSquareCard properly aligned
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🟡 P3 [MINOR] FailSquareCard: Large gap between FailSquareCard and FailSquareCard
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: Large gap between FailSquareCard and FailSquareCard
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🟡 P3 [MINOR] FailSquareButton: Large gap between FailSquareButton and FailSquareCard
+   Impact: visual-degradation | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: Large gap between FailSquareButton and FailSquareCard
+   Affected Components: FailSquareButton
+   💡 SUGGESTED FIX:
+      General fix for FailSquareButton
+      CSS: [data-component="FailSquareButton"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout extends below viewport (scrollable content)
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout extends below viewport (scrollable content)
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] FailSquareCard: FailSquareCard extends below viewport (scrollable content)
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: FailSquareCard extends below viewport (scrollable content)
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+RESOLUTION: MOBILE (390x844)
+──────────────────────────────
+❌ E301RM: FailSquareCard extends beyond viewport horizontally
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 34,
+     "overflowY": 0,
+     "componentBounds": {
+       "x": 24,
+       "y": 24,
+       "width": 400,
+       "height": 322,
+       "component": "FailSquareCard",
+       "instance": "1",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": [
+         "FailSquareButton-1",
+         "FailSquareButton-2"
+       ]
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport horizontally
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 34,
+     "overflowY": 0,
+     "componentBounds": {
+       "x": 24,
+       "y": 394,
+       "width": 400,
+       "height": 258.078125,
+       "component": "FailSquareCard",
+       "instance": "2",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": []
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport horizontally
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 34,
+     "overflowY": 0,
+     "componentBounds": {
+       "x": 24,
+       "y": 692.078125,
+       "width": 400,
+       "height": 234.078125,
+       "component": "FailSquareCard",
+       "instance": "3",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": []
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport horizontally
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 34,
+     "overflowY": 0,
+     "componentBounds": {
+       "x": 24,
+       "y": 966.15625,
+       "width": 400,
+       "height": 258.078125,
+       "component": "FailSquareCard",
+       "instance": "4",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": []
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E301RM: FailSquareCard extends beyond viewport horizontally
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 34,
+     "overflowY": 0,
+     "componentBounds": {
+       "x": 24,
+       "y": 1288.234375,
+       "width": 400,
+       "height": 493,
+       "component": "FailSquareCard",
+       "instance": "5",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": []
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "346.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "620.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "942.234375px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "395.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "669.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "991.234375px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "395.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "669.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "991.234375px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "314.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "636.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RM: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "362.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I403RM: MainLayout extends below viewport (scrollable content)
+   Component: MainLayout
+   Details: {
+     "overflowX": 0,
+     "overflowY": 977.234375,
+     "componentBounds": {
+       "x": 0,
+       "y": 0,
+       "width": 390,
+       "height": 1821.234375,
+       "component": "MainLayout",
+       "instance": "1",
+       "selector": "div",
+       "parentComponent": null,
+       "childComponents": [
+         "FailSquareCard-1",
+         "FailSquareButton-1",
+         "FailSquareButton-2",
+         "FailSquareCard-2",
+         "FailSquareCard-3",
+         "FailSquareCard-4",
+         "FailSquareCard-5"
+       ]
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: TABLET (768x1024)
+──────────────────────────────
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "346.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "668.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "395.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "717.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "717.15625px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "362.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201RT: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "362.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I403RT: MainLayout extends below viewport (scrollable content)
+   Component: MainLayout
+   Details: {
+     "overflowX": 0,
+     "overflowY": 493.15625,
+     "componentBounds": {
+       "x": 0,
+       "y": 0,
+       "width": 768,
+       "height": 1517.15625,
+       "component": "MainLayout",
+       "instance": "1",
+       "selector": "div",
+       "parentComponent": null,
+       "childComponents": [
+         "FailSquareCard-1",
+         "FailSquareButton-1",
+         "FailSquareButton-2",
+         "FailSquareCard-2",
+         "FailSquareCard-3",
+         "FailSquareCard-4",
+         "FailSquareCard-5"
+       ]
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+ℹ️ I403RT: FailSquareCard extends below viewport (scrollable content)
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 453.15625,
+     "componentBounds": {
+       "x": 24,
+       "y": 984.15625,
+       "width": 720,
+       "height": 493,
+       "component": "FailSquareCard",
+       "instance": "5",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": []
+     },
+     "viewport": {
+       "name": "tablet",
+       "width": 768,
+       "height": 1024
+     }
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": true,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": true,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": true,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareCard properly aligned
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: DESKTOP (1920x1080)
+──────────────────────────────
+⚠️ W201: Large gap between FailSquareCard and FailSquareCard
+   Components: FailSquareCard ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "346.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+⚠️ W201: Large gap between FailSquareButton and FailSquareCard
+   Components: FailSquareButton ↔ FailSquareCard
+   Details: {
+     "xGap": "0px",
+     "yGap": "395.078125px",
+     "horizontal": false,
+     "vertical": true
+   }
+ℹ️ I403: MainLayout extends below viewport (scrollable content)
+   Component: MainLayout
+   Details: {
+     "overflowX": 0,
+     "overflowY": 437.15625,
+     "componentBounds": {
+       "x": 0,
+       "y": 0,
+       "width": 1920,
+       "height": 1517.15625,
+       "component": "MainLayout",
+       "instance": "1",
+       "selector": "div",
+       "parentComponent": null,
+       "childComponents": [
+         "FailSquareCard-1",
+         "FailSquareButton-1",
+         "FailSquareButton-2",
+         "FailSquareCard-2",
+         "FailSquareCard-3",
+         "FailSquareCard-4",
+         "FailSquareCard-5"
+       ]
+     },
+     "viewport": {
+       "name": "desktop",
+       "width": 1920,
+       "height": 1080
+     }
+   }
+ℹ️ I403: FailSquareCard extends below viewport (scrollable content)
+   Component: FailSquareCard
+   Details: {
+     "overflowX": 0,
+     "overflowY": 397.15625,
+     "componentBounds": {
+       "x": 581.546875,
+       "y": 984.15625,
+       "width": 756.890625,
+       "height": 493,
+       "component": "FailSquareCard",
+       "instance": "5",
+       "selector": "div",
+       "parentComponent": "MainLayout-1",
+       "childComponents": []
+     },
+     "viewport": {
+       "name": "desktop",
+       "width": 1920,
+       "height": 1080
+     }
+   }
+
+RESPONSIVE ISSUES
+──────────────────────────────
+🟡 SPACING-INCONSISTENCY: MainLayout has dramatic size changes across resolutions
+   Affected: mobile, desktop

@@ -1,0 +1,2582 @@
+{
+  "reports": [
+    {
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 1821.234375,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": null,
+          "childComponents": [
+            "FailSquareCard-1",
+            "FailSquareButton-1",
+            "FailSquareButton-2",
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareCard-4",
+            "FailSquareCard-5"
+          ]
+        },
+        {
+          "x": 24,
+          "y": 24,
+          "width": 400,
+          "height": 322,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": [
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 84.171875,
+          "y": 253,
+          "width": 131.828125,
+          "height": 44,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 232,
+          "y": 253,
+          "width": 131.828125,
+          "height": 44,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 394,
+          "width": 400,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 692.078125,
+          "width": 400,
+          "height": 234.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 966.15625,
+          "width": 400,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "4",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 1288.234375,
+          "width": 400,
+          "height": 493,
+          "component": "FailSquareCard",
+          "instance": "5",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 24,
+              "width": 400,
+              "height": 322,
+              "component": "FailSquareCard",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": [
+                "FailSquareButton-1",
+                "FailSquareButton-2"
+              ]
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 394,
+              "width": 400,
+              "height": 258.078125,
+              "component": "FailSquareCard",
+              "instance": "2",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 692.078125,
+              "width": 400,
+              "height": 234.078125,
+              "component": "FailSquareCard",
+              "instance": "3",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 966.15625,
+              "width": 400,
+              "height": 258.078125,
+              "component": "FailSquareCard",
+              "instance": "4",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 1288.234375,
+              "width": 400,
+              "height": 493,
+              "component": "FailSquareCard",
+              "instance": "5",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "346.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "620.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "942.234375px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "669.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "991.234375px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "669.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "991.234375px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "314.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "636.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "362.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "I403RM",
+          "type": "info",
+          "message": "MainLayout extends below viewport (scrollable content)",
+          "componentA": "MainLayout",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 977.234375,
+            "componentBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 1821.234375,
+              "component": "MainLayout",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": null,
+              "childComponents": [
+                "FailSquareCard-1",
+                "FailSquareButton-1",
+                "FailSquareButton-2",
+                "FailSquareCard-2",
+                "FailSquareCard-3",
+                "FailSquareCard-4",
+                "FailSquareCard-5"
+              ]
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760576409517,
+      "renderTime": 519
+    },
+    {
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 768,
+          "height": 1517.15625,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": null,
+          "childComponents": [
+            "FailSquareCard-1",
+            "FailSquareButton-1",
+            "FailSquareButton-2",
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareCard-4",
+            "FailSquareCard-5"
+          ]
+        },
+        {
+          "x": 24,
+          "y": 24,
+          "width": 720,
+          "height": 292,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": [
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 244.171875,
+          "y": 223,
+          "width": 131.828125,
+          "height": 44,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 392,
+          "y": 223,
+          "width": 131.828125,
+          "height": 44,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 364,
+          "width": 348,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 396,
+          "y": 364,
+          "width": 348,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 662.078125,
+          "width": 348,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "4",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 24,
+          "y": 984.15625,
+          "width": 720,
+          "height": 493,
+          "component": "FailSquareCard",
+          "instance": "5",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "346.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "668.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "717.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "717.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "362.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "362.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "I403RT",
+          "type": "info",
+          "message": "MainLayout extends below viewport (scrollable content)",
+          "componentA": "MainLayout",
+          "resolution": "tablet",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 493.15625,
+            "componentBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 768,
+              "height": 1517.15625,
+              "component": "MainLayout",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": null,
+              "childComponents": [
+                "FailSquareCard-1",
+                "FailSquareButton-1",
+                "FailSquareButton-2",
+                "FailSquareCard-2",
+                "FailSquareCard-3",
+                "FailSquareCard-4",
+                "FailSquareCard-5"
+              ]
+            },
+            "viewport": {
+              "name": "tablet",
+              "width": 768,
+              "height": 1024
+            }
+          }
+        },
+        {
+          "code": "I403RT",
+          "type": "info",
+          "message": "FailSquareCard extends below viewport (scrollable content)",
+          "componentA": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 453.15625,
+            "componentBounds": {
+              "x": 24,
+              "y": 984.15625,
+              "width": 720,
+              "height": 493,
+              "component": "FailSquareCard",
+              "instance": "5",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "tablet",
+              "width": 768,
+              "height": 1024
+            }
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": true,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": true,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760576410096,
+      "renderTime": 510
+    },
+    {
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1517.15625,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": null,
+          "childComponents": [
+            "FailSquareCard-1",
+            "FailSquareButton-1",
+            "FailSquareButton-2",
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareCard-4",
+            "FailSquareCard-5"
+          ]
+        },
+        {
+          "x": 581.546875,
+          "y": 24,
+          "width": 756.890625,
+          "height": 292,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": [
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 820.15625,
+          "y": 223,
+          "width": 131.828125,
+          "height": 44,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 967.984375,
+          "y": 223,
+          "width": 131.828125,
+          "height": 44,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 581.546875,
+          "y": 364,
+          "width": 366.4375,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 971.984375,
+          "y": 364,
+          "width": 366.453125,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 581.546875,
+          "y": 662.078125,
+          "width": 366.4375,
+          "height": 258.078125,
+          "component": "FailSquareCard",
+          "instance": "4",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        },
+        {
+          "x": 581.546875,
+          "y": 984.15625,
+          "width": 756.890625,
+          "height": 493,
+          "component": "FailSquareCard",
+          "instance": "5",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "W201",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "xGap": "0px",
+            "yGap": "346.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "I403",
+          "type": "info",
+          "message": "MainLayout extends below viewport (scrollable content)",
+          "componentA": "MainLayout",
+          "resolution": "desktop",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 437.15625,
+            "componentBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1920,
+              "height": 1517.15625,
+              "component": "MainLayout",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": null,
+              "childComponents": [
+                "FailSquareCard-1",
+                "FailSquareButton-1",
+                "FailSquareButton-2",
+                "FailSquareCard-2",
+                "FailSquareCard-3",
+                "FailSquareCard-4",
+                "FailSquareCard-5"
+              ]
+            },
+            "viewport": {
+              "name": "desktop",
+              "width": 1920,
+              "height": 1080
+            }
+          }
+        },
+        {
+          "code": "I403",
+          "type": "info",
+          "message": "FailSquareCard extends below viewport (scrollable content)",
+          "componentA": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 397.15625,
+            "componentBounds": {
+              "x": 581.546875,
+              "y": 984.15625,
+              "width": 756.890625,
+              "height": 493,
+              "component": "FailSquareCard",
+              "instance": "5",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "desktop",
+              "width": 1920,
+              "height": 1080
+            }
+          }
+        }
+      ],
+      "timestamp": 1760576410713,
+      "renderTime": 510
+    }
+  ],
+  "groupedIssues": [
+    {
+      "id": "overflow-FailSquareCard-mobile",
+      "title": "FailSquareCard layout causes mobile viewport overflow",
+      "severity": "minor",
+      "priority": 1,
+      "impact": "blocks-interaction",
+      "usersAffected": "60% of users",
+      "fixEffort": "low",
+      "confidence": 0.9,
+      "rootCause": "Fixed-width layout not responsive to mobile constraints",
+      "pattern": "Non-responsive container layout",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 24,
+              "width": 400,
+              "height": 322,
+              "component": "FailSquareCard",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": [
+                "FailSquareButton-1",
+                "FailSquareButton-2"
+              ]
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 394,
+              "width": 400,
+              "height": 258.078125,
+              "component": "FailSquareCard",
+              "instance": "2",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 692.078125,
+              "width": 400,
+              "height": 234.078125,
+              "component": "FailSquareCard",
+              "instance": "3",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 966.15625,
+              "width": 400,
+              "height": 258.078125,
+              "component": "FailSquareCard",
+              "instance": "4",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "FailSquareCard extends beyond viewport horizontally",
+          "componentA": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 34,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 24,
+              "y": 1288.234375,
+              "width": 400,
+              "height": 493,
+              "component": "FailSquareCard",
+              "instance": "5",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "Add responsive constraints to FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "max-width: 100%; overflow-x: auto;",
+          "explanation": "Prevents horizontal overflow with scrollable content"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "spacing-FailSquareCard-spacing-mobile",
+      "title": "Inconsistent spacing in FailSquareCard components",
+      "severity": "minor",
+      "priority": 4,
+      "impact": "visual-degradation",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.7,
+      "rootCause": "Inconsistent spacing system",
+      "pattern": "Missing design system spacing tokens",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "346.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "620.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "942.234375px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "314.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "636.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "362.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "Standardize spacing for FailSquareCard components",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "\n/* Consistent spacing system */\n.failsquarecard {\n  margin: 16px 0;\n}\n\n.failsquarecard + .failsquarecard {\n  margin-top: 24px;\n}",
+          "explanation": "Applies consistent spacing using design system tokens"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "spacing-FailSquareButton-spacing-mobile",
+      "title": "Inconsistent spacing in FailSquareButton components",
+      "severity": "minor",
+      "priority": 4,
+      "impact": "visual-degradation",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.7,
+      "rootCause": "Inconsistent spacing system",
+      "pattern": "Missing design system spacing tokens",
+      "affectedComponents": [
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "669.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "991.234375px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "669.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RM",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "xGap": "0px",
+            "yGap": "991.234375px",
+            "horizontal": false,
+            "vertical": true
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "Standardize spacing for FailSquareButton components",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Consistent spacing system */\n.failsquarebutton {\n  margin: 16px 0;\n}\n\n.failsquarebutton + .failsquarebutton {\n  margin-top: 24px;\n}",
+          "explanation": "Applies consistent spacing using design system tokens"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "single-I403RM-MainLayout-single",
+      "title": "MainLayout: MainLayout extends below viewport (scrollable content)",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout extends below viewport (scrollable content)",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I403RM",
+          "type": "info",
+          "message": "MainLayout extends below viewport (scrollable content)",
+          "componentA": "MainLayout",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 977.234375,
+            "componentBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 1821.234375,
+              "component": "MainLayout",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": null,
+              "childComponents": [
+                "FailSquareCard-1",
+                "FailSquareButton-1",
+                "FailSquareButton-2",
+                "FailSquareCard-2",
+                "FailSquareCard-3",
+                "FailSquareCard-4",
+                "FailSquareCard-5"
+              ]
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "spacing-FailSquareCard-spacing-tablet",
+      "title": "Inconsistent spacing in FailSquareCard components",
+      "severity": "minor",
+      "priority": 4,
+      "impact": "visual-degradation",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.7,
+      "rootCause": "Inconsistent spacing system",
+      "pattern": "Missing design system spacing tokens",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "346.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "668.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "362.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "362.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": true,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": true,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": true,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareCard properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "Standardize spacing for FailSquareCard components",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "\n/* Consistent spacing system */\n.failsquarecard {\n  margin: 16px 0;\n}\n\n.failsquarecard + .failsquarecard {\n  margin-top: 24px;\n}",
+          "explanation": "Applies consistent spacing using design system tokens"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "spacing-FailSquareButton-spacing-tablet",
+      "title": "Inconsistent spacing in FailSquareButton components",
+      "severity": "minor",
+      "priority": 4,
+      "impact": "visual-degradation",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.7,
+      "rootCause": "Inconsistent spacing system",
+      "pattern": "Missing design system spacing tokens",
+      "affectedComponents": [
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "717.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        },
+        {
+          "code": "W201RT",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "xGap": "0px",
+            "yGap": "717.15625px",
+            "horizontal": false,
+            "vertical": true
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "Standardize spacing for FailSquareButton components",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "\n/* Consistent spacing system */\n.failsquarebutton {\n  margin: 16px 0;\n}\n\n.failsquarebutton + .failsquarebutton {\n  margin-top: 24px;\n}",
+          "explanation": "Applies consistent spacing using design system tokens"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I403RT-MainLayout-single",
+      "title": "MainLayout: MainLayout extends below viewport (scrollable content)",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout extends below viewport (scrollable content)",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I403RT",
+          "type": "info",
+          "message": "MainLayout extends below viewport (scrollable content)",
+          "componentA": "MainLayout",
+          "resolution": "tablet",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 493.15625,
+            "componentBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 768,
+              "height": 1517.15625,
+              "component": "MainLayout",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": null,
+              "childComponents": [
+                "FailSquareCard-1",
+                "FailSquareButton-1",
+                "FailSquareButton-2",
+                "FailSquareCard-2",
+                "FailSquareCard-3",
+                "FailSquareCard-4",
+                "FailSquareCard-5"
+              ]
+            },
+            "viewport": {
+              "name": "tablet",
+              "width": 768,
+              "height": 1024
+            }
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I403RT-FailSquareCard-single",
+      "title": "FailSquareCard: FailSquareCard extends below viewport (scrollable content)",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "FailSquareCard extends below viewport (scrollable content)",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I403RT",
+          "type": "info",
+          "message": "FailSquareCard extends below viewport (scrollable content)",
+          "componentA": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 453.15625,
+            "componentBounds": {
+              "x": 24,
+              "y": 984.15625,
+              "width": 720,
+              "height": 493,
+              "component": "FailSquareCard",
+              "instance": "5",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "tablet",
+              "width": 768,
+              "height": 1024
+            }
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I401RT-MainLayout-FailSquareCard",
+      "title": "MainLayout: MainLayout and FailSquareCard properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout and FailSquareCard properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I401RT-MainLayout-FailSquareCard",
+      "title": "MainLayout: MainLayout and FailSquareCard properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout and FailSquareCard properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-W201-FailSquareCard-FailSquareCard",
+      "title": "FailSquareCard: Large gap between FailSquareCard and FailSquareCard",
+      "severity": "minor",
+      "priority": 3,
+      "impact": "visual-degradation",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "Large gap between FailSquareCard and FailSquareCard",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "W201",
+          "type": "warning",
+          "message": "Large gap between FailSquareCard and FailSquareCard",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "xGap": "0px",
+            "yGap": "346.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "id": "single-W201-FailSquareButton-FailSquareCard",
+      "title": "FailSquareButton: Large gap between FailSquareButton and FailSquareCard",
+      "severity": "minor",
+      "priority": 3,
+      "impact": "visual-degradation",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "Large gap between FailSquareButton and FailSquareCard",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareButton"
+      ],
+      "relatedIssues": [
+        {
+          "code": "W201",
+          "type": "warning",
+          "message": "Large gap between FailSquareButton and FailSquareCard",
+          "componentA": "FailSquareButton",
+          "componentB": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "xGap": "0px",
+            "yGap": "395.078125px",
+            "horizontal": false,
+            "vertical": true
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareButton",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareButton\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "id": "single-I403-MainLayout-single",
+      "title": "MainLayout: MainLayout extends below viewport (scrollable content)",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout extends below viewport (scrollable content)",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I403",
+          "type": "info",
+          "message": "MainLayout extends below viewport (scrollable content)",
+          "componentA": "MainLayout",
+          "resolution": "desktop",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 437.15625,
+            "componentBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1920,
+              "height": 1517.15625,
+              "component": "MainLayout",
+              "instance": "1",
+              "selector": "div",
+              "parentComponent": null,
+              "childComponents": [
+                "FailSquareCard-1",
+                "FailSquareButton-1",
+                "FailSquareButton-2",
+                "FailSquareCard-2",
+                "FailSquareCard-3",
+                "FailSquareCard-4",
+                "FailSquareCard-5"
+              ]
+            },
+            "viewport": {
+              "name": "desktop",
+              "width": 1920,
+              "height": 1080
+            }
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "id": "single-I403-FailSquareCard-single",
+      "title": "FailSquareCard: FailSquareCard extends below viewport (scrollable content)",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "FailSquareCard extends below viewport (scrollable content)",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I403",
+          "type": "info",
+          "message": "FailSquareCard extends below viewport (scrollable content)",
+          "componentA": "FailSquareCard",
+          "resolution": "desktop",
+          "details": {
+            "overflowX": 0,
+            "overflowY": 397.15625,
+            "componentBounds": {
+              "x": 581.546875,
+              "y": 984.15625,
+              "width": 756.890625,
+              "height": 493,
+              "component": "FailSquareCard",
+              "instance": "5",
+              "selector": "div",
+              "parentComponent": "MainLayout-1",
+              "childComponents": []
+            },
+            "viewport": {
+              "name": "desktop",
+              "width": 1920,
+              "height": 1080
+            }
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  ],
+  "summary": {
+    "totalIssues": 52,
+    "errorCount": 5,
+    "warningCount": 22,
+    "infoCount": 25,
+    "responsiveIssues": [
+      {
+        "type": "spacing-inconsistency",
+        "message": "MainLayout has dramatic size changes across resolutions",
+        "affectedResolutions": [
+          "mobile",
+          "desktop"
+        ],
+        "component": "MainLayout",
+        "severity": "medium"
+      }
+    ],
+    "overallScore": 0,
+    "criticalIssues": 0,
+    "majorIssues": 0,
+    "minorIssues": 7
+  },
+  "timestamp": 1760576410849,
+  "totalRenderTime": 1849
+}

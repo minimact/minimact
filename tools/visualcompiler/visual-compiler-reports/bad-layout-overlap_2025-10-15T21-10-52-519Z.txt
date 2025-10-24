@@ -1,0 +1,63 @@
+VISUAL COMPILER REPORT
+══════════════════════════════════════════════════
+Overall Score: 55/100
+Total Render Time: 1552ms
+Issues Found: 5 (4 errors, 1 warnings, 0 info)
+
+RESOLUTION: MOBILE (390x844)
+──────────────────────────────
+❌ E301RM: Card extends beyond viewport
+   Component: Card
+   Details: {
+     "overflowX": 110,
+     "overflowY": 0,
+     "componentBounds": {
+       "x": 200,
+       "y": 20,
+       "width": 300,
+       "height": 200,
+       "component": "Card",
+       "instance": "2",
+       "selector": "div.card"
+     },
+     "viewport": {
+       "name": "mobile",
+       "width": 390,
+       "height": 844
+     }
+   }
+❌ E101RM: Card overlaps Card
+   Components: Card ↔ Card
+   Details: {
+     "overlap": "120x200 pixels",
+     "percentageA": "40.0",
+     "percentageB": "40.0",
+     "area": 24000
+   }
+
+RESOLUTION: TABLET (768x1024)
+──────────────────────────────
+❌ E101RT: Card overlaps Card
+   Components: Card ↔ Card
+   Details: {
+     "overlap": "120x200 pixels",
+     "percentageA": "40.0",
+     "percentageB": "40.0",
+     "area": 24000
+   }
+
+RESOLUTION: DESKTOP (1920x1080)
+──────────────────────────────
+❌ E101: Card overlaps Card
+   Components: Card ↔ Card
+   Details: {
+     "overlap": "120x200 pixels",
+     "percentageA": "40.0",
+     "percentageB": "40.0",
+     "area": 24000
+   }
+
+RESPONSIVE ISSUES
+──────────────────────────────
+🟡 OVERFLOW: Card overflows viewport on mobile but not on other resolutions
+   Affected: mobile

@@ -1,0 +1,184 @@
+{
+  "reports": [
+    {
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "components": [
+        {
+          "x": 20,
+          "y": 20,
+          "width": 300,
+          "height": 200,
+          "component": "Card",
+          "instance": "1",
+          "selector": "div.card"
+        },
+        {
+          "x": 200,
+          "y": 20,
+          "width": 300,
+          "height": 200,
+          "component": "Card",
+          "instance": "2",
+          "selector": "div.card"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E301RM",
+          "type": "error",
+          "message": "Card extends beyond viewport",
+          "componentA": "Card",
+          "resolution": "mobile",
+          "details": {
+            "overflowX": 110,
+            "overflowY": 0,
+            "componentBounds": {
+              "x": 200,
+              "y": 20,
+              "width": 300,
+              "height": 200,
+              "component": "Card",
+              "instance": "2",
+              "selector": "div.card"
+            },
+            "viewport": {
+              "name": "mobile",
+              "width": 390,
+              "height": 844
+            }
+          }
+        },
+        {
+          "code": "E101RM",
+          "type": "error",
+          "message": "Card overlaps Card",
+          "componentA": "Card",
+          "componentB": "Card",
+          "resolution": "mobile",
+          "details": {
+            "overlap": "120x200 pixels",
+            "percentageA": "40.0",
+            "percentageB": "40.0",
+            "area": 24000
+          }
+        }
+      ],
+      "timestamp": 1760562651430,
+      "renderTime": 521
+    },
+    {
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      },
+      "components": [
+        {
+          "x": 20,
+          "y": 20,
+          "width": 300,
+          "height": 200,
+          "component": "Card",
+          "instance": "1",
+          "selector": "div.card"
+        },
+        {
+          "x": 200,
+          "y": 20,
+          "width": 300,
+          "height": 200,
+          "component": "Card",
+          "instance": "2",
+          "selector": "div.card"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101RT",
+          "type": "error",
+          "message": "Card overlaps Card",
+          "componentA": "Card",
+          "componentB": "Card",
+          "resolution": "tablet",
+          "details": {
+            "overlap": "120x200 pixels",
+            "percentageA": "40.0",
+            "percentageB": "40.0",
+            "area": 24000
+          }
+        }
+      ],
+      "timestamp": 1760562651945,
+      "renderTime": 515
+    },
+    {
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      },
+      "components": [
+        {
+          "x": 20,
+          "y": 20,
+          "width": 300,
+          "height": 200,
+          "component": "Card",
+          "instance": "1",
+          "selector": "div.card"
+        },
+        {
+          "x": 200,
+          "y": 20,
+          "width": 300,
+          "height": 200,
+          "component": "Card",
+          "instance": "2",
+          "selector": "div.card"
+        }
+      ],
+      "issues": [
+        {
+          "code": "E101",
+          "type": "error",
+          "message": "Card overlaps Card",
+          "componentA": "Card",
+          "componentB": "Card",
+          "resolution": "desktop",
+          "details": {
+            "overlap": "120x200 pixels",
+            "percentageA": "40.0",
+            "percentageB": "40.0",
+            "area": 24000
+          }
+        }
+      ],
+      "timestamp": 1760562652461,
+      "renderTime": 516
+    }
+  ],
+  "summary": {
+    "totalIssues": 5,
+    "errorCount": 4,
+    "warningCount": 1,
+    "infoCount": 0,
+    "responsiveIssues": [
+      {
+        "type": "overflow",
+        "message": "Card overflows viewport on mobile but not on other resolutions",
+        "affectedResolutions": [
+          "mobile"
+        ],
+        "component": "Card",
+        "severity": "medium"
+      }
+    ],
+    "overallScore": 55
+  },
+  "timestamp": 1760562652462,
+  "totalRenderTime": 1552
+}

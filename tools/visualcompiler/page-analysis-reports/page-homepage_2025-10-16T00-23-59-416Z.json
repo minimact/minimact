@@ -1,0 +1,543 @@
+{
+  "reports": [
+    {
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": null,
+          "childComponents": [
+            "FailSquareCard-1",
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 24,
+          "y": 24,
+          "width": 342,
+          "height": 514.234375,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": [
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 49,
+          "y": 197,
+          "width": 136,
+          "height": 242.234375,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 205,
+          "y": 197,
+          "width": 136,
+          "height": 242.234375,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 49,
+          "y": 479.234375,
+          "width": 124.25,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 185.25,
+          "y": 479.234375,
+          "width": 142.96875,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760574238246,
+      "renderTime": 520
+    },
+    {
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 768,
+          "height": 1024,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": null,
+          "childComponents": [
+            "FailSquareCard-1",
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 34.921875,
+          "y": 24,
+          "width": 698.15625,
+          "height": 338.078125,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": [
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 59.921875,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 394,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 59.921875,
+          "y": 303.078125,
+          "width": 124.25,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 196.171875,
+          "y": 303.078125,
+          "width": 142.96875,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        },
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "timestamp": 1760574238795,
+      "renderTime": 507
+    },
+    {
+      "resolution": {
+        "name": "desktop",
+        "width": 1920,
+        "height": 1080
+      },
+      "components": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080,
+          "component": "MainLayout",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": null,
+          "childComponents": [
+            "FailSquareCard-1",
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 610.921875,
+          "y": 24,
+          "width": 698.15625,
+          "height": 338.078125,
+          "component": "FailSquareCard",
+          "instance": "1",
+          "selector": "div",
+          "parentComponent": "MainLayout-1",
+          "childComponents": [
+            "FailSquareCard-2",
+            "FailSquareCard-3",
+            "FailSquareButton-1",
+            "FailSquareButton-2"
+          ]
+        },
+        {
+          "x": 635.921875,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "2",
+          "selector": "div",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 970,
+          "y": 149,
+          "width": 314.078125,
+          "height": 114.078125,
+          "component": "FailSquareCard",
+          "instance": "3",
+          "selector": "div",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 635.921875,
+          "y": 303.078125,
+          "width": 124.25,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "1",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        },
+        {
+          "x": 772.171875,
+          "y": 303.078125,
+          "width": 142.96875,
+          "height": 34,
+          "component": "FailSquareButton",
+          "instance": "2",
+          "selector": "button",
+          "parentComponent": "FailSquareCard-1",
+          "childComponents": []
+        }
+      ],
+      "issues": [],
+      "timestamp": 1760574239327,
+      "renderTime": 510
+    }
+  ],
+  "groupedIssues": [
+    {
+      "id": "single-I401RM-MainLayout-FailSquareCard",
+      "title": "MainLayout: MainLayout and FailSquareCard properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout and FailSquareCard properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "single-I401RM-FailSquareCard-FailSquareButton",
+      "title": "FailSquareCard: FailSquareCard and FailSquareButton properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "FailSquareCard and FailSquareButton properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RM",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "mobile",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "id": "single-I401RT-MainLayout-FailSquareCard",
+      "title": "MainLayout: MainLayout and FailSquareCard properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "MainLayout and FailSquareCard properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "MainLayout"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "MainLayout and FailSquareCard properly aligned",
+          "componentA": "MainLayout",
+          "componentB": "FailSquareCard",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": false,
+            "rightAligned": false,
+            "centerAligned": true,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for MainLayout",
+        "implementation": {
+          "selector": "[data-component=\"MainLayout\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    },
+    {
+      "id": "single-I401RT-FailSquareCard-FailSquareButton",
+      "title": "FailSquareCard: FailSquareCard and FailSquareButton properly aligned",
+      "severity": "cosmetic",
+      "priority": 4,
+      "impact": "cosmetic",
+      "usersAffected": "100%",
+      "fixEffort": "low",
+      "confidence": 0.6,
+      "rootCause": "FailSquareCard and FailSquareButton properly aligned",
+      "pattern": "Individual component issue",
+      "affectedComponents": [
+        "FailSquareCard"
+      ],
+      "relatedIssues": [
+        {
+          "code": "I401RT",
+          "type": "info",
+          "message": "FailSquareCard and FailSquareButton properly aligned",
+          "componentA": "FailSquareCard",
+          "componentB": "FailSquareButton",
+          "resolution": "tablet",
+          "details": {
+            "leftAligned": true,
+            "rightAligned": false,
+            "centerAligned": false,
+            "topAligned": false,
+            "bottomAligned": false
+          }
+        }
+      ],
+      "suggestedFix": {
+        "type": "css",
+        "description": "General fix for FailSquareCard",
+        "implementation": {
+          "selector": "[data-component=\"FailSquareCard\"]",
+          "suggestedCSS": "/* Add specific CSS based on issue details */",
+          "explanation": "Generic component fix"
+        }
+      },
+      "resolution": {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024
+      }
+    }
+  ],
+  "summary": {
+    "totalIssues": 5,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 4,
+    "responsiveIssues": [
+      {
+        "type": "spacing-inconsistency",
+        "message": "MainLayout has dramatic size changes across resolutions",
+        "affectedResolutions": [
+          "mobile",
+          "desktop"
+        ],
+        "component": "MainLayout",
+        "severity": "medium"
+      }
+    ],
+    "overallScore": 91,
+    "criticalIssues": 0,
+    "majorIssues": 0,
+    "minorIssues": 0
+  },
+  "timestamp": 1760574239373,
+  "totalRenderTime": 1647
+}

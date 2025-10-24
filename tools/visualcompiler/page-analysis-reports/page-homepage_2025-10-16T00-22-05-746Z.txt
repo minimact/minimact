@@ -1,0 +1,103 @@
+VISUAL COMPILER REPORT
+══════════════════════════════════════════════════
+Overall Score: 91/100
+Total Render Time: 1685ms
+Issues Found: 5 (0 errors, 1 warnings, 4 info)
+Grouped Issues: 4 (0 critical, 0 major, 0 minor)
+
+🎯 PRIORITIZED ISSUES & FIXES
+══════════════════════════════════════════════════
+🔵 P4 [COSMETIC] MainLayout: MainLayout and FailSquareCard properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout and FailSquareCard properly aligned
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] FailSquareCard: FailSquareCard and FailSquareButton properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: FailSquareCard and FailSquareButton properly aligned
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] MainLayout: MainLayout and FailSquareCard properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: MainLayout and FailSquareCard properly aligned
+   Affected Components: MainLayout
+   💡 SUGGESTED FIX:
+      General fix for MainLayout
+      CSS: [data-component="MainLayout"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+🔵 P4 [COSMETIC] FailSquareCard: FailSquareCard and FailSquareButton properly aligned
+   Impact: cosmetic | Users: 100% | Fix Effort: low | Confidence: 60%
+   Root Cause: FailSquareCard and FailSquareButton properly aligned
+   Affected Components: FailSquareCard
+   💡 SUGGESTED FIX:
+      General fix for FailSquareCard
+      CSS: [data-component="FailSquareCard"]
+      /* Add specific CSS based on issue details */
+      Explanation: Generic component fix
+   Related issues: 1 detailed issues grouped
+
+RESOLUTION: MOBILE (390x844)
+──────────────────────────────
+ℹ️ I401RM: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RM: FailSquareCard and FailSquareButton properly aligned
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: TABLET (768x1024)
+──────────────────────────────
+ℹ️ I401RT: MainLayout and FailSquareCard properly aligned
+   Components: MainLayout ↔ FailSquareCard
+   Details: {
+     "leftAligned": false,
+     "rightAligned": false,
+     "centerAligned": true,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+ℹ️ I401RT: FailSquareCard and FailSquareButton properly aligned
+   Components: FailSquareCard ↔ FailSquareButton
+   Details: {
+     "leftAligned": true,
+     "rightAligned": false,
+     "centerAligned": false,
+     "topAligned": false,
+     "bottomAligned": false
+   }
+
+RESOLUTION: DESKTOP (1920x1080)
+──────────────────────────────
+✓ No issues found
+
+RESPONSIVE ISSUES
+──────────────────────────────
+🟡 SPACING-INCONSISTENCY: MainLayout has dramatic size changes across resolutions
+   Affected: mobile, desktop
