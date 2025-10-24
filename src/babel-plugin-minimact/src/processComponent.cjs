@@ -39,8 +39,41 @@ function processComponent(path, state) {
     localVariables: [], // Local variables (const/let/var) in function body
     renderBody: null,
     stateTypes: new Map(), // Track which hook each state came from
-    dependencies: new Map() // Track dependencies per JSX node
+    dependencies: new Map(), // Track dependencies per JSX node
+    externalImports: new Set(), // Track external library identifiers
+    clientComputedVars: new Set() // Track variables using external libs
   };
+
+  // Track external imports at file level
+  state.file.path.traverse({
+    ImportDeclaration(importPath) {
+      const source = importPath.node.source.value;
+
+      // Skip Minimact imports, relative imports, and CSS imports
+      if (source.startsWith('minimact') ||
+          source.startsWith('.') ||
+          source.startsWith('/') ||
+          source.endsWith('.css') ||
+          source.endsWith('.scss') ||
+          source.endsWith('.sass')) {
+        return;
+      }
+
+      // Track external library identifiers
+      importPath.node.specifiers.forEach(spec => {
+        if (t.isImportDefaultSpecifier(spec)) {
+          // import _ from 'lodash'
+          component.externalImports.add(spec.local.name);
+        } else if (t.isImportSpecifier(spec)) {
+          // import { sortBy } from 'lodash'
+          component.externalImports.add(spec.local.name);
+        } else if (t.isImportNamespaceSpecifier(spec)) {
+          // import * as _ from 'lodash'
+          component.externalImports.add(spec.local.name);
+        }
+      });
+    }
+  });
 
   // Extract props from function parameters
   const params = path.node.params;
@@ -95,7 +128,7 @@ function processComponent(path, state) {
     VariableDeclaration(varPath) {
       // Only extract local variables at the top level of the function body
       if (varPath.getFunctionParent() === path && varPath.parent.type === 'BlockStatement') {
-        extractLocalVariables(varPath, component);
+        extractLocalVariables(varPath, component, t);
       }
     },
 

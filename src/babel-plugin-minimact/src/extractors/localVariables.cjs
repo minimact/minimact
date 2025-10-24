@@ -7,9 +7,80 @@ const { generateCSharpExpression } = require('../generators/expressions.cjs');
 const { tsTypeToCSharpType } = require('../types/typeConversion.cjs');
 
 /**
+ * Check if an expression uses external libraries
+ */
+function usesExternalLibrary(node, externalImports, visited = new WeakSet()) {
+  if (!node || visited.has(node)) return false;
+  visited.add(node);
+
+  // Direct identifier match
+  if (t.isIdentifier(node) && externalImports.has(node.name)) {
+    return true;
+  }
+
+  // Member expression (_.sortBy, moment().format)
+  if (t.isMemberExpression(node)) {
+    return usesExternalLibrary(node.object, externalImports, visited);
+  }
+
+  // Call expression (_.sortBy(...), moment(...))
+  if (t.isCallExpression(node)) {
+    return usesExternalLibrary(node.callee, externalImports, visited) ||
+           node.arguments.some(arg => usesExternalLibrary(arg, externalImports, visited));
+  }
+
+  // Binary/Logical expressions
+  if (t.isBinaryExpression(node) || t.isLogicalExpression(node)) {
+    return usesExternalLibrary(node.left, externalImports, visited) ||
+           usesExternalLibrary(node.right, externalImports, visited);
+  }
+
+  // Conditional expression
+  if (t.isConditionalExpression(node)) {
+    return usesExternalLibrary(node.test, externalImports, visited) ||
+           usesExternalLibrary(node.consequent, externalImports, visited) ||
+           usesExternalLibrary(node.alternate, externalImports, visited);
+  }
+
+  // Array expressions
+  if (t.isArrayExpression(node)) {
+    return node.elements.some(el => el && usesExternalLibrary(el, externalImports, visited));
+  }
+
+  // Object expressions
+  if (t.isObjectExpression(node)) {
+    return node.properties.some(prop =>
+      t.isObjectProperty(prop) && usesExternalLibrary(prop.value, externalImports, visited)
+    );
+  }
+
+  // Arrow functions and function expressions
+  if (t.isArrowFunctionExpression(node) || t.isFunctionExpression(node)) {
+    return usesExternalLibrary(node.body, externalImports, visited);
+  }
+
+  // Block statement
+  if (t.isBlockStatement(node)) {
+    return node.body.some(stmt => usesExternalLibrary(stmt, externalImports, visited));
+  }
+
+  // Return statement
+  if (t.isReturnStatement(node)) {
+    return usesExternalLibrary(node.argument, externalImports, visited);
+  }
+
+  // Expression statement
+  if (t.isExpressionStatement(node)) {
+    return usesExternalLibrary(node.expression, externalImports, visited);
+  }
+
+  return false;
+}
+
+/**
  * Extract local variables (const/let/var) from function body
  */
-function extractLocalVariables(path, component) {
+function extractLocalVariables(path, component, types) {
   const declarations = path.node.declarations;
 
   for (const declarator of declarations) {
@@ -35,6 +106,14 @@ function extractLocalVariables(path, component) {
         continue;
       }
 
+      // Check if this variable uses external libraries
+      const isClientComputed = usesExternalLibrary(declarator.init, component.externalImports);
+
+      if (isClientComputed) {
+        // Mark as client-computed
+        component.clientComputedVars.add(varName);
+      }
+
       // Otherwise, treat as a regular local variable
       const initValue = generateCSharpExpression(declarator.init);
 
@@ -47,12 +126,15 @@ function extractLocalVariables(path, component) {
       component.localVariables.push({
         name: varName,
         type: varType,
-        initialValue: initValue
+        initialValue: initValue,
+        isClientComputed: isClientComputed,  // NEW: Flag for client-computed
+        init: declarator.init  // NEW: Store AST node for type inference
       });
     }
   }
 }
 
 module.exports = {
-  extractLocalVariables
+  extractLocalVariables,
+  usesExternalLibrary
 };

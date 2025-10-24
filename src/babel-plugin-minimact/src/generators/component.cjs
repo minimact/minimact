@@ -175,6 +175,18 @@ function generateComponent(component) {
     }
   }
 
+  // Client-computed properties (from external libraries)
+  const clientComputedVars = component.localVariables.filter(v => v.isClientComputed);
+  if (clientComputedVars.length > 0) {
+    lines.push('    // Client-computed properties (external libraries)');
+    for (const clientVar of clientComputedVars) {
+      const csharpType = inferCSharpTypeFromInit(clientVar.init);
+      lines.push(`    [ClientComputed("${clientVar.name}")]`);
+      lines.push(`    private ${csharpType} ${clientVar.name} => GetClientState<${csharpType}>("${clientVar.name}", default);`);
+      lines.push('');
+    }
+  }
+
   // Render method (or RenderContent for templates)
   const renderMethodName = component.useTemplate ? 'RenderContent' : 'Render';
   lines.push(`    protected override VNode ${renderMethodName}()`);
@@ -186,11 +198,12 @@ function generateComponent(component) {
     lines.push('');
   }
 
-  // Local variables
-  for (const localVar of component.localVariables) {
+  // Local variables (exclude client-computed ones, they're properties now)
+  const regularLocalVars = component.localVariables.filter(v => !v.isClientComputed);
+  for (const localVar of regularLocalVars) {
     lines.push(`        ${localVar.type} ${localVar.name} = ${localVar.initialValue};`);
   }
-  if (component.localVariables.length > 0) {
+  if (regularLocalVars.length > 0) {
     lines.push('');
   }
 
@@ -340,6 +353,84 @@ function generateComponent(component) {
   return lines;
 }
 
+/**
+ * Infer C# type from JavaScript AST node (for client-computed variables)
+ */
+function inferCSharpTypeFromInit(node) {
+  if (!node) return 'dynamic';
+
+  // Array types
+  if (t.isArrayExpression(node)) {
+    return 'List<dynamic>';
+  }
+
+  // Call expressions - try to infer from method name
+  if (t.isCallExpression(node)) {
+    const callee = node.callee;
+
+    if (t.isMemberExpression(callee) && t.isIdentifier(callee.property)) {
+      const method = callee.property.name;
+
+      // Common array methods return arrays
+      if (['map', 'filter', 'sort', 'sortBy', 'orderBy', 'slice', 'concat'].includes(method)) {
+        return 'List<dynamic>';
+      }
+
+      // Aggregation methods return numbers
+      if (['reduce', 'sum', 'sumBy', 'mean', 'meanBy', 'average', 'count', 'size'].includes(method)) {
+        return 'double';
+      }
+
+      // Find methods return single item
+      if (['find', 'minBy', 'maxBy', 'first', 'last'].includes(method)) {
+        return 'dynamic';
+      }
+
+      // String methods
+      if (['format', 'toString', 'join'].includes(method)) {
+        return 'string';
+      }
+    }
+
+    // Direct function calls (moment(), _.chain(), etc.)
+    return 'dynamic';
+  }
+
+  // String operations
+  if (t.isTemplateLiteral(node) || t.isStringLiteral(node)) {
+    return 'string';
+  }
+
+  // Numbers
+  if (t.isNumericLiteral(node)) {
+    return 'double';
+  }
+
+  // Booleans
+  if (t.isBooleanLiteral(node)) {
+    return 'bool';
+  }
+
+  // Binary expressions - try to infer from operation
+  if (t.isBinaryExpression(node)) {
+    if (['+', '-', '*', '/', '%'].includes(node.operator)) {
+      return 'double';
+    }
+    if (['==', '===', '!=', '!==', '<', '>', '<=', '>='].includes(node.operator)) {
+      return 'bool';
+    }
+  }
+
+  // Logical expressions
+  if (t.isLogicalExpression(node)) {
+    return 'bool';
+  }
+
+  // Default to dynamic
+  return 'dynamic';
+}
+
 module.exports = {
-  generateComponent
+  generateComponent,
+  inferCSharpTypeFromInit
 };

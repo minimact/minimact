@@ -44,11 +44,17 @@ public abstract class MinimactComponent
     /// </summary>
     internal static RustBridge.Predictor? GlobalPredictor { get; set; }
 
+    /// <summary>
+    /// Client-computed state dictionary (values computed in browser via external libraries)
+    /// </summary>
+    protected Dictionary<string, object> ClientState { get; set; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
         State = new Dictionary<string, object>();
         PreviousState = new Dictionary<string, object>();
+        ClientState = new Dictionary<string, object>();
     }
 
     /// <summary>
@@ -103,6 +109,59 @@ public abstract class MinimactComponent
     protected object? GetState(string key)
     {
         return State.TryGetValue(key, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// Get a client-computed value with type safety and default fallback.
+    /// Client-computed values are calculated in the browser using external libraries
+    /// (like lodash, moment, etc.) and synced to the server via SignalR.
+    /// </summary>
+    /// <typeparam name="T">The expected type of the client-computed value</typeparam>
+    /// <param name="key">The key used to identify this client-computed value</param>
+    /// <param name="defaultValue">Default value to return if not yet computed or synced</param>
+    /// <returns>The client-computed value or the default if unavailable</returns>
+    protected T GetClientState<T>(string key, T defaultValue = default!)
+    {
+        if (ClientState.TryGetValue(key, out var value))
+        {
+            try
+            {
+                // Handle JsonElement deserialization (from SignalR)
+                if (value is System.Text.Json.JsonElement jsonElement)
+                {
+                    return System.Text.Json.JsonSerializer.Deserialize<T>(jsonElement.GetRawText()) ?? defaultValue;
+                }
+
+                // Direct cast
+                if (value is T typedValue)
+                {
+                    return typedValue;
+                }
+
+                // Attempt conversion
+                return (T)Convert.ChangeType(value, typeof(T)) ?? defaultValue;
+            }
+            catch
+            {
+                // If conversion fails, return default
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Update client-computed state (called by SignalR when client sends computed values).
+    /// This does NOT trigger a re-render by itself, as it's typically called before
+    /// the render cycle that will use these values.
+    /// </summary>
+    /// <param name="updates">Dictionary of client-computed values to update</param>
+    public void UpdateClientState(Dictionary<string, object> updates)
+    {
+        foreach (var kvp in updates)
+        {
+            ClientState[kvp.Key] = kvp.Value;
+        }
     }
 
     /// <summary>
