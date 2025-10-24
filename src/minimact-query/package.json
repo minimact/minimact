@@ -1,0 +1,30 @@
+{
+  "name": "minimact-query",
+  "version": "0.1.0",
+  "description": "SQL query interface for DOM state - treat the DOM as a relational database",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "minimact",
+    "dom",
+    "sql",
+    "query",
+    "reactive",
+    "database"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "minimact-punch": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "typescript": "^5.9.3"
+  }
+}
