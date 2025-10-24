@@ -8,6 +8,7 @@ import { PseudoStateTracker } from './pseudo-state-tracker';
 import { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
 import { StateHistoryTracker } from './state-history-tracker';
 import { LifecycleStateTracker } from './lifecycle-state-tracker';
+import { registerDomElementState, unregisterDomElementState } from './registry';
 
 /**
  * DomElementState - Makes the DOM itself a reactive data source
@@ -224,6 +225,9 @@ export class DomElementState {
     this._selector = null;
     this._exists = true;
 
+    // Register with global registry for minimact-query integration
+    registerDomElementState(element, this);
+
     this.updateState();
     this.setupObservers();
   }
@@ -241,6 +245,11 @@ export class DomElementState {
     this._element = elements[0] || null;
     this._exists = elements.length > 0;
 
+    // Register all elements with global registry for minimact-query integration
+    for (const element of elements) {
+      registerDomElementState(element, this);
+    }
+
     if (this._element) {
       this.updateState();
       this.setupObservers();
@@ -257,6 +266,11 @@ export class DomElementState {
     this._element = elements[0] || null;
     this._selector = null;
     this._exists = elements.length > 0;
+
+    // Register all elements with global registry for minimact-query integration
+    for (const element of elements) {
+      registerDomElementState(element, this);
+    }
 
     if (this._element) {
       this.updateState();
@@ -443,6 +457,11 @@ export class DomElementState {
    * Clean up all observers and resources
    */
   cleanup(): void {
+    // Unregister all tracked elements from global registry
+    for (const element of this._elements) {
+      unregisterDomElementState(element, this);
+    }
+
     this.intersectionObserver?.disconnect();
     this.mutationObserver?.disconnect();
     this.resizeObserver?.disconnect();

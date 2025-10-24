@@ -1,6 +1,18 @@
 import { DomQueryBuilder } from './query-builder';
 import type { DomElementState } from 'minimact-punch';
 /**
+ * Component context for server sync (matches minimact-punch integration pattern)
+ */
+interface ComponentContext {
+    componentId: string;
+    signalR: SignalRManager;
+}
+interface SignalRManager {
+    updateQueryResults(componentId: string, queryKey: string, results: any[]): Promise<void>;
+}
+export declare function setQueryContext(context: ComponentContext): void;
+export declare function clearQueryContext(): void;
+/**
  * useDomQuery - Reactive React hook for querying the DOM
  *
  * Automatically re-runs the query when the DOM changes, providing
@@ -66,4 +78,5 @@ export declare function useDomQueryThrottled<T = DomElementState>(throttleMs?: n
  * ```
  */
 export declare function useDomQueryDebounced<T = DomElementState>(debounceMs?: number): DomQueryBuilder<T>;
+export {};
 //# sourceMappingURL=use-dom-query.d.ts.map

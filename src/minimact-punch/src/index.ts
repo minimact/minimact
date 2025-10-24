@@ -27,6 +27,21 @@ export { StateHistoryTracker } from './state-history-tracker';
 export { LifecycleStateTracker } from './lifecycle-state-tracker';
 
 /**
+ * Global registry for minimact-query integration
+ * Enables SQL-like querying of tracked DOM elements
+ */
+export {
+  registerDomElementState,
+  unregisterDomElementState,
+  getDomElementState,
+  queryDomElementStates,
+  getAllDomElementStates,
+  getTrackedElementCount,
+  clearRegistry,
+  getRegistryDebugInfo
+} from './registry';
+
+/**
  * Types - shared by both modes
  */
 export type {

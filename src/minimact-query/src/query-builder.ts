@@ -1,4 +1,5 @@
 import type { DomElementState } from 'minimact-punch';
+import { queryDomElementStates } from 'minimact-punch';
 
 /**
  * Minimact Query - Fluent SQL-like API for querying DOM state
@@ -447,12 +448,11 @@ export class DomQueryBuilder<T = DomElementState> {
     }
 
     if (this.selector) {
-      // In browser: query DOM
+      // In browser: query DomElementState instances from minimact-punch registry
       if (typeof document !== 'undefined') {
-        // Dynamic import for minimact-punch
-        // This will be resolved at runtime when used in a bundled app
-        const nodeList = document.querySelectorAll(this.selector);
-        return Array.from(nodeList) as T[];
+        // ✅ CORRECT: Get DomElementState instances, not raw DOM elements
+        // This integrates with minimact-punch's global registry
+        return queryDomElementStates(this.selector) as T[];
       }
     }
 

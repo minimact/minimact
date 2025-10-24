@@ -31,6 +31,6 @@
  * ```
  */
 export { DomQueryBuilder, domQuery } from './query-builder';
-export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced } from './use-dom-query';
+export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced, setQueryContext, clearQueryContext } from './use-dom-query';
 export type { DomElementState } from 'minimact-punch';
 //# sourceMappingURL=index.d.ts.map

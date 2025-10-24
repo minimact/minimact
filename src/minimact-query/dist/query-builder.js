@@ -1,3 +1,4 @@
+import { queryDomElementStates } from 'minimact-punch';
 // ============================================================
 // DomQueryBuilder - The Core Query Engine
 // ============================================================
@@ -341,12 +342,11 @@ export class DomQueryBuilder {
             return [...this.elements];
         }
         if (this.selector) {
-            // In browser: query DOM
+            // In browser: query DomElementState instances from minimact-punch registry
             if (typeof document !== 'undefined') {
-                // Dynamic import for minimact-punch
-                // This will be resolved at runtime when used in a bundled app
-                const nodeList = document.querySelectorAll(this.selector);
-                return Array.from(nodeList);
+                // ✅ CORRECT: Get DomElementState instances, not raw DOM elements
+                // This integrates with minimact-punch's global registry
+                return queryDomElementStates(this.selector);
             }
         }
         return [];

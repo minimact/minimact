@@ -1,0 +1,39 @@
+{
+  "name": "minimact-devtools",
+  "version": "0.1.0",
+  "description": "Chrome DevTools extension for Minimact - SQL for the DOM",
+  "main": "dist/background.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "pack": "npm run build && node scripts/pack-extension.js"
+  },
+  "keywords": [
+    "minimact",
+    "devtools",
+    "chrome-extension",
+    "dom",
+    "sql",
+    "inspector"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.0.5",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.9.3",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

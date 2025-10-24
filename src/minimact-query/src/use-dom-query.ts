@@ -3,6 +3,77 @@ import { DomQueryBuilder } from './query-builder';
 import type { DomElementState } from 'minimact-punch';
 
 /**
+ * Component context for server sync (matches minimact-punch integration pattern)
+ */
+interface ComponentContext {
+  componentId: string;
+  signalR: SignalRManager;
+}
+
+interface SignalRManager {
+  updateQueryResults(componentId: string, queryKey: string, results: any[]): Promise<void>;
+}
+
+// Global context (set by Minimact runtime)
+let currentContext: ComponentContext | null = null;
+
+export function setQueryContext(context: ComponentContext): void {
+  currentContext = context;
+}
+
+export function clearQueryContext(): void {
+  currentContext = null;
+}
+
+/**
+ * Helper to wrap a query builder with server sync
+ */
+function wrapQueryWithSync<T>(query: DomQueryBuilder<T>): DomQueryBuilder<T> {
+  // Override execute() to sync results to server
+  const originalExecute = query.execute.bind(query);
+  (query as any).execute = function(): T[] {
+    const results = originalExecute();
+
+    // Sync to server (like useDomElementState does)
+    if (currentContext && (query as any).selector) {
+      const queryKey = `query_${(query as any).selector}`;
+
+      // Extract snapshots from DomElementState results
+      const snapshots = results.map((item: any) => ({
+        attributes: item.attributes || {},
+        classList: item.classList || [],
+        isIntersecting: item.isIntersecting ?? false,
+        intersectionRatio: item.intersectionRatio ?? 0,
+        childrenCount: item.childrenCount ?? 0,
+        exists: item.exists ?? true,
+        state: item.state ? {
+          hover: item.state.hover ?? false,
+          focus: item.state.focus ?? false,
+          active: item.state.active ?? false,
+          disabled: item.state.disabled ?? false
+        } : undefined,
+        history: item.history ? {
+          changeCount: item.history.changeCount ?? 0,
+          changesPerSecond: item.history.changesPerSecond ?? 0
+        } : undefined
+      }));
+
+      currentContext.signalR.updateQueryResults(
+        currentContext.componentId,
+        queryKey,
+        snapshots
+      ).catch(err => {
+        console.error('[minimact-query] Failed to sync query results to server:', err);
+      });
+    }
+
+    return results;
+  };
+
+  return query;
+}
+
+/**
  * useDomQuery - Reactive React hook for querying the DOM
  *
  * Automatically re-runs the query when the DOM changes, providing
@@ -31,7 +102,7 @@ import type { DomElementState } from 'minimact-punch';
  * ```
  */
 export function useDomQuery<T = DomElementState>(): DomQueryBuilder<T> {
-  const queryRef = useRef<DomQueryBuilder<T>>(new DomQueryBuilder<T>());
+  const queryRef = useRef<DomQueryBuilder<T>>(wrapQueryWithSync(new DomQueryBuilder<T>()));
   const [, forceUpdate] = useState(0);
 
   useEffect(() => {
@@ -79,7 +150,7 @@ export function useDomQuery<T = DomElementState>(): DomQueryBuilder<T> {
  * ```
  */
 export function useDomQueryStatic<T = DomElementState>(): DomQueryBuilder<T> {
-  const queryRef = useRef<DomQueryBuilder<T>>(new DomQueryBuilder<T>());
+  const queryRef = useRef<DomQueryBuilder<T>>(wrapQueryWithSync(new DomQueryBuilder<T>()));
   return queryRef.current;
 }
 
@@ -95,7 +166,7 @@ export function useDomQueryStatic<T = DomElementState>(): DomQueryBuilder<T> {
  * ```
  */
 export function useDomQueryThrottled<T = DomElementState>(throttleMs: number = 100): DomQueryBuilder<T> {
-  const queryRef = useRef<DomQueryBuilder<T>>(new DomQueryBuilder<T>());
+  const queryRef = useRef<DomQueryBuilder<T>>(wrapQueryWithSync(new DomQueryBuilder<T>()));
   const [, forceUpdate] = useState(0);
   const lastUpdateRef = useRef(0);
   const pendingUpdateRef = useRef<number | null>(null);
@@ -152,7 +223,7 @@ export function useDomQueryThrottled<T = DomElementState>(throttleMs: number = 1
  * ```
  */
 export function useDomQueryDebounced<T = DomElementState>(debounceMs: number = 250): DomQueryBuilder<T> {
-  const queryRef = useRef<DomQueryBuilder<T>>(new DomQueryBuilder<T>());
+  const queryRef = useRef<DomQueryBuilder<T>>(wrapQueryWithSync(new DomQueryBuilder<T>()));
   const [, forceUpdate] = useState(0);
   const debounceTimerRef = useRef<number | null>(null);
 

@@ -200,6 +200,36 @@ public class MinimactHub : Hub
     }
 
     /// <summary>
+    /// Update query results from client useDomQuery hook
+    /// Keeps server aware of query results for accurate rendering
+    /// </summary>
+    public async Task UpdateQueryResults(string componentId, string queryKey, List<Dictionary<string, object>> results)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Update the component's query results from client
+            component.SetQueryResultsFromClient(queryKey, results);
+
+            // Trigger a re-render with the updated query results
+            component.TriggerRender();
+
+            // Note: Client already applied cached patches for instant feedback
+            // This render ensures server state is correct for subsequent renders
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error updating query results: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Transition lifecycle state from client
     /// Keeps server lifecycle machine in sync with client transitions
     /// </summary>

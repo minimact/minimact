@@ -39,7 +39,9 @@ export {
   useDomQuery,
   useDomQueryStatic,
   useDomQueryThrottled,
-  useDomQueryDebounced
+  useDomQueryDebounced,
+  setQueryContext,
+  clearQueryContext
 } from './use-dom-query';
 
 // Re-export types from minimact-punch for convenience

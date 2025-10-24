@@ -197,6 +197,20 @@ export class SignalRManager {
   }
 
   /**
+   * Update query results on the server (from useDomQuery hook)
+   * This keeps server aware of query results for accurate rendering
+   */
+  async updateQueryResults(componentId: string, queryKey: string, results: any[]): Promise<void> {
+    try {
+      await this.connection.invoke('UpdateQueryResults', componentId, queryKey, results);
+      this.log('Updated query results', { componentId, queryKey, resultCount: results.length });
+    } catch (error) {
+      console.error('[Minimact] Failed to update query results:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Subscribe to events
    */
   on(event: string, handler: Function): void {

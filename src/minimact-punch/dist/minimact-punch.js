@@ -1150,6 +1150,108 @@ var MinimactPunch = (function (exports) {
     }
 
     /**
+     * Global registry for tracking DomElementState instances
+     *
+     * This enables minimact-query to query DOM elements that have been
+     * wrapped with DomElementState tracking.
+     */
+    // WeakMap for element -> state lookup (garbage collection friendly)
+    const elementToStateMap = new WeakMap();
+    // Set for tracking all active states (allows iteration)
+    const activeStates = new Set();
+    // Map for selector-based caching
+    const selectorCache = new Map();
+    let cacheInvalidated = false;
+    /**
+     * Register a DomElementState instance with the global registry
+     * Called when a DomElementState attaches to an element
+     */
+    function registerDomElementState(element, state) {
+        elementToStateMap.set(element, state);
+        activeStates.add(state);
+        invalidateSelectorCache();
+    }
+    /**
+     * Unregister a DomElementState instance from the global registry
+     * Called when a DomElementState is destroyed or element is detached
+     */
+    function unregisterDomElementState(element, state) {
+        elementToStateMap.delete(element);
+        activeStates.delete(state);
+        invalidateSelectorCache();
+    }
+    /**
+     * Get the DomElementState for a given element
+     * Returns null if element is not tracked
+     */
+    function getDomElementState(element) {
+        return elementToStateMap.get(element) ?? null;
+    }
+    /**
+     * Query all DomElementState instances matching a CSS selector
+     * This is the core integration point for minimact-query
+     */
+    function queryDomElementStates(selector) {
+        // Check cache first
+        if (!cacheInvalidated && selectorCache.has(selector)) {
+            return Array.from(selectorCache.get(selector));
+        }
+        // Query DOM and map to DomElementState instances
+        const elements = document.querySelectorAll(selector);
+        const states = [];
+        for (const element of Array.from(elements)) {
+            const state = elementToStateMap.get(element);
+            if (state) {
+                states.push(state);
+            }
+        }
+        // Cache the result
+        selectorCache.set(selector, new Set(states));
+        cacheInvalidated = false;
+        return states;
+    }
+    /**
+     * Get all active DomElementState instances
+     * Useful for debugging and analytics
+     */
+    function getAllDomElementStates() {
+        return Array.from(activeStates);
+    }
+    /**
+     * Get count of tracked elements
+     */
+    function getTrackedElementCount() {
+        return activeStates.size;
+    }
+    /**
+     * Clear all registrations (useful for testing)
+     */
+    function clearRegistry() {
+        // Note: WeakMap doesn't have a clear() method
+        // We can only clear the Set and cache
+        activeStates.clear();
+        selectorCache.clear();
+        cacheInvalidated = true;
+    }
+    /**
+     * Invalidate selector cache
+     * Called when registry changes (add/remove elements)
+     */
+    function invalidateSelectorCache() {
+        selectorCache.clear();
+        cacheInvalidated = true;
+    }
+    /**
+     * Debug information about the registry
+     */
+    function getRegistryDebugInfo() {
+        return {
+            activeStatesCount: activeStates.size,
+            cachedSelectors: Array.from(selectorCache.keys())
+        };
+    }
+
+    /**
      * DomElementState - Makes the DOM itself a reactive data source
      *
      * Tracks DOM changes (intersection, mutations, resize) and provides
@@ -1310,6 +1412,8 @@ var MinimactPunch = (function (exports) {
             this._elements = [element];
             this._selector = null;
             this._exists = true;
+            // Register with global registry for minimact-query integration
+            registerDomElementState(element, this);
             this.updateState();
             this.setupObservers();
         }
@@ -1323,6 +1427,10 @@ var MinimactPunch = (function (exports) {
             this._elements = elements;
             this._element = elements[0] || null;
             this._exists = elements.length > 0;
+            // Register all elements with global registry for minimact-query integration
+            for (const element of elements) {
+                registerDomElementState(element, this);
+            }
             if (this._element) {
                 this.updateState();
                 this.setupObservers();
@@ -1337,6 +1445,10 @@ var MinimactPunch = (function (exports) {
             this._element = elements[0] || null;
             this._selector = null;
             this._exists = elements.length > 0;
+            // Register all elements with global registry for minimact-query integration
+            for (const element of elements) {
+                registerDomElementState(element, this);
+            }
             if (this._element) {
                 this.updateState();
                 this.setupObservers();
@@ -1488,6 +1600,10 @@ var MinimactPunch = (function (exports) {
          * Clean up all observers and resources
          */
         cleanup() {
+            // Unregister all tracked elements from global registry
+            for (const element of this._elements) {
+                unregisterDomElementState(element, this);
+            }
             this.intersectionObserver?.disconnect();
             this.mutationObserver?.disconnect();
             this.resizeObserver?.disconnect();
@@ -2306,9 +2422,17 @@ var MinimactPunch = (function (exports) {
     exports.VERSION = VERSION;
     exports.cleanupDomElementStates = cleanupDomElementStates;
     exports.clearComponentContext = clearComponentContext;
+    exports.clearRegistry = clearRegistry;
     exports.createDomElementState = useDomElementState$1;
+    exports.getAllDomElementStates = getAllDomElementStates;
     exports.getCurrentContext = getCurrentContext;
+    exports.getDomElementState = getDomElementState;
+    exports.getRegistryDebugInfo = getRegistryDebugInfo;
+    exports.getTrackedElementCount = getTrackedElementCount;
+    exports.queryDomElementStates = queryDomElementStates;
+    exports.registerDomElementState = registerDomElementState;
     exports.setComponentContext = setComponentContext;
+    exports.unregisterDomElementState = unregisterDomElementState;
     exports.useDomElementState = useDomElementState;
 
     return exports;

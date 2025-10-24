@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Minimact DevTools",
+  "version": "0.1.0",
+  "description": "PostgreSQL Inspector for the DOM - Query, inspect, and debug Minimact applications",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "devtools_page": "devtools.html",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["injected-agent.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

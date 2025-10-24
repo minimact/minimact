@@ -33,4 +33,4 @@
 // Core query builder
 export { DomQueryBuilder, domQuery } from './query-builder';
 // React hooks
-export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced } from './use-dom-query';
+export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced, setQueryContext, clearQueryContext } from './use-dom-query';

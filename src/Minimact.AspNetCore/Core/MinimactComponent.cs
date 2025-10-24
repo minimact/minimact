@@ -217,6 +217,28 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Set query results from client-side useDomQuery hook
+    /// Keeps server aware of query results for accurate rendering
+    /// </summary>
+    /// <param name="key">Query key from useDomQuery hook</param>
+    /// <param name="results">Query result snapshots from client</param>
+    public void SetQueryResultsFromClient(string key, List<Dictionary<string, object>> results)
+    {
+        // Store query results in the State dictionary
+        // This allows components to access query results in their Render() method
+        if (State.ContainsKey(key))
+        {
+            PreviousState[key] = State[key];
+        }
+
+        State[key] = results;
+
+        // Note: We don't call TriggerRender() here because the client already
+        // applied cached patches. We just need to keep state in sync so the
+        // next render (from other causes) has correct data.
+    }
+
+    /// <summary>
     /// Transition lifecycle state from client
     /// Keeps server lifecycle machine in sync with client transitions
     /// </summary>

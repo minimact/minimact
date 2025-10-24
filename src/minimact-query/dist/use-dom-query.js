@@ -1,5 +1,51 @@
 import { useEffect, useState, useRef } from 'react';
 import { DomQueryBuilder } from './query-builder';
+// Global context (set by Minimact runtime)
+let currentContext = null;
+export function setQueryContext(context) {
+    currentContext = context;
+}
+export function clearQueryContext() {
+    currentContext = null;
+}
+/**
+ * Helper to wrap a query builder with server sync
+ */
+function wrapQueryWithSync(query) {
+    // Override execute() to sync results to server
+    const originalExecute = query.execute.bind(query);
+    query.execute = function () {
+        const results = originalExecute();
+        // Sync to server (like useDomElementState does)
+        if (currentContext && query.selector) {
+            const queryKey = `query_${query.selector}`;
+            // Extract snapshots from DomElementState results
+            const snapshots = results.map((item) => ({
+                attributes: item.attributes || {},
+                classList: item.classList || [],
+                isIntersecting: item.isIntersecting ?? false,
+                intersectionRatio: item.intersectionRatio ?? 0,
+                childrenCount: item.childrenCount ?? 0,
+                exists: item.exists ?? true,
+                state: item.state ? {
+                    hover: item.state.hover ?? false,
+                    focus: item.state.focus ?? false,
+                    active: item.state.active ?? false,
+                    disabled: item.state.disabled ?? false
+                } : undefined,
+                history: item.history ? {
+                    changeCount: item.history.changeCount ?? 0,
+                    changesPerSecond: item.history.changesPerSecond ?? 0
+                } : undefined
+            }));
+            currentContext.signalR.updateQueryResults(currentContext.componentId, queryKey, snapshots).catch(err => {
+                console.error('[minimact-query] Failed to sync query results to server:', err);
+            });
+        }
+        return results;
+    };
+    return query;
+}
 /**
  * useDomQuery - Reactive React hook for querying the DOM
  *
@@ -29,7 +75,7 @@ import { DomQueryBuilder } from './query-builder';
  * ```
  */
 export function useDomQuery() {
-    const queryRef = useRef(new DomQueryBuilder());
+    const queryRef = useRef(wrapQueryWithSync(new DomQueryBuilder()));
     const [, forceUpdate] = useState(0);
     useEffect(() => {
         // Set up MutationObserver to watch for DOM changes
@@ -70,7 +116,7 @@ export function useDomQuery() {
  * ```
  */
 export function useDomQueryStatic() {
-    const queryRef = useRef(new DomQueryBuilder());
+    const queryRef = useRef(wrapQueryWithSync(new DomQueryBuilder()));
     return queryRef.current;
 }
 /**
@@ -85,7 +131,7 @@ export function useDomQueryStatic() {
  * ```
  */
 export function useDomQueryThrottled(throttleMs = 100) {
-    const queryRef = useRef(new DomQueryBuilder());
+    const queryRef = useRef(wrapQueryWithSync(new DomQueryBuilder()));
     const [, forceUpdate] = useState(0);
     const lastUpdateRef = useRef(0);
     const pendingUpdateRef = useRef(null);
@@ -136,7 +182,7 @@ export function useDomQueryThrottled(throttleMs = 100) {
  * ```
  */
 export function useDomQueryDebounced(debounceMs = 250) {
-    const queryRef = useRef(new DomQueryBuilder());
+    const queryRef = useRef(wrapQueryWithSync(new DomQueryBuilder()));
     const [, forceUpdate] = useState(0);
     const debounceTimerRef = useRef(null);
     useEffect(() => {
