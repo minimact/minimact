@@ -596,7 +596,7 @@ Built with:
 
 <p align="center">
   <em>"Survived the desert. Earned the mojito."</em><br>
-  No hydration needed. Just good vibes. 🌵🍹
+  No hydration needed. Just good vibes. 🌵 + 🍹
 </p>
 
 ---
@@ -710,7 +710,7 @@ return (
 );
 ```
 
-**Serve fresh. No hydration needed.** 🌵🍹
+**Serve fresh. No hydration needed.** 🌵 + 🍹
 
 ---
 
@@ -1079,7 +1079,9 @@ See detailed implementation plans:
 
 **Philosophy:** Not "abstract away from the DOM" but "elevate the DOM to first-class reactive state."
 
-This is React meeting jQuery meeting SQL meeting time-series analytics meeting FSMs meeting epistemology. All can be state. 🌵
+This is React meeting jQuery meeting SQL meeting time-series analytics meeting FSMs meeting epistemology.
+
+**All can be state. All can be delicious.** 🌵 + 🍹
 
 ---
 
@@ -1096,19 +1098,21 @@ This is React meeting jQuery meeting SQL meeting time-series analytics meeting F
 - [ ] Template system
 - [ ] Route codegen with IntelliSense
 - [ ] Beta release
-- [ ] useDomElementState Part 1 (Base Features)
+- [ ] 🍹 Minimact Punch Part 1 (Structure + Statistics)
 
 ### Q4 2025
 - [ ] Production optimizations
 - [ ] DevTools browser extension
 - [ ] Comprehensive documentation
-- [ ] useDomElementState Part 2 (Advanced Features)
+- [ ] 🍹 Minimact Punch Part 2 (Pseudo-State + Theme + Graphics)
 - [ ] v1.0 release
 
 ### 2026
-- [ ] useDomElementState Part 3 (Temporal Features)
+- [ ] 🍹 Minimact Punch Part 3 (Temporal Features)
+- [ ] 🍹 Minimact Punch Part 4 (Lifecycle State Machines)
+- [ ] 🍹 Minimact Punch Part 5 (Meta State)
 - [ ] Predictive DOM integration
-- [ ] v2.0 release
+- [ ] v2.0 release with full Punch
 
 ---
 
