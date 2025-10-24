@@ -46,10 +46,17 @@ export function LandingPage() {
           </span>
         </h2>
 
-        <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+        <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-6 leading-relaxed">
           Write familiar React/JSX, render on the server with ASP.NET Core, deliver instant updates
           with predictive patches. <span className="text-blue-400 font-semibold">&lt;5ms perceived latency</span>.
         </p>
+
+        <div className="flex items-center justify-center gap-3 mb-12">
+          <span className="text-3xl">🌵</span>
+          <p className="text-2xl font-semibold text-slate-200">
+            Be less reactive. More proactive. With Minimact.
+          </p>
+        </div>
 
         <div className="flex items-center justify-center gap-4 mb-16">
           <Link
