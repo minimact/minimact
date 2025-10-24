@@ -28,6 +28,9 @@ export interface DomElementStateOptions {
 
   /** Lifecycle state machine configuration */
   lifecycle?: import('./lifecycle-state-tracker').LifecycleStateConfig<any>;
+
+  /** Server sync callback for lifecycle transitions (Minimact integration only) */
+  lifecycleServerSync?: (newState: string) => void;
 }
 
 /**

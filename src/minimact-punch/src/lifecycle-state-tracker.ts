@@ -99,15 +99,20 @@ export class LifecycleStateTracker<TState extends string = string> {
   // Change notification
   private onChange?: () => void;
 
+  // Server sync callback (optional - for Minimact integration)
+  private onServerSync?: (newState: TState) => void;
+
   // Validation cache
   private reachableStates?: Set<TState>;
 
   constructor(
     config: LifecycleStateConfig<TState>,
-    onChange?: () => void
+    onChange?: () => void,
+    onServerSync?: (newState: TState) => void
   ) {
     this.config = config;
     this.onChange = onChange;
+    this.onServerSync = onServerSync;
     this.currentState = config.defaultState;
     this.stateStartTime = Date.now();
 
@@ -169,6 +174,11 @@ export class LifecycleStateTracker<TState extends string = string> {
     const duration = this.config.durations?.[newState];
     if (duration !== undefined) {
       this.scheduleAutoTransition(duration);
+    }
+
+    // Sync to server (if callback provided)
+    if (this.onServerSync) {
+      this.onServerSync(newState);
     }
 
     // Notify change

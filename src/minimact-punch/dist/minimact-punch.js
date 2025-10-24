@@ -768,12 +768,13 @@ var MinimactPunch = (function (exports) {
      * LifecycleStateTracker - The core state machine implementation
      */
     class LifecycleStateTracker {
-        constructor(config, onChange) {
+        constructor(config, onChange, onServerSync) {
             // History
             this.transitionHistory = [];
             this.maxHistorySize = 100;
             this.config = config;
             this.onChange = onChange;
+            this.onServerSync = onServerSync;
             this.currentState = config.defaultState;
             this.stateStartTime = Date.now();
             // Validate configuration
@@ -821,6 +822,10 @@ var MinimactPunch = (function (exports) {
             const duration = this.config.durations?.[newState];
             if (duration !== undefined) {
                 this.scheduleAutoTransition(duration);
+            }
+            // Sync to server (if callback provided)
+            if (this.onServerSync) {
+                this.onServerSync(newState);
             }
             // Notify change
             this.notifyChange();
@@ -1183,7 +1188,8 @@ var MinimactPunch = (function (exports) {
                 trackFocus: options.trackFocus ?? false,
                 intersectionOptions: options.intersectionOptions || {},
                 debounceMs: options.debounceMs ?? 16, // ~60fps
-                lifecycle: options.lifecycle // Pass through lifecycle config if provided
+                lifecycle: options.lifecycle, // Pass through lifecycle config if provided
+                lifecycleServerSync: options.lifecycleServerSync // Pass through server sync callback
             };
             // Initialize based on input
             if (typeof selectorOrElement === 'string') {
@@ -1604,7 +1610,8 @@ var MinimactPunch = (function (exports) {
                 }
                 this.lifecycleTracker = new LifecycleStateTracker(lifecycleConfig, () => {
                     this.notifyChange();
-                });
+                }, this.options.lifecycleServerSync // Server sync callback (Minimact integration)
+                );
             }
             return this.lifecycleTracker;
         }

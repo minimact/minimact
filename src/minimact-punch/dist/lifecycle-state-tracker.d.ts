@@ -73,8 +73,9 @@ export declare class LifecycleStateTracker<TState extends string = string> {
     private transitionHistory;
     private maxHistorySize;
     private onChange?;
+    private onServerSync?;
     private reachableStates?;
-    constructor(config: LifecycleStateConfig<TState>, onChange?: () => void);
+    constructor(config: LifecycleStateConfig<TState>, onChange?: () => void, onServerSync?: (newState: TState) => void);
     /**
      * Transition to a new state
      * Returns true if transition was successful, false if invalid

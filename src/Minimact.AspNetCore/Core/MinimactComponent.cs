@@ -49,6 +49,11 @@ public abstract class MinimactComponent
     /// </summary>
     protected Dictionary<string, object> ClientState { get; set; }
 
+    /// <summary>
+    /// Lifecycle state machine (optional - for components with distinct lifecycle states)
+    /// </summary>
+    protected LifecycleStateMachine? Lifecycle { get; set; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
@@ -209,6 +214,45 @@ public abstract class MinimactComponent
         // Note: We don't call TriggerRender() here because the client already
         // applied cached patches. We just need to keep state in sync so the
         // next render (from other causes) has correct data.
+    }
+
+    /// <summary>
+    /// Transition lifecycle state from client
+    /// Keeps server lifecycle machine in sync with client transitions
+    /// </summary>
+    /// <param name="newState">Target state to transition to</param>
+    /// <returns>True if transition was successful, false if invalid</returns>
+    public bool TransitionLifecycleFromClient(string newState)
+    {
+        if (Lifecycle == null)
+        {
+            Console.WriteLine($"[MinimactComponent] Cannot transition lifecycle - no lifecycle machine configured");
+            return false;
+        }
+
+        var success = Lifecycle.TransitionTo(newState);
+
+        if (!success)
+        {
+            Console.WriteLine(
+                $"[MinimactComponent] Invalid lifecycle transition: {Lifecycle.LifecycleState} → {newState}"
+            );
+        }
+
+        // Note: We don't call TriggerRender() here because the client already
+        // applied cached patches from the lifecycle state. We just need to keep
+        // the server's lifecycle machine in sync so the next render has correct state.
+
+        return success;
+    }
+
+    /// <summary>
+    /// Helper method to initialize a lifecycle state machine for this component
+    /// Call this in the component constructor
+    /// </summary>
+    protected void InitializeLifecycle(LifecycleStateConfig config)
+    {
+        Lifecycle = new LifecycleStateMachine(config);
     }
 
     /// <summary>

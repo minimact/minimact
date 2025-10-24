@@ -28,8 +28,9 @@ export class DomElementState {
   private _elements: HTMLElement[] = [];
   private _selector: string | null = null;
 
-  // Options (lifecycle is optional even after initialization)
-  private options: Required<Omit<DomElementStateOptions, 'lifecycle'>> & Pick<DomElementStateOptions, 'lifecycle'>;
+  // Options (lifecycle and lifecycleServerSync are optional even after initialization)
+  private options: Required<Omit<DomElementStateOptions, 'lifecycle' | 'lifecycleServerSync'>> &
+    Pick<DomElementStateOptions, 'lifecycle' | 'lifecycleServerSync'>;
 
   // Observers
   private intersectionObserver?: IntersectionObserver;
@@ -76,7 +77,8 @@ export class DomElementState {
       trackFocus: options.trackFocus ?? false,
       intersectionOptions: options.intersectionOptions || {},
       debounceMs: options.debounceMs ?? 16, // ~60fps
-      lifecycle: options.lifecycle // Pass through lifecycle config if provided
+      lifecycle: options.lifecycle, // Pass through lifecycle config if provided
+      lifecycleServerSync: options.lifecycleServerSync // Pass through server sync callback
     };
 
     // Initialize based on input
@@ -575,9 +577,13 @@ export class DomElementState {
         );
       }
 
-      this.lifecycleTracker = new LifecycleStateTracker(lifecycleConfig, () => {
-        this.notifyChange();
-      });
+      this.lifecycleTracker = new LifecycleStateTracker(
+        lifecycleConfig,
+        () => {
+          this.notifyChange();
+        },
+        this.options.lifecycleServerSync // Server sync callback (Minimact integration)
+      );
     }
 
     return this.lifecycleTracker;

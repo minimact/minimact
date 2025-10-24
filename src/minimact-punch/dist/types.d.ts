@@ -20,6 +20,8 @@ export interface DomElementStateOptions {
     debounceMs?: number;
     /** Lifecycle state machine configuration */
     lifecycle?: import('./lifecycle-state-tracker').LifecycleStateConfig<any>;
+    /** Server sync callback for lifecycle transitions (Minimact integration only) */
+    lifecycleServerSync?: (newState: string) => void;
 }
 /**
  * Callback fired when DOM state changes

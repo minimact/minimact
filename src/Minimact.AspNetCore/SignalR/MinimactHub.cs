@@ -200,6 +200,43 @@ public class MinimactHub : Hub
     }
 
     /// <summary>
+    /// Transition lifecycle state from client
+    /// Keeps server lifecycle machine in sync with client transitions
+    /// </summary>
+    public async Task TransitionLifecycleState(string componentId, string newState)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Transition the component's lifecycle state
+            var success = component.TransitionLifecycleFromClient(newState);
+
+            if (!success)
+            {
+                await Clients.Caller.SendAsync("Error",
+                    $"Invalid lifecycle transition to state: {newState}");
+                return;
+            }
+
+            // Trigger a re-render with the new lifecycle state
+            component.TriggerRender();
+
+            // Note: Client already applied cached patches for the new lifecycle state
+            // This render ensures server lifecycle machine is in sync for subsequent renders
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error transitioning lifecycle state: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Request prediction for future state
     /// Used by usePredictHint (manual) and Confidence Worker (automatic)
     /// </summary>
