@@ -224,6 +224,14 @@ function generateCSharpExpression(node) {
     return `${left} ${operator} ${right}`;
   }
 
+  if (t.isConditionalExpression(node)) {
+    // Handle ternary operator: test ? consequent : alternate
+    const test = generateCSharpExpression(node.test);
+    const consequent = generateCSharpExpression(node.consequent);
+    const alternate = generateCSharpExpression(node.alternate);
+    return `(${test}) ? ${consequent} : ${alternate}`;
+  }
+
   if (t.isCallExpression(node)) {
     // Handle console.log → Console.WriteLine
     if (t.isMemberExpression(node.callee) &&

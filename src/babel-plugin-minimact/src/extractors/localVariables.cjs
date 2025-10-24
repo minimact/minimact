@@ -96,13 +96,31 @@ function extractLocalVariables(path, component, types) {
     if (t.isIdentifier(declarator.id) && declarator.init) {
       const varName = declarator.id.name;
 
-      // If it's an arrow function or function expression, treat it as an event handler
+      // If it's an arrow function or function expression
       if (t.isArrowFunctionExpression(declarator.init) || t.isFunctionExpression(declarator.init)) {
-        component.eventHandlers.push({
-          name: varName,
-          body: declarator.init.body,
-          params: declarator.init.params
-        });
+        // Check if the function body uses external libraries
+        const usesExternal = usesExternalLibrary(declarator.init.body, component.externalImports);
+
+        if (usesExternal) {
+          // Mark as client-computed function
+          component.clientComputedVars.add(varName);
+
+          component.localVariables.push({
+            name: varName,
+            type: 'dynamic', // Will be refined to Func<> in generator
+            initialValue: 'null',
+            isClientComputed: true,
+            isFunction: true,
+            init: declarator.init
+          });
+        } else {
+          // Regular event handler
+          component.eventHandlers.push({
+            name: varName,
+            body: declarator.init.body,
+            params: declarator.init.params
+          });
+        }
         continue;
       }
 
