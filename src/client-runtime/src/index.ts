@@ -5,6 +5,7 @@ import { EventDelegation } from './event-delegation';
 import { HydrationManager } from './hydration';
 import { HintQueue } from './hint-queue';
 import { PlaygroundBridge } from './playground-bridge';
+import * as ClientComputed from './client-computed';
 import { MinimactOptions, Patch } from './types';
 
 /**
@@ -66,6 +67,9 @@ export class Minimact {
     this.playgroundBridge = new PlaygroundBridge({
       debugLogging: this.options.enableDebugLogging
     });
+
+    // Enable debug logging for client-computed module
+    ClientComputed.setDebugLogging(this.options.enableDebugLogging);
 
     this.setupSignalRHandlers();
     this.log('Minimact initialized', { rootElement: this.rootElement, options: this.options });
@@ -215,6 +219,9 @@ export class Minimact {
    */
   setClientState(componentId: string, key: string, value: any): void {
     this.clientState.setState(componentId, key, value);
+
+    // Recompute client-computed variables that depend on this state
+    this.recomputeAndSyncClientState(componentId, key);
   }
 
   /**
@@ -222,6 +229,31 @@ export class Minimact {
    */
   subscribeToState(componentId: string, key: string, callback: (value: any) => void): () => void {
     return this.clientState.subscribe(componentId, key, callback);
+  }
+
+  /**
+   * Recompute client-computed variables after state change and sync to server
+   */
+  private async recomputeAndSyncClientState(componentId: string, changedStateKey?: string): Promise<void> {
+    // Check if component has any client-computed variables
+    if (!ClientComputed.hasClientComputed(componentId)) {
+      return;
+    }
+
+    // Compute affected variables
+    const computed = changedStateKey
+      ? ClientComputed.computeDependentVariables(componentId, changedStateKey)
+      : ClientComputed.computeAllForComponent(componentId);
+
+    // If there are computed values, send to server
+    if (Object.keys(computed).length > 0) {
+      try {
+        await this.signalR.updateClientComputedState(componentId, computed);
+        this.log('Client-computed state synced', { componentId, computed });
+      } catch (error) {
+        console.error('[Minimact] Failed to sync client-computed state:', error);
+      }
+    }
   }
 
   /**
@@ -255,6 +287,20 @@ export { ClientStateManager } from './client-state';
 export { EventDelegation } from './event-delegation';
 export { HydrationManager } from './hydration';
 export { HintQueue } from './hint-queue';
+
+// Client-computed state (for external libraries)
+export {
+  registerClientComputed,
+  computeVariable,
+  computeAllForComponent,
+  computeDependentVariables,
+  getLastValue,
+  getAllLastValues,
+  hasClientComputed,
+  getComputedVariableNames,
+  clearComponent as clearClientComputedComponent,
+  getDebugInfo as getClientComputedDebugInfo
+} from './client-computed';
 
 // Core hooks
 export { useState, useEffect, useRef } from './hooks';

@@ -142,7 +142,7 @@ export class SignalRManager {
   }
 
   /**
-   * Update client state on the server
+   * Update client state on the server (single key-value)
    */
   async updateClientState(componentId: string, key: string, value: any): Promise<void> {
     try {
@@ -151,6 +151,20 @@ export class SignalRManager {
       this.log('Updated client state', { componentId, key, value });
     } catch (error) {
       console.error('[Minimact] Failed to update client state:', error);
+    }
+  }
+
+  /**
+   * Update multiple client-computed state values on the server
+   * Used for external library computations (lodash, moment, etc.)
+   */
+  async updateClientComputedState(componentId: string, computedValues: Record<string, any>): Promise<void> {
+    try {
+      await this.connection.invoke('UpdateClientComputedState', componentId, computedValues);
+      this.log('Updated client-computed state', { componentId, computedValues });
+    } catch (error) {
+      console.error('[Minimact] Failed to update client-computed state:', error);
+      throw error;
     }
   }
 
