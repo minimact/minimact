@@ -584,6 +584,23 @@ Built with:
 
 ## Future Enhancements
 
+### 🍹 Minimact Punch
+
+<p align="center">
+  <img src="./punch.png" alt="Minimact Punch - A cactus with a mojito in the desert" width="600">
+</p>
+
+<p align="center">
+  <strong>Mix Your DOM Into Something Refreshing</strong>
+</p>
+
+<p align="center">
+  <em>"Survived the desert. Earned the mojito."</em><br>
+  No hydration needed. Just good vibes. 🌵🍹
+</p>
+
+---
+
 <p align="center">
   <img src="./all-is-state.png" alt="All is State" width="400">
 </p>
@@ -598,9 +615,38 @@ Built with:
 
 ---
 
-### 🌟 useDomElementState: The Most Consequential Hook Since Captain Hook™
+**Minimact Punch** extends Minimact with `useDomElementState` - the hook that mixes 10 dimensions of DOM state into one perfect glass.
+
+---
+
+### The Recipe
+
+```
+┌─────────────────────────────────┐
+│    MINIMACT PUNCH RECIPE        │
+├─────────────────────────────────┤
+│                                 │
+│  Ingredients:                   │
+│  🟡 1 part Structure             │
+│  🟢 1 part Statistics            │
+│  🔵 1 part Pseudo-State          │
+│  🟣 1 part Theme                 │
+│  🟠 1 part Spatial               │
+│  🔴 1 part Graphics              │
+│  ⚪ 1 part Temporal              │
+│  ✨ 1 part Predictions           │
+│  🌀 1 part Lifecycle             │
+│  🎭 1 dash Meta                  │
+│                                 │
+│  Mix in a reactive glass.       │
+│  Serve fresh.                   │
+│  No hydration needed.           │
+└─────────────────────────────────┘
+```
 
 **Giving React Vision, Memory, and Spatial Awareness**
+
+---
 
 #### The Problem: React's Blind Spot
 
@@ -616,24 +662,55 @@ Modern frameworks like React have a **fundamental blind spot**: they can only re
 
 `useDomElementState()` makes **all of these things first-class, declarative, reactive values**. It tears down the wall between "React state" and "DOM state," transforming the DOM from a **write-only render target** into a **queryable reactive database**.
 
-```typescript
-const items = useDomElementState('.list-item');
+#### Quick Start: Mix Your First Punch
 
+```bash
+npm install minimact-punch
+```
+
+```typescript
+import { useDomElementState } from 'minimact-punch';
+
+// The Recipe:
+const element = useDomElementState('.my-element');
+
+// Your Punch:
 return (
   <>
-    {/* Query DOM structure like a database */}
-    {items.count > 10 && <PaginationControls />}
-    {items.vals.avg() > 50 && <HighValueBadge />}
+    {/* 🟡 Structure */}
+    {element.childrenCount > 5 && <Pagination />}
 
-    {/* React to pseudo-states */}
-    {items.some(i => i.state.hover) && <GlobalTooltip />}
+    {/* 🟢 Statistics */}
+    {element.vals.avg() > 100 && <HighValue />}
 
-    {/* Track temporal patterns */}
-    {items.history.changeCount > 100 && <PerformanceWarning />}
-    {items.history.hasStabilized && <AutoSaveButton />}
+    {/* 🔵 Pseudo-State */}
+    {element.state.hover && <Tooltip />}
+
+    {/* 🟣 Theme */}
+    {element.theme.isDark && <DarkMode />}
+
+    {/* 🟠 Spatial */}
+    {element.isIntersecting && <LazyLoad />}
+
+    {/* 🔴 Graphics */}
+    {element.canvas.ctx.dominantColor === 'red' && <Alert />}
+
+    {/* ⚪ Temporal */}
+    {element.history.hasStabilized && <AutoSave />}
+
+    {/* ✨ Predictions */}
+    {element.prediction.confidence > 0.9 && <Optimized />}
+
+    {/* 🌀 Lifecycle */}
+    {element.lifecycleState === 'visible' && <Content />}
+
+    {/* 🎭 Meta */}
+    {element.meta.importance === 'critical' && <Priority />}
   </>
 );
 ```
+
+**Serve fresh. No hydration needed.** 🌵🍹
 
 ---
 
@@ -933,7 +1010,7 @@ element.history = {
 - Debugging and development insights
 - Predictive behavior based on temporal patterns
 
-#### The Complete Vision: 8 Dimensions of DOM Querying
+#### The Complete Vision: 10 Dimensions of DOM Querying
 
 Every element becomes queryable across:
 
@@ -943,10 +1020,12 @@ Every element becomes queryable across:
 4. **Theme** - Dark/light mode, breakpoints, media queries
 5. **Spatial** - Lookahead/lookbehind, gaps between elements
 6. **Graphics** - Canvas pixels, SVG shapes, dominant colors
-7. **Time** - State history, trends, change patterns
+7. **Temporal** - State history, trends, change patterns
 8. **Predictions** - Future state based on temporal patterns
+9. **Lifecycle** - State machines with styles and templates
+10. **Meta** - State about state itself (confidence, provenance, authority)
 
-**One hook. Eight dimensions. Infinite possibilities.**
+**One hook. Ten dimensions. The complete ontology.**
 
 ```typescript
 const widget = useDomElementState('.widget');
@@ -974,6 +1053,14 @@ return (
     {/* Temporal */}
     {widget.history.hasStabilized && <AutoSave />}
     {widget.history.trend === 'increasing' && <TrendIndicator />}
+
+    {/* Lifecycle */}
+    {widget.lifecycleState === 'loading' && <Spinner />}
+    {widget.lifecycleState === 'success' && <Checkmark />}
+
+    {/* Meta */}
+    {widget.meta.confidence < 0.7 && <UncertainStateWarning />}
+    {widget.meta.staleness > 60 && <RefreshPrompt />}
   </>
 );
 ```
@@ -984,13 +1071,15 @@ See detailed implementation plans:
 - [Part 1: Base Features](./USEDOMELEMENTSTATE_IMPLEMENTATION_PLAN.md) - Structure + Statistics (~7 weeks)
 - [Part 2: Advanced Features](./USEDOMELEMENTSTATE_ADVANCED_FEATURES.md) - Pseudo-state + Theme + Canvas (~6 weeks)
 - [Part 3: Temporal Features](./USEDOMELEMENTSTATE_TEMPORAL_FEATURES.md) - History + Trends (~5 weeks)
+- [Part 4: Lifecycle State Machines](./USEDOMELEMENTSTATE_LIFECYCLE_STATE_MACHINES.md) - State machines with styles and templates (~6-8 weeks)
+- [Part 5: Meta State](./USEDOMELEMENTSTATE_META_STATE.md) - State about state itself (~4-6 weeks)
 - [Difficulty Analysis](./USEDOMELEMENTSTATE_DIFFICULTY_RANKING.md) - Technical feasibility assessment
 
-**Estimated Timeline:** 12-18 weeks for complete implementation
+**Estimated Timeline:** 24-32 weeks for complete implementation
 
 **Philosophy:** Not "abstract away from the DOM" but "elevate the DOM to first-class reactive state."
 
-This is React meeting jQuery meeting SQL meeting time-series analytics. All can be state. 🌵
+This is React meeting jQuery meeting SQL meeting time-series analytics meeting FSMs meeting epistemology. All can be state. 🌵
 
 ---
 
