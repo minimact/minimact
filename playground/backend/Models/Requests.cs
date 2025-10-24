@@ -29,3 +29,15 @@ public class InteractionRequest
     /// <summary>State changes to apply to the component</summary>
     public Dictionary<string, object?> StateChanges { get; set; } = new();
 }
+
+/// <summary>
+/// Request to update client-computed state values (for external library support)
+/// </summary>
+public class UpdateClientComputedRequest
+{
+    /// <summary>Session ID from previous compile</summary>
+    public required string SessionId { get; set; }
+
+    /// <summary>Client-computed values (calculated in browser via lodash, moment, etc.)</summary>
+    public Dictionary<string, object> ComputedValues { get; set; } = new();
+}

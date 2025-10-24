@@ -29,6 +29,12 @@ public class PlaygroundSession : IDisposable
     /// <summary>Original C# code that was compiled</summary>
     public string? OriginalCSharpCode { get; set; }
 
+    /// <summary>Client-computed state values (for external library support)</summary>
+    public Dictionary<string, object> ClientComputedState { get; set; } = new();
+
+    /// <summary>Metadata about client-computed variables extracted from C#</summary>
+    public List<ClientComputedVariable> ClientComputedMetadata { get; set; } = new();
+
     private bool _disposed = false;
 
     /// <summary>Update last access time</summary>
@@ -214,4 +220,22 @@ public class SessionManager
             return _sessions.Count;
         }
     }
+}
+
+/// <summary>
+/// Metadata about a client-computed variable
+/// </summary>
+public class ClientComputedVariable
+{
+    /// <summary>Variable name</summary>
+    public required string Name { get; set; }
+
+    /// <summary>C# type (e.g., "List<dynamic>", "double", "dynamic")</summary>
+    public required string Type { get; set; }
+
+    /// <summary>Dependencies (state variables that affect this computed value)</summary>
+    public List<string> Dependencies { get; set; } = new();
+
+    /// <summary>Default value expression from C# code</summary>
+    public string? DefaultValue { get; set; }
 }

@@ -180,6 +180,54 @@ public class PlaygroundController : ControllerBase
     }
 
     /// <summary>
+    /// Update client-computed state values (for external library support)
+    /// </summary>
+    /// <remarks>
+    /// This endpoint receives client-computed values from the browser (calculated
+    /// via lodash, moment, etc.) and triggers a re-render with the new values.
+    /// This simulates the SignalR UpdateClientComputedState flow in the playground.
+    /// </remarks>
+    [HttpPost("update-client-computed")]
+    [ProducesResponseType(typeof(InteractionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateClientComputed(
+        [FromBody] UpdateClientComputedRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.SessionId))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Error = "SessionId is required"
+                });
+            }
+
+            var response = await _playgroundService.UpdateClientComputedAsync(request, cancellationToken);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new ErrorResponse
+            {
+                Error = "Session not found",
+                Details = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in UpdateClientComputed endpoint");
+            return BadRequest(new ErrorResponse
+            {
+                Error = "Internal error",
+                Details = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
     /// Health check endpoint
     /// </summary>
     [HttpGet("health")]

@@ -72,9 +72,11 @@ export function Preview({
         const interaction: InteractionResponse = {
           cacheHit: event.data.data.cacheHit,
           elapsedMs: event.data.data.elapsedMs,
-          patchCount: event.data.data.patchCount,
           predictionConfidence: event.data.data.confidence || 0,
-          hintId: event.data.data.hintId || event.data.data.methodName
+          latency: event.data.data.cacheHit ? 'cached' : 'computed',
+          actualPatches: event.data.data.actualPatches || [],
+          predictedPatches: event.data.data.predictedPatches,
+          html: event.data.data.html || ''
         };
 
         setCurrentInteraction(interaction);

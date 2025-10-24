@@ -237,6 +237,80 @@ public class PlaygroundService
     }
 
     /// <summary>
+    /// Update client-computed state values and trigger re-render (for external library support)
+    /// </summary>
+    public async Task<InteractionResponse> UpdateClientComputedAsync(
+        UpdateClientComputedRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            // 1. Get session
+            var session = _sessionManager.GetSession(request.SessionId)
+                ?? throw new InvalidOperationException($"Session not found: {request.SessionId}");
+
+            // 2. Save old VNode
+            var oldVNode = session.CurrentVNode;
+
+            // 3. Update the session's client-computed state
+            foreach (var (key, value) in request.ComputedValues)
+            {
+                session.ClientComputedState[key] = value;
+            }
+
+            // 4. Update the component's ClientState dictionary
+            session.Component.UpdateClientState(request.ComputedValues);
+
+            // 5. Trigger re-render (component will use GetClientState<T>() which reads from ClientState)
+            var newVNode = session.Component.RenderComponent();
+
+            // 6. Compute patches
+            var patches = ComputePatches(oldVNode, newVNode);
+
+            // 7. Update session
+            session.CurrentVNode = newVNode;
+
+            stopwatch.Stop();
+
+            // 8. Record metrics (not a cache hit since client computed)
+            var metric = new InteractionMetric
+            {
+                Timestamp = DateTime.UtcNow,
+                EventType = "client-computed",
+                CacheHit = false, // Client computation, not cached
+                LatencyMs = stopwatch.ElapsedMilliseconds
+            };
+            session.Metrics.RecordInteraction(metric);
+
+            // 9. Render new HTML
+            var html = RenderVNodeToHtml(newVNode);
+
+            _logger.LogInformation(
+                "Updated client-computed state for {SessionId}: {Count} values, {Elapsed}ms",
+                request.SessionId,
+                request.ComputedValues.Count,
+                stopwatch.ElapsedMilliseconds);
+
+            return new InteractionResponse
+            {
+                ElapsedMs = stopwatch.ElapsedMilliseconds,
+                CacheHit = false,
+                Latency = $"{stopwatch.ElapsedMilliseconds}ms (client-computed)",
+                ActualPatches = patches,
+                PredictionConfidence = 0,
+                Html = html
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in UpdateClientComputedAsync");
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Get metrics for a session
     /// </summary>
     public MetricsResponse GetMetrics(string sessionId)

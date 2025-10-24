@@ -1,9 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Editor } from '../components/Editor';
 import { Preview } from '../components/Preview';
 import { MetricsDashboard } from '../components/MetricsDashboard';
+import { ClientComputedPanel } from '../components/ClientComputedPanel';
 import { usePlayground } from '../hooks/usePlayground';
 import { Link } from 'react-router-dom';
+import { clientComputationService } from '../services/clientComputation';
 
 export function PlaygroundPage() {
   const [csharpCode, setCsharpCode] = useState('');
@@ -22,8 +24,30 @@ export function PlaygroundPage() {
   } = usePlayground();
 
   const handleCompile = useCallback(async () => {
-    await compile(csharpCode);
+    const result = await compile(csharpCode);
+
+    // Initialize client computation service with the compiled code
+    if (result?.sessionId) {
+      console.log('[PlaygroundPage] Initializing client computation');
+      clientComputationService.initialize(result.sessionId, csharpCode);
+
+      // Immediately compute and sync values
+      try {
+        await clientComputationService.computeAndSync();
+        console.log('[PlaygroundPage] Initial client computation complete');
+      } catch (error) {
+        console.error('[PlaygroundPage] Client computation failed:', error);
+      }
+    }
   }, [csharpCode, compile]);
+
+  // Trigger client computation when session changes
+  useEffect(() => {
+    if (sessionId && csharpCode) {
+      console.log('[PlaygroundPage] Session changed, initializing client computation');
+      clientComputationService.initialize(sessionId, csharpCode);
+    }
+  }, [sessionId, csharpCode]);
 
   const handleInteraction = useCallback(
     (eventType: string, elementId: string) => {
@@ -113,8 +137,13 @@ export function PlaygroundPage() {
             />
           </div>
 
+          {/* Middle: Client Computed Panel */}
+          <div className="h-64 min-h-0">
+            <ClientComputedPanel sessionId={sessionId} />
+          </div>
+
           {/* Bottom: Metrics */}
-          <div className="h-80 min-h-0">
+          <div className="h-64 min-h-0">
             <MetricsDashboard metrics={metrics} isLoading={isCompiling} />
           </div>
         </div>

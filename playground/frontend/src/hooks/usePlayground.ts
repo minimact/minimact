@@ -19,7 +19,7 @@ export interface UsePlaygroundReturn {
   lastInteraction: InteractionResponse | null;
 
   // Actions
-  compile: (code: string) => Promise<void>;
+  compile: (code: string) => Promise<{ sessionId: string } | null>;
   interact: (eventType: string, stateChanges: Record<string, any>) => Promise<void>;
   clearError: () => void;
 }
@@ -63,11 +63,15 @@ export function usePlayground(): UsePlaygroundReturn {
       } catch (err) {
         // Metrics might not exist yet, that's ok
       }
+
+      // Return session info for caller to use
+      return { sessionId: response.sessionId };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Compilation failed';
       setError(message);
       setSessionId(null);
       setHtml('');
+      return null;
     } finally {
       setIsCompiling(false);
     }

@@ -104,6 +104,37 @@ export const playgroundApi = {
   },
 
   /**
+   * Update client-computed state values (for external library support)
+   */
+  async updateClientComputed(
+    sessionId: string,
+    computedValues: Record<string, any>
+  ): Promise<InteractionResponse> {
+    try {
+      console.log('Sending update-client-computed request:', {
+        sessionId,
+        computedValues,
+      });
+      const response = await fetch(`${API_BASE}/update-client-computed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, computedValues }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        handleError(error);
+      }
+
+      const result = await response.json();
+      console.log('Update-client-computed response:', result);
+      return result;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  /**
    * Health check
    */
   async health(): Promise<{ status: string; timestamp: string }> {
