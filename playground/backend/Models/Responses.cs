@@ -34,6 +34,9 @@ public class PredictionInfo
 
     /// <summary>Confidence level (0-1)</summary>
     public float Confidence { get; set; }
+
+    /// <summary>Pre-computed patches for this prediction</summary>
+    public object[]? Patches { get; set; }
 }
 
 /// <summary>

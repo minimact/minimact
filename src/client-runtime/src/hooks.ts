@@ -1,5 +1,6 @@
 import { HintQueue } from './hint-queue';
 import { DOMPatcher } from './dom-patcher';
+import { PlaygroundBridge } from './playground-bridge';
 
 /**
  * Component instance context for hooks
@@ -12,6 +13,7 @@ interface ComponentContext {
   refs: Map<string, { current: any }>;
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
+  playgroundBridge?: PlaygroundBridge;
 }
 
 // Global context tracking
@@ -57,6 +59,8 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
   const currentValue = context.state.get(stateKey) as T;
 
   const setState = (newValue: T | ((prev: T) => T)) => {
+    const startTime = performance.now();
+
     const actualNewValue = typeof newValue === 'function'
       ? (newValue as (prev: T) => T)(context.state.get(stateKey) as T)
       : newValue;
@@ -70,9 +74,36 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
     const hint = context.hintQueue.matchHint(context.componentId, stateChanges);
 
     if (hint) {
-      // Hint matched! Apply queued patches immediately
-      console.log(`[Minimact] Hint '${hint.hintId}' matched! Applying patches instantly.`);
+      // 🟢 CACHE HIT! Apply queued patches immediately
+      const latency = performance.now() - startTime;
+      console.log(`[Minimact] 🟢 CACHE HIT! Hint '${hint.hintId}' matched - applying ${hint.patches.length} patches in ${latency.toFixed(2)}ms`);
+
       context.domPatcher.applyPatches(context.element, hint.patches);
+
+      // Notify playground of cache hit
+      if (context.playgroundBridge) {
+        context.playgroundBridge.cacheHit({
+          componentId: context.componentId,
+          hintId: hint.hintId,
+          latency,
+          confidence: hint.confidence,
+          patchCount: hint.patches.length
+        });
+      }
+    } else {
+      // 🔴 CACHE MISS - No prediction found
+      const latency = performance.now() - startTime;
+      console.log(`[Minimact] 🔴 CACHE MISS - No prediction for state change:`, stateChanges);
+
+      // Notify playground of cache miss
+      if (context.playgroundBridge) {
+        context.playgroundBridge.cacheMiss({
+          componentId: context.componentId,
+          methodName: `setState(${stateKey})`,
+          latency,
+          patchCount: 0
+        });
+      }
     }
 
     // Update state

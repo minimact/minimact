@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Editor as MonacoEditor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { transformTsxToCSharp } from '../utils/babelTransform';
+import { loader } from '@monaco-editor/react';
 
 interface EditorProps {
   value: string;
@@ -64,6 +65,44 @@ export function Editor({
   const [generatedCSharp, setGeneratedCSharp] = useState(DEFAULT_CSHARP_CODE);
   const [activeTab, setActiveTab] = useState<'tsx' | 'csharp'>('tsx');
   const [isTransforming, setIsTransforming] = useState(false);
+
+  // Configure Monaco TypeScript defaults to support JSX
+  useEffect(() => {
+    loader.init().then((monaco) => {
+      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+        jsx: monaco.languages.typescript.JsxEmit.React,
+        target: monaco.languages.typescript.ScriptTarget.ES2020,
+        module: monaco.languages.typescript.ModuleKind.ESNext,
+        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        strict: false,
+        skipLibCheck: true,
+      });
+    });
+  }, []);
+
+  // Transform default TSX code on mount
+  useEffect(() => {
+    const transformInitial = async () => {
+      setIsTransforming(true);
+      const result = await transformTsxToCSharp(DEFAULT_TSX_CODE);
+      setIsTransforming(false);
+
+      if (result.error) {
+        console.error('Failed to transform default TSX:', result.error);
+        // Fall back to default C# code
+        setGeneratedCSharp(DEFAULT_CSHARP_CODE);
+        onChange(DEFAULT_CSHARP_CODE);
+      } else {
+        console.log('Transformed TSX to C#:', result.csharpCode);
+        setGeneratedCSharp(result.csharpCode);
+        onChange(result.csharpCode);
+      }
+    };
+
+    transformInitial();
+  }, [onChange]);
 
   const handleEditorMount = (editor: editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;

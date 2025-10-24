@@ -3,14 +3,25 @@ using Minimact.Playground.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Use camelCase for JSON serialization to match JavaScript conventions
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add SignalR for real-time communication
+builder.Services.AddSignalR();
 
 // Register playground services
 builder.Services.AddSingleton<CompilationService>();
 builder.Services.AddSingleton<SessionManager>();
 builder.Services.AddSingleton<PlaygroundService>();
+
+// Register Minimact core services
+builder.Services.AddSingleton<Minimact.AspNetCore.Core.ComponentRegistry>();
 
 // Configure CORS for local development and minimact.com
 builder.Services.AddCors(options =>
@@ -19,7 +30,8 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:3000",      // Vite dev server
+                "http://localhost:3000",      // React dev server (legacy)
+                "http://localhost:5173",      // Vite dev server
                 "http://localhost:5000",      // Local ASP.NET
                 "https://minimact.com",       // Production
                 "https://www.minimact.com"    // Production www
@@ -46,8 +58,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("PlaygroundCORS");
+
+// Serve static files from wwwroot
+app.UseStaticFiles();
+
 app.UseAuthorization();
 app.MapControllers();
+
+// Map SignalR hub
+app.MapHub<Minimact.AspNetCore.SignalR.MinimactHub>("/minimact");
 
 // Health check endpoint
 app.MapGet("/health", () => new

@@ -27,37 +27,54 @@ async function loadBabelPlugin(): Promise<any> {
   }
 
   try {
-    // Try to load from dist folder (built from rollup)
-    const response = await fetch('/babel-plugin/minimact-babel-plugin.js');
-    if (!response.ok) {
-      throw new Error(`Failed to load plugin: ${response.statusText}`);
+    const global = window as any;
+
+    // Make Babel available globally BEFORE loading the plugin
+    // The plugin's IIFE will access window.Babel to set up __BABEL_TYPES__ and __BABEL_CORE__
+    const tempBabel = global.Babel;
+    const tempPlugin = global.MinimactBabelPlugin;
+
+    global.Babel = Babel;
+
+    console.log('Setting up window.Babel before plugin load:', global.Babel);
+    console.log('window.Babel.types:', global.Babel?.types);
+    console.log('window.Babel keys:', Object.keys(global.Babel || {}));
+    console.log('Checking for types in packages:', global.Babel?.packages?.types);
+
+    try {
+      // Load the plugin script - it's now an IIFE that will:
+      // 1. Set up globalThis.__BABEL_TYPES__ from window.Babel.types
+      // 2. Set up globalThis.__BABEL_CORE__ from window.Babel
+      // 3. Define window.MinimactBabelPlugin
+      const response = await fetch('/babel-plugin/minimact-babel-plugin.js');
+      if (!response.ok) {
+        throw new Error(`Failed to load plugin: ${response.statusText}`);
+      }
+
+      const pluginCode = await response.text();
+
+      // Execute the IIFE bundle
+      const script = document.createElement('script');
+      script.textContent = pluginCode;
+      document.head.appendChild(script);
+      document.head.removeChild(script);
+
+      console.log('After plugin load - globalThis.__BABEL_TYPES__:', (globalThis as any).__BABEL_TYPES__);
+      console.log('After plugin load - globalThis.__BABEL_CORE__:', (globalThis as any).__BABEL_CORE__);
+
+      // Get the plugin from the global
+      cachedPlugin = global.MinimactBabelPlugin;
+
+      console.log('Plugin loaded successfully:', cachedPlugin);
+    } finally {
+      // Restore previous values (but keep the globals available for the plugin to use)
+      // Don't try to delete properties that may be non-configurable
+      if (tempBabel !== undefined) {
+        global.Babel = tempBabel;
+      }
+
+      // Keep MinimactBabelPlugin on window - it's harmless and the plugin is cached anyway
     }
-
-    const pluginCode = await response.text();
-
-    // Execute the UMD module in a new context to get the plugin function
-    // eslint-disable-next-line no-eval
-    const moduleObj: any = {};
-    const moduleExports: any = {};
-    const require = (id: string) => {
-      if (id === '@babel/types') return (Babel as any).types;
-      if (id === '@babel/core') return Babel;
-      throw new Error(`Unknown module: ${id}`);
-    };
-
-    // Execute the plugin code
-    const code = `
-      (function(module, exports, require) {
-        ${pluginCode}
-      })(moduleObj, moduleExports, require);
-    `;
-
-    // Create a function from the code to execute it
-    const fn = new Function('moduleObj', 'moduleExports', 'require', 'Babel', code);
-    fn(moduleObj, moduleExports, require, Babel);
-
-    // The plugin is the default export
-    cachedPlugin = moduleExports.default || moduleExports;
 
     return cachedPlugin;
   } catch (error) {
@@ -111,6 +128,8 @@ export async function transformTsxToCSharp(tsxCode: string): Promise<BabelTransf
     const csharpCode = result.metadata.minimactCSharp;
 
     if (!csharpCode) {
+      console.error('Transformation completed but no C# code generated');
+      console.error('Metadata:', result.metadata);
       return {
         csharpCode: '',
         error: 'Babel plugin did not generate C# code'
@@ -123,6 +142,7 @@ export async function transformTsxToCSharp(tsxCode: string): Promise<BabelTransf
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('TSX to C# transformation failed:', errorMessage);
+    console.error('Full error:', error);
 
     return {
       csharpCode: '',

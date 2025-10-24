@@ -154,7 +154,19 @@ public class VElement : VNode
 
     public override string ToHtml()
     {
-        var propsStr = string.Join(" ", Props.Select(p => $"{p.Key}=\"{p.Value}\""));
+        // Convert event handler props to data-* attributes for client-runtime
+        var htmlProps = Props.Select(p =>
+        {
+            // Convert onClick -> data-onclick, onChange -> data-onchange, etc.
+            if (p.Key.StartsWith("on", StringComparison.OrdinalIgnoreCase) && p.Key.Length > 2)
+            {
+                var eventName = p.Key.Substring(2).ToLower(); // onClick -> click
+                return $"data-on{eventName}=\"{p.Value}\"";
+            }
+            return $"{p.Key}=\"{p.Value}\"";
+        });
+
+        var propsStr = string.Join(" ", htmlProps);
         var openTag = string.IsNullOrEmpty(propsStr) ? $"<{Tag}>" : $"<{Tag} {propsStr}>";
         var closeTag = $"</{Tag}>";
 

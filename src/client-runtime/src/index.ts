@@ -4,6 +4,7 @@ import { ClientStateManager } from './client-state';
 import { EventDelegation } from './event-delegation';
 import { HydrationManager } from './hydration';
 import { HintQueue } from './hint-queue';
+import { PlaygroundBridge } from './playground-bridge';
 import { MinimactOptions, Patch } from './types';
 
 /**
@@ -16,6 +17,7 @@ export class Minimact {
   private clientState: ClientStateManager;
   private hydration: HydrationManager;
   private hintQueue: HintQueue;
+  private playgroundBridge: PlaygroundBridge;
   private eventDelegation: EventDelegation | null = null;
   private options: Required<MinimactOptions>;
   private rootElement: HTMLElement;
@@ -58,6 +60,10 @@ export class Minimact {
     });
 
     this.hintQueue = new HintQueue({
+      debugLogging: this.options.enableDebugLogging
+    });
+
+    this.playgroundBridge = new PlaygroundBridge({
       debugLogging: this.options.enableDebugLogging
     });
 
@@ -148,6 +154,14 @@ export class Minimact {
       this.log(`Hint '${data.hintId}' queued for component ${data.componentId}`, {
         patchCount: data.patches.length,
         confidence: (data.confidence * 100).toFixed(0) + '%'
+      });
+
+      // Notify playground that prediction was received
+      this.playgroundBridge.predictionReceived({
+        componentId: data.componentId,
+        hintId: data.hintId,
+        patchCount: data.patches.length,
+        confidence: data.confidence
       });
     });
 

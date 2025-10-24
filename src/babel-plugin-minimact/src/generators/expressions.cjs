@@ -9,6 +9,10 @@ const { classifyNode } = require('../analyzers/classification.cjs');
 const { generateRuntimeHelperForJSXNode } = require('./runtimeHelpers.cjs');
 const { generateJSXElement } = require('./jsx.cjs');
 
+// Module-level variable to store current component context
+// This allows useState setter detection without threading component through all calls
+let currentComponent = null;
+
 /**
  * Generate expression for use in boolean context (conditionals, logical operators)
  * Wraps expressions in MObject for JavaScript truthiness semantics
@@ -238,6 +242,20 @@ function generateCSharpExpression(node) {
       return `${object}.ToString("F${decimals}")`;
     }
 
+    // Handle useState/useClientState setters → SetState calls
+    if (t.isIdentifier(node.callee) && currentComponent) {
+      const setterName = node.callee.name;
+
+      // Check if this is a useState setter
+      const useState = [...(currentComponent.useState || []), ...(currentComponent.useClientState || [])]
+        .find(state => state.setter === setterName);
+
+      if (useState && node.arguments.length > 0) {
+        const newValue = generateCSharpExpression(node.arguments[0]);
+        return `SetState(nameof(${useState.name}), ${newValue})`;
+      }
+    }
+
     // Generic function call
     const callee = generateCSharpExpression(node.callee);
     const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
@@ -325,6 +343,13 @@ function generateHybridExpression(expr, component, deps, indent) {
 
 
 
+/**
+ * Set the current component context for useState setter detection
+ */
+function setCurrentComponent(component) {
+  currentComponent = component;
+}
+
 module.exports = {
   generateAttributeValue,
   generateCSharpExpression,
@@ -334,5 +359,6 @@ module.exports = {
   generateShortCircuit,
   generateHybridExpression,
   generateJSXExpression,
-  generateBooleanExpression
+  generateBooleanExpression,
+  setCurrentComponent
 };

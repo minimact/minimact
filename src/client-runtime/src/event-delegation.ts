@@ -1,3 +1,7 @@
+import type { HintQueue } from './hint-queue';
+import type { DOMPatcher } from './dom-patcher';
+import type { PlaygroundBridge } from './playground-bridge';
+
 /**
  * Event delegation system for handling component events
  * Uses a single root listener for performance
@@ -7,15 +11,26 @@ export class EventDelegation {
   private componentMethodInvoker: (componentId: string, methodName: string, args?: any) => Promise<void>;
   private debugLogging: boolean;
   private eventListeners: Map<string, EventListener>;
+  private hintQueue?: HintQueue;
+  private domPatcher?: DOMPatcher;
+  private playgroundBridge?: PlaygroundBridge;
 
   constructor(
     rootElement: HTMLElement,
     componentMethodInvoker: (componentId: string, methodName: string, args?: any) => Promise<void>,
-    options: { debugLogging?: boolean } = {}
+    options: {
+      debugLogging?: boolean;
+      hintQueue?: HintQueue;
+      domPatcher?: DOMPatcher;
+      playgroundBridge?: PlaygroundBridge;
+    } = {}
   ) {
     this.rootElement = rootElement;
     this.componentMethodInvoker = componentMethodInvoker;
     this.debugLogging = options.debugLogging || false;
+    this.hintQueue = options.hintQueue;
+    this.domPatcher = options.domPatcher;
+    this.playgroundBridge = options.playgroundBridge;
     this.eventListeners = new Map();
 
     this.setupEventDelegation();
@@ -162,6 +177,8 @@ export class EventDelegation {
    * Execute an event handler
    */
   private async executeHandler(handler: EventHandler, event: Event, element: HTMLElement): Promise<void> {
+    const startTime = performance.now();
+
     try {
       // Build args object
       const argsObj: any = {};
@@ -196,13 +213,92 @@ export class EventDelegation {
         argsObj.value = target.value;
       }
 
-      // Invoke component method on server
+      // Check hint queue for cached prediction (CACHE HIT!)
+      if (this.hintQueue && this.domPatcher) {
+        // Build hint ID based on method name (simplified - in production would be more sophisticated)
+        const hintId = `${handler.methodName}`;
+
+        // Try to match hint based on the method being called
+        // This is a simplified version - in reality we'd need to know the state change
+        const matchedHint = this.tryMatchHint(handler.componentId, handler.methodName);
+
+        if (matchedHint) {
+          // 🟢 CACHE HIT! Apply patches instantly
+          const componentElement = this.findComponentElement(handler.componentId);
+          if (componentElement) {
+            this.domPatcher.applyPatches(componentElement, matchedHint.patches as any[]);
+
+            const latency = performance.now() - startTime;
+
+            // Notify playground of cache hit
+            if (this.playgroundBridge) {
+              this.playgroundBridge.cacheHit({
+                componentId: handler.componentId,
+                hintId: matchedHint.hintId,
+                latency,
+                confidence: matchedHint.confidence,
+                patchCount: matchedHint.patches.length
+              });
+            }
+
+            this.log(`🟢 CACHE HIT! Applied ${matchedHint.patches.length} patches in ${latency.toFixed(2)}ms`, {
+              handler,
+              confidence: (matchedHint.confidence * 100).toFixed(0) + '%'
+            });
+
+            // Still notify server in background for verification
+            this.componentMethodInvoker(handler.componentId, handler.methodName, argsObj).catch(err => {
+              console.error('[Minimact] Background server notification failed:', err);
+            });
+
+            return;
+          }
+        }
+      }
+
+      // 🔴 CACHE MISS - No prediction found, send to server
       await this.componentMethodInvoker(handler.componentId, handler.methodName, argsObj);
 
-      this.log('Handler executed', { handler, argsObj });
+      const latency = performance.now() - startTime;
+
+      // Notify playground of cache miss
+      if (this.playgroundBridge) {
+        this.playgroundBridge.cacheMiss({
+          componentId: handler.componentId,
+          methodName: handler.methodName,
+          latency,
+          patchCount: 0 // We don't know patch count in this flow
+        });
+      }
+
+      this.log(`🔴 CACHE MISS - Server latency: ${latency.toFixed(2)}ms`, { handler, argsObj });
     } catch (error) {
       console.error('[Minimact] Error executing handler:', handler, error);
     }
+  }
+
+  /**
+   * Try to match a hint in the queue for this method invocation
+   * Simplified version - checks if there's a hint matching the method name
+   */
+  private tryMatchHint(componentId: string, methodName: string): { hintId: string; patches: any[]; confidence: number } | null {
+    if (!this.hintQueue) return null;
+
+    // In a real implementation, we'd need to build the predicted state change
+    // For now, we'll use a simplified heuristic based on method name
+    // The server sends hints with IDs like "count_1" for count going to 1
+
+    // Try to match by checking all hints for this component
+    // This is a placeholder - the actual matching logic would be more sophisticated
+    return null; // TODO: Implement proper hint matching
+  }
+
+  /**
+   * Find the component element by component ID
+   */
+  private findComponentElement(componentId: string): HTMLElement | null {
+    const element = this.rootElement.querySelector(`[data-minimact-component-id="${componentId}"]`);
+    return element as HTMLElement;
   }
 
   /**

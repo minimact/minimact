@@ -4,12 +4,15 @@
 
 const t = require('@babel/types');
 const { generateRenderBody } = require('./renderBody.cjs');
-const { generateCSharpExpression, generateCSharpStatement } = require('./expressions.cjs');
+const { generateCSharpExpression, generateCSharpStatement, setCurrentComponent } = require('./expressions.cjs');
 
 /**
  * Generate C# class for a component
  */
 function generateComponent(component) {
+  // Set the current component context for useState setter detection
+  setCurrentComponent(component);
+
   const lines = [];
 
   // Class declaration

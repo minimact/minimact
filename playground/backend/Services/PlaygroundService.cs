@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.SignalR;
 using Minimact.Playground.Models;
 using static Minimact.AspNetCore.Core.RustBridge;
 
@@ -14,15 +16,21 @@ public class PlaygroundService
     private readonly CompilationService _compilationService;
     private readonly SessionManager _sessionManager;
     private readonly ILogger<PlaygroundService> _logger;
+    private readonly IHubContext<MinimactHub> _hubContext;
+    private readonly ComponentRegistry _componentRegistry;
 
     public PlaygroundService(
         CompilationService compilationService,
         SessionManager sessionManager,
-        ILogger<PlaygroundService> logger)
+        ILogger<PlaygroundService> logger,
+        IHubContext<MinimactHub> hubContext,
+        ComponentRegistry componentRegistry)
     {
         _compilationService = compilationService;
         _sessionManager = sessionManager;
         _logger = logger;
+        _hubContext = hubContext;
+        _componentRegistry = componentRegistry;
     }
 
     /// <summary>
@@ -46,8 +54,8 @@ public class PlaygroundService
 
             stopwatch.Stop();
 
-            // 3. Create session
-            var sessionId = Guid.NewGuid().ToString();
+            // 3. Create session (use component's auto-generated ComponentId as sessionId)
+            var sessionId = component.ComponentId;
             var predictor = new RustBridge.Predictor();
             var session = new PlaygroundSession
             {
@@ -61,10 +69,16 @@ public class PlaygroundService
 
             _sessionManager.AddSession(session);
 
-            // 4. Generate predictions based on common patterns
-            var predictions = GeneratePredictions(session.Predictor, vnode);
+            // 4. Register component with ComponentRegistry for SignalR
+            _componentRegistry.RegisterComponent(component);
 
-            // 5. Render to HTML
+            // 5. Generate predictive patches
+            var predictions = GeneratePredictions(session);
+
+            // 6. Send predictions to client via SignalR
+            await SendPredictionsToClient(sessionId, predictions);
+
+            // 7. Render to HTML
             var html = RenderVNodeToHtml(vnode);
 
             _logger.LogInformation(
@@ -481,10 +495,16 @@ public class PlaygroundService
         }}
     </style>
 </head>
-<body>
-    <div id='root'>
+<body data-minimact-auto-init data-minimact-debug>
+    <div id='root' data-minimact-component='playground-component'>
         {componentHtml}
     </div>
+
+    <!-- Include SignalR -->
+    <script src='https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js'></script>
+
+    <!-- Include Minimact Client Runtime -->
+    <script src='/js/minimact.js'></script>
 </body>
 </html>";
     }
@@ -552,6 +572,165 @@ public class PlaygroundService
         {
             _logger.LogError(ex, "Error computing patches");
             return Array.Empty<object>();
+        }
+    }
+
+    /// <summary>
+    /// Generate predictive patches for likely state changes
+    /// </summary>
+    private List<PredictionInfo> GeneratePredictions(PlaygroundSession session)
+    {
+        var predictions = new List<PredictionInfo>();
+        var component = session.Component;
+
+        try
+        {
+            // Find all state fields
+            var stateFields = component.GetType()
+                .GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .Where(f => f.GetCustomAttribute<StateAttribute>() != null ||
+                           f.GetCustomAttribute<UseStateAttribute>() != null);
+
+            foreach (var field in stateFields)
+            {
+                var currentValue = field.GetValue(component);
+
+                // Predict likely next values based on type
+                if (field.FieldType == typeof(int) && currentValue != null)
+                {
+                    // For integers, predict increment
+                    var intValue = (int)currentValue;
+                    var patches = ComputePatchesForStateChange(session, field, intValue + 1);
+
+                    if (patches != null && patches.Length > 0)
+                    {
+                        predictions.Add(new PredictionInfo
+                        {
+                            StateKey = field.Name,
+                            PredictedValue = intValue + 1,
+                            Confidence = 0.85f,
+                            Patches = patches
+                        });
+
+                        _logger.LogDebug("Generated prediction: {FieldName} {OldValue} → {NewValue} ({PatchCount} patches)",
+                            field.Name, intValue, intValue + 1, patches.Length);
+                    }
+                }
+                else if (field.FieldType == typeof(bool) && currentValue != null)
+                {
+                    // For booleans, predict toggle
+                    var boolValue = (bool)currentValue;
+                    var patches = ComputePatchesForStateChange(session, field, !boolValue);
+
+                    if (patches != null && patches.Length > 0)
+                    {
+                        predictions.Add(new PredictionInfo
+                        {
+                            StateKey = field.Name,
+                            PredictedValue = !boolValue,
+                            Confidence = 0.90f,
+                            Patches = patches
+                        });
+
+                        _logger.LogDebug("Generated prediction: {FieldName} {OldValue} → {NewValue} ({PatchCount} patches)",
+                            field.Name, boolValue, !boolValue, patches.Length);
+                    }
+                }
+            }
+
+            _logger.LogInformation("Generated {Count} predictions for session {SessionId}",
+                predictions.Count, session.SessionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error generating predictions");
+        }
+
+        return predictions;
+    }
+
+    /// <summary>
+    /// Compute patches for a hypothetical state change without mutating component
+    /// </summary>
+    private object[]? ComputePatchesForStateChange(
+        PlaygroundSession session,
+        System.Reflection.FieldInfo field,
+        object newValue)
+    {
+        try
+        {
+            var component = session.Component;
+            var oldVNode = session.CurrentVNode;
+            var oldValue = field.GetValue(component);
+
+            // Temporarily apply new state
+            field.SetValue(component, newValue);
+
+            // Re-render with predicted state
+            var newVNode = component.RenderComponent();
+
+            // Compute patches
+            var patches = ComputePatches(oldVNode, newVNode);
+
+            // Restore original state
+            field.SetValue(component, oldValue);
+
+            return patches;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error computing patches for state change");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Send pre-computed predictions to client via SignalR for caching
+    /// This implements the core predictive rendering: patches are sent BEFORE user interaction
+    /// </summary>
+    private async Task SendPredictionsToClient(string sessionId, List<PredictionInfo> predictions)
+    {
+        if (predictions.Count == 0)
+        {
+            _logger.LogDebug("No predictions to send for session {SessionId}", sessionId);
+            return;
+        }
+
+        try
+        {
+            foreach (var prediction in predictions)
+            {
+                if (prediction.Patches == null || prediction.Patches.Length == 0)
+                {
+                    continue;
+                }
+
+                var hintId = $"{prediction.StateKey}_{prediction.PredictedValue}";
+
+                // Send prediction via SignalR - client-runtime will cache this
+                await _hubContext.Clients.All.SendAsync("queueHint", new
+                {
+                    componentId = sessionId,
+                    hintId = hintId,
+                    patches = prediction.Patches,
+                    confidence = prediction.Confidence
+                });
+
+                _logger.LogInformation(
+                    "📤 Sent prediction to client: {HintId} (confidence: {Confidence:P0}, {PatchCount} patches)",
+                    hintId,
+                    prediction.Confidence,
+                    prediction.Patches.Length);
+            }
+
+            _logger.LogInformation(
+                "✅ Sent {PredictionCount} predictions to client for session {SessionId}",
+                predictions.Count,
+                sessionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending predictions to client for session {SessionId}", sessionId);
         }
     }
 }

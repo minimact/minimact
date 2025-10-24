@@ -36,6 +36,7 @@ export const playgroundApi = {
    */
   async compile(request: CompileRequest): Promise<CompileResponse> {
     try {
+      console.log('Sending compile request:', request);
       const response = await fetch(`${API_BASE}/compile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -43,12 +44,21 @@ export const playgroundApi = {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        handleError(error);
+        const errorText = await response.text();
+        console.error('Compile error response:', errorText);
+        try {
+          const error = JSON.parse(errorText);
+          handleError(error);
+        } catch {
+          throw new Error(`Compilation failed (${response.status}): ${errorText}`);
+        }
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('Compile response:', result);
+      return result;
     } catch (error) {
+      console.error('Compile request failed:', error);
       handleError(error);
     }
   },

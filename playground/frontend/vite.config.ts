@@ -16,13 +16,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
-      '/babel-plugin': {
-        target: 'file://' + path.resolve(__dirname, '../../src/babel-plugin-minimact/dist'),
-        bypass() {
-          // Serve files directly from the dist folder
-          return null; // Let vite handle it
-        },
-      },
     },
   },
   resolve: {

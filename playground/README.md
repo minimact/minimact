@@ -98,7 +98,22 @@ Real-time stats:
 - Node.js 18+
 - npm or yarn
 
-### Backend
+### Option 1: Start Both Together (Recommended)
+
+```bash
+cd playground/frontend
+npm install
+npm start
+# Backend starts on http://localhost:5000
+# Frontend starts on http://localhost:5173
+# Open http://localhost:5173 in your browser
+```
+
+This runs both backend and frontend concurrently with automatic reloading.
+
+### Option 2: Start Separately
+
+**Terminal 1 - Backend:**
 ```bash
 cd playground/backend
 dotnet build
@@ -107,12 +122,12 @@ dotnet watch run
 # Swagger UI at https://localhost:5001/swagger
 ```
 
-### Frontend
+**Terminal 2 - Frontend:**
 ```bash
 cd playground/frontend
 npm install
 npm run dev
-# Open http://localhost:3000
+# Open http://localhost:5173
 ```
 
 ## API Documentation

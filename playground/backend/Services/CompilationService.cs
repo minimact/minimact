@@ -27,8 +27,11 @@ public class CompilationService
     {
         try
         {
-            // 1. Parse the code
-            var tree = CSharpSyntaxTree.ParseText(csharpCode);
+            // 1. Prepend required using statements if not present
+            var completeCode = PrependUsingStatements(csharpCode);
+
+            // 2. Parse the code
+            var tree = CSharpSyntaxTree.ParseText(completeCode);
 
             // 2. Get required assemblies
             var references = GetRequiredReferences();
@@ -84,6 +87,42 @@ public class CompilationService
             _logger.LogError(ex, "Unexpected error during compilation");
             throw new CompilationException($"Compilation error: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// Prepend required using statements to the code if not already present
+    /// </summary>
+    private string PrependUsingStatements(string csharpCode)
+    {
+        var requiredUsings = new[]
+        {
+            "using System;",
+            "using System.Collections.Generic;",
+            "using System.Linq;",
+            "using Minimact.AspNetCore.Core;",
+        };
+
+        var sb = new StringBuilder();
+
+        // Add using statements that are not already present
+        foreach (var usingStatement in requiredUsings)
+        {
+            if (!csharpCode.Contains(usingStatement))
+            {
+                sb.AppendLine(usingStatement);
+            }
+        }
+
+        // Add a blank line for readability
+        if (sb.Length > 0)
+        {
+            sb.AppendLine();
+        }
+
+        // Append the original code
+        sb.Append(csharpCode);
+
+        return sb.ToString();
     }
 
     /// <summary>
