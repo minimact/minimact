@@ -169,6 +169,34 @@ export class SignalRManager {
   }
 
   /**
+   * Update component state on the server (from useState hook)
+   * This keeps server state in sync with client state changes
+   */
+  async updateComponentState(componentId: string, stateKey: string, value: any): Promise<void> {
+    try {
+      await this.connection.invoke('UpdateComponentState', componentId, stateKey, value);
+      this.log('Updated component state', { componentId, stateKey, value });
+    } catch (error) {
+      console.error('[Minimact] Failed to update component state:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update DOM element state on the server (from useDomElementState hook)
+   * This keeps server aware of DOM changes for accurate rendering
+   */
+  async updateDomElementState(componentId: string, stateKey: string, snapshot: any): Promise<void> {
+    try {
+      await this.connection.invoke('UpdateDomElementState', componentId, stateKey, snapshot);
+      this.log('Updated DOM element state', { componentId, stateKey, snapshot });
+    } catch (error) {
+      console.error('[Minimact] Failed to update DOM element state:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Subscribe to events
    */
   on(event: string, handler: Function): void {

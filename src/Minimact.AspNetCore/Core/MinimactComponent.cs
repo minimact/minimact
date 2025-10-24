@@ -165,6 +165,53 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Set state from client-side useState hook
+    /// Keeps server state in sync with client to prevent stale data
+    /// </summary>
+    /// <param name="key">State key from useState hook</param>
+    /// <param name="value">New value from client</param>
+    public void SetStateFromClient(string key, object value)
+    {
+        // Store previous value for diff
+        if (State.ContainsKey(key))
+        {
+            PreviousState[key] = State[key];
+        }
+
+        // Update state dictionary
+        State[key] = value;
+
+        // Sync state back to fields (if there's a corresponding [State] field)
+        StateManager.SyncStateToMembers(this);
+
+        // Note: We don't call TriggerRender() here because the client already
+        // applied cached patches. We just need to keep state in sync so the
+        // next render (from other causes) has correct data.
+    }
+
+    /// <summary>
+    /// Set DOM element state from client-side useDomElementState hook
+    /// Keeps server aware of DOM changes for accurate rendering
+    /// </summary>
+    /// <param name="key">State key from useDomElementState hook</param>
+    /// <param name="snapshot">DOM element state snapshot from client</param>
+    public void SetDomStateFromClient(string key, DomElementStateSnapshot snapshot)
+    {
+        // Store DOM state in the State dictionary
+        // This allows components to access DOM state in their Render() method
+        if (State.ContainsKey(key))
+        {
+            PreviousState[key] = State[key];
+        }
+
+        State[key] = snapshot;
+
+        // Note: We don't call TriggerRender() here because the client already
+        // applied cached patches. We just need to keep state in sync so the
+        // next render (from other causes) has correct data.
+    }
+
+    /// <summary>
     /// Trigger a re-render cycle with predictive patching
     /// </summary>
     internal void TriggerRender()

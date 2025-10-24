@@ -1,6 +1,7 @@
 import { HintQueue } from './hint-queue';
 import { DOMPatcher } from './dom-patcher';
 import { PlaygroundBridge } from './playground-bridge';
+import { SignalRManager } from './signalr-manager';
 
 /**
  * Component instance context for hooks
@@ -15,6 +16,7 @@ interface ComponentContext {
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
+  signalR: SignalRManager; // For syncing state to server
 }
 
 // Global context tracking
@@ -110,8 +112,11 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
     // Update state
     context.state.set(stateKey, actualNewValue);
 
-    // TODO: Trigger re-render if no hint matched
-    // For now, rely on server-side rendering
+    // Sync state to server to prevent stale data
+    context.signalR.updateComponentState(context.componentId, stateKey, actualNewValue)
+      .catch(err => {
+        console.error('[Minimact] Failed to sync state to server:', err);
+      });
   };
 
   return [currentValue, setState];

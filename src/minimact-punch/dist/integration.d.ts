@@ -36,6 +36,13 @@ export interface ComponentContext {
     hintQueue: HintQueue;
     domPatcher: DOMPatcher;
     playgroundBridge?: PlaygroundBridge;
+    signalR: SignalRManager;
+}
+/**
+ * SignalRManager interface for server synchronization
+ */
+export interface SignalRManager {
+    updateDomElementState(componentId: string, stateKey: string, snapshot: any): Promise<void>;
 }
 /**
  * HintQueue interface for predictive rendering

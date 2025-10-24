@@ -4,6 +4,21 @@ using Minimact.AspNetCore.Core;
 namespace Minimact.AspNetCore.SignalR;
 
 /// <summary>
+/// Snapshot of DOM element state from useDomElementState hook
+/// </summary>
+public class DomElementStateSnapshot
+{
+    public bool IsIntersecting { get; set; }
+    public double IntersectionRatio { get; set; }
+    public int ChildrenCount { get; set; }
+    public int GrandChildrenCount { get; set; }
+    public Dictionary<string, string> Attributes { get; set; } = new();
+    public List<string> ClassList { get; set; } = new();
+    public bool Exists { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>
 /// SignalR Hub for real-time component updates
 /// Handles client connections and component interactions
 /// </summary>
@@ -121,6 +136,66 @@ public class MinimactHub : Hub
         catch (Exception ex)
         {
             await Clients.Caller.SendAsync("Error", $"Error updating client-computed state: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Update component state from client useState hook
+    /// Keeps server state in sync with client to prevent stale data
+    /// </summary>
+    public async Task UpdateComponentState(string componentId, string stateKey, object value)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Update the component's state from client
+            component.SetStateFromClient(stateKey, value);
+
+            // Trigger a re-render with the updated state
+            component.TriggerRender();
+
+            // Note: Client already applied cached patches for instant feedback
+            // This render ensures server state is correct for subsequent renders
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error updating component state: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Update DOM element state from client useDomElementState hook
+    /// Keeps server aware of DOM changes for accurate rendering
+    /// </summary>
+    public async Task UpdateDomElementState(string componentId, string stateKey, DomElementStateSnapshot snapshot)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Update the component's DOM state from client
+            component.SetDomStateFromClient(stateKey, snapshot);
+
+            // Trigger a re-render with the updated DOM state
+            component.TriggerRender();
+
+            // Note: Client already applied cached patches for instant feedback
+            // This render ensures server state is correct for subsequent renders
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error updating DOM element state: {ex.Message}");
         }
     }
 

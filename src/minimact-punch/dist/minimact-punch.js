@@ -681,9 +681,20 @@ var MinimactPunch = (function (exports) {
                             patchCount: 0
                         });
                     }
-                    // TODO: Trigger server-side render if no hint matched
-                    // For now, rely on next render cycle
                 }
+                // Sync DOM state to server to prevent stale data
+                context.signalR.updateDomElementState(context.componentId, stateKey, {
+                    isIntersecting: snapshot.isIntersecting,
+                    intersectionRatio: snapshot.intersectionRatio,
+                    childrenCount: snapshot.childrenCount,
+                    grandChildrenCount: snapshot.grandChildrenCount,
+                    attributes: snapshot.attributes,
+                    classList: snapshot.classList,
+                    exists: snapshot.exists,
+                    count: snapshot.count
+                }).catch(err => {
+                    console.error('[minimact-punch] Failed to sync DOM state to server:', err);
+                });
             });
             // Store in context
             context.domElementStates.set(stateKey, domState);

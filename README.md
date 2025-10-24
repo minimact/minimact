@@ -887,6 +887,41 @@ const prices = useDomElementState('.price');
 - Analytics based on DOM metrics
 - Responsive layouts based on container queries
 
+---
+
+#### How Updates Work: The Elegant Observer Pattern
+
+**You don't need a special API to change DOM state.** Just use regular DOM methods:
+
+```typescript
+const box = useDomElementState('.container');
+
+// Change the DOM however you want:
+box._element.appendChild(newChild);              // ✅ Observer sees it
+box._element.setAttribute('data-status', 'ok');  // ✅ Observer sees it
+box._element.classList.add('active');            // ✅ Observer sees it
+box._element.disabled = true;                    // ✅ Observer sees it
+
+// Or with jQuery, if that's your style:
+$(box._element).addClass('loading');             // ✅ Observer sees it
+
+// Or with any other library:
+box._element.style.opacity = '0.5';              // ✅ Observer sees it
+```
+
+**The MutationObserver automatically:**
+1. Detects the change
+2. Creates a new snapshot
+3. Checks HintQueue for cached patches
+4. Syncs to server
+5. Re-renders if needed
+
+**No `box.update()` calls. No manual syncing. Just change the DOM and the observers handle the rest.**
+
+This is the beauty of making the DOM a **reactive data source** rather than a **write-only render target**. You manipulate the DOM with standard APIs everyone already knows, and the observation layer handles synchronization automatically.
+
+---
+
 #### Part 2: Advanced Features (Pseudo-State + Theme + Canvas)
 
 **Pseudo-State Reactivity:**
