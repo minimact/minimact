@@ -1,5 +1,6 @@
 import type { DomElementStateOptions, DomStateChangeCallback } from './types';
 import { DomElementStateValues } from './dom-element-state-values';
+import { PseudoStateTracker } from './pseudo-state-tracker';
 /**
  * DomElementState - Makes the DOM itself a reactive data source
  *
@@ -21,6 +22,7 @@ export declare class DomElementState {
     private intersectionObserver?;
     private mutationObserver?;
     private resizeObserver?;
+    private pseudoStateTracker?;
     private _isIntersecting;
     private _intersectionRatio;
     private _boundingRect;
@@ -101,6 +103,17 @@ export declare class DomElementState {
      * Clean up all observers and resources
      */
     cleanup(): void;
+    /**
+     * Get pseudo-state tracker (lazy initialization)
+     *
+     * @example
+     * ```typescript
+     * const box = new DomElementState(element);
+     * console.log(box.state.hover); // true/false
+     * console.log(box.state.focus); // true/false
+     * ```
+     */
+    get state(): PseudoStateTracker;
     /**
      * Destroy the state object
      */

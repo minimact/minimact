@@ -21,6 +21,7 @@
  */
 export { DomElementState } from './dom-element-state';
 export { DomElementStateValues } from './dom-element-state-values';
+export { PseudoStateTracker } from './pseudo-state-tracker';
 
 /**
  * Types - shared by both modes
@@ -30,6 +31,7 @@ export type {
   DomStateChangeCallback,
   DomElementStateSnapshot
 } from './types';
+export type { PseudoState } from './pseudo-state-tracker';
 
 /**
  * Standalone hook (no Minimact integration)
@@ -99,6 +101,7 @@ export const PACKAGE_INFO = {
     'Statistical aggregations',
     'HintQueue predictive rendering',
     'PlaygroundBridge visualization',
-    'Confidence Worker (intent-based predictions)'
+    'Confidence Worker (intent-based predictions)',
+    'Pseudo-state reactivity (hover, focus, active, disabled)'
   ]
 } as const;

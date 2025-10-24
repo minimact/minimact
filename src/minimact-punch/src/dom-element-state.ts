@@ -4,6 +4,7 @@ import type {
   DomElementStateSnapshot
 } from './types';
 import { DomElementStateValues } from './dom-element-state-values';
+import { PseudoStateTracker } from './pseudo-state-tracker';
 
 /**
  * DomElementState - Makes the DOM itself a reactive data source
@@ -31,6 +32,9 @@ export class DomElementState {
   private intersectionObserver?: IntersectionObserver;
   private mutationObserver?: MutationObserver;
   private resizeObserver?: ResizeObserver;
+
+  // Pseudo-state tracker
+  private pseudoStateTracker?: PseudoStateTracker;
 
   // Reactive state
   private _isIntersecting = false;
@@ -391,10 +395,36 @@ export class DomElementState {
   }
 
   /**
+   * Get pseudo-state tracker (lazy initialization)
+   *
+   * @example
+   * ```typescript
+   * const box = new DomElementState(element);
+   * console.log(box.state.hover); // true/false
+   * console.log(box.state.focus); // true/false
+   * ```
+   */
+  get state(): PseudoStateTracker {
+    if (!this.pseudoStateTracker && this._element) {
+      this.pseudoStateTracker = new PseudoStateTracker(this._element, () => {
+        this.notifyChange();
+      });
+    }
+
+    if (!this.pseudoStateTracker) {
+      throw new Error('[minimact-punch] Cannot access state - element not attached');
+    }
+
+    return this.pseudoStateTracker;
+  }
+
+  /**
    * Destroy the state object
    */
   destroy(): void {
     this.cleanup();
+    this.pseudoStateTracker?.destroy();
+    this.pseudoStateTracker = undefined;
     this.onChange = undefined;
     this._element = null;
     this._elements = [];

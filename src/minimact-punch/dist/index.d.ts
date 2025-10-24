@@ -16,10 +16,12 @@
  */
 export { DomElementState } from './dom-element-state';
 export { DomElementStateValues } from './dom-element-state-values';
+export { PseudoStateTracker } from './pseudo-state-tracker';
 /**
  * Types - shared by both modes
  */
 export type { DomElementStateOptions, DomStateChangeCallback, DomElementStateSnapshot } from './types';
+export type { PseudoState } from './pseudo-state-tracker';
 /**
  * Standalone hook (no Minimact integration)
  * Just creates and returns a DomElementState instance
@@ -56,6 +58,6 @@ export declare const PACKAGE_INFO: {
     readonly version: "0.1.0";
     readonly certification: "Silver";
     readonly modes: readonly ["standalone", "integrated"];
-    readonly features: readonly ["IntersectionObserver integration", "MutationObserver integration", "ResizeObserver integration", "Statistical aggregations", "HintQueue predictive rendering", "PlaygroundBridge visualization", "Confidence Worker (intent-based predictions)"];
+    readonly features: readonly ["IntersectionObserver integration", "MutationObserver integration", "ResizeObserver integration", "Statistical aggregations", "HintQueue predictive rendering", "PlaygroundBridge visualization", "Confidence Worker (intent-based predictions)", "Pseudo-state reactivity (hover, focus, active, disabled)"];
 };
 //# sourceMappingURL=index.d.ts.map
