@@ -336,6 +336,393 @@ var MinimactPunch = (function (exports) {
     }
 
     /**
+     * ThemeStateTracker - Tracks theme preferences and breakpoint state
+     *
+     * Makes media queries and theme detection reactive first-class values.
+     *
+     * Part of minimact-punch Advanced Features - Feature 2
+     */
+    class ThemeStateTracker {
+        constructor(onChange) {
+            this.breakpointQueries = new Map();
+            this.state = {
+                isDark: false,
+                isLight: true,
+                highContrast: false,
+                reducedMotion: false,
+            };
+            this.breakpoints = {
+                sm: false, // 640px
+                md: false, // 768px
+                lg: false, // 1024px
+                xl: false, // 1280px
+                '2xl': false // 1536px
+            };
+            this.pendingUpdate = false;
+            this.onChange = onChange;
+            this.setupMediaQueries();
+        }
+        setupMediaQueries() {
+            // Dark mode
+            this.darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            this.state.isDark = this.darkModeQuery.matches;
+            this.state.isLight = !this.state.isDark;
+            this.darkModeQuery.addEventListener('change', (e) => {
+                this.state.isDark = e.matches;
+                this.state.isLight = !e.matches;
+                this.scheduleUpdate();
+            });
+            // High contrast
+            this.highContrastQuery = window.matchMedia('(prefers-contrast: high)');
+            this.state.highContrast = this.highContrastQuery.matches;
+            this.highContrastQuery.addEventListener('change', (e) => {
+                this.state.highContrast = e.matches;
+                this.scheduleUpdate();
+            });
+            // Reduced motion
+            this.reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            this.state.reducedMotion = this.reducedMotionQuery.matches;
+            this.reducedMotionQuery.addEventListener('change', (e) => {
+                this.state.reducedMotion = e.matches;
+                this.scheduleUpdate();
+            });
+            // Breakpoints (Tailwind-compatible)
+            const breakpointSizes = {
+                sm: '640px',
+                md: '768px',
+                lg: '1024px',
+                xl: '1280px',
+                '2xl': '1536px'
+            };
+            for (const [name, size] of Object.entries(breakpointSizes)) {
+                const query = window.matchMedia(`(min-width: ${size})`);
+                this.breakpointQueries.set(name, query);
+                this.breakpoints[name] = query.matches;
+                query.addEventListener('change', (e) => {
+                    this.breakpoints[name] = e.matches;
+                    this.scheduleUpdate();
+                });
+            }
+        }
+        /**
+         * Schedule update with debouncing (using requestAnimationFrame)
+         */
+        scheduleUpdate() {
+            if (this.pendingUpdate)
+                return;
+            this.pendingUpdate = true;
+            requestAnimationFrame(() => {
+                this.notifyChange();
+                this.pendingUpdate = false;
+            });
+        }
+        notifyChange() {
+            if (this.onChange) {
+                this.onChange();
+            }
+        }
+        // Theme state getters
+        get isDark() { return this.state.isDark; }
+        get isLight() { return this.state.isLight; }
+        get highContrast() { return this.state.highContrast; }
+        get reducedMotion() { return this.state.reducedMotion; }
+        // Breakpoint getters
+        get sm() { return this.breakpoints.sm; }
+        get md() { return this.breakpoints.md; }
+        get lg() { return this.breakpoints.lg; }
+        get xl() { return this.breakpoints.xl; }
+        get '2xl'() { return this.breakpoints['2xl']; }
+        /**
+         * Check if current viewport is between two breakpoints
+         * @param min Minimum breakpoint (inclusive)
+         * @param max Maximum breakpoint (exclusive)
+         */
+        between(min, max) {
+            return this.breakpoints[min] && !this.breakpoints[max];
+        }
+        /**
+         * Cleanup all listeners
+         */
+        destroy() {
+            // Remove all event listeners
+            // Note: MediaQueryList doesn't provide a way to enumerate listeners,
+            // but they'll be garbage collected when the tracker is destroyed
+        }
+    }
+    /**
+     * BreakpointState - Convenience wrapper for breakpoint queries
+     */
+    class BreakpointState {
+        constructor(tracker) {
+            this.tracker = tracker;
+        }
+        get sm() { return this.tracker.sm; }
+        get md() { return this.tracker.md; }
+        get lg() { return this.tracker.lg; }
+        get xl() { return this.tracker.xl; }
+        get '2xl'() { return this.tracker['2xl']; }
+        /**
+         * Check if current viewport is between two breakpoints
+         * @param min Minimum breakpoint (inclusive)
+         * @param max Maximum breakpoint (exclusive)
+         */
+        between(min, max) {
+            return this.tracker.between(min, max);
+        }
+    }
+
+    /**
+     * StateHistoryTracker - Temporal awareness for DOM elements
+     *
+     * Tracks state changes over time, providing:
+     * - Change frequency analysis (changes per second/minute)
+     * - Stability detection (has stabilized, is oscillating)
+     * - Trend analysis (increasing, decreasing, stable, volatile)
+     * - Historical queries (updated recently, changed more than N times)
+     * - Predictions (likely to change next, estimated next change time)
+     *
+     * Part of minimact-punch Temporal Features - Part 3
+     */
+    class StateHistoryTracker {
+        constructor(onChange, options = {}) {
+            this.changeLog = [];
+            this.snapshots = [];
+            this.stats = {
+                changeCount: 0,
+                mutationCount: 0,
+                renderCount: 0,
+                firstRendered: Date.now(),
+                lastChanged: Date.now(),
+            };
+            this.onChange = onChange;
+            this.maxHistorySize = options.maxHistorySize ?? 1000;
+            this.snapshotInterval = options.snapshotInterval ?? 5000; // 5 seconds
+            this.scheduleSnapshot();
+        }
+        /**
+         * Record a state change
+         */
+        recordChange(property, oldValue, newValue) {
+            const change = {
+                timestamp: Date.now(),
+                property,
+                oldValue,
+                newValue
+            };
+            this.changeLog.push(change);
+            this.stats.changeCount++;
+            this.stats.lastChanged = Date.now();
+            // Trim history if too large
+            if (this.changeLog.length > this.maxHistorySize) {
+                this.changeLog.shift();
+            }
+            if (this.onChange) {
+                this.onChange();
+            }
+        }
+        /**
+         * Record a DOM mutation
+         */
+        recordMutation() {
+            this.stats.mutationCount++;
+            this.stats.lastChanged = Date.now();
+        }
+        /**
+         * Record a render
+         */
+        recordRender() {
+            this.stats.renderCount++;
+        }
+        /**
+         * Create periodic snapshots
+         */
+        scheduleSnapshot() {
+            this.snapshotTimer = window.setInterval(() => {
+                this.snapshots.push({
+                    timestamp: Date.now(),
+                    state: this.getCurrentState()
+                });
+                // Keep only last 100 snapshots
+                if (this.snapshots.length > 100) {
+                    this.snapshots.shift();
+                }
+            }, this.snapshotInterval);
+        }
+        getCurrentState() {
+            // Build current state from change log
+            const state = {};
+            for (const change of this.changeLog) {
+                state[change.property] = change.newValue;
+            }
+            return state;
+        }
+        // ========================================
+        // Public API: Basic Stats
+        // ========================================
+        get changeCount() {
+            return this.stats.changeCount;
+        }
+        get mutationCount() {
+            return this.stats.mutationCount;
+        }
+        get renderCount() {
+            return this.stats.renderCount;
+        }
+        get firstRendered() {
+            return new Date(this.stats.firstRendered);
+        }
+        get lastChanged() {
+            return new Date(this.stats.lastChanged);
+        }
+        get ageInSeconds() {
+            return (Date.now() - this.stats.firstRendered) / 1000;
+        }
+        get timeSinceLastChange() {
+            return Date.now() - this.stats.lastChanged;
+        }
+        // ========================================
+        // Public API: Change Patterns
+        // ========================================
+        get changesPerSecond() {
+            const age = this.ageInSeconds;
+            return age > 0 ? this.stats.changeCount / age : 0;
+        }
+        get changesPerMinute() {
+            return this.changesPerSecond * 60;
+        }
+        get hasStabilized() {
+            const stabilizationWindow = 2000; // 2 seconds with no changes
+            return this.timeSinceLastChange > stabilizationWindow;
+        }
+        get isOscillating() {
+            // Check for rapid back-and-forth changes
+            const recentChanges = this.changeLog.slice(-10);
+            if (recentChanges.length < 4)
+                return false;
+            let oscillations = 0;
+            for (let i = 2; i < recentChanges.length; i++) {
+                const prev = recentChanges[i - 2];
+                const curr = recentChanges[i];
+                if (prev.property === curr.property &&
+                    prev.newValue === curr.oldValue &&
+                    curr.newValue === prev.oldValue) {
+                    oscillations++;
+                }
+            }
+            return oscillations > 2;
+        }
+        // ========================================
+        // Public API: Trend Analysis
+        // ========================================
+        get trend() {
+            if (this.volatility > 0.7)
+                return 'volatile';
+            const recentChanges = this.changeLog.slice(-20);
+            if (recentChanges.length < 5)
+                return 'stable';
+            // Analyze numeric trends
+            const numericChanges = recentChanges.filter(c => typeof c.newValue === 'number' && typeof c.oldValue === 'number');
+            if (numericChanges.length < 3)
+                return 'stable';
+            const increases = numericChanges.filter(c => c.newValue > c.oldValue).length;
+            const decreases = numericChanges.filter(c => c.newValue < c.oldValue).length;
+            if (increases > decreases * 2)
+                return 'increasing';
+            if (decreases > increases * 2)
+                return 'decreasing';
+            return 'stable';
+        }
+        get volatility() {
+            // Calculate volatility based on change frequency
+            const windowSize = 10000; // 10 seconds
+            const now = Date.now();
+            const recentChanges = this.changeLog.filter(c => now - c.timestamp < windowSize);
+            if (recentChanges.length === 0)
+                return 0;
+            // Normalize: 0 changes = 0, 100+ changes = 1
+            const volatilityScore = Math.min(recentChanges.length / 100, 1);
+            // Factor in oscillation
+            if (this.isOscillating) {
+                return Math.min(volatilityScore * 1.5, 1);
+            }
+            return volatilityScore;
+        }
+        // ========================================
+        // Public API: History Queries
+        // ========================================
+        updatedInLast(ms) {
+            return this.timeSinceLastChange < ms;
+        }
+        changedMoreThan(n) {
+            return this.stats.changeCount > n;
+        }
+        wasStableFor(ms) {
+            return this.timeSinceLastChange > ms;
+        }
+        // ========================================
+        // Public API: Change Log & Snapshots
+        // ========================================
+        get changes() {
+            return this.changeLog;
+        }
+        get previousState() {
+            if (this.snapshots.length < 2)
+                return null;
+            return this.snapshots[this.snapshots.length - 2].state;
+        }
+        stateAt(timestamp) {
+            if (this.snapshots.length === 0)
+                return null;
+            // Find closest snapshot
+            const snapshot = this.snapshots.reduce((closest, snap) => {
+                const closestDiff = Math.abs(closest.timestamp - timestamp);
+                const snapDiff = Math.abs(snap.timestamp - timestamp);
+                return snapDiff < closestDiff ? snap : closest;
+            }, this.snapshots[0]);
+            return snapshot?.state || null;
+        }
+        // ========================================
+        // Public API: Predictions
+        // ========================================
+        get likelyToChangeNext() {
+            // Predict probability of next change based on recent frequency
+            const recentWindow = 30000; // 30 seconds
+            const now = Date.now();
+            const recentChanges = this.changeLog.filter(c => now - c.timestamp < recentWindow);
+            if (recentChanges.length === 0)
+                return 0;
+            // More recent changes = higher probability
+            // Normalize: 0 changes = 0%, 10+ changes = 90%
+            const probability = Math.min(recentChanges.length / 10 * 0.9, 0.9);
+            return probability;
+        }
+        get estimatedNextChange() {
+            if (this.stats.changeCount < 3)
+                return null;
+            // Calculate average time between changes
+            const intervals = [];
+            for (let i = 1; i < this.changeLog.length; i++) {
+                intervals.push(this.changeLog[i].timestamp - this.changeLog[i - 1].timestamp);
+            }
+            if (intervals.length === 0)
+                return null;
+            const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+            return new Date(this.stats.lastChanged + avgInterval);
+        }
+        /**
+         * Cleanup all resources
+         */
+        destroy() {
+            if (this.snapshotTimer !== undefined) {
+                clearInterval(this.snapshotTimer);
+            }
+            this.changeLog = [];
+            this.snapshots = [];
+            this.onChange = undefined;
+        }
+    }
+
+    /**
      * DomElementState - Makes the DOM itself a reactive data source
      *
      * Tracks DOM changes (intersection, mutations, resize) and provides
@@ -547,9 +934,21 @@ var MinimactPunch = (function (exports) {
                 return;
             this.intersectionObserver = new IntersectionObserver((entries) => {
                 for (const entry of entries) {
+                    // Store old values for history
+                    const oldIsIntersecting = this._isIntersecting;
+                    const oldIntersectionRatio = this._intersectionRatio;
                     this._isIntersecting = entry.isIntersecting;
                     this._intersectionRatio = entry.intersectionRatio;
                     this._boundingRect = entry.boundingClientRect;
+                    // Record changes in history
+                    if (this.historyTracker) {
+                        if (oldIsIntersecting !== this._isIntersecting) {
+                            this.historyTracker.recordChange('isIntersecting', oldIsIntersecting, this._isIntersecting);
+                        }
+                        if (oldIntersectionRatio !== this._intersectionRatio) {
+                            this.historyTracker.recordChange('intersectionRatio', oldIntersectionRatio, this._intersectionRatio);
+                        }
+                    }
                     this.scheduleUpdate();
                 }
             }, this.options.intersectionOptions);
@@ -585,6 +984,11 @@ var MinimactPunch = (function (exports) {
         updateState() {
             if (!this._element)
                 return;
+            // Store old values for history tracking
+            const oldChildrenCount = this._childrenCount;
+            const oldGrandChildrenCount = this._grandChildrenCount;
+            const oldAttributes = { ...this._attributes };
+            const oldClassList = [...this._classList];
             // Update children counts
             this._childrenCount = this._element.children.length;
             this._grandChildrenCount = this._element.querySelectorAll('*').length;
@@ -599,6 +1003,23 @@ var MinimactPunch = (function (exports) {
             this._classList = Array.from(this._element.classList);
             // Update bounding rect
             this._boundingRect = this._element.getBoundingClientRect();
+            // Record changes in history tracker
+            if (this.historyTracker) {
+                if (oldChildrenCount !== this._childrenCount) {
+                    this.historyTracker.recordChange('childrenCount', oldChildrenCount, this._childrenCount);
+                }
+                if (oldGrandChildrenCount !== this._grandChildrenCount) {
+                    this.historyTracker.recordChange('grandChildrenCount', oldGrandChildrenCount, this._grandChildrenCount);
+                }
+                if (JSON.stringify(oldAttributes) !== JSON.stringify(this._attributes)) {
+                    this.historyTracker.recordChange('attributes', oldAttributes, this._attributes);
+                }
+                if (JSON.stringify(oldClassList) !== JSON.stringify(this._classList)) {
+                    this.historyTracker.recordChange('classList', oldClassList, this._classList);
+                }
+                // Record mutation
+                this.historyTracker.recordMutation();
+            }
         }
         scheduleUpdate() {
             if (this.updatePending)
@@ -667,12 +1088,73 @@ var MinimactPunch = (function (exports) {
             return this.pseudoStateTracker;
         }
         /**
+         * Get theme state (dark mode, high contrast, reduced motion)
+         *
+         * @example
+         * ```typescript
+         * const app = new DomElementState(rootElement);
+         * console.log(app.theme.isDark); // true/false
+         * console.log(app.theme.reducedMotion); // true/false
+         * ```
+         */
+        get theme() {
+            if (!this.themeStateTracker) {
+                this.themeStateTracker = new ThemeStateTracker(() => {
+                    this.notifyChange();
+                });
+            }
+            return this.themeStateTracker;
+        }
+        /**
+         * Get breakpoint state (sm, md, lg, xl, 2xl)
+         *
+         * @example
+         * ```typescript
+         * const app = new DomElementState(rootElement);
+         * console.log(app.breakpoint.md); // true/false
+         * console.log(app.breakpoint.between('md', 'lg')); // true/false
+         * ```
+         */
+        get breakpoint() {
+            return new BreakpointState(this.theme);
+        }
+        /**
+         * Get history tracker (temporal awareness)
+         *
+         * Provides access to:
+         * - Change count, frequency analysis (changes per second/minute)
+         * - Stability detection (hasStabilized, isOscillating)
+         * - Trend analysis (increasing, decreasing, stable, volatile)
+         * - Historical queries (updatedInLast, changedMoreThan, wasStableFor)
+         * - Predictions (likelyToChangeNext, estimatedNextChange)
+         *
+         * @example
+         * ```typescript
+         * const widget = new DomElementState(element);
+         * console.log(widget.history.changesPerSecond); // 0.37
+         * console.log(widget.history.hasStabilized); // true
+         * console.log(widget.history.trend); // 'increasing'
+         * ```
+         */
+        get history() {
+            if (!this.historyTracker) {
+                this.historyTracker = new StateHistoryTracker(() => {
+                    this.notifyChange();
+                });
+            }
+            return this.historyTracker;
+        }
+        /**
          * Destroy the state object
          */
         destroy() {
             this.cleanup();
             this.pseudoStateTracker?.destroy();
             this.pseudoStateTracker = undefined;
+            this.themeStateTracker?.destroy();
+            this.themeStateTracker = undefined;
+            this.historyTracker?.destroy();
+            this.historyTracker = undefined;
             this.onChange = undefined;
             this._element = null;
             this._elements = [];
@@ -1331,16 +1813,21 @@ var MinimactPunch = (function (exports) {
             'HintQueue predictive rendering',
             'PlaygroundBridge visualization',
             'Confidence Worker (intent-based predictions)',
-            'Pseudo-state reactivity (hover, focus, active, disabled)'
+            'Pseudo-state reactivity (hover, focus, active, disabled)',
+            'Theme & breakpoint reactivity (dark mode, responsive layouts)',
+            'Temporal features (history tracking, change patterns, trend analysis)'
         ]
     };
 
+    exports.BreakpointState = BreakpointState;
     exports.ConfidenceWorkerManager = ConfidenceWorkerManager;
     exports.DomElementState = DomElementState;
     exports.DomElementStateValues = DomElementStateValues;
     exports.MES_CERTIFICATION = MES_CERTIFICATION;
     exports.PACKAGE_INFO = PACKAGE_INFO;
     exports.PseudoStateTracker = PseudoStateTracker;
+    exports.StateHistoryTracker = StateHistoryTracker;
+    exports.ThemeStateTracker = ThemeStateTracker;
     exports.VERSION = VERSION;
     exports.cleanupDomElementStates = cleanupDomElementStates;
     exports.clearComponentContext = clearComponentContext;

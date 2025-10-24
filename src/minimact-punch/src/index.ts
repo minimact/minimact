@@ -22,6 +22,8 @@
 export { DomElementState } from './dom-element-state';
 export { DomElementStateValues } from './dom-element-state-values';
 export { PseudoStateTracker } from './pseudo-state-tracker';
+export { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
+export { StateHistoryTracker } from './state-history-tracker';
 
 /**
  * Types - shared by both modes
@@ -32,6 +34,7 @@ export type {
   DomElementStateSnapshot
 } from './types';
 export type { PseudoState } from './pseudo-state-tracker';
+export type { HistoryChange, HistorySnapshot } from './state-history-tracker';
 
 /**
  * Standalone hook (no Minimact integration)
@@ -102,6 +105,8 @@ export const PACKAGE_INFO = {
     'HintQueue predictive rendering',
     'PlaygroundBridge visualization',
     'Confidence Worker (intent-based predictions)',
-    'Pseudo-state reactivity (hover, focus, active, disabled)'
+    'Pseudo-state reactivity (hover, focus, active, disabled)',
+    'Theme & breakpoint reactivity (dark mode, responsive layouts)',
+    'Temporal features (history tracking, change patterns, trend analysis)'
   ]
 } as const;

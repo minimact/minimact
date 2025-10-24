@@ -5,6 +5,8 @@ import type {
 } from './types';
 import { DomElementStateValues } from './dom-element-state-values';
 import { PseudoStateTracker } from './pseudo-state-tracker';
+import { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
+import { StateHistoryTracker } from './state-history-tracker';
 
 /**
  * DomElementState - Makes the DOM itself a reactive data source
@@ -35,6 +37,12 @@ export class DomElementState {
 
   // Pseudo-state tracker
   private pseudoStateTracker?: PseudoStateTracker;
+
+  // Theme & breakpoint tracker
+  private themeStateTracker?: ThemeStateTracker;
+
+  // History tracker (temporal features)
+  private historyTracker?: StateHistoryTracker;
 
   // Reactive state
   private _isIntersecting = false;
@@ -275,9 +283,24 @@ export class DomElementState {
     this.intersectionObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
+          // Store old values for history
+          const oldIsIntersecting = this._isIntersecting;
+          const oldIntersectionRatio = this._intersectionRatio;
+
           this._isIntersecting = entry.isIntersecting;
           this._intersectionRatio = entry.intersectionRatio;
           this._boundingRect = entry.boundingClientRect;
+
+          // Record changes in history
+          if (this.historyTracker) {
+            if (oldIsIntersecting !== this._isIntersecting) {
+              this.historyTracker.recordChange('isIntersecting', oldIsIntersecting, this._isIntersecting);
+            }
+            if (oldIntersectionRatio !== this._intersectionRatio) {
+              this.historyTracker.recordChange('intersectionRatio', oldIntersectionRatio, this._intersectionRatio);
+            }
+          }
+
           this.scheduleUpdate();
         }
       },
@@ -322,6 +345,12 @@ export class DomElementState {
   private updateState(): void {
     if (!this._element) return;
 
+    // Store old values for history tracking
+    const oldChildrenCount = this._childrenCount;
+    const oldGrandChildrenCount = this._grandChildrenCount;
+    const oldAttributes = { ...this._attributes };
+    const oldClassList = [...this._classList];
+
     // Update children counts
     this._childrenCount = this._element.children.length;
     this._grandChildrenCount = this._element.querySelectorAll('*').length;
@@ -339,6 +368,28 @@ export class DomElementState {
 
     // Update bounding rect
     this._boundingRect = this._element.getBoundingClientRect();
+
+    // Record changes in history tracker
+    if (this.historyTracker) {
+      if (oldChildrenCount !== this._childrenCount) {
+        this.historyTracker.recordChange('childrenCount', oldChildrenCount, this._childrenCount);
+      }
+
+      if (oldGrandChildrenCount !== this._grandChildrenCount) {
+        this.historyTracker.recordChange('grandChildrenCount', oldGrandChildrenCount, this._grandChildrenCount);
+      }
+
+      if (JSON.stringify(oldAttributes) !== JSON.stringify(this._attributes)) {
+        this.historyTracker.recordChange('attributes', oldAttributes, this._attributes);
+      }
+
+      if (JSON.stringify(oldClassList) !== JSON.stringify(this._classList)) {
+        this.historyTracker.recordChange('classList', oldClassList, this._classList);
+      }
+
+      // Record mutation
+      this.historyTracker.recordMutation();
+    }
   }
 
   private scheduleUpdate(): void {
@@ -419,12 +470,78 @@ export class DomElementState {
   }
 
   /**
+   * Get theme state (dark mode, high contrast, reduced motion)
+   *
+   * @example
+   * ```typescript
+   * const app = new DomElementState(rootElement);
+   * console.log(app.theme.isDark); // true/false
+   * console.log(app.theme.reducedMotion); // true/false
+   * ```
+   */
+  get theme(): ThemeStateTracker {
+    if (!this.themeStateTracker) {
+      this.themeStateTracker = new ThemeStateTracker(() => {
+        this.notifyChange();
+      });
+    }
+
+    return this.themeStateTracker;
+  }
+
+  /**
+   * Get breakpoint state (sm, md, lg, xl, 2xl)
+   *
+   * @example
+   * ```typescript
+   * const app = new DomElementState(rootElement);
+   * console.log(app.breakpoint.md); // true/false
+   * console.log(app.breakpoint.between('md', 'lg')); // true/false
+   * ```
+   */
+  get breakpoint(): BreakpointState {
+    return new BreakpointState(this.theme);
+  }
+
+  /**
+   * Get history tracker (temporal awareness)
+   *
+   * Provides access to:
+   * - Change count, frequency analysis (changes per second/minute)
+   * - Stability detection (hasStabilized, isOscillating)
+   * - Trend analysis (increasing, decreasing, stable, volatile)
+   * - Historical queries (updatedInLast, changedMoreThan, wasStableFor)
+   * - Predictions (likelyToChangeNext, estimatedNextChange)
+   *
+   * @example
+   * ```typescript
+   * const widget = new DomElementState(element);
+   * console.log(widget.history.changesPerSecond); // 0.37
+   * console.log(widget.history.hasStabilized); // true
+   * console.log(widget.history.trend); // 'increasing'
+   * ```
+   */
+  get history(): StateHistoryTracker {
+    if (!this.historyTracker) {
+      this.historyTracker = new StateHistoryTracker(() => {
+        this.notifyChange();
+      });
+    }
+
+    return this.historyTracker;
+  }
+
+  /**
    * Destroy the state object
    */
   destroy(): void {
     this.cleanup();
     this.pseudoStateTracker?.destroy();
     this.pseudoStateTracker = undefined;
+    this.themeStateTracker?.destroy();
+    this.themeStateTracker = undefined;
+    this.historyTracker?.destroy();
+    this.historyTracker = undefined;
     this.onChange = undefined;
     this._element = null;
     this._elements = [];

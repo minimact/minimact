@@ -1,6 +1,8 @@
 import type { DomElementStateOptions, DomStateChangeCallback } from './types';
 import { DomElementStateValues } from './dom-element-state-values';
 import { PseudoStateTracker } from './pseudo-state-tracker';
+import { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
+import { StateHistoryTracker } from './state-history-tracker';
 /**
  * DomElementState - Makes the DOM itself a reactive data source
  *
@@ -23,6 +25,8 @@ export declare class DomElementState {
     private mutationObserver?;
     private resizeObserver?;
     private pseudoStateTracker?;
+    private themeStateTracker?;
+    private historyTracker?;
     private _isIntersecting;
     private _intersectionRatio;
     private _boundingRect;
@@ -114,6 +118,47 @@ export declare class DomElementState {
      * ```
      */
     get state(): PseudoStateTracker;
+    /**
+     * Get theme state (dark mode, high contrast, reduced motion)
+     *
+     * @example
+     * ```typescript
+     * const app = new DomElementState(rootElement);
+     * console.log(app.theme.isDark); // true/false
+     * console.log(app.theme.reducedMotion); // true/false
+     * ```
+     */
+    get theme(): ThemeStateTracker;
+    /**
+     * Get breakpoint state (sm, md, lg, xl, 2xl)
+     *
+     * @example
+     * ```typescript
+     * const app = new DomElementState(rootElement);
+     * console.log(app.breakpoint.md); // true/false
+     * console.log(app.breakpoint.between('md', 'lg')); // true/false
+     * ```
+     */
+    get breakpoint(): BreakpointState;
+    /**
+     * Get history tracker (temporal awareness)
+     *
+     * Provides access to:
+     * - Change count, frequency analysis (changes per second/minute)
+     * - Stability detection (hasStabilized, isOscillating)
+     * - Trend analysis (increasing, decreasing, stable, volatile)
+     * - Historical queries (updatedInLast, changedMoreThan, wasStableFor)
+     * - Predictions (likelyToChangeNext, estimatedNextChange)
+     *
+     * @example
+     * ```typescript
+     * const widget = new DomElementState(element);
+     * console.log(widget.history.changesPerSecond); // 0.37
+     * console.log(widget.history.hasStabilized); // true
+     * console.log(widget.history.trend); // 'increasing'
+     * ```
+     */
+    get history(): StateHistoryTracker;
     /**
      * Destroy the state object
      */
