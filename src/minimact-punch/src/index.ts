@@ -64,8 +64,18 @@ export type {
   ComponentContext,
   HintQueue,
   DOMPatcher,
-  PlaygroundBridge
+  PlaygroundBridge,
+  SignalRManager
 } from './integration';
+
+/**
+ * Confidence Worker (OPTIONAL)
+ * Enables predictive hints based on user intent
+ *
+ * If worker fails to load, useDomElementState still works normally.
+ */
+export { ConfidenceWorkerManager } from './confidence-worker-manager';
+export type { PredictionRequestCallback, WorkerManagerConfig } from './confidence-worker-manager';
 
 // ============================================================
 // VERSION & METADATA
@@ -88,6 +98,7 @@ export const PACKAGE_INFO = {
     'ResizeObserver integration',
     'Statistical aggregations',
     'HintQueue predictive rendering',
-    'PlaygroundBridge visualization'
+    'PlaygroundBridge visualization',
+    'Confidence Worker (intent-based predictions)'
   ]
 } as const;

@@ -14,6 +14,7 @@
  */
 import { DomElementState } from './dom-element-state';
 import type { DomElementStateOptions } from './types';
+import type { ConfidenceWorkerManager } from './confidence-worker-manager';
 /**
  * Component context interface (from Minimact)
  *
@@ -37,12 +38,14 @@ export interface ComponentContext {
     domPatcher: DOMPatcher;
     playgroundBridge?: PlaygroundBridge;
     signalR: SignalRManager;
+    confidenceWorker?: ConfidenceWorkerManager;
 }
 /**
  * SignalRManager interface for server synchronization
  */
 export interface SignalRManager {
     updateDomElementState(componentId: string, stateKey: string, snapshot: any): Promise<void>;
+    invoke(method: string, ...args: any[]): Promise<any>;
 }
 /**
  * HintQueue interface for predictive rendering

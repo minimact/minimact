@@ -10,6 +10,10 @@ export interface DomElementStateOptions {
     trackMutation?: boolean;
     /** Track element resize */
     trackResize?: boolean;
+    /** Track hover state (for confidence worker predictions) */
+    trackHover?: boolean;
+    /** Track focus state (for confidence worker predictions) */
+    trackFocus?: boolean;
     /** IntersectionObserver options */
     intersectionOptions?: IntersectionObserverInit;
     /** Debounce time for updates (ms) */

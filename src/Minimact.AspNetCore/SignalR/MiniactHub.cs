@@ -200,6 +200,81 @@ public class MinimactHub : Hub
     }
 
     /// <summary>
+    /// Request prediction for future state
+    /// Used by usePredictHint (manual) and Confidence Worker (automatic)
+    /// </summary>
+    public async Task RequestPrediction(string componentId, Dictionary<string, object> predictedState)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Clone current component state
+            var clonedState = new Dictionary<string, object>(component.State);
+
+            // Apply predicted state changes
+            foreach (var kvp in predictedState)
+            {
+                clonedState[kvp.Key] = kvp.Value;
+            }
+
+            // Temporarily swap state to predicted state
+            var originalState = component.State;
+            var originalVNode = component.CurrentVNode;
+
+            // Create a temporary state copy for rendering
+            foreach (var kvp in predictedState)
+            {
+                component.State[kvp.Key] = kvp.Value;
+            }
+
+            // Render with predicted state
+            var predictedVNode = VNode.Normalize(component.RenderComponent());
+
+            // Compute patches from current state to predicted state
+            var patches = RustBridge.Reconcile(originalVNode, predictedVNode);
+
+            // Restore original state (don't actually change component state)
+            foreach (var kvp in originalState)
+            {
+                component.State[kvp.Key] = kvp.Value;
+            }
+
+            // Generate unique hint ID
+            var hintId = $"prediction_{componentId}_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+            // Send hint to client for caching
+            if (patches.Count > 0)
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync("QueueHint", new
+                {
+                    componentId = componentId,
+                    hintId = hintId,
+                    patches = patches,
+                    confidence = 0.85, // Default confidence for predictions
+                    predictedState = predictedState
+                });
+
+                Console.WriteLine($"[Minimact] Hint '{hintId}' queued: {patches.Count} patches");
+            }
+            else
+            {
+                Console.WriteLine($"[Minimact] Hint '{hintId}': No patches needed (already in predicted state)");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error generating prediction: {ex.Message}");
+            Console.Error.WriteLine($"[Minimact] Prediction error: {ex}");
+        }
+    }
+
+    /// <summary>
     /// Called when client connects
     /// </summary>
     public override async Task OnConnectedAsync()

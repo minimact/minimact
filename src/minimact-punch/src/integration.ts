@@ -15,6 +15,7 @@
 
 import { DomElementState } from './dom-element-state';
 import type { DomElementStateOptions, DomElementStateSnapshot } from './types';
+import type { ConfidenceWorkerManager } from './confidence-worker-manager';
 
 /**
  * Component context interface (from Minimact)
@@ -33,6 +34,7 @@ export interface ComponentContext {
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
   signalR: SignalRManager;
+  confidenceWorker?: ConfidenceWorkerManager; // Optional - for predictive hints
 }
 
 /**
@@ -40,6 +42,7 @@ export interface ComponentContext {
  */
 export interface SignalRManager {
   updateDomElementState(componentId: string, stateKey: string, snapshot: any): Promise<void>;
+  invoke(method: string, ...args: any[]): Promise<any>; // For RequestPrediction calls
 }
 
 /**
@@ -96,6 +99,13 @@ let domElementStateIndex = 0;
 export function setComponentContext(context: ComponentContext): void {
   currentContext = context;
   domElementStateIndex = 0;
+
+  // Setup confidence worker prediction callback (only once)
+  if (context.confidenceWorker && !context.confidenceWorker.isReady()) {
+    context.confidenceWorker.setOnPredictionRequest((request) => {
+      handleWorkerPrediction(context, request);
+    });
+  }
 }
 
 /**
@@ -115,6 +125,51 @@ export function clearComponentContext(): void {
  */
 export function getCurrentContext(): ComponentContext | null {
   return currentContext;
+}
+
+/**
+ * Handle prediction request from confidence worker
+ * Worker says: "I predict hover/intersection/focus will occur in X ms"
+ *
+ * @internal
+ */
+function handleWorkerPrediction(
+  context: ComponentContext,
+  request: {
+    componentId: string;
+    elementId: string;
+    observation: {
+      hover?: boolean;
+      isIntersecting?: boolean;
+      focus?: boolean;
+    };
+    confidence: number;
+    leadTime: number;
+  }
+): void {
+  console.log(
+    `[minimact-punch] 🔮 Worker prediction: ${request.elementId} ` +
+    `(${(request.confidence * 100).toFixed(0)}% confident, ${request.leadTime.toFixed(0)}ms lead time)`
+  );
+
+  // Build predicted state object
+  // The stateKey needs to match what useDomElementState uses
+  const stateKey = request.elementId.split('_').pop()!; // Extract "domElementState_0" from "counter-1_domElementState_0"
+
+  const predictedState: Record<string, any> = {
+    [stateKey]: request.observation
+  };
+
+  // Request prediction from server via SignalR
+  // Server will render with predicted state and send patches via QueueHint
+  context.signalR
+    .invoke('RequestPrediction', context.componentId, predictedState)
+    .then(() => {
+      console.log(`[minimact-punch] ✅ Requested prediction from server for ${request.elementId}`);
+    })
+    .catch((err) => {
+      console.error(`[minimact-punch] ❌ Failed to request prediction:`, err);
+    });
 }
 
 // ============================================================
@@ -270,6 +325,27 @@ export function useDomElementState(
 
     // Store in context
     context.domElementStates.set(stateKey, domState);
+
+    // Wrap attachElement to register with confidence worker
+    const originalAttachElement = domState.attachElement.bind(domState);
+    domState.attachElement = (element: HTMLElement) => {
+      originalAttachElement(element);
+
+      // Register with confidence worker (if available)
+      if (context.confidenceWorker?.isReady()) {
+        const elementId = `${context.componentId}_${stateKey}`;
+        context.confidenceWorker.registerElement(
+          context.componentId,
+          elementId,
+          element,
+          {
+            hover: options?.trackHover ?? true,
+            intersection: options?.trackIntersection ?? true,
+            focus: options?.trackFocus ?? false,
+          }
+        );
+      }
+    };
 
     // If selector provided, attach after render
     if (selector) {

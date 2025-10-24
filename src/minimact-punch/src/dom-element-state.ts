@@ -56,6 +56,8 @@ export class DomElementState {
       trackIntersection: options.trackIntersection ?? true,
       trackMutation: options.trackMutation ?? true,
       trackResize: options.trackResize ?? true,
+      trackHover: options.trackHover ?? true,
+      trackFocus: options.trackFocus ?? false,
       intersectionOptions: options.intersectionOptions || {},
       debounceMs: options.debounceMs ?? 16 // ~60fps
     };
