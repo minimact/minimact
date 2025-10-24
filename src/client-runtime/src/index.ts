@@ -304,6 +304,7 @@ export {
 
 // Core hooks
 export { useState, useEffect, useRef } from './hooks';
+export type { ComponentContext } from './hooks';
 
 // Pub/Sub hooks
 export { usePub, useSub } from './pub-sub';

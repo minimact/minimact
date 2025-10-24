@@ -11,6 +11,7 @@ interface ComponentContext {
   state: Map<string, any>;
   effects: Array<{ callback: () => void | (() => void), deps: any[] | undefined, cleanup?: () => void }>;
   refs: Map<string, { current: any }>;
+  domElementStates?: Map<string, any>; // For minimact-punch integration
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
@@ -202,3 +203,8 @@ export function cleanupEffects(context: ComponentContext): void {
   }
   context.effects = [];
 }
+
+/**
+ * Export ComponentContext type for extensions
+ */
+export type { ComponentContext };

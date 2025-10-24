@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimact Punch Demo 🌵+🍹</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .tagline {
+      color: rgba(255,255,255,0.9);
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .demo-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .demo-card h2 {
+      color: #667eea;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .demo-card p {
+      color: #666;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .price-item {
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 4px solid #667eea;
+    }
+
+    .price {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stats {
+      background: #e8f5e9;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+
+    .stats div {
+      margin: 0.5rem 0;
+    }
+
+    .stats strong {
+      color: #2e7d32;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #ff9800;
+      color: white;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .lazy-section {
+      height: 400px;
+      background: #fff3cd;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: #856404;
+      font-weight: 600;
+    }
+
+    .lazy-content {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .lazy-content img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1rem;
+    }
+
+    button:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .widget {
+      padding: 1rem;
+      background: #f0f4f8;
+      border-radius: 6px;
+      margin: 0.5rem 0;
+    }
+
+    .widget h3 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      border-left: 4px solid #2196f3;
+    }
+
+    .info-box strong {
+      color: #1976d2;
+    }
+
+    .scroll-hint {
+      text-align: center;
+      color: white;
+      margin-top: 2rem;
+      font-size: 1.1rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌵 Minimact Punch 🍹</h1>
+    <p class="tagline">The DOM itself is now reactive state. Watch it respond in real-time!</p>
+
+    <div class="demo-grid">
+      <!-- Demo 1: Statistical Operations -->
+      <div class="demo-card">
+        <h2>📊 Price Statistics</h2>
+        <p>Real-time aggregations over DOM elements with numeric values</p>
+
+        <div class="price-item">
+          <div>Premium Widget</div>
+          <div class="price" data-value="79.99">$79.99</div>
+        </div>
+        <div class="price-item">
+          <div>Standard Widget</div>
+          <div class="price" data-value="49.99">$49.99</div>
+        </div>
+        <div class="price-item">
+          <div>Basic Widget</div>
+          <div class="price" data-value="29.99">$29.99</div>
+        </div>
+        <div class="price-item">
+          <div>Economy Widget</div>
+          <div class="price" data-value="19.99">$19.99</div>
+        </div>
+
+        <div class="stats" id="price-stats">
+          <div><strong>Average:</strong> <span id="avg-price">—</span></div>
+          <div><strong>Total:</strong> <span id="total-price">—</span></div>
+          <div><strong>Median:</strong> <span id="median-price">—</span></div>
+          <div><strong>Range:</strong> <span id="range-price">—</span></div>
+        </div>
+
+        <div id="price-badge"></div>
+      </div>
+
+      <!-- Demo 2: Children Count -->
+      <div class="demo-card">
+        <h2>🔢 Children Counter</h2>
+        <p>Reactive UI based on number of child elements</p>
+
+        <div id="widget-container">
+          <div class="widget">
+            <h3>📈 Sales</h3>
+            <div>+23% this month</div>
+          </div>
+          <div class="widget">
+            <h3>💰 Revenue</h3>
+            <div>$125,430</div>
+          </div>
+          <div class="widget">
+            <h3>👥 Users</h3>
+            <div>1,247 active</div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>Active widgets:</strong> <span id="widget-count">0</span>
+        </div>
+
+        <button id="add-widget">Add Widget</button>
+        <button id="remove-widget">Remove Widget</button>
+
+        <div id="widget-message"></div>
+      </div>
+
+      <!-- Demo 3: Intersection Observer -->
+      <div class="demo-card">
+        <h2>👁️ Lazy Loading</h2>
+        <p>Content loads automatically when scrolled into view</p>
+
+        <div class="lazy-section" id="lazy-section">
+          📜 Scroll down to load images...
+        </div>
+
+        <div id="lazy-images"></div>
+
+        <div class="info-box" style="margin-top: 1rem;">
+          <strong>Status:</strong> <span id="intersection-status">Not visible</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-hint">⬇️ Scroll to see intersection detection ⬇️</div>
+  </div>
+
+  <script type="module">
+    import { DomElementState } from '../dist/minimact-punch.esm.js';
+
+    // Demo 1: Price Statistics
+    const prices = new DomElementState('.price');
+
+    function updatePriceStats() {
+      document.getElementById('avg-price').textContent = `$${prices.vals.avg().toFixed(2)}`;
+      document.getElementById('total-price').textContent = `$${prices.vals.sum().toFixed(2)}`;
+      document.getElementById('median-price').textContent = `$${prices.vals.median().toFixed(2)}`;
+      const range = prices.vals.range();
+      document.getElementById('range-price').textContent = `$${range.min.toFixed(2)} - $${range.max.toFixed(2)}`;
+
+      // Conditional rendering based on stats
+      const badgeContainer = document.getElementById('price-badge');
+      if (prices.vals.avg() > 50) {
+        badgeContainer.innerHTML = '<div class="badge">🏆 Premium Range</div>';
+      } else {
+        badgeContainer.innerHTML = '<div class="badge">💰 Budget Friendly</div>';
+      }
+    }
+
+    updatePriceStats();
+
+    // Demo 2: Children Count
+    const widgetContainer = new DomElementState(document.getElementById('widget-container'));
+
+    function updateWidgetCount() {
+      const count = widgetContainer.childrenCount;
+      document.getElementById('widget-count').textContent = count;
+
+      // Conditional rendering
+      const messageDiv = document.getElementById('widget-message');
+      if (count > 5) {
+        messageDiv.innerHTML = '<div class="badge">Consider using pagination!</div>';
+      } else {
+        messageDiv.innerHTML = '';
+      }
+    }
+
+    widgetContainer.setOnChange(() => {
+      updateWidgetCount();
+    });
+
+    updateWidgetCount();
+
+    let widgetId = 4;
+    document.getElementById('add-widget').addEventListener('click', () => {
+      const widget = document.createElement('div');
+      widget.className = 'widget';
+      widget.innerHTML = `
+        <h3>📊 Widget ${widgetId}</h3>
+        <div>New data point</div>
+      `;
+      document.getElementById('widget-container').appendChild(widget);
+      widgetId++;
+    });
+
+    document.getElementById('remove-widget').addEventListener('click', () => {
+      const container = document.getElementById('widget-container');
+      if (container.children.length > 0) {
+        container.removeChild(container.lastElementChild);
+      }
+    });
+
+    // Demo 3: Intersection Observer
+    const lazySection = new DomElementState(document.getElementById('lazy-section'));
+
+    lazySection.setOnChange((state) => {
+      const statusEl = document.getElementById('intersection-status');
+      const imagesDiv = document.getElementById('lazy-images');
+
+      if (state.isIntersecting) {
+        statusEl.textContent = '✅ Visible! Loading images...';
+        statusEl.style.color = '#2e7d32';
+
+        // Lazy load images
+        if (imagesDiv.children.length === 0) {
+          imagesDiv.innerHTML = `
+            <div class="lazy-content">
+              <img src="https://picsum.photos/200/150?random=1" alt="Image 1">
+              <img src="https://picsum.photos/200/150?random=2" alt="Image 2">
+              <img src="https://picsum.photos/200/150?random=3" alt="Image 3">
+            </div>
+          `;
+        }
+      } else {
+        statusEl.textContent = '⏳ Not visible yet';
+        statusEl.style.color = '#f57c00';
+      }
+    });
+
+    console.log('🌵 Minimact Punch Demo Ready!');
+    console.log('Try interacting with the demos and watch the console for state changes');
+  </script>
+</body>
+</html>

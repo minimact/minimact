@@ -1,0 +1,93 @@
+/**
+ * Minimact Punch 🌵 + 🍹
+ *
+ * DOM observation and reactivity addon for Minimact.
+ * Makes the DOM itself a first-class reactive data source.
+ *
+ * **Dual-Mode Package:**
+ * - **Standalone Mode**: Use `DomElementState` class directly (no Minimact required)
+ * - **Integrated Mode**: Use `useDomElementState` hook (requires Minimact)
+ *
+ * @packageDocumentation
+ */
+
+// ============================================================
+// STANDALONE MODE (No Minimact required)
+// ============================================================
+
+/**
+ * Core classes - work without Minimact
+ * Use these for vanilla JS/TS projects or testing
+ */
+export { DomElementState } from './dom-element-state';
+export { DomElementStateValues } from './dom-element-state-values';
+
+/**
+ * Types - shared by both modes
+ */
+export type {
+  DomElementStateOptions,
+  DomStateChangeCallback,
+  DomElementStateSnapshot
+} from './types';
+
+/**
+ * Standalone hook (no Minimact integration)
+ * Just creates and returns a DomElementState instance
+ *
+ * @deprecated Use `createDomElementState` instead for clarity
+ */
+export { useDomElementState as createDomElementState } from './use-dom-element-state';
+
+// ============================================================
+// INTEGRATED MODE (Requires Minimact)
+// ============================================================
+
+/**
+ * Integrated hook - works with Minimact component context
+ * Includes HintQueue integration for predictive rendering
+ *
+ * @requires minimact
+ */
+export {
+  useDomElementState,
+  cleanupDomElementStates,
+  setComponentContext,
+  clearComponentContext,
+  getCurrentContext
+} from './integration';
+
+/**
+ * Types for integration
+ */
+export type {
+  ComponentContext,
+  HintQueue,
+  DOMPatcher,
+  PlaygroundBridge
+} from './integration';
+
+// ============================================================
+// VERSION & METADATA
+// ============================================================
+
+export const VERSION = '0.1.0';
+export const MES_CERTIFICATION = 'Silver'; // Minimact Extension Standards
+
+/**
+ * Package metadata for debugging
+ */
+export const PACKAGE_INFO = {
+  name: 'minimact-punch',
+  version: VERSION,
+  certification: MES_CERTIFICATION,
+  modes: ['standalone', 'integrated'],
+  features: [
+    'IntersectionObserver integration',
+    'MutationObserver integration',
+    'ResizeObserver integration',
+    'Statistical aggregations',
+    'HintQueue predictive rendering',
+    'PlaygroundBridge visualization'
+  ]
+} as const;
