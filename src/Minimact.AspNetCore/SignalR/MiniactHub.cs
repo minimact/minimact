@@ -92,6 +92,39 @@ public class MinimactHub : Hub
     }
 
     /// <summary>
+    /// Update client-computed state values (for external library support)
+    /// Receives computed values from browser (lodash, moment, etc.) and triggers re-render
+    /// </summary>
+    public async Task UpdateClientComputedState(string componentId, Dictionary<string, object> computedValues)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Update the component's ClientState dictionary
+            component.UpdateClientState(computedValues);
+
+            // Trigger a re-render with the new client-computed values
+            component.TriggerRender();
+
+            // Note: TriggerRender() internally handles:
+            // - Rendering the component with new client-computed state
+            // - Computing patches via diffing
+            // - Sending patches to client via SignalR
+            // - Notifying the predictor for learning patterns
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error updating client-computed state: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Called when client connects
     /// </summary>
     public override async Task OnConnectedAsync()

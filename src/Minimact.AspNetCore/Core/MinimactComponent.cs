@@ -167,7 +167,7 @@ public abstract class MinimactComponent
     /// <summary>
     /// Trigger a re-render cycle with predictive patching
     /// </summary>
-    protected void TriggerRender()
+    internal void TriggerRender()
     {
         if (CurrentVNode == null || HubContext == null || ConnectionId == null)
         {
