@@ -1,0 +1,277 @@
+/**
+ * Timeline Panel Styles
+ */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.timeline-header {
+  padding: 16px;
+  border-bottom: 1px solid #333;
+  background: #252526;
+}
+
+.timeline-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.timeline-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.event-count {
+  background: #007acc;
+  color: white;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.timeline-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.element-select,
+.category-filter,
+.time-range {
+  background: #3c3c3c;
+  color: #cccccc;
+  border: 1px solid #555;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.element-select {
+  flex: 1;
+  min-width: 200px;
+}
+
+.category-filter {
+  min-width: 120px;
+}
+
+.time-range {
+  min-width: 100px;
+}
+
+.btn-control {
+  background: #0e639c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.btn-control:hover {
+  background: #1177bb;
+}
+
+.btn-control.paused {
+  background: #16825d;
+}
+
+/* Timeline Visualization */
+.timeline-visualization {
+  padding: 20px;
+  background: #252526;
+  border-bottom: 1px solid #333;
+}
+
+.timeline-axis {
+  margin-bottom: 16px;
+}
+
+.timeline-track {
+  position: relative;
+  height: 40px;
+  background: #1e1e1e;
+  border-radius: 4px;
+  border: 1px solid #333;
+  margin-bottom: 8px;
+}
+
+.timeline-marker {
+  position: absolute;
+  width: 3px;
+  height: 100%;
+  top: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.timeline-marker:hover {
+  opacity: 1;
+  width: 4px;
+}
+
+.timeline-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #858585;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.timeline-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #cccccc;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Event List */
+.timeline-events {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.timeline-event {
+  background: #252526;
+  border-left: 3px solid #007acc;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.timeline-event:hover {
+  background: #2d2d30;
+  transform: translateX(2px);
+}
+
+.timeline-event.category-lifecycle {
+  border-left-color: #9cdcfe;
+}
+
+.timeline-event.category-pseudo {
+  border-left-color: #dcdcaa;
+}
+
+.timeline-event.category-theme {
+  border-left-color: #c586c0;
+}
+
+.timeline-event.category-visibility {
+  border-left-color: #4ec9b0;
+}
+
+.timeline-event.category-other {
+  border-left-color: #858585;
+}
+
+.event-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.event-category {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #1e1e1e;
+}
+
+.event-property {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #9cdcfe;
+  flex: 1;
+}
+
+.event-time {
+  font-size: 11px;
+  color: #858585;
+}
+
+.event-change {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.old-value {
+  color: #ce9178;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.arrow {
+  color: #858585;
+}
+
+.new-value {
+  color: #4ec9b0;
+  font-weight: 500;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #858585;
+}
+
+.timeline-empty p {
+  margin: 8px 0;
+}
+
+/* Scrollbar */
+.timeline-events::-webkit-scrollbar {
+  width: 10px;
+}
+
+.timeline-events::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.timeline-events::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 5px;
+}
+
+.timeline-events::-webkit-scrollbar-thumb:hover {
+  background: #4e4e4e;
+}
