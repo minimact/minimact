@@ -18,6 +18,8 @@ export interface DomElementStateOptions {
     intersectionOptions?: IntersectionObserverInit;
     /** Debounce time for updates (ms) */
     debounceMs?: number;
+    /** Lifecycle state machine configuration */
+    lifecycle?: import('./lifecycle-state-tracker').LifecycleStateConfig<any>;
 }
 /**
  * Callback fired when DOM state changes

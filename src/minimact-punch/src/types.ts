@@ -25,6 +25,9 @@ export interface DomElementStateOptions {
 
   /** Debounce time for updates (ms) */
   debounceMs?: number;
+
+  /** Lifecycle state machine configuration */
+  lifecycle?: import('./lifecycle-state-tracker').LifecycleStateConfig<any>;
 }
 
 /**

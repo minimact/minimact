@@ -3,6 +3,7 @@ import { DomElementStateValues } from './dom-element-state-values';
 import { PseudoStateTracker } from './pseudo-state-tracker';
 import { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
 import { StateHistoryTracker } from './state-history-tracker';
+import { LifecycleStateTracker } from './lifecycle-state-tracker';
 /**
  * DomElementState - Makes the DOM itself a reactive data source
  *
@@ -27,6 +28,7 @@ export declare class DomElementState {
     private pseudoStateTracker?;
     private themeStateTracker?;
     private historyTracker?;
+    private lifecycleTracker?;
     private _isIntersecting;
     private _intersectionRatio;
     private _boundingRect;
@@ -159,6 +161,36 @@ export declare class DomElementState {
      * ```
      */
     get history(): StateHistoryTracker;
+    /**
+     * Get lifecycle state machine (theatrical engine)
+     *
+     * Transforms the element into a finite state machine with:
+     * - Declarative states with valid transitions
+     * - Styles bound to each state
+     * - Templates bound to each state
+     * - Lifecycle hooks (onEnter, onExit, onTransition)
+     * - Auto-transitions with durations
+     * - Transition history tracking
+     *
+     * @example
+     * ```typescript
+     * const modal = new DomElementState(element, {
+     *   lifecycle: {
+     *     states: ['hidden', 'visible'],
+     *     defaultState: 'hidden',
+     *     styles: {
+     *       hidden: { opacity: 0 },
+     *       visible: { opacity: 1 }
+     *     }
+     *   }
+     * });
+     *
+     * console.log(modal.lifecycle.lifecycleState); // 'hidden'
+     * modal.lifecycle.transitionTo('visible');
+     * console.log(modal.lifecycle.style); // { opacity: 1 }
+     * ```
+     */
+    get lifecycle(): LifecycleStateTracker<any>;
     /**
      * Destroy the state object
      */

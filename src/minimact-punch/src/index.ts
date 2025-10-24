@@ -24,6 +24,7 @@ export { DomElementStateValues } from './dom-element-state-values';
 export { PseudoStateTracker } from './pseudo-state-tracker';
 export { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
 export { StateHistoryTracker } from './state-history-tracker';
+export { LifecycleStateTracker } from './lifecycle-state-tracker';
 
 /**
  * Types - shared by both modes
@@ -35,6 +36,10 @@ export type {
 } from './types';
 export type { PseudoState } from './pseudo-state-tracker';
 export type { HistoryChange, HistorySnapshot } from './state-history-tracker';
+export type {
+  LifecycleStateConfig,
+  TransitionHistoryEntry
+} from './lifecycle-state-tracker';
 
 /**
  * Standalone hook (no Minimact integration)
@@ -107,6 +112,7 @@ export const PACKAGE_INFO = {
     'Confidence Worker (intent-based predictions)',
     'Pseudo-state reactivity (hover, focus, active, disabled)',
     'Theme & breakpoint reactivity (dark mode, responsive layouts)',
-    'Temporal features (history tracking, change patterns, trend analysis)'
+    'Temporal features (history tracking, change patterns, trend analysis)',
+    'Lifecycle state machines (finite state machines with styles, templates, transitions)'
   ]
 } as const;

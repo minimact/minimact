@@ -7,6 +7,7 @@ import { DomElementStateValues } from './dom-element-state-values';
 import { PseudoStateTracker } from './pseudo-state-tracker';
 import { ThemeStateTracker, BreakpointState } from './theme-state-tracker';
 import { StateHistoryTracker } from './state-history-tracker';
+import { LifecycleStateTracker } from './lifecycle-state-tracker';
 
 /**
  * DomElementState - Makes the DOM itself a reactive data source
@@ -27,8 +28,8 @@ export class DomElementState {
   private _elements: HTMLElement[] = [];
   private _selector: string | null = null;
 
-  // Options
-  private options: Required<DomElementStateOptions>;
+  // Options (lifecycle is optional even after initialization)
+  private options: Required<Omit<DomElementStateOptions, 'lifecycle'>> & Pick<DomElementStateOptions, 'lifecycle'>;
 
   // Observers
   private intersectionObserver?: IntersectionObserver;
@@ -43,6 +44,9 @@ export class DomElementState {
 
   // History tracker (temporal features)
   private historyTracker?: StateHistoryTracker;
+
+  // Lifecycle state machine (theatrical features)
+  private lifecycleTracker?: LifecycleStateTracker<any>;
 
   // Reactive state
   private _isIntersecting = false;
@@ -71,7 +75,8 @@ export class DomElementState {
       trackHover: options.trackHover ?? true,
       trackFocus: options.trackFocus ?? false,
       intersectionOptions: options.intersectionOptions || {},
-      debounceMs: options.debounceMs ?? 16 // ~60fps
+      debounceMs: options.debounceMs ?? 16, // ~60fps
+      lifecycle: options.lifecycle // Pass through lifecycle config if provided
     };
 
     // Initialize based on input
@@ -532,6 +537,53 @@ export class DomElementState {
   }
 
   /**
+   * Get lifecycle state machine (theatrical engine)
+   *
+   * Transforms the element into a finite state machine with:
+   * - Declarative states with valid transitions
+   * - Styles bound to each state
+   * - Templates bound to each state
+   * - Lifecycle hooks (onEnter, onExit, onTransition)
+   * - Auto-transitions with durations
+   * - Transition history tracking
+   *
+   * @example
+   * ```typescript
+   * const modal = new DomElementState(element, {
+   *   lifecycle: {
+   *     states: ['hidden', 'visible'],
+   *     defaultState: 'hidden',
+   *     styles: {
+   *       hidden: { opacity: 0 },
+   *       visible: { opacity: 1 }
+   *     }
+   *   }
+   * });
+   *
+   * console.log(modal.lifecycle.lifecycleState); // 'hidden'
+   * modal.lifecycle.transitionTo('visible');
+   * console.log(modal.lifecycle.style); // { opacity: 1 }
+   * ```
+   */
+  get lifecycle(): LifecycleStateTracker<any> {
+    if (!this.lifecycleTracker) {
+      const lifecycleConfig = this.options.lifecycle;
+
+      if (!lifecycleConfig) {
+        throw new Error(
+          '[minimact-punch] Cannot access lifecycle - no lifecycle config provided in options'
+        );
+      }
+
+      this.lifecycleTracker = new LifecycleStateTracker(lifecycleConfig, () => {
+        this.notifyChange();
+      });
+    }
+
+    return this.lifecycleTracker;
+  }
+
+  /**
    * Destroy the state object
    */
   destroy(): void {
@@ -542,6 +594,8 @@ export class DomElementState {
     this.themeStateTracker = undefined;
     this.historyTracker?.destroy();
     this.historyTracker = undefined;
+    this.lifecycleTracker?.destroy();
+    this.lifecycleTracker = undefined;
     this.onChange = undefined;
     this._element = null;
     this._elements = [];
