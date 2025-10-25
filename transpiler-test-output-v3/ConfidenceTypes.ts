@@ -1,9 +1,18 @@
 import {
     ConfidenceEngineConfig,
+    FocusEventData,
+    KeydownEventData,
+    MouseEventData,
     ObservablesConfig,
     PredictionObservation,
     Rect,
+    RegisterElementMessage,
+    ResizeEventData,
+    ScrollEventData,
     TrajectoryPoint,
+    UnregisterElementMessage,
+    UpdateBoundsMessage,
+    WorkerInputMessage,
 } from './confidence-types';
 
 // Namespace: Minimact.Workers
@@ -15,6 +24,10 @@ export class Rect {
     height: number;
     bottom: number;
     right: number;
+}
+
+export class WorkerInputMessage {
+    type: string;
 }
 
 export class MouseEventData {
@@ -75,10 +88,6 @@ export class UpdateBoundsMessage {
 export class UnregisterElementMessage {
     type: string;
     elementId: string;
-}
-
-export class WorkerInputMessage {
-    type: string;
 }
 
 export class PredictionObservation {

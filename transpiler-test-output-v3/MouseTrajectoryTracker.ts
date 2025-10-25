@@ -7,6 +7,17 @@ import {
     TrajectoryPoint,
 } from './confidence-types';
 
+export interface HoverConfidenceResult {
+    confidence: number;
+    leadTime: number;
+    reason: string;
+}
+
+export interface RayIntersectionResult {
+    distance: number;
+    point: TrajectoryPoint;
+}
+
 // Namespace: Minimact.Workers
 
 export class MouseTrajectoryTracker {
@@ -29,7 +40,7 @@ export class MouseTrajectoryTracker {
         const first: TrajectoryPoint = points[0];
         const last: TrajectoryPoint = points[points.length - 1];
         const timeDelta: number = last.timestamp - first.timestamp;
-        if (timeDelta == 0) {
+        if (timeDelta === 0) {
             return null;
         }
         const dx: number = last.x - first.x;
@@ -47,15 +58,9 @@ export class MouseTrajectoryTracker {
         return { points, velocity, angle, acceleration };
     }
 
-    export class HoverConfidenceResult {
-        confidence: number;
-        leadTime: number;
-        reason: string;
-    }
-
     calculateHoverConfidence(elementBounds: Rect): HoverConfidenceResult {
         const trajectory: MouseTrajectory = this.getTrajectory();
-        if (trajectory == null) {
+        if (trajectory === null) {
             return { confidence: 0, leadTime: 0, reason: "no trajectory data" };
         }
         const lastPoint: TrajectoryPoint = trajectory.points[trajectory.points.length - 1];
@@ -63,7 +68,7 @@ export class MouseTrajectoryTracker {
             return { confidence: 0, leadTime: 0, reason: "mouse not moving" };
         }
         const intersection: RayIntersectionResult = this.calculateRayIntersection(lastPoint, trajectory.angle, elementBounds);
-        if (intersection == null) {
+        if (intersection === null) {
             return { confidence: 0, leadTime: 0, reason: "not in trajectory path" };
         }
         const timeToIntersect: number = intersection.distance / trajectory.velocity;
@@ -88,16 +93,11 @@ export class MouseTrajectoryTracker {
         return { confidence, leadTime: timeToIntersect, reason: `trajectory: ${(confidence * 100).toFixed(0)}% (angle: ${angleDiffDegrees.toFixed(0)}°, dist: ${intersection.distance.toFixed(0)}px, vel: ${trajectory.velocity.toFixed(2)})` };
     }
 
-    export class RayIntersectionResult {
-        distance: number;
-        point: TrajectoryPoint;
-    }
-
     private calculateRayIntersection(origin: TrajectoryPoint, angle: number, box: Rect): RayIntersectionResult {
         const dx: number = Math.cos(angle);
         const dy: number = Math.sin(angle);
-        const minDistance: number = Number.POSITIVE_INFINITY;
-        const intersectionPoint: TrajectoryPoint = null;
+        let minDistance: number = Number.POSITIVE_INFINITY;
+        let intersectionPoint: TrajectoryPoint = null;
         if (dx > 0.001) {
             const t: number = (box.left - origin.x) / dx;
             if (t > 0) {
@@ -150,7 +150,7 @@ export class MouseTrajectoryTracker {
                 }
             }
         }
-        if (intersectionPoint != null && minDistance < Number.POSITIVE_INFINITY) {
+        if (intersectionPoint !== null && minDistance < Number.POSITIVE_INFINITY) {
             return { distance: minDistance, point: intersectionPoint };
         }
         return null;
@@ -163,7 +163,7 @@ export class MouseTrajectoryTracker {
         const first: TrajectoryPoint = points[0];
         const last: TrajectoryPoint = points[points.length - 1];
         const timeDelta: number = last.timestamp - first.timestamp;
-        if (timeDelta == 0) {
+        if (timeDelta === 0) {
             return 0;
         }
         const dx: number = last.x - first.x;

@@ -50,13 +50,21 @@ export class Map {
 export class MessageTypeSwitch {
     static handle(message: any, messageType: string, handleMouseMove: Action<MouseEventData>, handleScroll: Action<ScrollEventData>, handleFocus: Action<FocusEventData>, handleKeydown: Action<KeydownEventData>, handleRegisterElement: Action<RegisterElementMessage>, handleUpdateBounds: Action<UpdateBoundsMessage>, handleUnregisterElement: Action<UnregisterElementMessage>, handleUnknown: Action<any>): void {
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
         /* TODO: ConditionalAccessExpressionSyntax */;
+        break;
     }
 
     private static castMessage(message: any): T {

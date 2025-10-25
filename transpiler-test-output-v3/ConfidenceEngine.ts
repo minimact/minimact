@@ -53,12 +53,14 @@ export class ConfidenceEngine {
 
     private handleMouseMove(eventData: MouseEventData): void {
         this.mouseTracker.trackMove(eventData);
-        for (const [entry, entry] of this.observableElements) {
-            const elementId: string = entry.key;
-            const element: ObservableElement = entry.value;
-            if (element.observables.hover != true) {
+        for (const [key, value] of this.observableElements) {
+            const elementId: string = key;
+            const element: ObservableElement = value;
+            if (element.observables.hover !== true) {
+                continue;
             }
             if (!this.canPredict(elementId)) {
+                continue;
             }
             const result = this.mouseTracker.calculateHoverConfidence(element.bounds);
             if (result.confidence >= this.config.minConfidence) {
@@ -71,12 +73,14 @@ export class ConfidenceEngine {
     private handleScroll(eventData: ScrollEventData): void {
         this.scrollTracker.trackScroll(eventData);
         this.currentScrollY = eventData.scrollY;
-        for (const [entry, entry] of this.observableElements) {
-            const elementId: string = entry.key;
-            const element: ObservableElement = entry.value;
-            if (element.observables.intersection != true) {
+        for (const [key, value] of this.observableElements) {
+            const elementId: string = key;
+            const element: ObservableElement = value;
+            if (element.observables.intersection !== true) {
+                continue;
             }
             if (!this.canPredict(elementId)) {
+                continue;
             }
             const result = this.scrollTracker.calculateIntersectionConfidence(element.bounds, eventData.scrollY);
             if (result.confidence >= this.config.minConfidence) {
@@ -92,12 +96,12 @@ export class ConfidenceEngine {
 
     private handleKeydown(eventData: KeydownEventData): void {
         this.focusTracker.trackKeydown(eventData);
-        if (eventData.key == "Tab") {
+        if (eventData.key === "Tab") {
             const prediction = this.focusTracker.predictNextFocus();
-            if (prediction.elementId != null && prediction.confidence >= this.config.minConfidence) {
+            if (prediction.elementId !== null && prediction.confidence >= this.config.minConfidence) {
                 if (this.observableElements.has(prediction.elementId)) {
                     const element: ObservableElement = this.observableElements.get(prediction.elementId);
-                    if (element != null && element.observables.focus == true) {
+                    if (element !== null && element.observables.focus === true) {
                         this.sendPrediction({ componentId: element.componentId, elementId: prediction.elementId, observation: { focus: true }, confidence: prediction.confidence, leadTime: prediction.leadTime, reason: prediction.reason });
                     }
                 }
@@ -113,7 +117,7 @@ export class ConfidenceEngine {
     private updateBounds(message: UpdateBoundsMessage): void {
         if (this.observableElements.has(message.elementId)) {
             const element: ObservableElement = this.observableElements.get(message.elementId);
-            if (element != null) {
+            if (element !== null) {
                 element.bounds = message.bounds;
             }
         }

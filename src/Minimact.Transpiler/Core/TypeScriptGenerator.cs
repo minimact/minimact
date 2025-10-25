@@ -17,6 +17,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
     private SemanticModel? _semanticModel;
     private int _indentLevel;
     private readonly HashSet<string> _importedTypes = new();
+    private readonly List<ClassDeclarationSyntax> _nestedClasses = new();
 
     public TypeScriptGenerator()
     {
@@ -31,6 +32,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         _output.Clear();
         _indentLevel = 0;
         _importedTypes.Clear();
+        _nestedClasses.Clear();
 
         // Create generator with semantic model for type analysis
         var generator = new TypeScriptGenerator
@@ -38,11 +40,15 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
             _semanticModel = semanticModel
         };
 
-        // First pass: collect type references
+        // First pass: collect type references and nested classes
         generator.CollectTypeReferences(root);
+        generator.CollectNestedClasses(root);
 
         // Generate imports at the top
         generator.GenerateImports();
+
+        // Generate hoisted nested classes as interfaces
+        generator.GenerateHoistedNestedClasses();
 
         // Walk the syntax tree and generate TypeScript
         generator.Visit(root);
@@ -119,6 +125,72 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         }
     }
 
+    /// <summary>
+    /// Collect nested classes for hoisting
+    /// </summary>
+    private void CollectNestedClasses(SyntaxNode root)
+    {
+        var collector = new NestedClassCollector(_nestedClasses);
+        collector.Visit(root);
+    }
+
+    /// <summary>
+    /// Generate hoisted nested classes as TypeScript interfaces
+    /// </summary>
+    private void GenerateHoistedNestedClasses()
+    {
+        foreach (var nestedClass in _nestedClasses)
+        {
+            var className = nestedClass.Identifier.ValueText;
+
+            WriteLine($"export interface {className} {{");
+            _indentLevel++;
+
+            // Generate properties from auto-properties
+            foreach (var member in nestedClass.Members)
+            {
+                if (member is PropertyDeclarationSyntax property)
+                {
+                    var propertyName = ToCamelCase(property.Identifier.ValueText);
+                    var typeString = MapTypeToTypeScript(property.Type);
+                    WriteIndented($"{propertyName}: {typeString};");
+                }
+            }
+
+            _indentLevel--;
+            WriteLine("}");
+            WriteLine("");
+        }
+    }
+
+    /// <summary>
+    /// Visitor to collect nested classes
+    /// </summary>
+    private class NestedClassCollector : CSharpSyntaxWalker
+    {
+        private readonly List<ClassDeclarationSyntax> _nestedClasses;
+        private int _depth = 0;
+
+        public NestedClassCollector(List<ClassDeclarationSyntax> nestedClasses)
+        {
+            _nestedClasses = nestedClasses;
+        }
+
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            _depth++;
+
+            // If depth > 1, this is a nested class
+            if (_depth > 1)
+            {
+                _nestedClasses.Add(node);
+            }
+
+            base.VisitClassDeclaration(node);
+            _depth--;
+        }
+    }
+
     #endregion
 
     #region Syntax Visitors
@@ -135,14 +207,29 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
 
     public override void VisitClassDeclaration(ClassDeclarationSyntax node)
     {
+        // Skip nested classes - they were already hoisted as interfaces
+        if (_nestedClasses.Contains(node))
+        {
+            return;
+        }
+
         var className = node.Identifier.ValueText;
 
         // Generate TypeScript class
         WriteIndented($"export class {className} {{");
         _indentLevel++;
 
-        // Process class members
-        base.VisitClassDeclaration(node);
+        // Process class members (skip nested classes)
+        foreach (var member in node.Members)
+        {
+            if (member is ClassDeclarationSyntax)
+            {
+                // Skip nested classes - already hoisted
+                continue;
+            }
+
+            Visit(member);
+        }
 
         _indentLevel--;
         WriteIndented("}");
@@ -747,6 +834,14 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         var right = GenerateExpression(binary.Right);
         var op = binary.OperatorToken.ValueText;
 
+        // Map C# equality operators to TypeScript strict equality
+        op = op switch
+        {
+            "==" => "===",
+            "!=" => "!==",
+            _ => op
+        };
+
         return $"{left} {op} {right}";
     }
 
@@ -953,13 +1048,22 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
 
         return typeName switch
         {
+            // JS-Compatible types (explicit) - PRIMARY
+            "JsMap" => "Map",
+            "JsArray" => "Array",
+            "JsSet" => "Set",
+
+            // Legacy mappings (for backward compatibility) - DEPRECATED
             "Dictionary" => "Map",
             "List" => "Array",
             "Array" => "Array",
+
+            // Primitives
             "String" => "string",
             "Boolean" => "boolean",
             "Double" => "number",
             "Int32" => "number",
+
             _ => typeName
         };
     }
@@ -1001,9 +1105,16 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
 
         return typeName switch
         {
+            // JS-Compatible types (explicit) - PRIMARY
+            "JsMap" => $"Map<{typeArgs}>",
+            "JsArray" => $"Array<{typeArgs}>",
+            "JsSet" => $"Set<{typeArgs}>",
+
+            // Legacy mappings (for backward compatibility) - DEPRECATED
             "Dictionary" => $"Map<{typeArgs}>",
             "List" => $"Array<{typeArgs}>",
             "Array" => $"Array<{typeArgs}>",
+
             _ => $"{typeName}<{typeArgs}>"
         };
     }

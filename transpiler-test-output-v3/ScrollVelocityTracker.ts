@@ -6,15 +6,21 @@ import {
     ScrollVelocity,
 } from './confidence-types';
 
+export interface ScrollPoint {
+    scrollX: number;
+    scrollY: number;
+    timestamp: number;
+}
+
+export interface IntersectionConfidenceResult {
+    confidence: number;
+    leadTime: number;
+    reason: string;
+}
+
 // Namespace: Minimact.Workers
 
 export class ScrollVelocityTracker {
-    export class ScrollPoint {
-        scrollX: number;
-        scrollY: number;
-        timestamp: number;
-    }
-
     private scrollHistory: CircularBuffer<ScrollPoint>;
     private config: ConfidenceEngineConfig;
     private viewportWidth: number;
@@ -38,7 +44,7 @@ export class ScrollVelocityTracker {
         const first: ScrollPoint = points[0];
         const last: ScrollPoint = points[points.length - 1];
         const timeDelta: number = last.timestamp - first.timestamp;
-        if (timeDelta == 0) {
+        if (timeDelta === 0) {
             return null;
         }
         const dx: number = last.scrollX - first.scrollX;
@@ -69,15 +75,9 @@ export class ScrollVelocityTracker {
         return { velocity, direction, deceleration };
     }
 
-    export class IntersectionConfidenceResult {
-        confidence: number;
-        leadTime: number;
-        reason: string;
-    }
-
     calculateIntersectionConfidence(elementBounds: Rect, currentScrollY: number): IntersectionConfidenceResult {
         const velocity: ScrollVelocity = this.getVelocity();
-        if (velocity == null) {
+        if (velocity === null) {
             return { confidence: 0, leadTime: 0, reason: "no scroll data" };
         }
         if (velocity.velocity < 0.01) {
@@ -89,7 +89,7 @@ export class ScrollVelocityTracker {
             return { confidence: 1, leadTime: 0, reason: "already intersecting" };
         }
         if (elementBounds.bottom < viewportTop) {
-            if (velocity.direction != "up") {
+            if (velocity.direction !== "up") {
                 return { confidence: 0, leadTime: 0, reason: "element above, not scrolling up" };
             }
             const distance: number = viewportTop - elementBounds.bottom;
@@ -100,7 +100,7 @@ export class ScrollVelocityTracker {
             return this.calculateConfidenceFromDistance(distance, velocity, timeToIntersect);
         }
         if (elementBounds.top > viewportBottom) {
-            if (velocity.direction != "down") {
+            if (velocity.direction !== "down") {
                 return { confidence: 0, leadTime: 0, reason: "element below, not scrolling down" };
             }
             const distance: number = elementBounds.top - viewportBottom;
@@ -131,7 +131,7 @@ export class ScrollVelocityTracker {
         const first: ScrollPoint = points[0];
         const last: ScrollPoint = points[points.length - 1];
         const timeDelta: number = last.timestamp - first.timestamp;
-        if (timeDelta == 0) {
+        if (timeDelta === 0) {
             return 0;
         }
         const dx: number = last.scrollX - first.scrollX;

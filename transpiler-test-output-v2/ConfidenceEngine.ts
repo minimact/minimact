@@ -15,6 +15,9 @@ import {
 
 // Namespace: Minimact.Workers
 
+postMessage(message: any): void {
+}
+
 export class ConfidenceEngine {
     private config: ConfidenceEngineConfig;
     private mouseTracker: MouseTrajectoryTracker;
@@ -23,8 +26,10 @@ export class ConfidenceEngine {
     private observableElements: Map<string, ObservableElement>;
     private predictionThrottle: Map<string, number>;
     private currentScrollY: number;
-    constructor(config: ConfidenceEngineConfig) {
+    private messageSender: IWorkerMessageSender;
+    constructor(config: ConfidenceEngineConfig, messageSender: IWorkerMessageSender) {
         this.config = config ?? defaultConfig.dEFAULT_CONFIG;
+        this.messageSender = messageSender;
         this.mouseTracker = new MouseTrajectoryTracker(this.config);
         this.scrollTracker = new ScrollVelocityTracker(this.config);
         this.focusTracker = new FocusSequenceTracker(this.config);
@@ -34,30 +39,33 @@ export class ConfidenceEngine {
     }
 
     handleMessage(message: any): void {
-        const messageType = script.get(message, "type");
-        this.handleMouseMove(message.as());
-        this.handleScroll(message.as());
-        this.handleFocus(message.as());
-        this.handleKeydown(message.as());
-        this.registerElement(message.as());
-        this.updateBounds(message.as());
-        this.unregisterElement(message.as());
-        this.debug("Unknown message type", message);
+        const messageType = this.getMessageType(message);
+        messageTypeSwitch.handle(message, messageType, this.handleMouseMove, this.handleScroll, this.handleFocus, this.handleKeydown, this.registerElement, this.updateBounds, this.unregisterElement, /* TODO: ParenthesizedLambdaExpressionSyntax */);
+    }
+
+    private getMessageType(message: any): string {
+        if (/* TODO: IsPatternExpressionSyntax */) {
+            return dict.get("type", /* TODO: DeclarationExpressionSyntax */) ? /* TODO: ConditionalAccessExpressionSyntax */ : null;
+        }
+        const typeProperty = message.getType().getProperty("Type") ?? message.getType().getProperty("type");
+        return /* TODO: ConditionalAccessExpressionSyntax */;
     }
 
     private handleMouseMove(eventData: MouseEventData): void {
         this.mouseTracker.trackMove(eventData);
         for (const [key, value] of this.observableElements) {
-            const elementId: string = kvp.key;
-            const element: ObservableElement = kvp.value;
-            if (element.observables.hover != true) {
+            const elementId: string = key;
+            const element: ObservableElement = value;
+            if (element.observables.hover !== true) {
+                continue;
             }
             if (!this.canPredict(elementId)) {
+                continue;
             }
             const result = this.mouseTracker.calculateHoverConfidence(element.bounds);
             if (result.confidence >= this.config.minConfidence) {
                 this.sendPrediction({ componentId: element.componentId, elementId, observation: { hover: true }, confidence: result.confidence, leadTime: result.leadTime, reason: result.reason });
-                this.predictionThrottle[elementId] = eventData.timestamp;
+                this.predictionThrottle.set(elementId, eventData.timestamp);
             }
         }
     }
@@ -66,16 +74,18 @@ export class ConfidenceEngine {
         this.scrollTracker.trackScroll(eventData);
         this.currentScrollY = eventData.scrollY;
         for (const [key, value] of this.observableElements) {
-            const elementId: string = kvp.key;
-            const element: ObservableElement = kvp.value;
-            if (element.observables.intersection != true) {
+            const elementId: string = key;
+            const element: ObservableElement = value;
+            if (element.observables.intersection !== true) {
+                continue;
             }
             if (!this.canPredict(elementId)) {
+                continue;
             }
             const result = this.scrollTracker.calculateIntersectionConfidence(element.bounds, eventData.scrollY);
             if (result.confidence >= this.config.minConfidence) {
                 this.sendPrediction({ componentId: element.componentId, elementId, observation: { isIntersecting: true }, confidence: result.confidence, leadTime: result.leadTime, reason: result.reason });
-                this.predictionThrottle[elementId] = eventData.timestamp;
+                this.predictionThrottle.set(elementId, eventData.timestamp);
             }
         }
     }
@@ -86,12 +96,12 @@ export class ConfidenceEngine {
 
     private handleKeydown(eventData: KeydownEventData): void {
         this.focusTracker.trackKeydown(eventData);
-        if (eventData.key == "Tab") {
+        if (eventData.key === "Tab") {
             const prediction = this.focusTracker.predictNextFocus();
-            if (prediction.elementId != null && prediction.confidence >= this.config.minConfidence) {
+            if (prediction.elementId !== null && prediction.confidence >= this.config.minConfidence) {
                 if (this.observableElements.has(prediction.elementId)) {
-                    const element: ObservableElement = this.observableElements[prediction.elementId];
-                    if (element != null && element.observables.focus == true) {
+                    const element: ObservableElement = this.observableElements.get(prediction.elementId);
+                    if (element !== null && element.observables.focus === true) {
                         this.sendPrediction({ componentId: element.componentId, elementId: prediction.elementId, observation: { focus: true }, confidence: prediction.confidence, leadTime: prediction.leadTime, reason: prediction.reason });
                     }
                 }
@@ -100,14 +110,14 @@ export class ConfidenceEngine {
     }
 
     private registerElement(message: RegisterElementMessage): void {
-        this.observableElements[message.elementId] = { componentId: message.componentId, elementId: message.elementId, bounds: message.bounds, observables: message.observables };
+        this.observableElements.set(message.elementId, { componentId: message.componentId, elementId: message.elementId, bounds: message.bounds, observables: message.observables });
         this.debug("Registered element", /* TODO: AnonymousObjectCreationExpressionSyntax */);
     }
 
     private updateBounds(message: UpdateBoundsMessage): void {
         if (this.observableElements.has(message.elementId)) {
-            const element: ObservableElement = this.observableElements[message.elementId];
-            if (element != null) {
+            const element: ObservableElement = this.observableElements.get(message.elementId);
+            if (element !== null) {
                 element.bounds = message.bounds;
             }
         }
@@ -123,14 +133,14 @@ export class ConfidenceEngine {
         if (!this.predictionThrottle.has(elementId)) {
             return true;
         }
-        const lastTime: number = this.predictionThrottle[elementId];
-        const now: number = global.performance.now();
+        const lastTime: number = this.predictionThrottle.get(elementId);
+        const now: number = dateTimeOffset.utcNow.toUnixTimeMilliseconds();
         const timeSince: number = now - lastTime;
         return timeSince >= this.config.predictionWindowMs;
     }
 
     private sendPrediction(message: PredictionRequestMessage): void {
-        script.call("postMessage", message);
+        /* TODO: ConditionalAccessExpressionSyntax */;
         if (this.config.debugLogging) {
             this.debug("Prediction request", /* TODO: AnonymousObjectCreationExpressionSyntax */);
         }
@@ -138,17 +148,15 @@ export class ConfidenceEngine {
 
     private debug(message: string, data: any): void {
         if (this.config.debugLogging) {
-            script.call("postMessage", { type: "debug", message: `[ConfidenceEngine] ${message}`, data });
+            /* TODO: ConditionalAccessExpressionSyntax */;
         }
     }
 
 }
 
-export class ConfidenceEngineWorker {
-    private engine: ConfidenceEngine;
-    static main(): void {
-        engine = new ConfidenceEngine();
-        script.call("self.addEventListener", "message", new Action<MessageEvent>(/* TODO: ParenthesizedLambdaExpressionSyntax */));
+export class ConfidenceEngineFactory {
+    static create(config: ConfidenceEngineConfig, messageSender: IWorkerMessageSender): ConfidenceEngine {
+        return new ConfidenceEngine(config, messageSender);
     }
 
 }

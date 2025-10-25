@@ -227,8 +227,8 @@ namespace Minimact.Workers
             double dy = Math.Sin(angle);
 
             // Check intersection with each edge of the box
-            double minDistance = double.PositiveInfinity;
-            TrajectoryPoint intersectionPoint = null;
+            double minDistance_let = double.PositiveInfinity;
+            TrajectoryPoint intersectionPoint_let = null;
 
             // Left edge
             if (dx > 0.001)
@@ -240,10 +240,10 @@ namespace Minimact.Workers
                     if (y >= box.Top && y <= box.Bottom)
                     {
                         double dist = Math.Sqrt(Math.Pow(box.Left - origin.X, 2) + Math.Pow(y - origin.Y, 2));
-                        if (dist < minDistance)
+                        if (dist < minDistance_let)
                         {
-                            minDistance = dist;
-                            intersectionPoint = new TrajectoryPoint { X = box.Left, Y = y, Timestamp = 0 };
+                            minDistance_let = dist;
+                            intersectionPoint_let = new TrajectoryPoint { X = box.Left, Y = y, Timestamp = 0 };
                         }
                     }
                 }
@@ -259,10 +259,10 @@ namespace Minimact.Workers
                     if (y >= box.Top && y <= box.Bottom)
                     {
                         double dist = Math.Sqrt(Math.Pow(box.Right - origin.X, 2) + Math.Pow(y - origin.Y, 2));
-                        if (dist < minDistance)
+                        if (dist < minDistance_let)
                         {
-                            minDistance = dist;
-                            intersectionPoint = new TrajectoryPoint { X = box.Right, Y = y, Timestamp = 0 };
+                            minDistance_let = dist;
+                            intersectionPoint_let = new TrajectoryPoint { X = box.Right, Y = y, Timestamp = 0 };
                         }
                     }
                 }
@@ -278,10 +278,10 @@ namespace Minimact.Workers
                     if (x >= box.Left && x <= box.Right)
                     {
                         double dist = Math.Sqrt(Math.Pow(x - origin.X, 2) + Math.Pow(box.Top - origin.Y, 2));
-                        if (dist < minDistance)
+                        if (dist < minDistance_let)
                         {
-                            minDistance = dist;
-                            intersectionPoint = new TrajectoryPoint { X = x, Y = box.Top, Timestamp = 0 };
+                            minDistance_let = dist;
+                            intersectionPoint_let = new TrajectoryPoint { X = x, Y = box.Top, Timestamp = 0 };
                         }
                     }
                 }
@@ -297,21 +297,21 @@ namespace Minimact.Workers
                     if (x >= box.Left && x <= box.Right)
                     {
                         double dist = Math.Sqrt(Math.Pow(x - origin.X, 2) + Math.Pow(box.Bottom - origin.Y, 2));
-                        if (dist < minDistance)
+                        if (dist < minDistance_let)
                         {
-                            minDistance = dist;
-                            intersectionPoint = new TrajectoryPoint { X = x, Y = box.Bottom, Timestamp = 0 };
+                            minDistance_let = dist;
+                            intersectionPoint_let = new TrajectoryPoint { X = x, Y = box.Bottom, Timestamp = 0 };
                         }
                     }
                 }
             }
 
-            if (intersectionPoint != null && minDistance < double.PositiveInfinity)
+            if (intersectionPoint_let != null && minDistance_let < double.PositiveInfinity)
             {
                 return new RayIntersectionResult
                 {
-                    Distance = minDistance,
-                    Point = intersectionPoint
+                    Distance = minDistance_let,
+                    Point = intersectionPoint_let
                 };
             }
 
