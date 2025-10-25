@@ -6,35 +6,11 @@
  * NOT data sync. IDENTITY sync.
  * The same element existing in two places at once.
  */
-
 export { EntanglementManager } from './entanglement-manager';
-export {
-  serializeMutation,
-  serializeValueChange,
-  serializeStyleChange,
-  serializePositionChange,
-  applyMutationVector,
-  getElementSelector
-} from './mutation-serializer';
-
-export type {
-  MutationVector,
-  SerializedNode,
-  EntanglementBinding,
-  QuantumLink,
-  EntanglementConfig,
-  SignalRManager,
-  RegisterEntanglementRequest,
-  PropagateQuantumMutationRequest,
-  QuantumMutationEvent
-} from './types';
-
-import type { EntanglementConfig } from './types';
+export { serializeMutation, serializeValueChange, serializeStyleChange, serializePositionChange, applyMutationVector, getElementSelector } from './mutation-serializer';
 import { EntanglementManager } from './entanglement-manager';
-
 export const VERSION = '0.1.0';
 export const CODENAME = 'WebWormhole';
-
 /**
  * Quick start helper
  *
@@ -55,6 +31,6 @@ export const CODENAME = 'WebWormhole';
  * }, 'bidirectional');
  * ```
  */
-export function createQuantumManager(config: EntanglementConfig): EntanglementManager {
-  return new EntanglementManager(config);
+export function createQuantumManager(config) {
+    return new EntanglementManager(config);
 }
