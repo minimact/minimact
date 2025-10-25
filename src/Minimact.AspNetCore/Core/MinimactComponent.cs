@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.SignalR;
+using Minimact.AspNetCore.DynamicState;
 
 namespace Minimact.AspNetCore.Core;
 
@@ -54,12 +55,19 @@ public abstract class MinimactComponent
     /// </summary>
     protected LifecycleStateMachine? Lifecycle { get; set; }
 
+    /// <summary>
+    /// Dynamic value compiler for this component
+    /// Enables minimal dynamic bindings: Structure ONCE. Bind SEPARATELY. Update DIRECTLY.
+    /// </summary>
+    protected DynamicValueCompiler DynamicBindings { get; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
         State = new Dictionary<string, object>();
         PreviousState = new Dictionary<string, object>();
         ClientState = new Dictionary<string, object>();
+        DynamicBindings = new DynamicValueCompiler();
     }
 
     /// <summary>
@@ -73,6 +81,48 @@ public abstract class MinimactComponent
     public VNode RenderComponent()
     {
         return Render();
+    }
+
+    /// <summary>
+    /// Override this to register dynamic value bindings
+    /// Called before rendering to set up minimal dynamic bindings
+    ///
+    /// Example:
+    /// <code>
+    /// protected override void ConfigureDynamicBindings()
+    /// {
+    ///     DynamicBindings.RegisterBinding(".price", (state) =>
+    ///     {
+    ///         var s = (MyState)state;
+    ///         return s.IsPremium ? s.FactoryPrice : s.RetailPrice;
+    ///     });
+    /// }
+    /// </code>
+    /// </summary>
+    protected virtual void ConfigureDynamicBindings()
+    {
+        // Override in derived components to register bindings
+    }
+
+    /// <summary>
+    /// Render with dynamic bindings compiled
+    /// Server evaluates binding functions and inserts values into VNode tree
+    /// </summary>
+    public VNode RenderWithDynamicBindings()
+    {
+        // Call user's dynamic binding configuration
+        ConfigureDynamicBindings();
+
+        // Render normal VNode tree
+        var vnode = Render();
+
+        // Apply dynamic bindings to VNode tree
+        DynamicBindings.ApplyToVNode(vnode, State);
+
+        // Clear bindings for next render
+        DynamicBindings.Clear();
+
+        return vnode;
     }
 
     /// <summary>

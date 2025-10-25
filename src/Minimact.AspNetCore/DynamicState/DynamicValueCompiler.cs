@@ -1,26 +1,21 @@
 using System.Text.Json;
-using AngleSharp.Dom;
-using AngleSharp.Html.Parser;
+using Minimact.AspNetCore.Core;
 
 namespace Minimact.AspNetCore.DynamicState;
 
 /// <summary>
 /// Server-side compiler for dynamic value bindings
-/// Evaluates functions with current state and inserts values into HTML
+/// Evaluates functions with current state and applies values to VNode tree
 ///
 /// Philosophy: Structure ONCE. Bind SEPARATELY. Update DIRECTLY.
 /// </summary>
 public class DynamicValueCompiler
 {
     private readonly List<DynamicBinding> _bindings = new();
-    private readonly HtmlParser _parser = new();
 
     /// <summary>
     /// Register a dynamic value binding
     /// </summary>
-    /// <param name="selector">CSS selector</param>
-    /// <param name="fn">Function that returns value based on state</param>
-    /// <param name="dependencies">Dependency paths (optional, for optimization)</param>
     public void RegisterBinding(string selector, Func<object, object> fn, List<string>? dependencies = null)
     {
         _bindings.Add(new DynamicBinding
@@ -105,13 +100,11 @@ public class DynamicValueCompiler
     }
 
     /// <summary>
-    /// Compile HTML with dynamic values evaluated and inserted
-    /// Server evaluates functions → renders values → attaches metadata for hydration
+    /// Apply dynamic bindings to VNode tree
+    /// Server evaluates functions → inserts values → attaches metadata
     /// </summary>
-    public string CompileHtml(string html, object state)
+    public void ApplyToVNode(VNode vnode, object state)
     {
-        var document = _parser.ParseDocument(html);
-
         foreach (var binding in _bindings)
         {
             try
@@ -120,85 +113,98 @@ public class DynamicValueCompiler
                 var value = binding.Function(state);
                 binding.CurrentValue = value;
 
-                // Find elements matching selector
-                var elements = document.QuerySelectorAll(binding.Selector);
-
-                if (elements.Length == 0)
-                {
-                    // Not an error - element might not exist in this render
-                    continue;
-                }
-
-                foreach (var element in elements)
-                {
-                    ApplyBinding(element, binding, value);
-
-                    // Attach binding metadata for hydration
-                    AttachBindingMetadata(element, binding);
-                }
+                // Apply binding to VNode tree
+                ApplyBindingToTree(vnode, binding, value);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Minimact] Error evaluating binding '{binding.Selector}': {ex.Message}");
             }
         }
+    }
 
-        return document.DocumentElement?.OuterHtml ?? html;
+    /// <summary>
+    /// Apply binding to VNode tree recursively
+    /// </summary>
+    private void ApplyBindingToTree(VNode vnode, DynamicBinding binding, object value)
+    {
+        // Only work with VElement (not VText)
+        if (vnode is not VElement element)
+        {
+            return;
+        }
+
+        // Match on className (simplified selector matching)
+        var selectorClass = binding.Selector.TrimStart('.');
+
+        if (MatchesSelector(element, selectorClass))
+        {
+            ApplyBinding(element, binding, value);
+            AttachBindingMetadata(element, binding);
+        }
+
+        // Recurse through children
+        foreach (var child in element.Children)
+        {
+            ApplyBindingToTree(child, binding, value);
+        }
+    }
+
+    /// <summary>
+    /// Check if VElement matches selector (simplified - only class matching for now)
+    /// </summary>
+    private bool MatchesSelector(VElement element, string selectorClass)
+    {
+        if (element.Props.TryGetValue("className", out var className))
+        {
+            var classNames = className.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return classNames.Contains(selectorClass);
+        }
+
+        return false;
     }
 
     /// <summary>
     /// Apply binding based on type
     /// </summary>
-    private void ApplyBinding(IElement element, DynamicBinding binding, object value)
+    private void ApplyBinding(VElement element, DynamicBinding binding, object value)
     {
         switch (binding.Type)
         {
             case DynamicBindingType.Value:
-                // Insert value into element - MINIMAL
-                element.TextContent = value?.ToString() ?? "";
+                // Set text content
+                element.Children = new List<VNode> { new VText(value?.ToString() ?? "") };
                 break;
 
             case DynamicBindingType.Attribute:
                 // Update attribute
                 var attrName = binding.Metadata.GetValueOrDefault("attribute", "");
-                element.SetAttribute(attrName, value?.ToString() ?? "");
+                element.Props[attrName] = value?.ToString() ?? "";
                 break;
 
             case DynamicBindingType.Class:
                 // Update class
-                element.ClassName = value?.ToString() ?? "";
+                element.Props["className"] = value?.ToString() ?? "";
                 break;
 
             case DynamicBindingType.Style:
                 // Update style property
                 var property = binding.Metadata.GetValueOrDefault("property", "");
-                var htmlElement = element as IHtmlElement;
-                if (htmlElement != null)
-                {
-                    var currentStyle = htmlElement.GetAttribute("style") ?? "";
-                    var newStyle = UpdateStyleProperty(currentStyle, property, value?.ToString() ?? "");
-                    htmlElement.SetAttribute("style", newStyle);
-                }
+                var currentStyle = element.Props.GetValueOrDefault("style", "");
+                var newStyle = UpdateStyleProperty(currentStyle, property, value?.ToString() ?? "");
+                element.Props["style"] = newStyle;
                 break;
 
             case DynamicBindingType.Show:
                 // Update visibility
                 var visible = value is bool b && b;
-                var htmlElem = element as IHtmlElement;
-                if (htmlElem != null)
-                {
-                    var style = htmlElem.GetAttribute("style") ?? "";
-                    var newStyle = UpdateStyleProperty(style, "display", visible ? "" : "none");
-                    htmlElem.SetAttribute("style", newStyle);
-                }
+                var style = element.Props.GetValueOrDefault("style", "");
+                var updatedStyle = UpdateStyleProperty(style, "display", visible ? "" : "none");
+                element.Props["style"] = updatedStyle;
                 break;
 
             case DynamicBindingType.Order:
-                // DOM Choreography - rearrange children
-                if (value is string[] childSelectors)
-                {
-                    RearrangeChildren(element, childSelectors);
-                }
+                // DOM Choreography - would need container-specific logic
                 break;
         }
     }
@@ -227,42 +233,10 @@ public class DynamicValueCompiler
     }
 
     /// <summary>
-    /// Rearrange child elements based on selector order (DOM Choreography)
-    /// </summary>
-    private void RearrangeChildren(IElement container, string[] childSelectors)
-    {
-        // Find children matching selectors
-        var orderedChildren = new List<IElement>();
-
-        foreach (var selector in childSelectors)
-        {
-            // Try to find in container first
-            var child = container.QuerySelector(selector);
-
-            // If not in container, search in document (for teleportation)
-            if (child == null)
-            {
-                child = container.Owner?.QuerySelector(selector);
-            }
-
-            if (child != null)
-            {
-                orderedChildren.Add(child);
-            }
-        }
-
-        // Append in new order (moves elements)
-        foreach (var child in orderedChildren)
-        {
-            container.AppendChild(child);
-        }
-    }
-
-    /// <summary>
     /// Attach binding metadata for hydration
     /// Client reads this to know which bindings to register
     /// </summary>
-    private void AttachBindingMetadata(IElement element, DynamicBinding binding)
+    private void AttachBindingMetadata(VElement element, DynamicBinding binding)
     {
         var metadata = new
         {
@@ -272,18 +246,7 @@ public class DynamicValueCompiler
             type = binding.Type.ToString().ToLower()
         };
 
-        element.SetAttribute("data-minimact-binding", JsonSerializer.Serialize(metadata));
-    }
-
-    /// <summary>
-    /// Extract dependencies from function
-    /// (In real implementation, Babel transpiler does this)
-    /// </summary>
-    private List<string> ExtractDependencies(Func<object, object> fn)
-    {
-        // Placeholder - Babel transpiler would inject this metadata
-        // For now, return empty list
-        return new List<string>();
+        element.Props["data-minimact-binding"] = JsonSerializer.Serialize(metadata);
     }
 
     /// <summary>
