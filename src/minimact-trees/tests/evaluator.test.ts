@@ -297,15 +297,15 @@ describe('evaluateTree', () => {
     it('should determine workflow action', () => {
       const tree = {
         orderStatusPending: {
-          paymentMethodCredit-card: {
-            inventoryIn-stock: 'authorize-payment',
-            inventoryOut-of-stock: 'notify-backorder'
+          'paymentMethodCredit-card': {
+            'inventoryIn-stock': 'authorize-payment',
+            'inventoryOut-of-stock': 'notify-backorder'
           },
           paymentMethodPaypal: 'redirect-paypal'
         },
         orderStatusConfirmed: {
-          inventoryIn-stock: 'prepare-shipment',
-          inventoryOut-of-stock: 'notify-delay'
+          'inventoryIn-stock': 'prepare-shipment',
+          'inventoryOut-of-stock': 'notify-delay'
         },
         orderStatusShipped: 'send-tracking-email'
       };

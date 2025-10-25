@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseKey } from '../src/key-parser';
+import { parseStateKey as parseKey } from '../src/parser';
 
 describe('parseKey', () => {
   describe('String Values', () => {
