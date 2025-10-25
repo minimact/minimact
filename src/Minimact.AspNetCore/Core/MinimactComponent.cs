@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.SignalR;
-using Minimact.AspNetCore.SignalR;
 using Minimact.AspNetCore.DynamicState;
+using Minimact.AspNetCore.Abstractions;
 
 namespace Minimact.AspNetCore.Core;
 
@@ -36,9 +35,9 @@ public abstract class MinimactComponent
     internal VNode? CurrentVNode { get; set; }
 
     /// <summary>
-    /// Hub context for sending updates to client
+    /// Patch sender for sending updates to client (abstracted transport layer)
     /// </summary>
-    internal IHubContext<MinimactHub>? HubContext { get; set; }
+    internal IPatchSender? PatchSender { get; set; }
 
     /// <summary>
     /// Global predictor instance (shared across all components)
@@ -332,7 +331,7 @@ public abstract class MinimactComponent
     /// </summary>
     internal void TriggerRender()
     {
-        if (CurrentVNode == null || HubContext == null || ConnectionId == null)
+        if (CurrentVNode == null || PatchSender == null || ConnectionId == null)
         {
             // First render - no prediction needed
             CurrentVNode = VNode.Normalize(Render());
@@ -373,12 +372,7 @@ public abstract class MinimactComponent
                 Console.WriteLine($"[Minimact] Prediction: {prediction.Patches.Count} patches with {prediction.Confidence:F2} confidence");
 
                 // Send prediction immediately for instant UI feedback
-                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyPrediction", new
-                {
-                    componentId = ComponentId,
-                    patches = prediction.Patches,
-                    confidence = prediction.Confidence
-                });
+                _ = PatchSender.SendHintAsync(ComponentId, $"predict_{key}", prediction.Patches, prediction.Confidence);
             }
         }
 
@@ -398,17 +392,13 @@ public abstract class MinimactComponent
             {
                 Console.WriteLine($"[Minimact] Prediction was wrong, sending correction");
 
-                // Send correction
-                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyCorrection", new
-                {
-                    componentId = ComponentId,
-                    patches = actualPatches
-                });
+                // Send correction as regular patches
+                _ = PatchSender.SendPatchesAsync(ComponentId, actualPatches);
             }
             else if (prediction == null)
             {
                 // No prediction was made, send patches normally
-                _ = HubContext.Clients.Client(ConnectionId).SendAsync("ApplyPatches", ComponentId, actualPatches);
+                _ = PatchSender.SendPatchesAsync(ComponentId, actualPatches);
             }
             // If prediction was correct, do nothing - client already has the correct state!
         }
@@ -525,7 +515,7 @@ public abstract class MinimactComponent
     /// </summary>
     protected void RegisterHint(string hintId, Dictionary<string, object> predictedState)
     {
-        if (CurrentVNode == null || HubContext == null || ConnectionId == null || GlobalPredictor == null)
+        if (CurrentVNode == null || PatchSender == null || ConnectionId == null || GlobalPredictor == null)
         {
             return;
         }
@@ -552,14 +542,7 @@ public abstract class MinimactComponent
             Console.WriteLine($"[Minimact] Hint '{hintId}': {result.Data.Patches.Count} patches queued with {result.Data.Confidence:F2} confidence");
 
             // Send hint to client to queue
-            _ = HubContext.Clients.Client(ConnectionId).SendAsync("QueueHint", new
-            {
-                componentId = ComponentId,
-                hintId = hintId,
-                patches = result.Data.Patches,
-                confidence = result.Data.Confidence,
-                predictedState = predictedState
-            });
+            _ = PatchSender.SendHintAsync(ComponentId, hintId, result.Data.Patches, result.Data.Confidence);
         }
         else
         {

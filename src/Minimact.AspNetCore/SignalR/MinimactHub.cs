@@ -1,22 +1,8 @@
 using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Abstractions;
 
 namespace Minimact.AspNetCore.SignalR;
-
-/// <summary>
-/// Snapshot of DOM element state from useDomElementState hook
-/// </summary>
-public class DomElementStateSnapshot
-{
-    public bool IsIntersecting { get; set; }
-    public double IntersectionRatio { get; set; }
-    public int ChildrenCount { get; set; }
-    public int GrandChildrenCount { get; set; }
-    public Dictionary<string, string> Attributes { get; set; } = new();
-    public List<string> ClassList { get; set; } = new();
-    public bool Exists { get; set; }
-    public int Count { get; set; }
-}
 
 /// <summary>
 /// SignalR Hub for real-time component updates
@@ -26,11 +12,13 @@ public class MinimactHub : Hub
 {
     private readonly ComponentRegistry _registry;
     private readonly IHubContext<MinimactHub> _hubContext;
+    private readonly SignalRPatchSender _patchSender;
 
     public MinimactHub(ComponentRegistry registry, IHubContext<MinimactHub> hubContext)
     {
         _registry = registry;
         _hubContext = hubContext;
+        _patchSender = new SignalRPatchSender(hubContext, registry);
     }
 
     /// <summary>
@@ -42,7 +30,7 @@ public class MinimactHub : Hub
         if (component != null)
         {
             component.ConnectionId = Context.ConnectionId;
-            component.HubContext = _hubContext;
+            component.PatchSender = _patchSender;
         }
 
         await Task.CompletedTask;
