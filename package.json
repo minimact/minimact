@@ -1,0 +1,25 @@
+{
+  "name": "minimact-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimact framework and extensions monorepo",
+  "scripts": {
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:dynamic": "vitest src/minimact-dynamic",
+    "test:punch": "vitest src/minimact-punch",
+    "test:quantum": "vitest src/minimact-quantum",
+    "test:query": "vitest src/minimact-query",
+    "test:spatial": "vitest src/minimact-spatial",
+    "test:trees": "vitest src/minimact-trees"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "happy-dom": "^12.10.3",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
