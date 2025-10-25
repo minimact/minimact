@@ -1,0 +1,40 @@
+{
+  "name": "minimact-dynamic",
+  "version": "0.1.0",
+  "description": "Minimal dynamic value bindings for Minimact - separate structure from content",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "minimact",
+    "dynamic",
+    "minimal",
+    "binding",
+    "react",
+    "dom",
+    "performance"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/react": "^18.0.0",
+    "rollup": "^3.0.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.0"
+  }
+}
