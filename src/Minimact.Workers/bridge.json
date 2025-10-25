@@ -1,0 +1,36 @@
+{
+  "output": "bin/Release/net472",
+  "outputFormatting": "Formatted",
+  "sourceMap": {
+    "enabled": true,
+    "embeddingSources": true
+  },
+  "webProject": {
+    "disabled": true
+  },
+  "html": {
+    "disabled": true
+  },
+  "logging": {
+    "level": "Info",
+    "timeStamps": true
+  },
+  "rules": {
+    "anonymousType": "plain",
+    "arrayIndex": "managed",
+    "autoProperty": "plain",
+    "integer": "managed"
+  },
+  "module": {
+    "type": "none"
+  },
+  "fileName": "minimact-workers.js",
+  "minify": {
+    "enabled": false
+  },
+  "combine": false,
+  "report": {
+    "enabled": true,
+    "path": "bridge-report.log"
+  }
+}
