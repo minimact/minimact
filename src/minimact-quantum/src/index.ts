@@ -17,6 +17,13 @@ export {
   applyMutationVector,
   getElementSelector
 } from './mutation-serializer';
+export {
+  transform,
+  transformBatch,
+  compose,
+  canCompose,
+  invert
+} from './operational-transform';
 
 export type {
   MutationVector,
@@ -29,6 +36,7 @@ export type {
   PropagateQuantumMutationRequest,
   QuantumMutationEvent
 } from './types';
+export type { Operation } from './operational-transform';
 
 import type { EntanglementConfig } from './types';
 import { EntanglementManager } from './entanglement-manager';

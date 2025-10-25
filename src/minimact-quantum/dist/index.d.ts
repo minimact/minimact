@@ -9,7 +9,9 @@
 export { EntanglementManager } from './entanglement-manager';
 export { RetryQueue } from './retry-queue';
 export { serializeMutation, serializeValueChange, serializeStyleChange, serializePositionChange, applyMutationVector, getElementSelector } from './mutation-serializer';
+export { transform, transformBatch, compose, canCompose, invert } from './operational-transform';
 export type { MutationVector, SerializedNode, EntanglementBinding, QuantumLink, EntanglementConfig, SignalRManager, RegisterEntanglementRequest, PropagateQuantumMutationRequest, QuantumMutationEvent } from './types';
+export type { Operation } from './operational-transform';
 import type { EntanglementConfig } from './types';
 import { EntanglementManager } from './entanglement-manager';
 export declare const VERSION = "0.1.0";

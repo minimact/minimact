@@ -51,6 +51,44 @@ export interface SerializedNode {
 }
 
 /**
+ * Transform function for value mapping
+ */
+export type TransformFunction = (value: any) => any;
+
+/**
+ * Bidirectional transform (for custom transformations)
+ */
+export interface BidirectionalTransform {
+  /** Transform from local to remote */
+  forward: TransformFunction;
+  /** Transform from remote to local (inverse) */
+  backward: TransformFunction;
+}
+
+/**
+ * Entanglement options (extended configuration)
+ */
+export interface EntanglementOptions {
+  /** Entanglement mode */
+  mode?: 'mirror' | 'inverse' | 'bidirectional' | 'transform';
+
+  /** Custom transform function (if mode is 'transform') */
+  transform?: TransformFunction | BidirectionalTransform;
+
+  /** Only sync specific attributes (selective entanglement) */
+  attributes?: string[];
+
+  /** Ignore specific attributes */
+  ignoreAttributes?: string[];
+
+  /** Only sync specific properties */
+  properties?: string[];
+
+  /** Ignore specific properties */
+  ignoreProperties?: string[];
+}
+
+/**
  * Entanglement binding - links elements across clients
  */
 export interface EntanglementBinding {
@@ -73,10 +111,13 @@ export interface EntanglementBinding {
   mode: 'mirror' | 'inverse' | 'bidirectional' | 'transform';
 
   /** Transform function (if mode is 'transform') */
-  transform?: (value: any) => any;
+  transform?: TransformFunction | BidirectionalTransform;
 
   /** Scope (who can see this entanglement) */
   scope: 'private' | 'team' | 'public';
+
+  /** Selective entanglement filters */
+  options?: EntanglementOptions;
 }
 
 /**

@@ -19,6 +19,8 @@ export declare class EntanglementManager {
     private observers;
     private debugLogging;
     private retryQueue;
+    private pendingOperations;
+    private localOperationBuffer;
     constructor(config: EntanglementConfig);
     /**
      * Entangle a local element with a remote element
@@ -80,6 +82,24 @@ export declare class EntanglementManager {
      * Clear persisted entanglements
      */
     clearPersistedEntanglements(): void;
+    /**
+     * Convert MutationVector to Operation for OT processing
+     */
+    private mutationVectorToOperation;
+    /**
+     * Apply mutation with Operational Transform
+     * Transforms the mutation against pending operations before applying
+     */
+    private applyMutationWithOT;
+    /**
+     * Apply an Operation to a DOM element
+     */
+    private applyOperation;
+    /**
+     * Track local operation before sending
+     * This allows us to transform incoming operations against our pending changes
+     */
+    private trackLocalOperation;
     /**
      * Debug logging
      */

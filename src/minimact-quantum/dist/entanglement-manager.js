@@ -7,6 +7,7 @@
  */
 import { serializeMutation, applyMutationVector, getElementSelector } from './mutation-serializer';
 import { RetryQueue } from './retry-queue';
+import { transform, compose, canCompose } from './operational-transform';
 /**
  * Entanglement Manager - Client Side
  *
@@ -16,6 +17,9 @@ export class EntanglementManager {
     constructor(config) {
         this.bindings = new Map();
         this.observers = new Map();
+        // Operational Transform support
+        this.pendingOperations = new Map(); // key: selector
+        this.localOperationBuffer = new Map(); // key: entanglementId
         this.clientId = config.clientId;
         this.signalR = config.signalR;
         this.sessionId = config.sessionId;
@@ -153,6 +157,8 @@ export class EntanglementManager {
      * Propagate mutation to server (with automatic retry on failure)
      */
     async propagateMutation(entanglementId, vector) {
+        // Track local operation for OT (before sending)
+        this.trackLocalOperation(entanglementId, vector);
         try {
             await this.signalR.invoke('PropagateQuantumMutation', {
                 entanglementId,
@@ -188,10 +194,8 @@ export class EntanglementManager {
             if (!binding) {
                 return;
             }
-            // Apply mutation to local element
-            applyMutationVector(event.vector);
-            this.log(`✨ Applied quantum mutation from ${event.sourceClient}: ` +
-                `${event.vector.type} on ${event.vector.target}`);
+            // Apply mutation with Operational Transform
+            this.applyMutationWithOT(event.entanglementId, event.vector, event.sourceClient);
             // Emit awareness event
             this.emitAwarenessEvent(event);
         });
@@ -285,6 +289,157 @@ export class EntanglementManager {
     clearPersistedEntanglements() {
         localStorage.removeItem('minimact-quantum-entanglements');
         this.log('🧹 Cleared persisted entanglements');
+    }
+    /**
+     * Convert MutationVector to Operation for OT processing
+     */
+    mutationVectorToOperation(vector) {
+        const timestamp = vector.timestamp;
+        switch (vector.type) {
+            case 'value':
+                // Text input change
+                return {
+                    type: 'setProperty',
+                    propertyName: 'value',
+                    value: vector.newValue,
+                    oldValue: vector.oldValue,
+                    timestamp,
+                    clientId: this.clientId
+                };
+            case 'attributes':
+                if (vector.attributeName) {
+                    return {
+                        type: 'setAttribute',
+                        attributeName: vector.attributeName,
+                        value: vector.newValue,
+                        oldValue: vector.oldValue,
+                        timestamp,
+                        clientId: this.clientId
+                    };
+                }
+                break;
+            case 'characterData':
+                // Text content change - treat as text operation
+                // This is simplified - full implementation would track position
+                return {
+                    type: 'setProperty',
+                    propertyName: 'textContent',
+                    value: vector.newValue,
+                    oldValue: vector.oldValue,
+                    timestamp,
+                    clientId: this.clientId
+                };
+            case 'style':
+                return {
+                    type: 'setAttribute',
+                    attributeName: 'style',
+                    value: vector.newValue,
+                    oldValue: vector.oldValue,
+                    timestamp,
+                    clientId: this.clientId
+                };
+            // childList mutations are complex - skip OT for now
+            case 'childList':
+            case 'position':
+                return null;
+        }
+        return null;
+    }
+    /**
+     * Apply mutation with Operational Transform
+     * Transforms the mutation against pending operations before applying
+     */
+    applyMutationWithOT(entanglementId, vector, sourceClient) {
+        // Convert to operation
+        const remoteOp = this.mutationVectorToOperation(vector);
+        if (!remoteOp) {
+            // Can't transform this mutation type - apply directly
+            applyMutationVector(vector);
+            this.log(`✨ Applied mutation (no OT): ${vector.type} on ${vector.target}`);
+            return;
+        }
+        // Override clientId to reflect source
+        remoteOp.clientId = sourceClient;
+        // Get pending local operations for this target
+        const pending = this.pendingOperations.get(vector.target) || [];
+        if (pending.length === 0) {
+            // No pending operations - apply directly
+            this.applyOperation(remoteOp, vector.target);
+            this.log(`✨ Applied mutation (no conflicts): ${vector.type} on ${vector.target}`);
+            return;
+        }
+        // Transform remote operation against all pending local operations
+        let transformedOp = remoteOp;
+        for (const localOp of pending) {
+            transformedOp = transform(transformedOp, localOp);
+        }
+        // Apply transformed operation
+        this.applyOperation(transformedOp, vector.target);
+        this.log(`✨ Applied OT-transformed mutation from ${sourceClient}: ` +
+            `${vector.type} on ${vector.target} (transformed against ${pending.length} local op(s))`);
+        // Clear pending operations for this target (they've been acknowledged)
+        this.pendingOperations.delete(vector.target);
+    }
+    /**
+     * Apply an Operation to a DOM element
+     */
+    applyOperation(op, selector) {
+        const element = document.querySelector(selector);
+        if (!element) {
+            console.warn(`[minimact-quantum] Element not found: ${selector}`);
+            return;
+        }
+        switch (op.type) {
+            case 'setAttribute':
+                if (op.attributeName && op.value !== null && op.value !== undefined) {
+                    element.setAttribute(op.attributeName, String(op.value));
+                }
+                else if (op.attributeName) {
+                    element.removeAttribute(op.attributeName);
+                }
+                break;
+            case 'removeAttribute':
+                if (op.attributeName) {
+                    element.removeAttribute(op.attributeName);
+                }
+                break;
+            case 'setProperty':
+                if (op.propertyName) {
+                    element[op.propertyName] = op.value;
+                }
+                break;
+            case 'insert':
+            case 'delete':
+            case 'retain':
+                // Text operations - would need more complex handling
+                console.warn(`[minimact-quantum] Text operation not yet implemented: ${op.type}`);
+                break;
+        }
+    }
+    /**
+     * Track local operation before sending
+     * This allows us to transform incoming operations against our pending changes
+     */
+    trackLocalOperation(entanglementId, vector) {
+        const op = this.mutationVectorToOperation(vector);
+        if (!op)
+            return;
+        // Get pending operations for this target
+        const pending = this.pendingOperations.get(vector.target) || [];
+        // Try to compose with last operation if possible
+        if (pending.length > 0) {
+            const lastOp = pending[pending.length - 1];
+            if (canCompose(lastOp, op)) {
+                // Compose operations (optimization)
+                pending[pending.length - 1] = compose(lastOp, op);
+                this.log(`🔗 Composed operation with previous: ${op.type}`);
+                return;
+            }
+        }
+        // Add to pending
+        pending.push(op);
+        this.pendingOperations.set(vector.target, pending);
+        this.log(`📝 Tracked local operation: ${op.type} on ${vector.target} (${pending.length} pending)`);
     }
     /**
      * Debug logging
