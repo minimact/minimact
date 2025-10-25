@@ -1,7 +1,5 @@
 'use strict';
 
-var react = require('react');
-
 /**
  * minimact-dynamic - Dependency Tracker
  *
@@ -304,10 +302,9 @@ class ValueUpdater {
 }
 
 /**
- * minimact-dynamic - useDynamicState Hook
+ * Minimact Integration Layer for Dynamic State
  *
- * The core hook that enables minimal dynamic value bindings.
- *
+ * Provides dynamic value bindings without React dependencies.
  * Philosophy: Structure ONCE. Bind SEPARATELY. Update DIRECTLY.
  */
 /**
@@ -337,24 +334,20 @@ class ValueUpdater {
  * ```
  */
 function useDynamicState(initialState) {
-    const [state, setState] = react.useState(initialState);
-    const prevStateRef = react.useRef(initialState);
-    const bindingsRef = react.useRef(new Map());
-    const orderBindingsRef = react.useRef(new Map());
-    const updaterRef = react.useRef(new ValueUpdater());
-    const isHydratedRef = react.useRef(false);
-    // HYDRATION: Read pre-rendered bindings from server
-    react.useEffect(() => {
-        if (!isHydratedRef.current) {
-            hydrateBindings();
-            isHydratedRef.current = true;
-        }
-    }, []);
+    let state = initialState;
+    let prevState = initialState;
+    const bindings = new Map();
+    const orderBindings = new Map();
+    const updater = new ValueUpdater();
+    let isHydrated = false;
     /**
      * Hydrate bindings from server-rendered HTML
      * Server has already evaluated functions and rendered values
      */
     const hydrateBindings = () => {
+        if (isHydrated)
+            return;
+        isHydrated = true;
         const bindingElements = document.querySelectorAll('[data-minimact-binding]');
         bindingElements.forEach(el => {
             const metadataJson = el.getAttribute('data-minimact-binding');
@@ -374,15 +367,19 @@ function useDynamicState(initialState) {
             console.log(`[minimact-dynamic] Hydrated ${bindingElements.length} bindings in < 5ms`);
         }
     };
+    // Hydrate on first call
+    if (typeof document !== 'undefined') {
+        queueMicrotask(hydrateBindings);
+    }
     /**
      * Register a dynamic value binding
      */
-    const registerBinding = react.useCallback((selector, fn) => {
+    const registerBinding = (selector, fn) => {
         // Track dependencies by executing function once with tracking proxy
         const { result: initialValue, dependencies } = trackDependencies(state, fn);
         const bindingId = `binding_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         // Store binding
-        bindingsRef.current.set(selector, {
+        bindings.set(selector, {
             bindingId,
             selector,
             fn,
@@ -390,18 +387,18 @@ function useDynamicState(initialState) {
             currentValue: initialValue
         });
         // Render initial value to DOM
-        updaterRef.current.updateValue(selector, initialValue);
+        updater.updateValue(selector, initialValue);
         console.log(`[minimact-dynamic] Registered binding '${selector}' with dependencies:`, dependencies);
-    }, [state]);
+    };
     /**
      * Register element order binding (DOM CHOREOGRAPHY)
      */
-    const registerOrderBinding = react.useCallback((containerSelector, fn) => {
+    const registerOrderBinding = (containerSelector, fn) => {
         // Track dependencies
         const { result: initialOrder, dependencies } = trackDependencies(state, fn);
         const bindingId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         // Store binding
-        orderBindingsRef.current.set(containerSelector, {
+        orderBindings.set(containerSelector, {
             bindingId,
             containerSelector,
             fn,
@@ -409,18 +406,17 @@ function useDynamicState(initialState) {
             currentOrder: initialOrder
         });
         // Apply initial order
-        updaterRef.current.updateOrder(containerSelector, initialOrder);
+        updater.updateOrder(containerSelector, initialOrder);
         console.log(`[minimact-dynamic] Registered order binding '${containerSelector}' ` +
             `with dependencies:`, dependencies);
-    }, [state]);
+    };
     /**
      * Re-evaluate bindings when state changes
      * Only re-evaluates bindings whose dependencies changed
      */
-    react.useEffect(() => {
-        const prevState = prevStateRef.current;
+    const evaluateBindings = () => {
         // Update value bindings
-        bindingsRef.current.forEach(binding => {
+        bindings.forEach(binding => {
             // Check if any dependencies changed
             const shouldUpdate = hasPathChanged(prevState, state, binding.dependencies);
             if (shouldUpdate) {
@@ -428,7 +424,7 @@ function useDynamicState(initialState) {
                 // Re-evaluate function with new state
                 const newValue = binding.fn(state);
                 // Update DOM directly - MINIMAL (< 1ms target)
-                updaterRef.current.updateValue(binding.selector, newValue);
+                updater.updateValue(binding.selector, newValue);
                 // Update current value
                 binding.currentValue = newValue;
                 const latency = performance.now() - startTime;
@@ -437,14 +433,14 @@ function useDynamicState(initialState) {
             }
         });
         // Update order bindings (DOM Choreography)
-        orderBindingsRef.current.forEach(binding => {
+        orderBindings.forEach(binding => {
             const shouldUpdate = hasPathChanged(prevState, state, binding.dependencies);
             if (shouldUpdate) {
                 const startTime = performance.now();
                 // Re-evaluate order function
                 const newOrder = binding.fn(state);
                 // Update DOM order - Elements move, never destroyed!
-                updaterRef.current.updateOrder(binding.containerSelector, newOrder);
+                updater.updateOrder(binding.containerSelector, newOrder);
                 // Update current order
                 binding.currentOrder = newOrder;
                 const latency = performance.now() - startTime;
@@ -453,19 +449,21 @@ function useDynamicState(initialState) {
             }
         });
         // Store current state for next comparison
-        prevStateRef.current = state;
-    }, [state]);
+        prevState = { ...state };
+    };
     /**
      * Update state
      */
-    const updateState = react.useCallback((updaterOrPartial) => {
+    const updateState = (updaterOrPartial) => {
         if (typeof updaterOrPartial === 'function') {
-            setState(updaterOrPartial);
+            state = updaterOrPartial(state);
         }
         else {
-            setState(prev => ({ ...prev, ...updaterOrPartial }));
+            state = { ...state, ...updaterOrPartial };
         }
-    }, []);
+        // Re-evaluate bindings
+        evaluateBindings();
+    };
     // Build API object
     const api = registerBinding;
     // .order() for DOM choreography
@@ -480,8 +478,8 @@ function useDynamicState(initialState) {
             dependencies,
             currentValue: initialValue
         };
-        bindingsRef.current.set(`${selector}[attr:${attribute}]`, binding);
-        updaterRef.current.updateAttribute(selector, attribute, initialValue);
+        bindings.set(`${selector}[attr:${attribute}]`, binding);
+        updater.updateAttribute(selector, attribute, initialValue);
         console.log(`[minimact-dynamic] Registered attribute binding '${selector}[${attribute}]'`);
     };
     // .class() for class bindings
@@ -494,8 +492,8 @@ function useDynamicState(initialState) {
             dependencies,
             currentValue: initialValue
         };
-        bindingsRef.current.set(`${selector}[class]`, binding);
-        updaterRef.current.updateClass(selector, initialValue);
+        bindings.set(`${selector}[class]`, binding);
+        updater.updateClass(selector, initialValue);
         console.log(`[minimact-dynamic] Registered class binding '${selector}'`);
     };
     // .style() for style bindings
@@ -508,8 +506,8 @@ function useDynamicState(initialState) {
             dependencies,
             currentValue: initialValue
         };
-        bindingsRef.current.set(`${selector}[style:${property}]`, binding);
-        updaterRef.current.updateStyle(selector, property, initialValue);
+        bindings.set(`${selector}[style:${property}]`, binding);
+        updater.updateStyle(selector, property, initialValue);
         console.log(`[minimact-dynamic] Registered style binding '${selector}[${property}]'`);
     };
     // .show() for visibility bindings
@@ -522,18 +520,18 @@ function useDynamicState(initialState) {
             dependencies,
             currentValue: initialValue
         };
-        bindingsRef.current.set(`${selector}[show]`, binding);
-        updaterRef.current.updateVisibility(selector, initialValue);
+        bindings.set(`${selector}[show]`, binding);
+        updater.updateVisibility(selector, initialValue);
         console.log(`[minimact-dynamic] Registered visibility binding '${selector}'`);
     };
     // State management
     api.getState = () => state;
     api.setState = updateState;
     api.clear = () => {
-        bindingsRef.current.clear();
-        orderBindingsRef.current.clear();
+        bindings.clear();
+        orderBindings.clear();
     };
-    api.remove = (selector) => bindingsRef.current.delete(selector);
+    api.remove = (selector) => bindings.delete(selector);
     return api;
 }
 

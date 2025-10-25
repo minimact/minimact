@@ -27,12 +27,8 @@
   ],
   "author": "",
   "license": "MIT",
-  "peerDependencies": {
-    "react": "^18.0.0"
-  },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.0.0",
-    "@types/react": "^18.0.0",
     "rollup": "^3.0.0",
     "tslib": "^2.5.0",
     "typescript": "^5.0.0"

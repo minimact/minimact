@@ -25,7 +25,7 @@
  * ```
  */
 
-export { useDynamicState } from './use-dynamic-state';
+export { useDynamicState } from './integration';
 export { ValueUpdater } from './value-updater';
 export { trackDependencies, hasPathChanged, shallowEqual } from './dependency-tracker';
 

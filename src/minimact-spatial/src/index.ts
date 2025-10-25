@@ -6,7 +6,14 @@
  * Turn spatial regions into reactive data sources.
  */
 
-export { useArea } from './use-area';
+// Integrated mode (with Minimact)
+export {
+  useArea,
+  setComponentContext,
+  clearComponentContext,
+  getCurrentContext,
+  cleanupAreas
+} from './integration';
 
 export {
   calculateBounds,

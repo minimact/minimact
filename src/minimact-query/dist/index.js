@@ -32,5 +32,5 @@
  */
 // Core query builder
 export { DomQueryBuilder, domQuery } from './query-builder';
-// React hooks
-export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced, setQueryContext, clearQueryContext } from './use-dom-query';
+// Minimact hooks
+export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced, setQueryContext, clearQueryContext } from './integration';

@@ -34,7 +34,7 @@
 // Core query builder
 export { DomQueryBuilder, domQuery } from './query-builder';
 
-// React hooks
+// Minimact hooks
 export {
   useDomQuery,
   useDomQueryStatic,
@@ -42,7 +42,7 @@ export {
   useDomQueryDebounced,
   setQueryContext,
   clearQueryContext
-} from './use-dom-query';
+} from './integration';
 
 // Re-export types from minimact-punch for convenience
 export type { DomElementState } from 'minimact-punch';
