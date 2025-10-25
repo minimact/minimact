@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Bridge;
 
 namespace Minimact.Workers
 {
@@ -70,7 +69,6 @@ namespace Minimact.Workers
         /// <summary>
         /// Focus confidence result
         /// </summary>
-        [ObjectLiteral]
         public class FocusConfidenceResult
         {
             public double Confidence { get; set; }
@@ -139,7 +137,6 @@ namespace Minimact.Workers
         /// <summary>
         /// Focus prediction result
         /// </summary>
-        [ObjectLiteral]
         public class FocusPredictionResult
         {
             public string ElementId { get; set; }

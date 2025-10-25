@@ -1,10 +1,18 @@
 using System;
 using System.Collections.Generic;
-using Bridge;
-using Bridge.Html5;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Minimact.Workers
 {
+    /// <summary>
+    /// Interface for web worker message posting
+    /// </summary>
+    public interface IWorkerMessageSender
+    {
+        void PostMessage(object message);
+    }
+
     /// <summary>
     /// Confidence Engine Web Worker
     ///
@@ -22,18 +30,20 @@ namespace Minimact.Workers
         private MouseTrajectoryTracker mouseTracker;
         private ScrollVelocityTracker scrollTracker;
         private FocusSequenceTracker focusTracker;
-        private Dictionary<string, ObservableElement> observableElements; // elementId -> element
-        private Dictionary<string, double> predictionThrottle; // elementId -> last prediction time
+        private Map<string, ObservableElement> observableElements; // elementId -> element
+        private Map<string, double> predictionThrottle; // elementId -> last prediction time
         private double currentScrollY = 0;
+        private IWorkerMessageSender messageSender;
 
-        public ConfidenceEngine(ConfidenceEngineConfig config = null)
+        public ConfidenceEngine(ConfidenceEngineConfig config = null, IWorkerMessageSender messageSender = null)
         {
             this.config = config ?? DefaultConfig.DEFAULT_CONFIG;
+            this.messageSender = messageSender;
             this.mouseTracker = new MouseTrajectoryTracker(this.config);
             this.scrollTracker = new ScrollVelocityTracker(this.config);
             this.focusTracker = new FocusSequenceTracker(this.config);
-            this.observableElements = new Dictionary<string, ObservableElement>();
-            this.predictionThrottle = new Dictionary<string, double>();
+            this.observableElements = new Map<string, ObservableElement>();
+            this.predictionThrottle = new Map<string, double>();
 
             this.Debug("Confidence Engine initialized", new
             {
@@ -48,43 +58,37 @@ namespace Minimact.Workers
         /// </summary>
         public void HandleMessage(object message)
         {
-            // In Bridge.NET, we need to handle dynamic message types
-            var messageType = Script.Get(message, "type");
+            // Extract message type (compatible with Bridge.NET Script.Get approach)
+            var messageType = GetMessageType(message);
 
-            switch (messageType)
+            // Use transpiler-friendly switch helper
+            MessageTypeSwitch.Handle(message, messageType,
+                handleMouseMove: this.HandleMouseMove,
+                handleScroll: this.HandleScroll,
+                handleFocus: this.HandleFocus,
+                handleKeydown: this.HandleKeydown,
+                handleRegisterElement: this.RegisterElement,
+                handleUpdateBounds: this.UpdateBounds,
+                handleUnregisterElement: this.UnregisterElement,
+                handleUnknown: (msg) => this.Debug("Unknown message type", msg)
+            );
+        }
+
+        /// <summary>
+        /// Extract message type from dynamic object (for web worker compatibility)
+        /// </summary>
+        private string GetMessageType(object message)
+        {
+            // In Bridge.NET, this would be Script.Get(message, "type")
+            // For pure C#, we need to handle dynamic property access
+            if (message is IDictionary<string, object> dict)
             {
-                case "mousemove":
-                    this.HandleMouseMove(message.As<MouseEventData>());
-                    break;
-
-                case "scroll":
-                    this.HandleScroll(message.As<ScrollEventData>());
-                    break;
-
-                case "focus":
-                    this.HandleFocus(message.As<FocusEventData>());
-                    break;
-
-                case "keydown":
-                    this.HandleKeydown(message.As<KeydownEventData>());
-                    break;
-
-                case "registerElement":
-                    this.RegisterElement(message.As<RegisterElementMessage>());
-                    break;
-
-                case "updateBounds":
-                    this.UpdateBounds(message.As<UpdateBoundsMessage>());
-                    break;
-
-                case "unregisterElement":
-                    this.UnregisterElement(message.As<UnregisterElementMessage>());
-                    break;
-
-                default:
-                    this.Debug("Unknown message type", message);
-                    break;
+                return dict.TryGetValue("type", out var type) ? type?.ToString() : null;
             }
+
+            // Use reflection as fallback for dynamic objects
+            var typeProperty = message.GetType().GetProperty("Type") ?? message.GetType().GetProperty("type");
+            return typeProperty?.GetValue(message)?.ToString();
         }
 
         /// <summary>
@@ -96,10 +100,10 @@ namespace Minimact.Workers
             this.mouseTracker.TrackMove(eventData);
 
             // Check all observable elements for hover predictions
-            foreach (var kvp in this.observableElements)
+            foreach (var entry in this.observableElements)
             {
-                string elementId = kvp.Key;
-                ObservableElement element = kvp.Value;
+                string elementId = entry.Key;
+                ObservableElement element = entry.Value;
 
                 if (element.Observables.Hover != true) continue;
 
@@ -120,7 +124,7 @@ namespace Minimact.Workers
                         Reason = result.Reason
                     });
 
-                    this.predictionThrottle[elementId] = eventData.Timestamp;
+                    this.predictionThrottle.Set(elementId, eventData.Timestamp);
                 }
             }
         }
@@ -135,10 +139,10 @@ namespace Minimact.Workers
             this.currentScrollY = eventData.ScrollY;
 
             // Check all observable elements for intersection predictions
-            foreach (var kvp in this.observableElements)
+            foreach (var entry in this.observableElements)
             {
-                string elementId = kvp.Key;
-                ObservableElement element = kvp.Value;
+                string elementId = entry.Key;
+                ObservableElement element = entry.Value;
 
                 if (element.Observables.Intersection != true) continue;
 
@@ -162,7 +166,7 @@ namespace Minimact.Workers
                         Reason = result.Reason
                     });
 
-                    this.predictionThrottle[elementId] = eventData.Timestamp;
+                    this.predictionThrottle.Set(elementId, eventData.Timestamp);
                 }
             }
         }
@@ -189,9 +193,9 @@ namespace Minimact.Workers
 
                 if (prediction.ElementId != null && prediction.Confidence >= this.config.MinConfidence)
                 {
-                    if (this.observableElements.ContainsKey(prediction.ElementId))
+                    if (this.observableElements.Has(prediction.ElementId))
                     {
-                        ObservableElement element = this.observableElements[prediction.ElementId];
+                        ObservableElement element = this.observableElements.Get(prediction.ElementId);
                         if (element != null && element.Observables.Focus == true)
                         {
                             this.SendPrediction(new PredictionRequestMessage
@@ -214,13 +218,13 @@ namespace Minimact.Workers
         /// </summary>
         private void RegisterElement(RegisterElementMessage message)
         {
-            this.observableElements[message.ElementId] = new ObservableElement
+            this.observableElements.Set(message.ElementId, new ObservableElement
             {
                 ComponentId = message.ComponentId,
                 ElementId = message.ElementId,
                 Bounds = message.Bounds,
                 Observables = message.Observables
-            };
+            });
 
             this.Debug("Registered element", new
             {
@@ -234,9 +238,9 @@ namespace Minimact.Workers
         /// </summary>
         private void UpdateBounds(UpdateBoundsMessage message)
         {
-            if (this.observableElements.ContainsKey(message.ElementId))
+            if (this.observableElements.Has(message.ElementId))
             {
-                ObservableElement element = this.observableElements[message.ElementId];
+                ObservableElement element = this.observableElements.Get(message.ElementId);
                 if (element != null)
                 {
                     element.Bounds = message.Bounds;
@@ -249,8 +253,8 @@ namespace Minimact.Workers
         /// </summary>
         private void UnregisterElement(UnregisterElementMessage message)
         {
-            this.observableElements.Remove(message.ElementId);
-            this.predictionThrottle.Remove(message.ElementId);
+            this.observableElements.Delete(message.ElementId);
+            this.predictionThrottle.Delete(message.ElementId);
             this.Debug("Unregistered element", new { elementId = message.ElementId });
         }
 
@@ -259,11 +263,11 @@ namespace Minimact.Workers
         /// </summary>
         private bool CanPredict(string elementId)
         {
-            if (!this.predictionThrottle.ContainsKey(elementId))
+            if (!this.predictionThrottle.Has(elementId))
                 return true;
 
-            double lastTime = this.predictionThrottle[elementId];
-            double now = Global.Performance.Now();
+            double lastTime = this.predictionThrottle.Get(elementId);
+            double now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             double timeSince = now - lastTime;
 
             return timeSince >= this.config.PredictionWindowMs;
@@ -274,16 +278,15 @@ namespace Minimact.Workers
         /// </summary>
         private void SendPrediction(PredictionRequestMessage message)
         {
-            // In Bridge.NET, postMessage is available through the global context
-            Script.Call("postMessage", message);
+            this.messageSender?.PostMessage(message);
 
             if (this.config.DebugLogging)
             {
                 this.Debug("Prediction request", new
                 {
                     elementId = message.ElementId,
-                    confidence = $"{(message.Confidence * 100).ToFixed(0)}%",
-                    leadTime = $"{message.LeadTime.ToFixed(0)}ms",
+                    confidence = $"{(message.Confidence * 100):F0}%",
+                    leadTime = $"{message.LeadTime:F0}ms",
                     reason = message.Reason
                 });
             }
@@ -296,7 +299,7 @@ namespace Minimact.Workers
         {
             if (this.config.DebugLogging)
             {
-                Script.Call("postMessage", new DebugMessage
+                this.messageSender?.PostMessage(new DebugMessage
                 {
                     Type = "debug",
                     Message = $"[ConfidenceEngine] {message}",
@@ -307,24 +310,16 @@ namespace Minimact.Workers
     }
 
     /// <summary>
-    /// Worker entry point for Bridge.NET
+    /// Factory for creating confidence engine instances
     /// </summary>
-    [FileName("confidence-engine.js")]
-    public static class ConfidenceEngineWorker
+    public static class ConfidenceEngineFactory
     {
-        private static ConfidenceEngine engine;
-
-        [Ready]
-        public static void Main()
+        /// <summary>
+        /// Create a confidence engine with a message sender
+        /// </summary>
+        public static ConfidenceEngine Create(ConfidenceEngineConfig config = null, IWorkerMessageSender messageSender = null)
         {
-            // Initialize worker
-            engine = new ConfidenceEngine();
-
-            // Listen for messages from main thread
-            Script.Call("self.addEventListener", "message", new Action<MessageEvent>((MessageEvent e) =>
-            {
-                engine.HandleMessage(e.Data);
-            }));
+            return new ConfidenceEngine(config, messageSender);
         }
     }
 }

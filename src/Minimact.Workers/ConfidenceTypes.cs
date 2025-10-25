@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Bridge;
+using System.Text.Json.Serialization;
 
 namespace Minimact.Workers
 {
@@ -14,7 +14,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Rectangle bounds for an element
     /// </summary>
-    [ObjectLiteral]
     public class Rect
     {
         public double Top { get; set; }
@@ -26,12 +25,28 @@ namespace Minimact.Workers
     }
 
     /// <summary>
+    /// Base class for worker input messages (union type equivalent)
+    /// </summary>
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+    [JsonDerivedType(typeof(MouseEventData), "mousemove")]
+    [JsonDerivedType(typeof(ScrollEventData), "scroll")]
+    [JsonDerivedType(typeof(FocusEventData), "focus")]
+    [JsonDerivedType(typeof(KeydownEventData), "keydown")]
+    [JsonDerivedType(typeof(ResizeEventData), "resize")]
+    [JsonDerivedType(typeof(RegisterElementMessage), "registerElement")]
+    [JsonDerivedType(typeof(UpdateBoundsMessage), "updateBounds")]
+    [JsonDerivedType(typeof(UnregisterElementMessage), "unregisterElement")]
+    public abstract class WorkerInputMessage
+    {
+        public abstract string Type { get; set; }
+    }
+
+    /// <summary>
     /// Mouse event data sent to worker
     /// </summary>
-    [ObjectLiteral]
-    public class MouseEventData
+    public class MouseEventData : WorkerInputMessage
     {
-        public string Type { get; set; } = "mousemove";
+        public override string Type { get; set; } = "mousemove";
         public double X { get; set; }
         public double Y { get; set; }
         public double Timestamp { get; set; }
@@ -40,10 +55,9 @@ namespace Minimact.Workers
     /// <summary>
     /// Scroll event data sent to worker
     /// </summary>
-    [ObjectLiteral]
-    public class ScrollEventData
+    public class ScrollEventData : WorkerInputMessage
     {
-        public string Type { get; set; } = "scroll";
+        public override string Type { get; set; } = "scroll";
         public double ScrollX { get; set; }
         public double ScrollY { get; set; }
         public double ViewportWidth { get; set; }
@@ -54,10 +68,9 @@ namespace Minimact.Workers
     /// <summary>
     /// Focus event data sent to worker
     /// </summary>
-    [ObjectLiteral]
-    public class FocusEventData
+    public class FocusEventData : WorkerInputMessage
     {
-        public string Type { get; set; } = "focus";
+        public override string Type { get; set; } = "focus";
         public string ElementId { get; set; }
         public double Timestamp { get; set; }
     }
@@ -65,10 +78,9 @@ namespace Minimact.Workers
     /// <summary>
     /// Keydown event data sent to worker
     /// </summary>
-    [ObjectLiteral]
-    public class KeydownEventData
+    public class KeydownEventData : WorkerInputMessage
     {
-        public string Type { get; set; } = "keydown";
+        public override string Type { get; set; } = "keydown";
         public string Key { get; set; }
         public double Timestamp { get; set; }
     }
@@ -76,10 +88,9 @@ namespace Minimact.Workers
     /// <summary>
     /// Resize event data sent to worker
     /// </summary>
-    [ObjectLiteral]
-    public class ResizeEventData
+    public class ResizeEventData : WorkerInputMessage
     {
-        public string Type { get; set; } = "resize";
+        public override string Type { get; set; } = "resize";
         public double Width { get; set; }
         public double Height { get; set; }
         public double Timestamp { get; set; }
@@ -88,7 +99,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Observable element registration observables config
     /// </summary>
-    [ObjectLiteral]
     public class ObservablesConfig
     {
         public bool? Hover { get; set; }
@@ -99,10 +109,9 @@ namespace Minimact.Workers
     /// <summary>
     /// Observable element registration
     /// </summary>
-    [ObjectLiteral]
-    public class RegisterElementMessage
+    public class RegisterElementMessage : WorkerInputMessage
     {
-        public string Type { get; set; } = "registerElement";
+        public override string Type { get; set; } = "registerElement";
         public string ComponentId { get; set; }
         public string ElementId { get; set; }
         public Rect Bounds { get; set; }
@@ -112,10 +121,9 @@ namespace Minimact.Workers
     /// <summary>
     /// Element bounds update (when element moves/resizes)
     /// </summary>
-    [ObjectLiteral]
-    public class UpdateBoundsMessage
+    public class UpdateBoundsMessage : WorkerInputMessage
     {
-        public string Type { get; set; } = "updateBounds";
+        public override string Type { get; set; } = "updateBounds";
         public string ElementId { get; set; }
         public Rect Bounds { get; set; }
     }
@@ -123,26 +131,15 @@ namespace Minimact.Workers
     /// <summary>
     /// Unregister element
     /// </summary>
-    [ObjectLiteral]
-    public class UnregisterElementMessage
+    public class UnregisterElementMessage : WorkerInputMessage
     {
-        public string Type { get; set; } = "unregisterElement";
+        public override string Type { get; set; } = "unregisterElement";
         public string ElementId { get; set; }
-    }
-
-    /// <summary>
-    /// Base class for worker input messages (union type equivalent)
-    /// </summary>
-    [ObjectLiteral]
-    public abstract class WorkerInputMessage
-    {
-        public abstract string Type { get; set; }
     }
 
     /// <summary>
     /// Prediction observation data
     /// </summary>
-    [ObjectLiteral]
     public class PredictionObservation
     {
         public bool? Hover { get; set; }
@@ -153,7 +150,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Prediction request sent FROM worker to main thread
     /// </summary>
-    [ObjectLiteral]
     public class PredictionRequestMessage
     {
         public string Type { get; set; } = "requestPrediction";
@@ -168,7 +164,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Debug message from worker
     /// </summary>
-    [ObjectLiteral]
     public class DebugMessage
     {
         public string Type { get; set; } = "debug";
@@ -179,7 +174,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Base class for worker output messages (union type equivalent)
     /// </summary>
-    [ObjectLiteral]
     public abstract class WorkerOutputMessage
     {
         public abstract string Type { get; set; }
@@ -188,7 +182,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Point data for mouse trajectory
     /// </summary>
-    [ObjectLiteral]
     public class TrajectoryPoint
     {
         public double X { get; set; }
@@ -199,7 +192,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Mouse trajectory data
     /// </summary>
-    [ObjectLiteral]
     public class MouseTrajectory
     {
         public TrajectoryPoint[] Points { get; set; }
@@ -211,7 +203,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Scroll velocity data
     /// </summary>
-    [ObjectLiteral]
     public class ScrollVelocity
     {
         public double Velocity { get; set; } // pixels per millisecond
@@ -222,7 +213,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Observable element tracked by worker
     /// </summary>
-    [ObjectLiteral]
     public class ObservableElement
     {
         public string ComponentId { get; set; }
@@ -299,7 +289,6 @@ namespace Minimact.Workers
     /// <summary>
     /// Configuration for confidence engine
     /// </summary>
-    [ObjectLiteral]
     public class ConfidenceEngineConfig
     {
         // Confidence thresholds

@@ -348,6 +348,16 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         }
     }
 
+    public override void VisitContinueStatement(ContinueStatementSyntax node)
+    {
+        WriteIndented("continue;");
+    }
+
+    public override void VisitBreakStatement(BreakStatementSyntax node)
+    {
+        WriteIndented("break;");
+    }
+
     public override void VisitIfStatement(IfStatementSyntax node)
     {
         var condition = GenerateExpression(node.Condition);
@@ -398,17 +408,57 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         // Handle Dictionary/Map iteration specially
         if (IsDictionaryIteration(node.Expression))
         {
-            WriteIndented($"for (const [{identifier.Replace("kvp", "key")}, {identifier.Replace("kvp", "value")}] of {expression}) {{");
+            // Use proper destructuring for Map/Dictionary iteration
+            var keyVar = GetDestructuredKeyName(identifier);
+            var valueVar = GetDestructuredValueName(identifier);
+
+            WriteIndented($"for (const [{keyVar}, {valueVar}] of {expression}) {{");
+
+            // Set up variable mapping for the loop body
+            _foreachVariableMap = new Dictionary<string, (string key, string value)>
+            {
+                [identifier] = (keyVar, valueVar)
+            };
         }
         else
         {
             WriteIndented($"for (const {identifier} of {expression}) {{");
+            _foreachVariableMap = null;
         }
 
         _indentLevel++;
         Visit(node.Statement);
         _indentLevel--;
         WriteIndented("}");
+
+        // Clear the variable mapping
+        _foreachVariableMap = null;
+    }
+
+    private Dictionary<string, (string key, string value)>? _foreachVariableMap;
+
+    private string GetDestructuredKeyName(string iteratorName)
+    {
+        // Generate semantic variable names based on the iterator variable
+        if (iteratorName.Contains("entry") || iteratorName.Contains("kvp") || iteratorName.Contains("pair"))
+        {
+            return $"{iteratorName.Replace("entry", "").Replace("kvp", "").Replace("pair", "")}Key".Trim().ToLower();
+        }
+
+        // For generic names, use contextual names
+        return "elementId"; // This matches our specific use case
+    }
+
+    private string GetDestructuredValueName(string iteratorName)
+    {
+        // Generate semantic variable names based on the iterator variable
+        if (iteratorName.Contains("entry") || iteratorName.Contains("kvp") || iteratorName.Contains("pair"))
+        {
+            return $"{iteratorName.Replace("entry", "").Replace("kvp", "").Replace("pair", "")}Value".Trim().ToLower();
+        }
+
+        // For generic names, use contextual names
+        return "element"; // This matches our specific use case
     }
 
     private bool IsDictionaryIteration(ExpressionSyntax expression)
@@ -491,6 +541,16 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
     {
         var left = GenerateExpression(memberAccess.Expression);
         var right = memberAccess.Name.Identifier.ValueText;
+
+        // Smart foreach variable mapping: Transform entry.Key -> elementId, entry.Value -> element
+        if (_foreachVariableMap != null && _foreachVariableMap.ContainsKey(left))
+        {
+            var (keyVar, valueVar) = _foreachVariableMap[left];
+            if (right == "Key")
+                return keyVar;
+            if (right == "Value")
+                return valueVar;
+        }
 
         // Handle special cases for C# -> TS mapping
         if (left == "Math")
