@@ -10,6 +10,7 @@ export { EntanglementManager } from './entanglement-manager';
 export { RetryQueue } from './retry-queue';
 export { serializeMutation, serializeValueChange, serializeStyleChange, serializePositionChange, applyMutationVector, getElementSelector } from './mutation-serializer';
 export { transform, transformBatch, compose, canCompose, invert } from './operational-transform';
+export { createInverse, createScale, createOffset, createMultiply, createClamp, createRound, celsiusToFahrenheit, percentageToDecimal, degreesToRadians, booleanInverse, stringCase, composeTransforms, createThrottled, createDebounced, identity } from './transforms';
 import { EntanglementManager } from './entanglement-manager';
 export const VERSION = '0.1.0';
 export const CODENAME = 'WebWormhole';

@@ -24,17 +24,37 @@ export {
   canCompose,
   invert
 } from './operational-transform';
+export {
+  createInverse,
+  createScale,
+  createOffset,
+  createMultiply,
+  createClamp,
+  createRound,
+  celsiusToFahrenheit,
+  percentageToDecimal,
+  degreesToRadians,
+  booleanInverse,
+  stringCase,
+  composeTransforms,
+  createThrottled,
+  createDebounced,
+  identity
+} from './transforms';
 
 export type {
   MutationVector,
   SerializedNode,
   EntanglementBinding,
+  EntanglementOptions,
   QuantumLink,
   EntanglementConfig,
   SignalRManager,
   RegisterEntanglementRequest,
   PropagateQuantumMutationRequest,
-  QuantumMutationEvent
+  QuantumMutationEvent,
+  TransformFunction,
+  BidirectionalTransform
 } from './types';
 export type { Operation } from './operational-transform';
 
