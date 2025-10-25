@@ -1,3 +1,9 @@
+import {
+    ConfidenceEngineConfig,
+    FocusEventData,
+    KeydownEventData,
+} from './confidence-types';
+
 // Namespace: Minimact.Workers
 
 export class FocusSequenceTracker {
@@ -10,12 +16,12 @@ export class FocusSequenceTracker {
     }
 
     trackFocus(eventData: FocusEventData): void {
-        let elementId: string = eventData.elementId;
-        let existingIndex: number = Array.indexOf(this.focusSequence, elementId);
+        const elementId: string = eventData.elementId;
+        const existingIndex: number = Array.indexOf(this.focusSequence, elementId);
         if (existingIndex != -1) {
             this.currentFocusIndex = existingIndex;
         } else {
-            let newSequence: string[] = new Array<string>(this.focusSequence.length + 1);
+            const newSequence: string[] = new Array<string>(this.focusSequence.length + 1);
             Array.copy(this.focusSequence, newSequence, this.focusSequence.length);
             newSequence[this.focusSequence.length] = elementId;
             this.focusSequence = newSequence;
@@ -40,15 +46,15 @@ export class FocusSequenceTracker {
     }
 
     calculateFocusConfidence(elementId: string, currentTime: number): FocusConfidenceResult {
-        let timeSinceTab: number = currentTime - this.lastTabPressTime;
+        const timeSinceTab: number = currentTime - this.lastTabPressTime;
         if (timeSinceTab > 100) {
             return { confidence: 0, leadTime: 0, reason: "no recent Tab press" };
         }
         if (this.focusSequence.length == 0 || this.currentFocusIndex == -1) {
             return { confidence: 0, leadTime: 0, reason: "no focus sequence data" };
         }
-        let nextIndex: number = (this.currentFocusIndex + 1) % this.focusSequence.length;
-        let nextElementId: string = this.focusSequence[nextIndex];
+        const nextIndex: number = (this.currentFocusIndex + 1) % this.focusSequence.length;
+        const nextElementId: string = this.focusSequence[nextIndex];
         if (nextElementId == elementId) {
             return { confidence: this.config.focusHighConfidence, leadTime: 50, reason: `Tab pressed, next in sequence (index ${nextIndex})` };
         }
@@ -66,8 +72,8 @@ export class FocusSequenceTracker {
         if (this.focusSequence.length == 0 || this.currentFocusIndex == -1) {
             return { elementId: null, confidence: 0, leadTime: 0, reason: "no focus sequence" };
         }
-        let nextIndex: number = (this.currentFocusIndex + 1) % this.focusSequence.length;
-        let nextElementId: string = this.focusSequence[nextIndex];
+        const nextIndex: number = (this.currentFocusIndex + 1) % this.focusSequence.length;
+        const nextElementId: string = this.focusSequence[nextIndex];
         return { elementId: nextElementId, confidence: this.config.focusHighConfidence, leadTime: 50, reason: `Tab navigation to index ${nextIndex}` };
     }
 

@@ -16,6 +16,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
     private readonly StringBuilder _output;
     private SemanticModel? _semanticModel;
     private int _indentLevel;
+    private readonly HashSet<string> _importedTypes = new();
 
     public TypeScriptGenerator()
     {
@@ -29,6 +30,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
     {
         _output.Clear();
         _indentLevel = 0;
+        _importedTypes.Clear();
 
         // Create generator with semantic model for type analysis
         var generator = new TypeScriptGenerator
@@ -36,11 +38,88 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
             _semanticModel = semanticModel
         };
 
+        // First pass: collect type references
+        generator.CollectTypeReferences(root);
+
+        // Generate imports at the top
+        generator.GenerateImports();
+
         // Walk the syntax tree and generate TypeScript
         generator.Visit(root);
 
         return generator._output.ToString();
     }
+
+    #region Import Generation
+
+    /// <summary>
+    /// Collect type references that need to be imported
+    /// </summary>
+    private void CollectTypeReferences(SyntaxNode root)
+    {
+        var typeCollector = new TypeReferenceCollector(_importedTypes);
+        typeCollector.Visit(root);
+    }
+
+    /// <summary>
+    /// Generate import statements at the top of the file
+    /// </summary>
+    private void GenerateImports()
+    {
+        // Types that should be imported from confidence-types
+        var confidenceTypes = new HashSet<string>
+        {
+            "Rect", "MouseEventData", "ScrollEventData", "FocusEventData",
+            "KeydownEventData", "ResizeEventData", "RegisterElementMessage",
+            "UpdateBoundsMessage", "UnregisterElementMessage", "WorkerInputMessage",
+            "PredictionRequestMessage", "DebugMessage", "WorkerOutputMessage",
+            "MouseTrajectory", "ScrollVelocity", "ObservableElement",
+            "CircularBuffer", "ConfidenceEngineConfig", "TrajectoryPoint",
+            "PredictionObservation", "ObservablesConfig"
+        };
+
+        var typesToImport = _importedTypes.Where(confidenceTypes.Contains).ToList();
+
+        if (typesToImport.Any())
+        {
+            WriteLine("import {");
+            _indentLevel++;
+            foreach (var type in typesToImport.OrderBy(t => t))
+            {
+                WriteIndented($"{type},");
+            }
+            _indentLevel--;
+            WriteLine("} from './confidence-types';");
+            WriteLine("");
+        }
+    }
+
+    /// <summary>
+    /// Visitor to collect type references
+    /// </summary>
+    private class TypeReferenceCollector : CSharpSyntaxWalker
+    {
+        private readonly HashSet<string> _importedTypes;
+
+        public TypeReferenceCollector(HashSet<string> importedTypes)
+        {
+            _importedTypes = importedTypes;
+        }
+
+        public override void VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            _importedTypes.Add(node.Identifier.ValueText);
+            base.VisitIdentifierName(node);
+        }
+
+        public override void VisitGenericName(GenericNameSyntax node)
+        {
+            _importedTypes.Add(node.Identifier.ValueText);
+            base.VisitGenericName(node);
+        }
+    }
+
+    #endregion
 
     #region Syntax Visitors
 
@@ -178,8 +257,13 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
     {
         foreach (var variable in node.Declaration.Variables)
         {
-            var varName = ToCamelCase(variable.Identifier.ValueText);
+            var originalVarName = variable.Identifier.ValueText;
+            var cleanVarName = StripConstLetSuffix(originalVarName);
+            var varName = ToCamelCase(cleanVarName);
             var typeString = MapTypeToTypeScript(node.Declaration.Type);
+
+            // Determine if this should be const or let
+            string declarationType = ShouldUseConst(variable, node) ? "const" : "let";
 
             // Handle 'var' inference and avoid explicit types when TypeScript can infer
             bool useTypeAnnotation = true;
@@ -193,15 +277,16 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
                 var initializer = GenerateExpression(variable.Initializer.Value);
                 if (useTypeAnnotation && typeString != "var")
                 {
-                    WriteIndented($"let {varName}: {typeString} = {initializer};");
+                    WriteIndented($"{declarationType} {varName}: {typeString} = {initializer};");
                 }
                 else
                 {
-                    WriteIndented($"let {varName} = {initializer};");
+                    WriteIndented($"{declarationType} {varName} = {initializer};");
                 }
             }
             else
             {
+                // Variables without initializers must use 'let'
                 if (useTypeAnnotation && typeString != "var")
                 {
                     WriteIndented($"let {varName}: {typeString};");
@@ -212,6 +297,43 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Determine if a variable should use 'const' instead of 'let' based on naming convention
+    /// </summary>
+    private bool ShouldUseConst(VariableDeclaratorSyntax variable, LocalDeclarationStatementSyntax node)
+    {
+        // Variables without initializers cannot be const
+        if (variable.Initializer == null)
+            return false;
+
+        var varName = variable.Identifier.ValueText;
+
+        // Check for explicit _const suffix
+        if (varName.EndsWith("_const"))
+            return true;
+
+        // Check for explicit _let suffix
+        if (varName.EndsWith("_let"))
+            return false;
+
+        // Default to const for initialized variables (TypeScript best practice)
+        return true;
+    }
+
+    /// <summary>
+    /// Strip _const/_let suffix from variable names
+    /// </summary>
+    private string StripConstLetSuffix(string varName)
+    {
+        if (varName.EndsWith("_const"))
+            return varName.Substring(0, varName.Length - 6);
+
+        if (varName.EndsWith("_let"))
+            return varName.Substring(0, varName.Length - 4);
+
+        return varName;
     }
 
     public override void VisitReturnStatement(ReturnStatementSyntax node)
@@ -405,6 +527,9 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
             "Clear" => "clear",
             "Length" => "length",
             "Count" => "length",
+
+            // Array methods (critical for faithful transpilation!)
+            "Slice_Array" => "slice",
 
             // Dictionary/Map methods (critical for worker logic!)
             "ContainsKey" => "has",
@@ -755,7 +880,10 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
 
     private string MapIdentifierName(string identifier)
     {
-        return identifier switch
+        // Strip _const/_let suffixes from variable names
+        var cleanIdentifier = StripConstLetSuffix(identifier);
+
+        return cleanIdentifier switch
         {
             // C# class names to TypeScript equivalents
             "Math" => "Math",
@@ -764,7 +892,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
             "Console" => "console",
 
             // Convert to camelCase for other identifiers
-            _ => ToCamelCase(identifier)
+            _ => ToCamelCase(cleanIdentifier)
         };
     }
 

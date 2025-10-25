@@ -1,3 +1,11 @@
+import {
+    ConfidenceEngineConfig,
+    ObservablesConfig,
+    PredictionObservation,
+    Rect,
+    TrajectoryPoint,
+} from './confidence-types';
+
 // Namespace: Minimact.Workers
 
 export class Rect {
@@ -146,11 +154,11 @@ export class CircularBuffer {
 
     getAll(): T[] {
         if (this.size < this.capacity) {
-            let result: T[] = new Array<T>(this.size);
+            const result: T[] = new Array<T>(this.size);
             Array.copy(this.buffer, 0, result, 0, this.size);
             return result;
         }
-        let chronological: T[] = new Array<T>(this.capacity);
+        const chronological: T[] = new Array<T>(this.capacity);
         for (let i = 0; i < this.capacity; i++) {
             chronological[i] = this.buffer[(this.index + i) % this.capacity];
         }
@@ -158,9 +166,9 @@ export class CircularBuffer {
     }
 
     getLast(n: number): T[] {
-        let all: T[] = getAll();
-        let startIndex: number = Math.max(0, all.length - n);
-        let result: T[] = new Array<T>(all.length - startIndex);
+        const all: T[] = getAll();
+        const startIndex: number = Math.max(0, all.length - n);
+        const result: T[] = new Array<T>(all.length - startIndex);
         Array.copy(all, startIndex, result, 0, result.length);
         return result;
     }

@@ -38,52 +38,47 @@ namespace Minimact.Workers
         /// </summary>
         public MouseTrajectory GetTrajectory()
         {
-            TrajectoryPoint[] points = this.mouseHistory.GetLast(5);
-            if (points.Length < 2)
+            TrajectoryPoint[] points_const = this.mouseHistory.GetLast(5);
+            if (points_const.Length < 2)
             {
                 return null; // Not enough data
             }
 
             // Calculate velocity (pixels per millisecond)
-            TrajectoryPoint first = points[0];
-            TrajectoryPoint last = points[points.Length - 1];
-            double timeDelta = last.Timestamp - first.Timestamp;
+            TrajectoryPoint first_const = points_const[0];
+            TrajectoryPoint last_const = points_const[points_const.Length - 1];
+            double timeDelta_const = last_const.Timestamp - first_const.Timestamp;
 
-            if (timeDelta == 0)
+            if (timeDelta_const == 0)
             {
                 return null;
             }
 
-            double dx = last.X - first.X;
-            double dy = last.Y - first.Y;
-            double distance = Math.Sqrt(dx * dx + dy * dy);
-            double velocity = distance / timeDelta;
+            double dx_const = last_const.X - first_const.X;
+            double dy_const = last_const.Y - first_const.Y;
+            double distance_const = Math.Sqrt(dx_const * dx_const + dy_const * dy_const);
+            double velocity_const = distance_const / timeDelta_const;
 
             // Calculate angle (radians)
-            double angle = Math.Atan2(dy, dx);
+            double angle_const = Math.Atan2(dy_const, dx_const);
 
             // Calculate acceleration (change in velocity)
-            double acceleration = 0;
-            if (points.Length >= 4)
+            double acceleration_let = 0;
+            if (points_const.Length >= 4)
             {
-                int mid = (int)Math.Floor(points.Length / 2.0);
-                TrajectoryPoint[] firstHalf = new TrajectoryPoint[mid];
-                TrajectoryPoint[] secondHalf = new TrajectoryPoint[points.Length - mid];
+                int mid_const = (int)Math.Floor(points_const.Length / 2.0);
 
-                Array.Copy(points, 0, firstHalf, 0, mid);
-                Array.Copy(points, mid, secondHalf, 0, points.Length - mid);
-
-                double firstHalfVelocity = CalculateVelocity(firstHalf);
-                double secondHalfVelocity = CalculateVelocity(secondHalf);
-                acceleration = (secondHalfVelocity - firstHalfVelocity) / timeDelta;
+                double firstHalfVelocity_const = CalculateVelocity(points_const.Slice_Array(0, mid_const));
+                double secondHalfVelocity_const = CalculateVelocity(points_const.Slice_Array(mid_const));
+                acceleration_let = (secondHalfVelocity_const - firstHalfVelocity_const) / timeDelta_const;
             }
 
             return new MouseTrajectory
             {
-                Points = points,
-                Velocity = velocity,
-                Angle = angle,
-                Acceleration = acceleration
+                Points = points_const,
+                Velocity = velocity_const,
+                Angle = angle_const,
+                Acceleration = acceleration_let
             };
         }
 
