@@ -88,6 +88,8 @@ export interface EntanglementConfig {
     clientId: string;
     /** SignalR connection manager */
     signalR: SignalRManager;
+    /** Session ID for reconnection support */
+    sessionId?: string;
     /** Enable debug logging */
     debugLogging?: boolean;
 }
@@ -109,6 +111,7 @@ export interface RegisterEntanglementRequest {
     selector: string;
     mode: string;
     scope: string;
+    sessionId?: string;
 }
 /**
  * Request to propagate quantum mutation

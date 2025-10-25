@@ -7,6 +7,7 @@
  * The same element existing in two places at once.
  */
 export { EntanglementManager } from './entanglement-manager';
+export { RetryQueue } from './retry-queue';
 export { serializeMutation, serializeValueChange, serializeStyleChange, serializePositionChange, applyMutationVector, getElementSelector } from './mutation-serializer';
 export type { MutationVector, SerializedNode, EntanglementBinding, QuantumLink, EntanglementConfig, SignalRManager, RegisterEntanglementRequest, PropagateQuantumMutationRequest, QuantumMutationEvent } from './types';
 import type { EntanglementConfig } from './types';

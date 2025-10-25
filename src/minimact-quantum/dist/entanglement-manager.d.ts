@@ -14,9 +14,11 @@ import type { EntanglementConfig, QuantumLink } from './types';
 export declare class EntanglementManager {
     private clientId;
     private signalR;
+    private sessionId?;
     private bindings;
     private observers;
     private debugLogging;
+    private retryQueue;
     constructor(config: EntanglementConfig);
     /**
      * Entangle a local element with a remote element
@@ -51,7 +53,7 @@ export declare class EntanglementManager {
      */
     private attachObserver;
     /**
-     * Propagate mutation to server
+     * Propagate mutation to server (with automatic retry on failure)
      */
     private propagateMutation;
     /**
@@ -66,6 +68,18 @@ export declare class EntanglementManager {
      * Emit awareness event (for showing who made the change)
      */
     private emitAwarenessEvent;
+    /**
+     * Persist entanglements to localStorage for reconnection
+     */
+    private persistEntanglements;
+    /**
+     * Restore entanglements from localStorage after reconnect
+     */
+    reconnect(): Promise<void>;
+    /**
+     * Clear persisted entanglements
+     */
+    clearPersistedEntanglements(): void;
     /**
      * Debug logging
      */

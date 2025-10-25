@@ -8,6 +8,7 @@
  */
 
 export { EntanglementManager } from './entanglement-manager';
+export { RetryQueue } from './retry-queue';
 export {
   serializeMutation,
   serializeValueChange,

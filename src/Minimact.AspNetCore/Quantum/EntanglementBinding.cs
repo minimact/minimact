@@ -53,6 +53,12 @@ public class EntanglementBinding
     /// Is this entanglement still active?
     /// </summary>
     public bool Active { get; set; } = true;
+
+    /// <summary>
+    /// Session ID for reconnection support
+    /// Entanglements can be restored when client reconnects with same session
+    /// </summary>
+    public string? SessionId { get; set; }
 }
 
 /// <summary>

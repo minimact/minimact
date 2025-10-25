@@ -12,10 +12,12 @@ namespace Minimact.AspNetCore.Quantum;
 public class QuantumHub : Hub
 {
     private readonly EntanglementRegistry _registry;
+    private readonly ConnectionManager _connections;
 
-    public QuantumHub(EntanglementRegistry registry)
+    public QuantumHub(EntanglementRegistry registry, ConnectionManager connections)
     {
         _registry = registry;
+        _connections = connections;
     }
 
     /// <summary>
@@ -23,7 +25,12 @@ public class QuantumHub : Hub
     /// </summary>
     public async Task RegisterClient(string clientId, string currentPage, string? teamId = null)
     {
+        // Map clientId to connectionId
+        _connections.RegisterConnection(clientId, Context.ConnectionId);
+
+        // Register in entanglement registry
         _registry.RegisterClient(clientId, currentPage, teamId);
+
         await Clients.Caller.SendAsync("ClientRegistered", clientId);
     }
 
@@ -42,7 +49,8 @@ public class QuantumHub : Hub
             Page = request.Page,
             Selector = request.Selector,
             Mode = request.Mode,
-            Scope = request.Scope
+            Scope = request.Scope,
+            SessionId = request.SessionId // Store session for reconnection
         };
 
         _registry.RegisterBinding(binding);
@@ -116,25 +124,48 @@ public class QuantumHub : Hub
     }
 
     /// <summary>
+    /// Restore session entanglements after reconnect
+    /// </summary>
+    public async Task RestoreSession(string sessionId)
+    {
+        _registry.RestoreSession(sessionId);
+
+        // Send confirmation to caller
+        await Clients.Caller.SendAsync("SessionRestored", new
+        {
+            sessionId,
+            bindings = _registry.GetBindingsBySession(sessionId)
+        });
+
+        Console.WriteLine($"[QuantumHub] 🔄 Restored session: {sessionId}");
+    }
+
+    /// <summary>
     /// Handle client disconnection
     /// </summary>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        // Note: We would need to track connectionId -> clientId mapping
-        // For now, this is a placeholder
+        var clientId = _connections.GetClientId(Context.ConnectionId);
+        if (clientId != null)
+        {
+            // Unregister client from registry
+            _registry.UnregisterClient(clientId);
+
+            // Remove connection mapping
+            _connections.RemoveConnection(Context.ConnectionId);
+
+            Console.WriteLine($"[QuantumHub] 👋 Client disconnected: {clientId}");
+        }
 
         await base.OnDisconnectedAsync(exception);
     }
 
     /// <summary>
     /// Get SignalR connection ID for a client ID
-    /// (This would need to be implemented with a connection manager)
     /// </summary>
     private string? GetConnectionId(string clientId)
     {
-        // TODO: Implement connection ID mapping
-        // For now, return null (would need ConnectionManager service)
-        return Context.ConnectionId; // Placeholder
+        return _connections.GetConnectionId(clientId);
     }
 }
 
@@ -149,6 +180,7 @@ public class RegisterEntanglementRequest
     public string Selector { get; set; } = string.Empty;
     public string Mode { get; set; } = "bidirectional";
     public string Scope { get; set; } = "private";
+    public string? SessionId { get; set; }
 }
 
 /// <summary>

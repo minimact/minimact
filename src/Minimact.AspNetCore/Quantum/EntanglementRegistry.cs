@@ -139,6 +139,35 @@ public class EntanglementRegistry
     }
 
     /// <summary>
+    /// Get all bindings for a session (for reconnection)
+    /// </summary>
+    public List<EntanglementBinding> GetBindingsBySession(string sessionId)
+    {
+        return _bindings.Values
+            .Where(b => b.SessionId == sessionId)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Restore session entanglements (reactivate after reconnect)
+    /// </summary>
+    public void RestoreSession(string sessionId)
+    {
+        var bindings = GetBindingsBySession(sessionId);
+
+        foreach (var binding in bindings)
+        {
+            binding.Active = true;
+            Console.WriteLine($"[EntanglementRegistry] ✅ Restored entanglement: {binding.EntanglementId}");
+        }
+
+        if (bindings.Count > 0)
+        {
+            Console.WriteLine($"[EntanglementRegistry] 🔄 Restored {bindings.Count} entanglement(s) for session {sessionId}");
+        }
+    }
+
+    /// <summary>
     /// Get statistics
     /// </summary>
     public EntanglementStats GetStats()

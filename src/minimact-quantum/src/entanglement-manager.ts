@@ -19,6 +19,7 @@ import {
   applyMutationVector,
   getElementSelector
 } from './mutation-serializer';
+import { RetryQueue } from './retry-queue';
 
 /**
  * Entanglement Manager - Client Side
@@ -28,14 +29,18 @@ import {
 export class EntanglementManager {
   private clientId: string;
   private signalR: any;
+  private sessionId?: string;
   private bindings: Map<string, EntanglementBinding> = new Map();
   private observers: Map<string, MutationObserver> = new Map();
   private debugLogging: boolean;
+  private retryQueue: RetryQueue;
 
   constructor(config: EntanglementConfig) {
     this.clientId = config.clientId;
     this.signalR = config.signalR;
+    this.sessionId = config.sessionId;
     this.debugLogging = config.debugLogging || false;
+    this.retryQueue = new RetryQueue(this.signalR, this.clientId);
 
     this.setupListeners();
   }
@@ -78,6 +83,9 @@ export class EntanglementManager {
 
     // Attach MutationObserver to local element
     this.attachObserver(entanglementId, localElement, binding);
+
+    // Persist for reconnection
+    this.persistEntanglements();
 
     // If bidirectional, listen for changes from remote
     if (mode === 'bidirectional') {
@@ -127,6 +135,9 @@ export class EntanglementManager {
     // Remove binding
     this.bindings.delete(entanglementId);
 
+    // Update persisted state
+    this.persistEntanglements();
+
     // Unregister from server
     await this.signalR.invoke('UnregisterQuantumEntanglement', {
       entanglementId
@@ -145,7 +156,8 @@ export class EntanglementManager {
       page: binding.page,
       selector: binding.selector,
       mode: binding.mode,
-      scope: binding.scope
+      scope: binding.scope,
+      sessionId: this.sessionId // Include session for reconnection
     };
 
     await this.signalR.invoke('RegisterQuantumEntanglement', request);
@@ -199,7 +211,7 @@ export class EntanglementManager {
   }
 
   /**
-   * Propagate mutation to server
+   * Propagate mutation to server (with automatic retry on failure)
    */
   private async propagateMutation(
     entanglementId: string,
@@ -214,7 +226,10 @@ export class EntanglementManager {
 
       this.log(`🌀 Propagated mutation: ${vector.type} on ${vector.target}`);
     } catch (error) {
-      console.error('[minimact-quantum] Failed to propagate mutation:', error);
+      console.error('[minimact-quantum] Failed to propagate mutation, enqueueing for retry:', error);
+
+      // Enqueue for automatic retry with exponential backoff
+      await this.retryQueue.enqueue(entanglementId, vector);
     }
   }
 
@@ -272,6 +287,90 @@ export class EntanglementManager {
         mutationType: event.vector.type
       }
     }));
+  }
+
+  /**
+   * Persist entanglements to localStorage for reconnection
+   */
+  private persistEntanglements(): void {
+    const bindingsArray = Array.from(this.bindings.values()).map(b => ({
+      entanglementId: b.entanglementId,
+      sourceClient: b.sourceClient,
+      targetClient: b.targetClient,
+      page: b.page,
+      selector: b.selector,
+      mode: b.mode,
+      scope: b.scope
+    }));
+
+    try {
+      localStorage.setItem('minimact-quantum-entanglements', JSON.stringify(bindingsArray));
+      this.log(`💾 Persisted ${bindingsArray.length} entanglement(s) to localStorage`);
+    } catch (error) {
+      console.error('[minimact-quantum] Failed to persist entanglements:', error);
+    }
+  }
+
+  /**
+   * Restore entanglements from localStorage after reconnect
+   */
+  async reconnect(): Promise<void> {
+    const stored = localStorage.getItem('minimact-quantum-entanglements');
+    if (!stored) {
+      this.log('🔄 No stored entanglements to restore');
+      return;
+    }
+
+    try {
+      const bindingsArray = JSON.parse(stored);
+      this.log(`🔄 Restoring ${bindingsArray.length} entanglement(s)...`);
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const binding of bindingsArray) {
+        const element = document.querySelector(binding.selector);
+        if (element) {
+          try {
+            await this.entangle(
+              element,
+              {
+                clientId: binding.targetClient,
+                selector: binding.selector
+              },
+              binding.mode
+            );
+            successCount++;
+          } catch (error) {
+            console.error(
+              `[minimact-quantum] Failed to restore entanglement ${binding.entanglementId}:`,
+              error
+            );
+            failCount++;
+          }
+        } else {
+          this.log(`⚠️ Element not found for selector: ${binding.selector}`);
+          failCount++;
+        }
+      }
+
+      this.log(`✅ Restored ${successCount}/${bindingsArray.length} entanglement(s)`);
+      if (failCount > 0) {
+        this.log(`⚠️ Failed to restore ${failCount} entanglement(s)`);
+      }
+    } catch (error) {
+      console.error('[minimact-quantum] Failed to parse stored entanglements:', error);
+      // Clear corrupt data
+      localStorage.removeItem('minimact-quantum-entanglements');
+    }
+  }
+
+  /**
+   * Clear persisted entanglements
+   */
+  clearPersistedEntanglements(): void {
+    localStorage.removeItem('minimact-quantum-entanglements');
+    this.log('🧹 Cleared persisted entanglements');
   }
 
   /**
