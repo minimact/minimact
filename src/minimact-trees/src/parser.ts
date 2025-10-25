@@ -10,64 +10,126 @@ import type { ParsedStateKey } from './types';
 /**
  * Parse a decision tree key into state name and expected value
  *
- * Examples:
- * - "roleAdmin" → { stateName: "role", expectedValue: "admin" }
- * - "count5" → { stateName: "count", expectedValue: 5 }
- * - "price19.99" → { stateName: "price", expectedValue: 19.99 }
- * - "isActiveTrue" → { stateName: "isActive", expectedValue: true }
- * - "statusCodePending" → { stateName: "statusCode", expectedValue: "pending" }
- * - "tierGold" → { stateName: "tier", expectedValue: "gold" }
+ * Format: stateName:Value
+ * - Use colon (:) to separate state name from value
+ * - Escape colons in values with backslash (\:)
  *
- * @param key - Decision tree key
- * @returns Parsed state key or null if invalid
+ * Examples:
+ * - "role:Admin" → { stateName: "role", expectedValue: "admin" }
+ * - "count:5" → { stateName: "count", expectedValue: 5 }
+ * - "price:19.99" → { stateName: "price", expectedValue: 19.99 }
+ * - "isActive:True" → { stateName: "isActive", expectedValue: true }
+ * - "statusCode:Pending" → { stateName: "statusCode", expectedValue: "pending" }
+ * - "tier:Gold" → { stateName: "tier", expectedValue: "gold" }
+ * - "message:Error\:Failed" → { stateName: "message", expectedValue: "error:failed" }
+ * - "balance:-50" → { stateName: "balance", expectedValue: -50 }
+ *
+ * @param key - Decision tree key in format "stateName:Value"
+ * @returns Parsed state key
+ * @throws Error if key is invalid
  */
-export function parseStateKey(key: string): ParsedStateKey | null {
-  // Match pattern: lowercase start, then split on first capital or digit
-  const match = key.match(/^([a-z][a-zA-Z0-9]*?)([A-Z].*|[0-9].*)$/);
-
-  if (!match) {
-    return null;
+export function parseStateKey(key: string): ParsedStateKey {
+  // Validate input
+  if (!key || key.trim() === '') {
+    throw new Error('parseStateKey: key cannot be empty');
   }
 
-  const stateName = match[1];
-  const valueString = match[2];
+  // Split on unescaped colons
+  // Strategy: split on ':', but not on '\:'
+  const parts: string[] = [];
+  let current = '';
+  let i = 0;
 
-  // Infer the expected value type
-  const expectedValue = inferValueType(valueString);
+  while (i < key.length) {
+    if (key[i] === '\\' && i + 1 < key.length && key[i + 1] === ':') {
+      // Escaped colon - add the colon to current part
+      current += ':';
+      i += 2;
+    } else if (key[i] === ':') {
+      // Unescaped colon - this is the delimiter
+      parts.push(current);
+      current = '';
+      i++;
+    } else {
+      current += key[i];
+      i++;
+    }
+  }
+  parts.push(current);
 
-  return { stateName, expectedValue };
+  // Must have exactly 2 parts: stateName and value
+  if (parts.length !== 2) {
+    throw new Error(
+      `parseStateKey: invalid key format "${key}". Expected format: "stateName:Value"`
+    );
+  }
+
+  const stateName = parts[0];
+  const valueString = parts[1];
+
+  // Validate state name (must start with lowercase letter)
+  if (!stateName || !/^[a-z]/.test(stateName)) {
+    throw new Error(
+      `parseStateKey: state name must start with lowercase letter, got "${stateName}"`
+    );
+  }
+
+  // Validate value string is not empty
+  if (!valueString) {
+    throw new Error(`parseStateKey: value cannot be empty in "${key}"`);
+  }
+
+  // Infer the expected value and its type
+  const { value: expectedValue, type: valueType } = inferValueType(valueString);
+
+  return { stateName, expectedValue, valueType };
 }
 
 /**
  * Infer the type of a value string
  *
- * @param str - Value portion of the key
- * @returns Typed value
+ * @param str - Value portion of the key (after the colon)
+ * @returns Object with typed value and its type
  */
-function inferValueType(str: string): any {
-  // Boolean: True/False
-  if (str === 'True') return true;
-  if (str === 'False') return false;
+function inferValueType(str: string): { value: any; type: 'string' | 'number' | 'boolean' } {
+  // Boolean: True/False (case-sensitive)
+  if (str === 'True') return { value: true, type: 'boolean' };
+  if (str === 'False') return { value: false, type: 'boolean' };
+
+  // Negative float: -digits.digits
+  if (/^-[0-9]+\.[0-9]+$/.test(str)) {
+    return { value: parseFloat(str), type: 'number' };
+  }
 
   // Float: digits.digits
   if (/^[0-9]+\.[0-9]+$/.test(str)) {
-    return parseFloat(str);
+    return { value: parseFloat(str), type: 'number' };
+  }
+
+  // Negative integer: -digits
+  if (/^-[0-9]+$/.test(str)) {
+    return { value: parseInt(str, 10), type: 'number' };
   }
 
   // Integer: all digits
   if (/^[0-9]+$/.test(str)) {
-    return parseInt(str, 10);
+    return { value: parseInt(str, 10), type: 'number' };
   }
 
-  // String: Convert PascalCase to kebab-case
+  // String: Convert to lowercase kebab-case
   // "Admin" → "admin"
   // "CreditCard" → "credit-card"
   // "StatusPending" → "status-pending"
-  const kebabCase = str.replace(/([A-Z])/g, (match, p1, offset) =>
-    offset > 0 ? '-' + p1.toLowerCase() : p1.toLowerCase()
-  );
+  // "CA" → "ca"
+  // "A" → "a"
+  //
+  // Note: We lowercase everything for consistent matching
+  // Insert hyphen before uppercase letter that follows a lowercase letter
+  const kebabCase = str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase();
 
-  return kebabCase;
+  return { value: kebabCase, type: 'string' };
 }
 
 /**
@@ -99,9 +161,14 @@ export function findMatchingKeys(
   const matchingKeys: string[] = [];
 
   for (const key of Object.keys(tree)) {
-    const parsed = parseStateKey(key);
-    if (parsed && matchesState(context, parsed)) {
-      matchingKeys.push(key);
+    try {
+      const parsed = parseStateKey(key);
+      if (matchesState(context, parsed)) {
+        matchingKeys.push(key);
+      }
+    } catch (error) {
+      // Skip invalid keys
+      continue;
     }
   }
 

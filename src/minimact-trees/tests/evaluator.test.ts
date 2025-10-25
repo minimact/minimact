@@ -11,8 +11,8 @@ describe('evaluateTree', () => {
   describe('Simple Trees (1 Level)', () => {
     it('should evaluate single-level tree with string match', () => {
       const tree = {
-        roleAdmin: 0,
-        roleBasic: 10
+        'role:Admin': 0,
+        'role:Basic': 10
       };
 
       const result = evaluateTree(tree, { role: 'admin' });
@@ -21,9 +21,9 @@ describe('evaluateTree', () => {
 
     it('should evaluate single-level tree with number match', () => {
       const tree = {
-        count1: 'one',
-        count5: 'five',
-        count10: 'ten'
+        'count:1': 'one',
+        'count:5': 'five',
+        'count:10': 'ten'
       };
 
       const result = evaluateTree(tree, { count: 5 });
@@ -32,8 +32,8 @@ describe('evaluateTree', () => {
 
     it('should evaluate single-level tree with boolean match', () => {
       const tree = {
-        isActiveTrue: 'enabled',
-        isActiveFalse: 'disabled'
+        'isActive:True': 'enabled',
+        'isActive:False': 'disabled'
       };
 
       const result = evaluateTree(tree, { isActive: true });
@@ -44,13 +44,13 @@ describe('evaluateTree', () => {
   describe('Nested Trees (2+ Levels)', () => {
     it('should evaluate 2-level tree', () => {
       const tree = {
-        tierGold: {
-          quantity1: 0,
-          quantity10: 0
+        'tier:Gold': {
+          'quantity:1': 0,
+          'quantity:10': 0
         },
-        tierSilver: {
-          quantity1: 5,
-          quantity10: 0
+        'tier:Silver': {
+          'quantity:1': 5,
+          'quantity:10': 0
         }
       };
 
@@ -64,20 +64,20 @@ describe('evaluateTree', () => {
 
     it('should evaluate 3-level tree', () => {
       const tree = {
-        countryUS: {
-          stateCA: {
-            categoryElectronics: 0.0925,
-            categoryFood: 0
+        'country:US': {
+          'state:CA': {
+            'category:Electronics': 0.0925,
+            'category:Food': 0
           },
-          stateNY: {
-            categoryElectronics: 0.08875
+          'state:NY': {
+            'category:Electronics': 0.08875
           }
         }
       };
 
       const result = evaluateTree(tree, {
-        country: 'US',
-        state: 'CA',
+        country: 'us',
+        state: 'ca',
         category: 'electronics'
       });
 
@@ -86,11 +86,11 @@ describe('evaluateTree', () => {
 
     it('should evaluate deeply nested tree (5 levels)', () => {
       const tree = {
-        level1A: {
-          level2B: {
-            level3C: {
-              level4D: {
-                level5E: 'deep-value'
+        'level1:A': {
+          'level2:B': {
+            'level3:C': {
+              'level4:D': {
+                'level5:E': 'deep-value'
               }
             }
           }
@@ -98,11 +98,11 @@ describe('evaluateTree', () => {
       };
 
       const result = evaluateTree(tree, {
-        level1: 'A',
-        level2: 'B',
-        level3: 'C',
-        level4: 'D',
-        level5: 'E'
+        level1: 'a',
+        level2: 'b',
+        level3: 'c',
+        level4: 'd',
+        level5: 'e'
       });
 
       expect(result).toBe('deep-value');
@@ -111,39 +111,39 @@ describe('evaluateTree', () => {
 
   describe('Return Value Types', () => {
     it('should return number values', () => {
-      const tree = { roleAdmin: 42 };
+      const tree = { 'role:Admin': 42 };
       const result = evaluateTree(tree, { role: 'admin' });
       expect(result).toBe(42);
     });
 
     it('should return string values', () => {
-      const tree = { roleAdmin: 'administrator' };
+      const tree = { 'role:Admin': 'administrator' };
       const result = evaluateTree(tree, { role: 'admin' });
       expect(result).toBe('administrator');
     });
 
     it('should return boolean values', () => {
-      const tree = { roleAdmin: true };
+      const tree = { 'role:Admin': true };
       const result = evaluateTree(tree, { role: 'admin' });
       expect(result).toBe(true);
     });
 
     it('should return object values', () => {
       const obj = { name: 'Test', value: 123 };
-      const tree = { roleAdmin: obj };
+      const tree = { 'role:Admin': obj };
       const result = evaluateTree(tree, { role: 'admin' });
       expect(result).toEqual(obj);
     });
 
     it('should return array values', () => {
       const arr = [1, 2, 3];
-      const tree = { roleAdmin: arr };
+      const tree = { 'role:Admin': arr };
       const result = evaluateTree(tree, { role: 'admin' });
       expect(result).toEqual(arr);
     });
 
     it('should return null values', () => {
-      const tree = { roleAdmin: null };
+      const tree = { 'role:Admin': null };
       const result = evaluateTree(tree, { role: 'admin' });
       expect(result).toBe(null);
     });
@@ -152,8 +152,8 @@ describe('evaluateTree', () => {
   describe('No Match Scenarios', () => {
     it('should return undefined when no match and no default', () => {
       const tree = {
-        roleAdmin: 0,
-        roleBasic: 10
+        'role:Admin': 0,
+        'role:Basic': 10
       };
 
       const result = evaluateTree(tree, { role: 'unknown' });
@@ -162,8 +162,8 @@ describe('evaluateTree', () => {
 
     it('should return default value when no match', () => {
       const tree = {
-        roleAdmin: 0,
-        roleBasic: 10
+        'role:Admin': 0,
+        'role:Basic': 10
       };
 
       const result = evaluateTree(
@@ -177,8 +177,8 @@ describe('evaluateTree', () => {
 
     it('should throw in strict mode when no match', () => {
       const tree = {
-        roleAdmin: 0,
-        roleBasic: 10
+        'role:Admin': 0,
+        'role:Basic': 10
       };
 
       expect(() => {
@@ -194,27 +194,27 @@ describe('evaluateTree', () => {
   describe('Partial Matches', () => {
     it('should handle partial context (missing nested keys)', () => {
       const tree = {
-        tierGold: {
-          quantity1: 0,
-          quantity10: 0
+        'tier:Gold': {
+          'quantity:1': 0,
+          'quantity:10': 0
         },
-        tierSilver: 5
+        'tier:Silver': 5
       };
 
-      // Context matches 'tierSilver' but doesn't have 'quantity'
+      // Context matches 'tier:Silver' but doesn't have 'quantity'
       const result = evaluateTree(tree, { tier: 'silver' });
       expect(result).toBe(5);
     });
 
     it('should return undefined if partial match leads to object', () => {
       const tree = {
-        tierGold: {
-          quantity1: 0,
-          quantity10: 0
+        'tier:Gold': {
+          'quantity:1': 0,
+          'quantity:10': 0
         }
       };
 
-      // Matches 'tierGold' but no 'quantity' key provided
+      // Matches 'tier:Gold' but no 'quantity' key provided
       const result = evaluateTree(tree, { tier: 'gold' });
       expect(result).toBeUndefined();
     });
@@ -223,8 +223,8 @@ describe('evaluateTree', () => {
   describe('Context Priority', () => {
     it('should use first matching key when multiple keys match', () => {
       const tree = {
-        roleAdmin: 'admin-value',
-        tierGold: 'gold-value'
+        'role:Admin': 'admin-value',
+        'tier:Gold': 'gold-value'
       };
 
       // Context has both 'role' and 'tier'
@@ -233,7 +233,7 @@ describe('evaluateTree', () => {
         tier: 'gold'
       });
 
-      // Should match first key in tree (roleAdmin)
+      // Should match first key in tree (role:Admin)
       expect(result).toBe('admin-value');
     });
   });
@@ -241,18 +241,18 @@ describe('evaluateTree', () => {
   describe('Real-World Examples', () => {
     it('should calculate shipping cost', () => {
       const tree = {
-        tierGold: {
-          quantity1: 0,
-          quantity10: 0
+        'tier:Gold': {
+          'quantity:1': 0,
+          'quantity:10': 0
         },
-        tierSilver: {
-          quantity1: 5,
-          quantity10: 0
+        'tier:Silver': {
+          'quantity:1': 5,
+          'quantity:10': 0
         },
-        tierBronze: {
-          quantity1: 10,
-          quantity5: 8,
-          quantity10: 5
+        'tier:Bronze': {
+          'quantity:1': 10,
+          'quantity:5': 8,
+          'quantity:10': 5
         }
       };
 
@@ -263,18 +263,18 @@ describe('evaluateTree', () => {
 
     it('should calculate tax rate', () => {
       const tree = {
-        countryUS: {
-          stateCA: {
-            categoryElectronics: 0.0925,
-            categoryFood: 0
+        'country:US': {
+          'state:CA': {
+            'category:Electronics': 0.0925,
+            'category:Food': 0
           },
-          stateNY: {
-            categoryElectronics: 0.08875
+          'state:NY': {
+            'category:Electronics': 0.08875
           }
         },
-        countryCA: {
-          categoryElectronics: 0.13,
-          categoryFood: 0.05
+        'country:CA': {
+          'category:Electronics': 0.13,
+          'category:Food': 0.05
         }
       };
 
@@ -288,7 +288,7 @@ describe('evaluateTree', () => {
 
       expect(
         evaluateTree(tree, {
-          country: 'CA',
+          country: 'ca',
           category: 'food'
         })
       ).toBe(0.05);
@@ -296,18 +296,18 @@ describe('evaluateTree', () => {
 
     it('should determine workflow action', () => {
       const tree = {
-        orderStatusPending: {
-          'paymentMethodCredit-card': {
-            'inventoryIn-stock': 'authorize-payment',
-            'inventoryOut-of-stock': 'notify-backorder'
+        'orderStatus:Pending': {
+          'paymentMethod:CreditCard': {
+            'inventory:InStock': 'authorize-payment',
+            'inventory:OutOfStock': 'notify-backorder'
           },
-          paymentMethodPaypal: 'redirect-paypal'
+          'paymentMethod:Paypal': 'redirect-paypal'
         },
-        orderStatusConfirmed: {
-          'inventoryIn-stock': 'prepare-shipment',
-          'inventoryOut-of-stock': 'notify-delay'
+        'orderStatus:Confirmed': {
+          'inventory:InStock': 'prepare-shipment',
+          'inventory:OutOfStock': 'notify-delay'
         },
-        orderStatusShipped: 'send-tracking-email'
+        'orderStatus:Shipped': 'send-tracking-email'
       };
 
       expect(

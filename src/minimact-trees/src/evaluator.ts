@@ -91,11 +91,13 @@ function traverse<TResult = any>(
 
   // Recursive case: traverse children
   for (const key of Object.keys(node)) {
-    const parsed = parseStateKey(key);
+    let parsed;
 
-    if (!parsed) {
+    try {
+      parsed = parseStateKey(key);
+    } catch (error) {
       if (debug) {
-        console.warn(`${indent}⚠️ Invalid key format: "${key}"`);
+        console.warn(`${indent}⚠️ Invalid key format: "${key}"`, error);
       }
       continue;
     }
