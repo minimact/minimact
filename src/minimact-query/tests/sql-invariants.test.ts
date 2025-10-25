@@ -113,17 +113,18 @@ describe('minimact-query - SQL Invariants', () => {
       const gen = createDomDataGenerator(SEED);
       const data = gen.generateElements(50);
 
+      // Use a unique field (id) to ensure deterministic ordering
       const asc = new DomQueryBuilder<MockDomElementState>()
         .fromElements(data)
-        .orderBy(el => el.childrenCount, 'ASC')
+        .orderBy(el => el.attributes.id, 'ASC')
         .selectAll();
 
       const desc = new DomQueryBuilder<MockDomElementState>()
         .fromElements(data)
-        .orderBy(el => el.childrenCount, 'DESC')
+        .orderBy(el => el.attributes.id, 'DESC')
         .selectAll();
 
-      // Invariant: DESC is reverse of ASC
+      // Invariant: DESC is reverse of ASC (when sorting by unique field)
       expect(asc).toEqual(desc.reverse());
     });
 

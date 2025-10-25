@@ -144,7 +144,18 @@ export function matchesState(
   parsedKey: ParsedStateKey
 ): boolean {
   const currentValue = context[parsedKey.stateName];
-  return currentValue === parsedKey.expectedValue;
+
+  // Normalize context value to match the format used in parsed keys
+  let normalizedValue = currentValue;
+
+  if (parsedKey.valueType === 'string' && typeof currentValue === 'string') {
+    // Apply same normalization as inferValueType: lowercase kebab-case
+    normalizedValue = currentValue
+      .replace(/([a-z])([A-Z])/g, '$1-$2')
+      .toLowerCase();
+  }
+
+  return normalizedValue === parsedKey.expectedValue;
 }
 
 /**

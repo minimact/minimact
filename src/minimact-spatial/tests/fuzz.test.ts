@@ -234,6 +234,8 @@ describe('minimact-spatial - Fuzz Testing', () => {
   describe('Property-Based Testing', () => {
     it('should verify triangle inequality for distances', () => {
       // Property: distance(A, C) <= distance(A, B) + distance(B, C)
+      // Note: Triangle inequality only holds for center-to-center distance,
+      // not edge-to-edge distance (which can be 0 for intersecting bounds)
       const SEED = 161718;
       const rng = new SeededRandom(SEED);
 
@@ -242,9 +244,9 @@ describe('minimact-spatial - Fuzz Testing', () => {
         const b = generateRandomBounds(rng);
         const c = generateRandomBounds(rng);
 
-        const distAC = calculateDistance(a, c);
-        const distAB = calculateDistance(a, b);
-        const distBC = calculateDistance(b, c);
+        const distAC = calculateCenterDistance(a, c);
+        const distAB = calculateCenterDistance(a, b);
+        const distBC = calculateCenterDistance(b, c);
 
         // Triangle inequality
         expect(distAC).toBeLessThanOrEqual(distAB + distBC + 0.01); // +0.01 for floating point

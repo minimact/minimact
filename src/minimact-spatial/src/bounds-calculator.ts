@@ -191,13 +191,14 @@ function resolveValue(
 
 /**
  * Check if two bounds intersect
+ * Edge touching is NOT considered intersection (requires actual overlap)
  */
 export function boundsIntersect(a: AbsoluteBounds, b: AbsoluteBounds): boolean {
   return !(
-    a.right < b.left ||
-    a.left > b.right ||
-    a.bottom < b.top ||
-    a.top > b.bottom
+    a.right <= b.left ||
+    a.left >= b.right ||
+    a.bottom <= b.top ||
+    a.top >= b.bottom
   );
 }
 

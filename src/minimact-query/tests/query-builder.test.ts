@@ -67,7 +67,8 @@ describe('minimact-query - Query Builder', () => {
       const gen = createDomDataGenerator(42);
       const data = gen.generateElements(50);
 
-      // Set specific categories
+      // Clear all categories first, then set specific ones
+      data.forEach(el => el.attributes['data-category'] = 'other');
       data.slice(0, 20).forEach(el => el.attributes['data-category'] = 'electronics');
 
       const result = new DomQueryBuilder<MockDomElementState>()
@@ -322,7 +323,7 @@ describe('minimact-query - Query Builder', () => {
       const gen = createDomDataGenerator(42);
       const data = gen.generateElements(5);
 
-      data.forEach(() => el => el.childrenCount = 10); // All same value
+      data.forEach(el => el.childrenCount = 10); // All same value
 
       const stddev = new DomQueryBuilder<MockDomElementState>()
         .fromElements(data)

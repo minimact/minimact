@@ -405,10 +405,15 @@ export function mockIntersectionObserverWithSeed(seed: number = Date.now()) {
     const rect = element.getBoundingClientRect();
     const visibleHeight = rect.height * newRatio;
 
+    // Clamp ratio to valid range [0, 1] to prevent NaN/Infinity issues
+    const clampedRatio = isNaN(newRatio) || !isFinite(newRatio)
+      ? 0
+      : Math.max(0, Math.min(1, newRatio));
+
     const entry: IntersectionObserverEntry = {
       target: element,
       isIntersecting,
-      intersectionRatio: newRatio,
+      intersectionRatio: clampedRatio,
       boundingClientRect: rect,
       intersectionRect: {
         ...rect,
