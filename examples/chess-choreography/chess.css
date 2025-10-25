@@ -1,0 +1,281 @@
+/**
+ * Chess Board Styles - DOM Choreography
+ *
+ * CSS transitions handle all animations automatically!
+ * When pieces move via .order(), browser animates the position change.
+ */
+
+.chess-game {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.game-info p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.turn-indicator {
+  color: #0066cc;
+}
+
+.captured-count {
+  color: #cc0000;
+}
+
+/* Chessboard */
+.chessboard {
+  display: grid;
+  grid-template-columns: repeat(8, 80px);
+  grid-template-rows: repeat(8, 80px);
+  border: 3px solid #333;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin: 20px auto;
+  position: relative;
+}
+
+/* Squares */
+.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.square.light {
+  background-color: #f0d9b5;
+}
+
+.square.dark {
+  background-color: #b58863;
+}
+
+.square:hover {
+  opacity: 0.8;
+}
+
+.square .coord {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* Pieces - THE MAGIC! */
+.piece {
+  font-size: 60px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+  position: relative;
+
+  /* 🎭 DOM CHOREOGRAPHY MAGIC:
+     When piece moves to new square via .order(),
+     CSS transition handles the animation automatically!
+  */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.piece:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.piece.white {
+  color: #ffffff;
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+}
+
+.piece.black {
+  color: #000000;
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+}
+
+/* Piece pool (hidden - pieces defined here once) */
+.piece-pool {
+  display: none !important;
+}
+
+/* Captured pieces area */
+.captured-area {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+  gap: 20px;
+}
+
+.captured-white,
+.captured-black {
+  flex: 1;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  min-height: 100px;
+}
+
+.captured-white h3,
+.captured-black h3 {
+  margin-top: 0;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+.captured-white .piece,
+.captured-black .piece {
+  display: inline-block;
+  font-size: 40px;
+  margin: 5px;
+
+  /* Smooth teleportation to captured area */
+  transition: all 0.5s ease;
+}
+
+/* Controls */
+.controls {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.controls h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.controls button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: #0066cc;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.controls button:hover {
+  background: #0052a3;
+  transform: translateY(-2px);
+}
+
+.controls button:active {
+  transform: translateY(0);
+}
+
+/* Explanation */
+.explanation {
+  margin-top: 30px;
+  padding: 20px;
+  background: #e8f4f8;
+  border-left: 4px solid #0066cc;
+  border-radius: 4px;
+}
+
+.explanation h3 {
+  margin-top: 0;
+  color: #0066cc;
+}
+
+.explanation ul {
+  margin: 15px 0;
+}
+
+.explanation li {
+  margin: 8px 0;
+  color: #333;
+}
+
+.explanation p {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ccc;
+  color: #666;
+}
+
+/* Animations for special moves */
+@keyframes castle-slide {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px) scale(1.1);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes capture-flash {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Selected square highlight */
+.square.selected {
+  background-color: rgba(255, 255, 0, 0.5) !important;
+  box-shadow: inset 0 0 10px rgba(255, 255, 0, 0.8);
+}
+
+/* Valid move highlights */
+.square.valid-move::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 255, 0, 0.5);
+  border-radius: 50%;
+}
+
+/* Check/checkmate highlights */
+.square.in-check {
+  background-color: rgba(255, 0, 0, 0.3) !important;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

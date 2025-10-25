@@ -1,0 +1,30 @@
+{
+  "name": "minimact-quantum",
+  "version": "0.1.0",
+  "description": "🌌 Quantum DOM Entanglement - Share DOM identity across clients",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "keywords": [
+    "minimact",
+    "quantum",
+    "entanglement",
+    "collaborative",
+    "realtime",
+    "dom",
+    "webwormhole"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "minimact-punch": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

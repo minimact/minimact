@@ -1,0 +1,31 @@
+{
+  "name": "minimact-spatial",
+  "version": "0.1.0",
+  "description": "📐 Spatial computing for the web - Query viewport as a 2D database",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "keywords": [
+    "minimact",
+    "spatial",
+    "viewport",
+    "geometry",
+    "collision",
+    "area",
+    "region",
+    "spatial-computing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
