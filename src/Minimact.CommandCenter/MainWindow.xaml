@@ -3,10 +3,358 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Minimact.CommandCenter"
+        xmlns:vm="clr-namespace:Minimact.CommandCenter.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Minimact Command Center - It's Morphin' Time! 🦕⚡"
+        Height="900" Width="1600"
+        Background="#1E1E1E"
+        FontFamily="Segoe UI">
 
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <!-- Converter for inverting boolean -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
+        <!-- Styles -->
+        <Style x:Key="RangerButton" TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.8"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PanelHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="10,10,10,5"/>
+        </Style>
+
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3E3E42"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowBackground" Value="#2D2D30"/>
+            <Setter Property="AlternatingRowBackground" Value="#3E3E42"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Rangers Panel -->
+            <RowDefinition Height="Auto"/> <!-- Status Bar -->
+            <RowDefinition Height="*"/>    <!-- Main Content -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#007ACC" Padding="15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Minimact Command Center" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="🦕 It's Morphin' Time! - Testing Hub for Minimact Core &amp; Punch" FontSize="12" Foreground="#E0E0E0" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="🧹 Clear History"
+                            Command="{Binding ClearHistoryCommand}"
+                            Style="{StaticResource RangerButton}"
+                            Background="#3E3E42"
+                            Foreground="White"
+                            BorderBrush="#555"/>
+                    <Button Content="⚡ Run All Rangers"
+                            Command="{Binding RunAllRangersCommand}"
+                            Style="{StaticResource RangerButton}"
+                            Background="#FFD700"
+                            Foreground="Black"
+                            BorderBrush="#FFD700"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Rangers Panel -->
+        <Border Grid.Row="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,1" Padding="10">
+            <StackPanel>
+                <TextBlock Text="🦕 POWER RANGERS - Select a test to run" Style="{StaticResource PanelHeader}"/>
+
+                <ItemsControl ItemsSource="{Binding AvailableRangers}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.RunRangerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource RangerButton}"
+                                    IsEnabled="{Binding IsEnabled}"
+                                    MinWidth="180">
+                                <Button.Background>
+                                    <SolidColorBrush Color="{Binding Color}"/>
+                                </Button.Background>
+                                <Button.Foreground>
+                                    <SolidColorBrush Color="White"/>
+                                </Button.Foreground>
+                                <Button.BorderBrush>
+                                    <SolidColorBrush Color="{Binding Color}"/>
+                                </Button.BorderBrush>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Emoji}" FontSize="24" HorizontalAlignment="Center" Margin="0,5"/>
+                                    <TextBlock Text="{Binding Description}" FontSize="10" TextWrapping="Wrap" HorizontalAlignment="Center" Opacity="0.8"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#007ACC" Padding="10,5" BorderBrush="#3E3E42" BorderThickness="0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Status: " Foreground="#E0E0E0" FontSize="12" Margin="0,0,5,0"/>
+                    <TextBlock FontSize="12" Foreground="White">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="Ready"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                        <Setter Property="Text" Value="⚡ Running..."/>
+                                        <Setter Property="Foreground" Value="#FFD700"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content - Test Execution View -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/> <!-- Test History Sidebar -->
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>   <!-- Test Details -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Test History Sidebar -->
+            <Border Grid.Column="0" Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="📋 Test History" Style="{StaticResource PanelHeader}"/>
+
+                    <ListBox ItemsSource="{Binding TestHistory}"
+                             SelectedItem="{Binding CurrentExecution}"
+                             Background="#1E1E1E"
+                             Foreground="White"
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="10" Margin="5" Background="#2D2D30" CornerRadius="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RangerName}" FontWeight="Bold" FontSize="14"/>
+                                        <TextBlock FontSize="11" Margin="0,5,0,0">
+                                            <Run Text="{Binding Status, Mode=OneWay}"/>
+                                            <Run Text="(" />
+                                            <Run Text="{Binding PassedAssertions, Mode=OneWay}"/>
+                                            <Run Text="/"/>
+                                            <Run Text="{Binding TotalAssertions, Mode=OneWay}"/>
+                                            <Run Text=")"/>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding StartTime, StringFormat='HH:mm:ss'}" FontSize="10" Opacity="0.7" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="#3E3E42"/>
+
+            <!-- Test Details -->
+            <Grid Grid.Column="2" Background="#1E1E1E">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="200"/> <!-- Test Steps -->
+                    <RowDefinition Height="5"/>
+                    <RowDefinition Height="*"/>   <!-- Expected vs Actual -->
+                </Grid.RowDefinitions>
+
+                <!-- Test Steps -->
+                <Border Grid.Row="0" Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="📝 Test Steps" Style="{StaticResource PanelHeader}"/>
+
+                        <DataGrid ItemsSource="{Binding CurrentExecution.Steps}"
+                                  SelectedItem="{Binding SelectedStep}"
+                                  Style="{StaticResource DataGridStyle}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding StepNumber}" Width="40"/>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                                <DataGridTextColumn Header="Time" Binding="{Binding Timestamp, StringFormat='HH:mm:ss.fff'}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+
+                <!-- Splitter -->
+                <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="#3E3E42"/>
+
+                <!-- Expected vs Actual Split View -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Expected Column -->
+                    <Border Grid.Column="0" Background="#0A2F0A" BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="📗 EXPECTED"
+                                       Style="{StaticResource PanelHeader}"
+                                       Background="#0D4D0D"
+                                       Padding="10"/>
+
+                            <TabControl DockPanel.Dock="Top" Background="#0A2F0A" BorderThickness="0">
+                                <TabItem Header="Actions" Foreground="White">
+                                    <DataGrid ItemsSource="{Binding SelectedStep.Actions}"
+                                              Style="{StaticResource DataGridStyle}"
+                                              Background="#0A2F0A">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Type" Binding="{Binding ActionType}" Width="100"/>
+                                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="150"/>
+                                            <DataGridTextColumn Header="Value" Binding="{Binding ExpectedValue}" Width="*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                                <TabItem Header="Patches" Foreground="White">
+                                    <DataGrid ItemsSource="{Binding SelectedStep.Patches}"
+                                              Style="{StaticResource DataGridStyle}"
+                                              Background="#0A2F0A">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Type" Binding="{Binding PatchType}" Width="120"/>
+                                            <DataGridTextColumn Header="Display" Binding="{Binding DisplayText}" Width="*"/>
+                                            <DataGridCheckBoxColumn Header="✓" Binding="{Binding Matches}" Width="40"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                                <TabItem Header="SignalR" Foreground="White">
+                                    <DataGrid ItemsSource="{Binding SelectedStep.Messages}"
+                                              Style="{StaticResource DataGridStyle}"
+                                              Background="#0A2F0A">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="120"/>
+                                            <DataGridTextColumn Header="Message" Binding="{Binding DisplayText}" Width="*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                            </TabControl>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Splitter -->
+                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="#3E3E42"/>
+
+                    <!-- Actual Column -->
+                    <Border Grid.Column="2" Background="#2F0A0A" BorderBrush="#3E3E42" BorderThickness="1,0,0,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="📕 ACTUAL"
+                                       Style="{StaticResource PanelHeader}"
+                                       Background="#4D0D0D"
+                                       Padding="10"/>
+
+                            <TabControl DockPanel.Dock="Top" Background="#2F0A0A" BorderThickness="0">
+                                <TabItem Header="Actions" Foreground="White">
+                                    <DataGrid ItemsSource="{Binding SelectedStep.Actions}"
+                                              Style="{StaticResource DataGridStyle}"
+                                              Background="#2F0A0A">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Type" Binding="{Binding ActionType}" Width="100"/>
+                                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="150"/>
+                                            <DataGridTextColumn Header="Value" Binding="{Binding ActualValue}" Width="*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                                <TabItem Header="Patches" Foreground="White">
+                                    <DataGrid ItemsSource="{Binding SelectedStep.Patches}"
+                                              Style="{StaticResource DataGridStyle}"
+                                              Background="#2F0A0A">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Type" Binding="{Binding PatchType}" Width="120"/>
+                                            <DataGridTextColumn Header="Display" Binding="{Binding DisplayText}" Width="*"/>
+                                            <DataGridCheckBoxColumn Header="✓" Binding="{Binding Matches}" Width="40"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                                <TabItem Header="SignalR" Foreground="White">
+                                    <DataGrid ItemsSource="{Binding SelectedStep.Messages}"
+                                              Style="{StaticResource DataGridStyle}"
+                                              Background="#2F0A0A">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="120"/>
+                                            <DataGridTextColumn Header="Message" Binding="{Binding DisplayText}" Width="*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                            </TabControl>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

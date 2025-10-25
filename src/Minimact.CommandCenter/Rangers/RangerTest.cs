@@ -1,4 +1,5 @@
 using Minimact.CommandCenter.Core;
+using Minimact.CommandCenter.Models;
 
 namespace Minimact.CommandCenter.Rangers;
 
@@ -16,6 +17,34 @@ public abstract class RangerTest
 {
     protected MockClient client = null!;
     protected TestReport report = new();
+
+    // Events for GUI tracking
+    public event Action<string>? OnStepStarted;
+    public event Action<string>? OnStepCompleted;
+    public event Action<string, object?, object?, bool>? OnAssertion;
+    public event Action<DOMPatch, string>? OnPatchReceived;
+    public event Action<string, string, string, object[]?, string>? OnSignalRMessage;
+
+    protected void StepStarted(string step)
+    {
+        report.RecordStep(step);
+        OnStepStarted?.Invoke(step);
+    }
+
+    protected void StepCompleted(string step)
+    {
+        OnStepCompleted?.Invoke(step);
+    }
+
+    protected void PatchReceived(DOMPatch patch, string source)
+    {
+        OnPatchReceived?.Invoke(patch, source);
+    }
+
+    protected void SignalRMessage(string direction, string method, string componentId, object[]? args, string source)
+    {
+        OnSignalRMessage?.Invoke(direction, method, componentId, args, source);
+    }
 
     /// <summary>
     /// Ranger name (e.g., "Red Ranger", "Blue Ranger")
@@ -38,7 +67,7 @@ public abstract class RangerTest
     public virtual async Task SetupAsync()
     {
         client = new MockClient();
-        report = new TestReport { RangerName = Name };
+        report = new TestReport { RangerName = Name, ParentTest = this };
 
         Console.WriteLine($"\n{'='*60}");
         Console.WriteLine($"🦕 {Name} - ACTIVATE!");
@@ -82,6 +111,7 @@ public class TestReport
     public int PassedAssertions { get; set; }
     public string? FailureMessage { get; set; }
     public List<string> Steps { get; set; } = new();
+    public RangerTest? ParentTest { get; set; }
 
     public void RecordStep(string step)
     {
@@ -105,7 +135,9 @@ public class TestReport
     public void AssertEqual<T>(T expected, T actual, string message)
     {
         TotalAssertions++;
-        if (EqualityComparer<T>.Default.Equals(expected, actual))
+        bool passed = EqualityComparer<T>.Default.Equals(expected, actual);
+
+        if (passed)
         {
             PassedAssertions++;
             Console.WriteLine($"  ✓ Assert: {message} (expected: {expected}, actual: {actual})");
@@ -113,6 +145,10 @@ public class TestReport
         else
         {
             Fail($"{message} - Expected: {expected}, Actual: {actual}");
+        }
+
+        if (!passed)
+        {
             throw new AssertionException($"{message} - Expected: {expected}, Actual: {actual}");
         }
     }
@@ -120,7 +156,9 @@ public class TestReport
     public void AssertNotNull<T>(T? value, string message)
     {
         TotalAssertions++;
-        if (value != null)
+        bool passed = value != null;
+
+        if (passed)
         {
             PassedAssertions++;
             Console.WriteLine($"  ✓ Assert: {message} (not null)");
@@ -128,6 +166,10 @@ public class TestReport
         else
         {
             Fail($"{message} - Value was null");
+        }
+
+        if (!passed)
+        {
             throw new AssertionException($"{message} - Value was null");
         }
     }
@@ -135,7 +177,9 @@ public class TestReport
     public void AssertTrue(bool condition, string message)
     {
         TotalAssertions++;
-        if (condition)
+        bool passed = condition;
+
+        if (passed)
         {
             PassedAssertions++;
             Console.WriteLine($"  ✓ Assert: {message}");
@@ -143,6 +187,10 @@ public class TestReport
         else
         {
             Fail($"{message} - Expected true, got false");
+        }
+
+        if (!passed)
+        {
             throw new AssertionException($"{message} - Expected true, got false");
         }
     }
