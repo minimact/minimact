@@ -445,6 +445,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
             PostfixUnaryExpressionSyntax postfix => GeneratePostfixUnary(postfix),
             ImplicitObjectCreationExpressionSyntax implicitObject => GenerateImplicitObjectCreation(implicitObject),
             InterpolatedStringExpressionSyntax interpolated => GenerateInterpolatedString(interpolated),
+            PredefinedTypeSyntax predefined => MapPredefinedType(predefined),
             _ => $"/* TODO: {expression.GetType().Name} */"
         };
     }
@@ -513,7 +514,7 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         }
 
         // Handle constants like double.PositiveInfinity
-        if (left == "double" || left == "Double")
+        if (left == "double" || left == "Double" || left == "number")
         {
             return MapConstant(right);
         }
@@ -552,6 +553,28 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
 
     private string GenerateInvocation(InvocationExpressionSyntax invocation)
     {
+        // Check if this is a method call that needs 'this.' prefix
+        if (invocation.Expression is IdentifierNameSyntax identifier)
+        {
+            var identifierName = identifier.Identifier.ValueText;
+
+            // Use semantic model to determine if this is a method on the current class
+            if (_semanticModel != null)
+            {
+                var symbolInfo = _semanticModel.GetSymbolInfo(identifier);
+
+
+                if (symbolInfo.Symbol is IMethodSymbol method && !method.IsStatic)
+                {
+                    // This is an instance method call on the current class - needs 'this.'
+                    var methodName = MapIdentifierName(identifierName);
+                    var methodArguments = invocation.ArgumentList.Arguments.Select(arg => GenerateExpression(arg.Expression)).ToArray();
+                    var methodArgumentString = string.Join(", ", methodArguments);
+                    return $"this.{methodName}({methodArgumentString})";
+                }
+            }
+        }
+
         var expression = GenerateExpression(invocation.Expression);
         var arguments = invocation.ArgumentList.Arguments.Select(arg => GenerateExpression(arg.Expression)).ToArray();
 
@@ -641,11 +664,18 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
         return typeName switch
         {
             "TrajectoryPoint" => true,
+            "MouseTrajectory" => true,
+            "RayIntersectionResult" => true,
+            "ScrollPoint" => true,
+            "ScrollVelocity" => true,
             "HoverConfidenceResult" => true,
             "IntersectionConfidenceResult" => true,
             "FocusConfidenceResult" => true,
             "FocusPredictionResult" => true,
             "PredictionObservation" => true,
+            "PredictionRequestMessage" => true,
+            "DebugMessage" => true,
+            "ObservableElement" => true,
             "ObservablesConfig" => true,
             _ => false
         };
@@ -767,7 +797,15 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
             {
                 var left = GenerateExpression(assignment.Left);
                 var right = GenerateExpression(assignment.Right);
-                return $"{ToCamelCase(left)}: {right}";
+                var propertyName = ToCamelCase(left);
+
+                // Use ES6 shorthand syntax when property name matches variable name
+                if (propertyName == right)
+                {
+                    return propertyName;
+                }
+
+                return $"{propertyName}: {right}";
             }
             return GenerateExpression(expr);
         });
@@ -870,10 +908,10 @@ public class TypeScriptGenerator : CSharpSyntaxWalker
     {
         return constant switch
         {
-            "PositiveInfinity" => "Infinity",
-            "NegativeInfinity" => "-Infinity",
-            "NaN" => "NaN",
-            "PI" => "PI",
+            "PositiveInfinity" => "Number.POSITIVE_INFINITY",
+            "NegativeInfinity" => "Number.NEGATIVE_INFINITY",
+            "NaN" => "Number.NaN",
+            "PI" => "Math.PI",
             _ => constant
         };
     }

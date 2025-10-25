@@ -126,6 +126,18 @@ public class CSharpToTypeScriptTranspiler
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
         var root = await syntaxTree.GetRootAsync();
 
+        // Check for compilation errors
+        var diagnostics = compilation.GetDiagnostics();
+        var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
+        if (errors.Any())
+        {
+            Console.WriteLine($"Compilation errors for {inputFile.Name}:");
+            foreach (var error in errors)
+            {
+                Console.WriteLine($"  {error}");
+            }
+        }
+
         // Generate TypeScript from C# syntax tree
         var typescript = _generator.Generate(root, semanticModel);
 

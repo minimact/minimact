@@ -27,7 +27,7 @@ export class ScrollVelocityTracker {
     trackScroll(eventData: ScrollEventData): void {
         this.viewportWidth = eventData.viewportWidth;
         this.viewportHeight = eventData.viewportHeight;
-        this.scrollHistory.push(Object.assign(new ScrollPoint(), { scrollX: eventData.scrollX, scrollY: eventData.scrollY, timestamp: eventData.timestamp }));
+        this.scrollHistory.push({ scrollX: eventData.scrollX, scrollY: eventData.scrollY, timestamp: eventData.timestamp });
     }
 
     getVelocity(): ScrollVelocity {
@@ -62,11 +62,11 @@ export class ScrollVelocityTracker {
             const secondHalf: ScrollPoint[] = new Array<ScrollPoint>(points.length - mid);
             Array.copy(points, 0, firstHalf, 0, mid);
             Array.copy(points, mid, secondHalf, 0, points.length - mid);
-            const firstHalfVelocity: number = calculateVelocity(firstHalf);
-            const secondHalfVelocity: number = calculateVelocity(secondHalf);
+            const firstHalfVelocity: number = this.calculateVelocity(firstHalf);
+            const secondHalfVelocity: number = this.calculateVelocity(secondHalf);
             deceleration = (firstHalfVelocity - secondHalfVelocity) / timeDelta;
         }
-        return Object.assign(new ScrollVelocity(), { velocity: velocity, direction: direction, deceleration: deceleration });
+        return { velocity, direction, deceleration };
     }
 
     export class IntersectionConfidenceResult {
@@ -76,7 +76,7 @@ export class ScrollVelocityTracker {
     }
 
     calculateIntersectionConfidence(elementBounds: Rect, currentScrollY: number): IntersectionConfidenceResult {
-        const velocity: ScrollVelocity = getVelocity();
+        const velocity: ScrollVelocity = this.getVelocity();
         if (velocity == null) {
             return { confidence: 0, leadTime: 0, reason: "no scroll data" };
         }
@@ -97,7 +97,7 @@ export class ScrollVelocityTracker {
             if (timeToIntersect > this.config.intersectionLeadTimeMax) {
                 return { confidence: 0, leadTime: timeToIntersect, reason: `lead time ${timeToIntersect.toFixed(0)}ms too long` };
             }
-            return calculateConfidenceFromDistance(distance, velocity, timeToIntersect);
+            return this.calculateConfidenceFromDistance(distance, velocity, timeToIntersect);
         }
         if (elementBounds.top > viewportBottom) {
             if (velocity.direction != "down") {
@@ -108,7 +108,7 @@ export class ScrollVelocityTracker {
             if (timeToIntersect > this.config.intersectionLeadTimeMax) {
                 return { confidence: 0, leadTime: timeToIntersect, reason: `lead time ${timeToIntersect.toFixed(0)}ms too long` };
             }
-            return calculateConfidenceFromDistance(distance, velocity, timeToIntersect);
+            return this.calculateConfidenceFromDistance(distance, velocity, timeToIntersect);
         }
         return { confidence: 0, leadTime: 0, reason: "unknown state" };
     }
@@ -121,7 +121,7 @@ export class ScrollVelocityTracker {
         const decelerationConfidence: number = velocity.deceleration <= 0 ? 1 : Math.max(0, 1 - velocity.deceleration / 0.001);
         const timeConfidence: number = timeToIntersect >= 50 && timeToIntersect <= 300 ? 1 : Math.max(0, 1 - Math.abs(timeToIntersect - 175) / 175);
         const confidence: number = distanceConfidence * 0.3 + velocityConfidence * 0.2 + decelerationConfidence * 0.2 + timeConfidence * 0.3;
-        return { confidence: confidence, leadTime: timeToIntersect, reason: `scroll: ${(confidence * 100).toFixed(0)}% (dist: ${distance.toFixed(0)}px, vel: ${velocity.velocity.toFixed(2)}, time: ${timeToIntersect.toFixed(0)}ms)` };
+        return { confidence, leadTime: timeToIntersect, reason: `scroll: ${(confidence * 100).toFixed(0)}% (dist: ${distance.toFixed(0)}px, vel: ${velocity.velocity.toFixed(2)}, time: ${timeToIntersect.toFixed(0)}ms)` };
     }
 
     private calculateVelocity(points: ScrollPoint[]): number {

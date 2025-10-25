@@ -166,7 +166,7 @@ export class CircularBuffer {
     }
 
     getLast(n: number): T[] {
-        const all: T[] = getAll();
+        const all: T[] = this.getAll();
         const startIndex: number = Math.max(0, all.length - n);
         const result: T[] = new Array<T>(all.length - startIndex);
         Array.copy(all, startIndex, result, 0, result.length);

@@ -56,7 +56,7 @@ export class ConfidenceEngine {
             }
             const result = this.mouseTracker.calculateHoverConfidence(element.bounds);
             if (result.confidence >= this.config.minConfidence) {
-                this.sendPrediction(Object.assign(new PredictionRequestMessage(), { componentId: element.componentId, elementId: elementId, observation: { hover: true }, confidence: result.confidence, leadTime: result.leadTime, reason: result.reason }));
+                this.sendPrediction({ componentId: element.componentId, elementId, observation: { hover: true }, confidence: result.confidence, leadTime: result.leadTime, reason: result.reason });
                 this.predictionThrottle[elementId] = eventData.timestamp;
             }
         }
@@ -74,7 +74,7 @@ export class ConfidenceEngine {
             }
             const result = this.scrollTracker.calculateIntersectionConfidence(element.bounds, eventData.scrollY);
             if (result.confidence >= this.config.minConfidence) {
-                this.sendPrediction(Object.assign(new PredictionRequestMessage(), { componentId: element.componentId, elementId: elementId, observation: { isIntersecting: true }, confidence: result.confidence, leadTime: result.leadTime, reason: result.reason }));
+                this.sendPrediction({ componentId: element.componentId, elementId, observation: { isIntersecting: true }, confidence: result.confidence, leadTime: result.leadTime, reason: result.reason });
                 this.predictionThrottle[elementId] = eventData.timestamp;
             }
         }
@@ -92,7 +92,7 @@ export class ConfidenceEngine {
                 if (this.observableElements.has(prediction.elementId)) {
                     const element: ObservableElement = this.observableElements[prediction.elementId];
                     if (element != null && element.observables.focus == true) {
-                        this.sendPrediction(Object.assign(new PredictionRequestMessage(), { componentId: element.componentId, elementId: prediction.elementId, observation: { focus: true }, confidence: prediction.confidence, leadTime: prediction.leadTime, reason: prediction.reason }));
+                        this.sendPrediction({ componentId: element.componentId, elementId: prediction.elementId, observation: { focus: true }, confidence: prediction.confidence, leadTime: prediction.leadTime, reason: prediction.reason });
                     }
                 }
             }
@@ -100,7 +100,7 @@ export class ConfidenceEngine {
     }
 
     private registerElement(message: RegisterElementMessage): void {
-        this.observableElements[message.elementId] = Object.assign(new ObservableElement(), { componentId: message.componentId, elementId: message.elementId, bounds: message.bounds, observables: message.observables });
+        this.observableElements[message.elementId] = { componentId: message.componentId, elementId: message.elementId, bounds: message.bounds, observables: message.observables };
         this.debug("Registered element", /* TODO: AnonymousObjectCreationExpressionSyntax */);
     }
 
@@ -138,7 +138,7 @@ export class ConfidenceEngine {
 
     private debug(message: string, data: any): void {
         if (this.config.debugLogging) {
-            script.call("postMessage", Object.assign(new DebugMessage(), { type: "debug", message: `[ConfidenceEngine] ${message}`, data: data }));
+            script.call("postMessage", { type: "debug", message: `[ConfidenceEngine] ${message}`, data });
         }
     }
 

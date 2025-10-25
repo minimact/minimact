@@ -1,5 +1,4 @@
 using System;
-using Bridge;
 
 namespace Minimact.Workers
 {
@@ -14,7 +13,6 @@ namespace Minimact.Workers
         /// <summary>
         /// Scroll point for history tracking
         /// </summary>
-        [ObjectLiteral]
         public class ScrollPoint
         {
             public double ScrollX { get; set; }
@@ -118,7 +116,6 @@ namespace Minimact.Workers
         /// <summary>
         /// Intersection confidence result
         /// </summary>
-        [ObjectLiteral]
         public class IntersectionConfidenceResult
         {
             public double Confidence { get; set; }

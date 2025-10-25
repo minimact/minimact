@@ -1,5 +1,4 @@
 using System;
-using Bridge;
 
 namespace Minimact.Workers
 {
@@ -85,7 +84,6 @@ namespace Minimact.Workers
         /// <summary>
         /// Hover confidence result
         /// </summary>
-        [ObjectLiteral]
         public class HoverConfidenceResult
         {
             public double Confidence { get; set; }
@@ -212,7 +210,6 @@ namespace Minimact.Workers
         /// <summary>
         /// Ray intersection result
         /// </summary>
-        [ObjectLiteral]
         public class RayIntersectionResult
         {
             public double Distance { get; set; }
