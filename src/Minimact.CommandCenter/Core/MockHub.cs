@@ -40,8 +40,14 @@ public class MockHub
     public void RegisterComponent(string componentId, MinimactComponent component)
     {
         // Inject MockPatchSender into component (in-memory transport!)
-        component.PatchSender = _patchSender;
-        component.ConnectionId = componentId; // Use component ID as connection ID
+        // Use reflection since PatchSender and ConnectionId have internal setters
+        var patchSenderProp = typeof(MinimactComponent).GetProperty("PatchSender",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+        patchSenderProp?.SetValue(component, _patchSender);
+
+        var connectionIdProp = typeof(MinimactComponent).GetProperty("ConnectionId",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+        connectionIdProp?.SetValue(component, componentId);
 
         _engine.RegisterComponent(componentId, component);
         Console.WriteLine($"[MockHub] Registered component: {componentId}");

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using Minimact.AspNetCore.Abstractions;
 using Minimact.CommandCenter.Models;
 
 namespace Minimact.CommandCenter.Core;
@@ -96,23 +97,13 @@ public class SignalRClientManager
     /// Update DOM element state on server (from useDomElementState hook)
     /// Keeps server aware of DOM changes for accurate rendering
     /// </summary>
-    public async Task UpdateDomElementStateAsync(string componentId, string stateKey, DomElementState snapshot)
+    public async Task UpdateDomElementStateAsync(string componentId, string stateKey, DomElementStateSnapshot snapshot)
     {
         if (_connection == null)
             throw new InvalidOperationException("Not connected to SignalR hub");
 
         Console.WriteLine($"[SignalR] → UpdateDomElementState({componentId}, {stateKey})");
-        await _connection.InvokeAsync("UpdateDomElementState", componentId, stateKey, new
-        {
-            isIntersecting = snapshot.IsIntersecting,
-            intersectionRatio = snapshot.IntersectionRatio,
-            childrenCount = snapshot.ChildrenCount,
-            grandChildrenCount = snapshot.GrandChildrenCount,
-            attributes = snapshot.Attributes,
-            classList = snapshot.ClassList,
-            exists = snapshot.Exists,
-            count = snapshot.Count
-        });
+        await _connection.InvokeAsync("UpdateDomElementState", componentId, stateKey, snapshot);
     }
 
     /// <summary>
