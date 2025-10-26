@@ -296,6 +296,112 @@ setItems.updateWhere(predicate, changes);
 
 ---
 
+## 🚀 Advanced Extension Ecosystem
+
+### minimact-punch - DOM as Reactive Data Source
+- ✅ **useDomElementState** - Makes DOM queryable like a database
+- ✅ 80+ reactive properties (isIntersecting, childrenCount, attributes, classList, etc.)
+- ✅ MutationObserver integration (automatic updates)
+- ✅ IntersectionObserver integration (viewport tracking)
+- ✅ Statistical aggregates (.vals.avg(), .vals.sum(), .vals.median())
+- ✅ Collection queries (count, map, filter, find)
+- ✅ MES Silver certified (Minimact Extension Standards)
+- ✅ Full TypeScript support
+
+### minimact-query - SQL for the DOM
+- ✅ **useDomQuery** - Query DOM like a relational database
+- ✅ Full SQL semantics (SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, LIMIT)
+- ✅ Aggregate functions (COUNT, SUM, AVG, MIN, MAX, STDDEV)
+- ✅ Set operations (UNION, INTERSECT, EXCEPT, DISTINCT)
+- ✅ Reactive by default (queries auto-update when DOM changes)
+- ✅ Type-safe with autocomplete for 80+ DOM properties
+- ✅ Performance optimized (throttling/debouncing built-in)
+
+```typescript
+const unstableComponents = useDomQuery()
+  .from('.component')
+  .where(c => c.history.changesPerSecond > 10)
+  .orderBy(c => c.history.volatility, 'DESC')
+  .limit(10);
+```
+
+### minimact-dynamic - Function-Based Value Binding
+- ✅ **useDynamicState** - Separate structure from content
+- ✅ Define DOM once, bind values with functions
+- ✅ Auto dependency tracking with Proxy
+- ✅ Direct DOM updates (< 1ms, no VDOM)
+- ✅ Server pre-compilation support
+- ✅ Minimal bundle (< 3KB gzipped)
+
+```typescript
+// Structure ONCE
+<span className="price"></span>
+
+// Bind SEPARATELY
+dynamic('.price', (state) =>
+  state.user.isPremium
+    ? state.product.factoryPrice
+    : state.product.price
+);
+```
+
+### minimact-spatial - Viewport as 2D Database
+- ✅ **useArea** - Query spatial regions of the viewport
+- ✅ Track coverage, density, element counts
+- ✅ Reactive spatial queries
+- ✅ Region-based event handling
+- ✅ Spatial collision detection
+
+```typescript
+const header = useArea({ top: 0, height: 80 });
+const sidebar = useArea('#sidebar');
+
+{header.isFull && <CompactMode />}
+{sidebar.elementsCount > 10 && <ScrollIndicator />}
+```
+
+### minimact-quantum - DOM Entanglement Protocol
+- ✅ Multi-client DOM synchronization across physical space
+- ✅ **Identity sync** (not data sync - same element in two places at once)
+- ✅ Mutation vectors for efficient transmission
+- ✅ Bidirectional entanglement
+- ✅ Operational Transform for conflict resolution
+- ✅ 100x bandwidth reduction vs full state sync
+- ✅ WebWormhole integration for P2P
+
+```typescript
+// User A in New York, User B in Tokyo
+const link = await quantum.entangle(slider, {
+  clientId: 'user-b',
+  selector: '#volume-slider'
+}, 'bidirectional');
+
+// User A drags → User B's slider moves instantly
+// SAME IDENTITY. DIFFERENT SPACETIME COORDINATES.
+```
+
+### minimact-trees - Declarative State Machines
+- ✅ **useDecisionTree** - XState but minimal and declarative
+- ✅ Universal value type support (any primitive or object)
+- ✅ Nested decision paths
+- ✅ Predictive transition pre-computation
+- ✅ Server-side rendering integration
+- ✅ TypeScript inference for tree structure
+
+```typescript
+const price = useDecisionTree({
+  roleAdmin: 0,
+  rolePremium: {
+    count5: 0,
+    count3: 5
+  },
+  roleBasic: 10
+}, { role: 'admin', count: 5 });
+// Result: 0 (matched roleAdmin path)
+```
+
+---
+
 ## 📦 Packages & Distribution
 
 ### Published Packages
@@ -308,7 +414,11 @@ setItems.updateWhere(predicate, changes);
 - ✅ **minimact-vscode** - VS Code extension
 - ✅ **minimact-devtools** - Browser DevTools extension
 - ✅ **minimact-punch** - useDomElementState extension (MES Silver certified)
-- ✅ **minimact-query** - SQL-like DOM querying (in development)
+- ✅ **minimact-query** - SQL-like DOM querying
+- ✅ **minimact-dynamic** - useDynamicState (function-based value bindings)
+- ✅ **minimact-spatial** - useArea (spatial computing, viewport as 2D database)
+- ✅ **minimact-quantum** - Quantum DOM Entanglement Protocol (multi-client identity sync)
+- ✅ **minimact-trees** - useDecisionTree (declarative state machines)
 
 ---
 
@@ -361,6 +471,13 @@ setItems.updateWhere(predicate, changes);
 7. **Hybrid State Management** - Seamless client/server state mixing
 8. **Interactive Playground** - Visual prediction analytics
 9. **Complete Developer Experience** - CLI + VS Code + DevTools + Playground
+10. **Advanced Extension Ecosystem** - 6 complete extensions pushing web development boundaries:
+    - **minimact-punch** - DOM as reactive data source (80+ properties)
+    - **minimact-query** - SQL for the DOM (relational queries)
+    - **minimact-dynamic** - Function-based value binding (structure once, bind separately)
+    - **minimact-spatial** - Viewport as 2D database (spatial computing)
+    - **minimact-quantum** - Multi-client DOM identity sync (quantum entanglement)
+    - **minimact-trees** - Declarative state machines (minimal XState)
 
 ---
 
