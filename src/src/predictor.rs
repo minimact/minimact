@@ -361,12 +361,28 @@ impl Predictor {
                             template_patch: TemplatePatch {
                                 template,
                                 bindings: vec![state_change.state_key.clone()],
+                                bindings_with_transforms: None,
                                 slots: vec![pos],
                                 conditional_templates: None,
                                 conditional_binding_index: None,
                             },
                         }]);
                     }
+                }
+
+                // Phase 6: Try expression template (for computed values like .toFixed())
+                // This catches cases like "Price: $99.95" where price=99.95 but content has toFixed(2)
+                if let Some(template_patch) = self.extract_expression_template(
+                    state_change,
+                    old_content,
+                    new_content,
+                    all_state,
+                    old_path
+                ) {
+                    return Some(vec![Patch::UpdateTextTemplate {
+                        path: old_path.clone(),
+                        template_patch,
+                    }]);
                 }
 
                 // Phase 3: Try multi-variable template
@@ -424,6 +440,7 @@ impl Predictor {
             return Some(TemplatePatch {
                 template: "{0}".to_string(), // Placeholder, actual value from conditional_templates
                 bindings: vec![state_change.state_key.clone()],
+                bindings_with_transforms: None,
                 slots: vec![0],
                 conditional_templates: Some(conditional_map),
                 conditional_binding_index: Some(0),
@@ -574,10 +591,99 @@ impl Predictor {
             return Some(TemplatePatch {
                 template,
                 bindings,
+                bindings_with_transforms: None,
                 slots,
                 conditional_templates: None,
                 conditional_binding_index: None,
             });
+        }
+
+        None
+    }
+
+    /// Extract expression template for computed values (Phase 6)
+    ///
+    /// Handles cases where content doesn't directly match state value,
+    /// but is derived through transformations like:
+    ///   - Number formatting: price (99.95) → "$99.95" or "99.95" (toFixed(2))
+    ///   - Arithmetic: count (5) → "10" (count * 2)
+    ///   - String operations: name ("john") → "JOHN" (toUpperCase())
+    ///
+    /// Example:
+    ///   State: { price: 99.9 }
+    ///   Old content: "Price: $99.90"
+    ///   New content: "Price: $100.00" (price changed to 100.0)
+    ///
+    ///   Extracted:
+    ///     TemplatePatch {
+    ///       template: "Price: ${0}",
+    ///       bindings_with_transforms: [
+    ///         Binding { state_key: "price", transform: Some("toFixed(2)") }
+    ///       ]
+    ///     }
+    fn extract_expression_template(
+        &self,
+        state_change: &StateChange,
+        old_content: &str,
+        new_content: &str,
+        all_state: &HashMap<String, serde_json::Value>,
+        path: &[usize],
+    ) -> Option<TemplatePatch> {
+        use serde_json::Value;
+        use crate::vdom::Binding;
+
+        // Only handle numeric state for now (most common case)
+        let (old_num, new_num) = match (&state_change.old_value, &state_change.new_value) {
+            (Value::Number(old), Value::Number(new)) => {
+                (old.as_f64()?, new.as_f64()?)
+            }
+            _ => return None,
+        };
+
+        // Try common transformations
+        let transforms = vec![
+            ("toFixed(0)", format!("{:.0}", old_num), format!("{:.0}", new_num)),
+            ("toFixed(1)", format!("{:.1}", old_num), format!("{:.1}", new_num)),
+            ("toFixed(2)", format!("{:.2}", old_num), format!("{:.2}", new_num)),
+            ("toFixed(3)", format!("{:.3}", old_num), format!("{:.3}", new_num)),
+            ("* 100", format!("{}", old_num * 100.0), format!("{}", new_num * 100.0)),
+            ("* 10", format!("{}", old_num * 10.0), format!("{}", new_num * 10.0)),
+            ("/ 100", format!("{}", old_num / 100.0), format!("{}", new_num / 100.0)),
+            ("+ 1", format!("{}", old_num + 1.0), format!("{}", new_num + 1.0)),
+            ("- 1", format!("{}", old_num - 1.0), format!("{}", new_num - 1.0)),
+        ];
+
+        for (transform_expr, old_transformed, new_transformed) in transforms {
+            // Check if old_content contains the transformed old value
+            if let Some(pos) = old_content.find(&old_transformed) {
+                // Extract template by replacing old transformed value with {0}
+                let template = old_content.replace(&old_transformed, "{0}");
+
+                // Verify template works for new transformed value
+                let expected = template.replace("{0}", &new_transformed);
+                if expected == new_content {
+                    // ✅ Expression template found!
+                    crate::log_info!(
+                        "🔧 Expression template extracted for {}::{} with transform '{}': '{}'",
+                        state_change.component_id,
+                        state_change.state_key,
+                        transform_expr,
+                        template
+                    );
+
+                    return Some(TemplatePatch {
+                        template,
+                        bindings: vec![state_change.state_key.clone()], // Keep for backward compat
+                        bindings_with_transforms: Some(vec![Binding {
+                            state_key: state_change.state_key.clone(),
+                            transform: Some(transform_expr.to_string()),
+                        }]),
+                        slots: vec![pos],
+                        conditional_templates: None,
+                        conditional_binding_index: None,
+                    });
+                }
+            }
         }
 
         None
@@ -676,6 +782,7 @@ impl Predictor {
                     template_patch: TemplatePatch {
                         template: format!("{{item.{}}}", map.keys().next()?),
                         bindings: vec![format!("item.{}", map.keys().next()?)],
+                        bindings_with_transforms: None,
                         slots: vec![0],
                         conditional_templates: None,
                         conditional_binding_index: None,
@@ -687,6 +794,7 @@ impl Predictor {
                     template_patch: TemplatePatch {
                         template: s.clone(),
                         bindings: vec![state_key.to_string()],
+                        bindings_with_transforms: None,
                         slots: vec![0],
                         conditional_templates: None,
                         conditional_binding_index: None,
@@ -843,6 +951,7 @@ impl Predictor {
                         template_patch: TemplatePatch {
                             template,
                             bindings: vec![binding],
+                            bindings_with_transforms: None,
                             slots: vec![pos],
                             conditional_templates: None,
                             conditional_binding_index: None,

@@ -16,6 +16,13 @@ public class ComponentMetadata
     public Dictionary<string, string> LoopTemplates { get; set; } = new();
 
     /// <summary>
+    /// Expression templates extracted by Babel plugin (Phase 6).
+    /// Contains metadata about computed values like toFixed(), arithmetic, etc.
+    /// Value: JSON-serialized array of expression template metadata
+    /// </summary>
+    public string? ExpressionTemplates { get; set; }
+
+    /// <summary>
     /// Component ID for tracking
     /// </summary>
     public string ComponentId { get; set; } = string.Empty;

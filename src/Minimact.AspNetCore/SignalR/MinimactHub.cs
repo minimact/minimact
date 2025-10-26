@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.Abstractions;
 using System.Diagnostics;
+using System.Text.Json;
+using System.Reflection;
 
 namespace Minimact.AspNetCore.SignalR;
 
@@ -53,9 +55,9 @@ public class MinimactHub : Hub
         {
             // Use reflection to find and invoke the method
             var method = component.GetType().GetMethod(methodName,
-                System.Reflection.BindingFlags.Public |
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.Instance);
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance);
 
             if (method == null)
             {
@@ -63,9 +65,55 @@ public class MinimactHub : Hub
                 return;
             }
 
-            // For now, assume no arguments or parse from JSON
-            // TODO: Parse argsJson and match parameter types
-            var result = method.Invoke(component, null);
+            // Parse arguments from JSON and match parameter types
+            object?[] args = Array.Empty<object>();
+            var parameters = method.GetParameters();
+
+            if (!string.IsNullOrEmpty(argsJson) && argsJson != "[]" && parameters.Length > 0)
+            {
+                try
+                {
+                    // Deserialize JSON array
+                    using var doc = JsonDocument.Parse(argsJson);
+                    var argsArray = doc.RootElement;
+
+                    if (argsArray.ValueKind != JsonValueKind.Array)
+                    {
+                        await Clients.Caller.SendAsync("Error", $"Invalid arguments format: expected array, got {argsArray.ValueKind}");
+                        return;
+                    }
+
+                    // Convert each argument to the expected parameter type
+                    args = new object?[parameters.Length];
+                    var jsonArgs = argsArray.EnumerateArray().ToArray();
+
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        if (i < jsonArgs.Length)
+                        {
+                            args[i] = ConvertJsonElementToType(jsonArgs[i], parameters[i].ParameterType);
+                        }
+                        else if (parameters[i].HasDefaultValue)
+                        {
+                            args[i] = parameters[i].DefaultValue;
+                        }
+                        else
+                        {
+                            await Clients.Caller.SendAsync("Error",
+                                $"Missing required argument at position {i} for parameter '{parameters[i].Name}'");
+                            return;
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    await Clients.Caller.SendAsync("Error", $"Failed to parse arguments JSON: {ex.Message}");
+                    return;
+                }
+            }
+
+            // Invoke method with typed arguments
+            var result = method.Invoke(component, args);
 
             // If method returns Task, await it
             if (result is Task task)
@@ -450,5 +498,95 @@ public class MinimactHub : Hub
         // Clean up components associated with this connection
         _registry.CleanupConnection(Context.ConnectionId);
         await base.OnDisconnectedAsync(exception);
+    }
+
+    /// <summary>
+    /// Convert JsonElement to target parameter type
+    /// Handles primitives, strings, objects, and arrays
+    /// </summary>
+    private static object? ConvertJsonElementToType(JsonElement element, Type targetType)
+    {
+        // Handle null
+        if (element.ValueKind == JsonValueKind.Null)
+        {
+            return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
+        }
+
+        // Handle nullable types
+        var underlyingType = Nullable.GetUnderlyingType(targetType);
+        if (underlyingType != null)
+        {
+            return ConvertJsonElementToType(element, underlyingType);
+        }
+
+        // Handle primitives
+        if (targetType == typeof(string))
+            return element.GetString();
+        if (targetType == typeof(int))
+            return element.GetInt32();
+        if (targetType == typeof(long))
+            return element.GetInt64();
+        if (targetType == typeof(double))
+            return element.GetDouble();
+        if (targetType == typeof(float))
+            return (float)element.GetDouble();
+        if (targetType == typeof(bool))
+            return element.GetBoolean();
+        if (targetType == typeof(decimal))
+            return element.GetDecimal();
+        if (targetType == typeof(Guid))
+            return element.GetGuid();
+        if (targetType == typeof(DateTime))
+            return element.GetDateTime();
+
+        // Handle enums
+        if (targetType.IsEnum)
+        {
+            if (element.ValueKind == JsonValueKind.String)
+                return Enum.Parse(targetType, element.GetString()!);
+            if (element.ValueKind == JsonValueKind.Number)
+                return Enum.ToObject(targetType, element.GetInt32());
+        }
+
+        // Handle arrays
+        if (targetType.IsArray)
+        {
+            var elementType = targetType.GetElementType()!;
+            var jsonArray = element.EnumerateArray().ToArray();
+            var array = Array.CreateInstance(elementType, jsonArray.Length);
+            for (int i = 0; i < jsonArray.Length; i++)
+            {
+                array.SetValue(ConvertJsonElementToType(jsonArray[i], elementType), i);
+            }
+            return array;
+        }
+
+        // Handle generic lists
+        if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            var elementType = targetType.GetGenericArguments()[0];
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            var list = (System.Collections.IList)Activator.CreateInstance(listType)!;
+            foreach (var item in element.EnumerateArray())
+            {
+                list.Add(ConvertJsonElementToType(item, elementType));
+            }
+            return list;
+        }
+
+        // Handle complex objects - deserialize using System.Text.Json
+        try
+        {
+            return JsonSerializer.Deserialize(element.GetRawText(), targetType);
+        }
+        catch
+        {
+            // Fallback: try Convert.ChangeType for simple conversions
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                return Convert.ChangeType(element.GetString(), targetType);
+            }
+            throw;
+        }
     }
 }

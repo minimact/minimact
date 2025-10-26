@@ -25,6 +25,18 @@ pub struct VText {
     pub content: String,
 }
 
+/// Binding with optional transform (Phase 6: Expression Templates)
+/// Represents a state variable and how to transform it for display
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Binding {
+    /// State variable name (e.g., "price", "count")
+    pub state_key: String,
+    /// Optional transform to apply before rendering
+    /// Examples: "toFixed(2)", "* 100", "toUpperCase()", etc.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transform: Option<String>,
+}
+
 /// Template patch data for parameterized updates
 /// Enables 98% memory reduction by storing patterns instead of concrete values
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -33,8 +45,13 @@ pub struct TemplatePatch {
     /// For simple templates: "Count: {0}"
     /// For conditionals: see conditional_templates
     pub template: String,
-    /// State variable names that fill the template
+    /// State variable names that fill the template (Phase 1-5: simple strings)
+    /// Kept for backward compatibility
     pub bindings: Vec<String>,
+    /// Phase 6: Rich bindings with transform support
+    /// If present, overrides simple bindings field
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bindings_with_transforms: Option<Vec<Binding>>,
     /// Character positions where parameters are inserted
     pub slots: Vec<usize>,
     /// Optional: Conditional templates based on binding values
