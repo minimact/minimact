@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimact Architecture Diagrams</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                primaryTextColor: '#e2e8f0',
+                primaryBorderColor: '#1e40af',
+                lineColor: '#64748b',
+                secondaryColor: '#8b5cf6',
+                tertiaryColor: '#10b981',
+                background: '#0f172a',
+                mainBkg: '#1e293b',
+                secondBkg: '#334155',
+                textColor: '#e2e8f0',
+                border1: '#475569',
+                border2: '#64748b',
+                arrowheadColor: '#3b82f6',
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
+            }
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: #e2e8f0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid #334155;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .emoji {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        nav {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        nav h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+
+        nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 0.75rem;
+        }
+
+        nav a {
+            display: block;
+            padding: 0.75rem 1rem;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 0.5rem;
+            color: #e2e8f0;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            background: #3b82f6;
+            border-color: #2563eb;
+            transform: translateX(4px);
+        }
+
+        section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #8b5cf6;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        .mermaid {
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .feature:hover {
+            border-color: #3b82f6;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .feature h4 {
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #3b82f6;
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .badge.new {
+            background: #10b981;
+        }
+
+        .badge.punch {
+            background: #f59e0b;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: #334155;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+            border-top: 2px solid #334155;
+            color: #64748b;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            nav ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="emoji">🌵📊</div>
+            <h1>Minimact Architecture Diagrams</h1>
+            <p class="subtitle">Visual documentation for Minimact and Minimact Punch</p>
+        </header>
+
+        <nav>
+            <h2>📑 Quick Navigation</h2>
+            <ul>
+                <li><a href="#core-architecture">Core Architecture</a></li>
+                <li><a href="#data-flow">Data Flow</a></li>
+                <li><a href="#predictive-rendering">Predictive Rendering</a></li>
+                <li><a href="#state-sync">State Synchronization <span class="badge new">NEW</span></a></li>
+                <li><a href="#punch-architecture">Minimact Punch <span class="badge punch">🍹</span></a></li>
+                <li><a href="#integration">Integration Patterns</a></li>
+                <li><a href="#system-overview">System Overview</a></li>
+                <li><a href="#performance">Performance</a></li>
+            </ul>
+        </nav>
+
+        <section id="intro">
+            <h2>About These Diagrams</h2>
+            <p>
+                This page contains comprehensive visual documentation for the Minimact architecture,
+                showing how components interact, data flows, messaging patterns, and the integration
+                of the Minimact Punch extension.
+            </p>
+            <div class="features">
+                <div class="feature">
+                    <h4>🎯 Core Architecture</h4>
+                    <p>System components from TSX to DOM</p>
+                </div>
+                <div class="feature">
+                    <h4>⚡ Data Flows</h4>
+                    <p>Request/response cycles and messaging</p>
+                </div>
+                <div class="feature">
+                    <h4>🔮 Predictions</h4>
+                    <p>Cache hit/miss logic and hint queues</p>
+                </div>
+                <div class="feature">
+                    <h4>🔄 State Sync</h4>
+                    <p>NEW auto-sync pattern preventing stale data</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="core-architecture">
+            <h2>Minimact Core Architecture</h2>
+            <p>
+                System components showing all layers from TSX development to DOM rendering,
+                including the Babel compilation pipeline, ASP.NET Core runtime, Rust reconciliation engine,
+                and client-side SignalR integration.
+            </p>
+            <div class="mermaid">
+graph TB
+    subgraph "Developer Layer"
+        TSX[TSX/JSX Components]
+        TS[TypeScript]
+    end
+
+    subgraph "Compilation Layer"
+        BABEL[Babel Plugin]
+        CODEGEN[Code Generator]
+    end
+
+    subgraph "Server Runtime (.NET)"
+        COMP[MinimactComponent]
+        STATE[State Manager]
+        RENDER[Render Engine]
+        HUB[MinimactHub SignalR]
+        RUST[Rust Reconciler FFI]
+    end
+
+    subgraph "Rust Engine"
+        RECON[Reconciliation Engine]
+        PRED[Prediction Engine]
+        DIFF[VNode Differ]
+    end
+
+    subgraph "Client Runtime (Browser)"
+        SIGNALR[SignalR Manager]
+        PATCHER[DOM Patcher]
+        HOOKS[Hook System]
+        QUEUE[Hint Queue]
+        BRIDGE[Playground Bridge]
+    end
+
+    subgraph "Client DOM"
+        DOM[Browser DOM]
+        EVENTS[Event Delegation]
+    end
+
+    TSX --> BABEL
+    TS --> BABEL
+    BABEL --> CODEGEN
+    CODEGEN --> COMP
+
+    COMP --> STATE
+    STATE --> RENDER
+    RENDER --> RUST
+    RUST --> RECON
+    RECON --> DIFF
+    DIFF --> PRED
+
+    PRED --> HUB
+    RENDER --> HUB
+    HUB --> SIGNALR
+
+    SIGNALR --> PATCHER
+    SIGNALR --> QUEUE
+    PATCHER --> DOM
+    QUEUE --> PATCHER
+
+    HOOKS --> SIGNALR
+    DOM --> EVENTS
+    EVENTS --> SIGNALR
+
+    PATCHER --> BRIDGE
+    QUEUE --> BRIDGE
+            </div>
+        </section>
+
+        <section id="data-flow">
+            <h2>Complete Data Flow</h2>
+            <p>
+                Sequence diagram showing the complete request/response cycle, from initial render
+                through predictive pre-caching to user interactions with both cache hits and misses.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant DOM
+    participant EventDel as Event Delegation
+    participant SignalR as SignalR Manager
+    participant Hub as MinimactHub
+    participant Comp as Component
+    participant Rust as Rust Engine
+    participant Predictor
+    participant Queue as Hint Queue
+    participant Patcher as DOM Patcher
+
+    Note over User,Patcher: Initial Render
+    Comp->>Rust: Render() → VNode
+    Rust->>Rust: Generate patches
+    Rust->>Hub: Send patches
+    Hub->>SignalR: ApplyPatches
+    SignalR->>Patcher: Apply to DOM
+    Patcher->>DOM: Update elements
+
+    Note over User,Patcher: Predictive Pre-Caching
+    Predictor->>Rust: Predict state changes
+    Rust->>Rust: Pre-compute patches
+    Rust->>Hub: Send predictions
+    Hub->>SignalR: QueueHint
+    SignalR->>Queue: Cache patches
+    Queue-->>Queue: Ready for instant use
+
+    Note over User,Patcher: User Interaction (Cache Hit)
+    User->>DOM: Click button
+    DOM->>EventDel: Capture event
+    EventDel->>Queue: Check for hint
+    Queue-->>Queue: 🟢 CACHE HIT!
+    Queue->>Patcher: Apply cached patches
+    Patcher->>DOM: Instant update (0ms)
+    EventDel->>SignalR: Notify server (background)
+    SignalR->>Hub: InvokeComponentMethod
+    Hub->>Comp: Call method
+    Comp->>Comp: Update state
+    Comp->>Rust: Re-render
+    Rust->>Hub: Verify patches
+    Hub->>SignalR: ApplyCorrection (if needed)
+
+    Note over User,Patcher: User Interaction (Cache Miss)
+    User->>DOM: Click button
+    DOM->>EventDel: Capture event
+    EventDel->>Queue: Check for hint
+    Queue-->>Queue: 🔴 CACHE MISS
+    EventDel->>SignalR: Invoke method
+    SignalR->>Hub: InvokeComponentMethod
+    Hub->>Comp: Call method
+    Comp->>Comp: Update state
+    Comp->>Rust: Re-render
+    Rust->>Rust: Compute patches
+    Rust->>Hub: Send patches
+    Hub->>SignalR: ApplyPatches
+    SignalR->>Patcher: Apply to DOM
+    Patcher->>DOM: Update (~45ms latency)
+            </div>
+        </section>
+
+        <section id="predictive-rendering">
+            <h2>Predictive Rendering Pipeline</h2>
+            <p>
+                Flowchart showing how the prediction engine determines whether to send predictions,
+                the confidence threshold, and the verification/correction flow.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    START[Component State Change] --> PREDICT{Can Predict?}
+
+    PREDICT -->|Yes| CONF{Confidence >= 0.7?}
+    PREDICT -->|No| RENDER[Normal Render]
+
+    CONF -->|Yes| SEND_PRED[Send Prediction Immediately]
+    CONF -->|No| RENDER
+
+    SEND_PRED --> CLIENT_CACHE[Client Caches Patches]
+    CLIENT_CACHE --> APPLY_PRED[Apply Prediction Instantly]
+
+    APPLY_PRED --> BG_RENDER[Background: Server Renders]
+    RENDER --> BG_RENDER
+
+    BG_RENDER --> RECON[Rust Reconciliation]
+    RECON --> ACTUAL_PATCHES[Actual Patches]
+
+    ACTUAL_PATCHES --> COMPARE{Prediction Match?}
+
+    COMPARE -->|✅ Match| NO_ACTION[No Action Needed]
+    COMPARE -->|❌ Mismatch| CORRECTION[Send Correction]
+
+    CORRECTION --> CLIENT_FIX[Client Applies Fix]
+
+    style SEND_PRED fill:#90EE90
+    style APPLY_PRED fill:#90EE90
+    style NO_ACTION fill:#90EE90
+    style CORRECTION fill:#FFB6C1
+    style CLIENT_FIX fill:#FFB6C1
+            </div>
+        </section>
+
+        <section id="state-sync">
+            <h2>State Synchronization <span class="badge new">NEW</span></h2>
+            <p>
+                <strong>Critical Update:</strong> The new auto-sync pattern ensures client state changes
+                are immediately synchronized to the server, preventing stale data issues that could cause
+                the Rust reconciler to overwrite client updates.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Client as Client Hook (useState)
+    participant SignalR as SignalR Manager
+    participant Hub as MinimactHub
+    participant Comp as MinimactComponent
+    participant Rust as Rust Reconciler
+
+    Note over User,Rust: NEW: Automatic State Sync
+
+    User->>Client: setCount(5)
+    Client->>Client: Update local state
+
+    par Check Hint Queue
+        Client->>Client: Check HintQueue
+        alt Cache Hit
+            Client->>Client: Apply cached patches (instant)
+        else Cache Miss
+            Client->>Client: No instant feedback
+        end
+    and Sync to Server
+        Client->>SignalR: updateComponentState(componentId, "count", 5)
+        SignalR->>Hub: UpdateComponentState
+        Hub->>Comp: SetStateFromClient("count", 5)
+        Comp->>Comp: Update internal state
+        Comp->>Rust: TriggerRender()
+        Rust->>Rust: Compute patches
+        Rust->>Hub: Patches ready
+        Hub->>SignalR: ApplyPatches (verification)
+        SignalR->>Client: Patches applied
+    end
+
+    Note over User,Rust: Result: Server always has correct state!
+            </div>
+        </section>
+
+        <section id="punch-architecture">
+            <h2>Minimact Punch Architecture <span class="badge punch">🍹</span></h2>
+            <p>
+                <code>useDomElementState</code> integration showing how DOM observers
+                feed into the reactive state system, enabling DOM-driven predictions.
+            </p>
+            <div class="mermaid">
+graph TB
+    subgraph "Client Runtime"
+        HOOK[useDomElementState hook]
+        STATE[DomElementState class]
+        OBSERVERS[Browser Observers]
+        SNAPSHOT[State Snapshot]
+    end
+
+    subgraph "Observers Layer"
+        INTERSECT[IntersectionObserver]
+        MUTATION[MutationObserver]
+        RESIZE[ResizeObserver]
+    end
+
+    subgraph "Reactive Properties"
+        PROPS[Properties<br/>- isIntersecting<br/>- childrenCount<br/>- attributes<br/>- classList]
+        COLLECTION[Collection Methods<br/>- every()<br/>- some()<br/>- filter()]
+        STATS[Statistics<br/>- vals.avg()<br/>- vals.sum()<br/>- vals.median()]
+    end
+
+    subgraph "Integration"
+        CONTEXT[ComponentContext]
+        HINTQUEUE[HintQueue]
+        SIGNALR[SignalR Manager]
+        PATCHER[DOM Patcher]
+    end
+
+    subgraph "Server Side"
+        CSHARP[C# DomElementStateHook]
+        HUB[MinimactHub]
+        PREDICTOR[Prediction Engine]
+    end
+
+    HOOK --> STATE
+    STATE --> OBSERVERS
+
+    OBSERVERS --> INTERSECT
+    OBSERVERS --> MUTATION
+    OBSERVERS --> RESIZE
+
+    INTERSECT --> SNAPSHOT
+    MUTATION --> SNAPSHOT
+    RESIZE --> SNAPSHOT
+
+    SNAPSHOT --> PROPS
+    SNAPSHOT --> COLLECTION
+    SNAPSHOT --> STATS
+
+    STATE --> CONTEXT
+    CONTEXT --> HINTQUEUE
+    CONTEXT --> SIGNALR
+    CONTEXT --> PATCHER
+
+    SIGNALR --> HUB
+    HUB --> CSHARP
+    CSHARP --> PREDICTOR
+    PREDICTOR --> HINTQUEUE
+            </div>
+        </section>
+
+        <section id="integration">
+            <h2>Integration Patterns</h2>
+            <p>
+                Hook integration showing the symmetry between <code>useState</code> and
+                <code>useDomElementState</code>, both following the same MES-compliant pattern.
+            </p>
+            <div class="mermaid">
+flowchart LR
+    subgraph "Component Context"
+        STATE_MAP[state: Map]
+        EFFECTS[effects: Array]
+        REFS[refs: Map]
+        DOM_STATES[domElementStates: Map]
+        HINT_QUEUE[hintQueue: HintQueue]
+        DOM_PATCHER[domPatcher: DOMPatcher]
+        SIGNALR_MGR[signalR: SignalRManager]
+    end
+
+    subgraph "Hooks"
+        USE_STATE[useState]
+        USE_EFFECT[useEffect]
+        USE_REF[useRef]
+        USE_DOM[useDomElementState]
+    end
+
+    subgraph "Symmetry"
+        PATTERN[Same Pattern:<br/>1. Index tracking<br/>2. Context integration<br/>3. HintQueue check<br/>4. Server sync<br/>5. Cleanup]
+    end
+
+    USE_STATE --> STATE_MAP
+    USE_EFFECT --> EFFECTS
+    USE_REF --> REFS
+    USE_DOM --> DOM_STATES
+
+    USE_STATE --> HINT_QUEUE
+    USE_DOM --> HINT_QUEUE
+
+    USE_STATE --> SIGNALR_MGR
+    USE_DOM --> SIGNALR_MGR
+
+    STATE_MAP --> PATTERN
+    DOM_STATES --> PATTERN
+
+    style USE_DOM fill:#FFD700
+    style DOM_STATES fill:#FFD700
+    style PATTERN fill:#90EE90
+            </div>
+        </section>
+
+        <section id="system-overview">
+            <h2>Complete System Overview</h2>
+            <p>
+                End-to-end architecture showing all components from developer experience
+                through build-time compilation, server runtime, Rust engine, SignalR layer,
+                client runtime, and Minimact Punch extension.
+            </p>
+            <div class="mermaid">
+graph TB
+    subgraph "Developer Experience"
+        DEV[Developer writes TSX]
+        IDE[TypeScript IntelliSense]
+    end
+
+    subgraph "Build Time"
+        BABEL[Babel Plugin]
+        CODEGEN[Code Generator]
+        CSHARP[C# Classes]
+    end
+
+    subgraph "Server Runtime"
+        ASPNET[ASP.NET Core]
+        COMPONENT[MinimactComponent]
+        STATEMGR[State Manager]
+        HOOKS_CS[C# Hook Implementations]
+    end
+
+    subgraph "Rust Engine"
+        FFI[FFI Bridge]
+        RECONCILER[Reconciliation Engine]
+        PREDICTOR[Prediction Engine]
+        VNODE[VNode Differ]
+    end
+
+    subgraph "SignalR Layer"
+        HUB[MinimactHub]
+        CONNECTION[SignalR Connection]
+    end
+
+    subgraph "Client Runtime"
+        SIGNALR_CLIENT[SignalR Manager]
+        HOOKS_TS[TypeScript Hooks]
+        CONTEXT[Component Context]
+        HINTQUEUE[Hint Queue]
+        PATCHER[DOM Patcher]
+        PLAYGROUND[Playground Bridge]
+    end
+
+    subgraph "minimact-punch Extension"
+        DOM_STATE[DomElementState]
+        OBSERVERS[DOM Observers]
+        STATS[Statistical Engine]
+        INTEGRATION[Integration Layer]
+    end
+
+    subgraph "Browser"
+        DOM[DOM]
+        EVENTS[Event System]
+        WEB_APIS[Web APIs]
+    end
+
+    DEV --> BABEL
+    IDE --> DEV
+    BABEL --> CODEGEN
+    CODEGEN --> CSHARP
+    CSHARP --> COMPONENT
+
+    COMPONENT --> STATEMGR
+    COMPONENT --> HOOKS_CS
+    STATEMGR --> FFI
+    HOOKS_CS --> FFI
+
+    FFI --> RECONCILER
+    FFI --> PREDICTOR
+    RECONCILER --> VNODE
+    PREDICTOR --> VNODE
+
+    VNODE --> HUB
+    COMPONENT --> HUB
+    HUB --> CONNECTION
+
+    CONNECTION --> SIGNALR_CLIENT
+    SIGNALR_CLIENT --> HOOKS_TS
+    SIGNALR_CLIENT --> HINTQUEUE
+
+    HOOKS_TS --> CONTEXT
+    CONTEXT --> PATCHER
+    CONTEXT --> PLAYGROUND
+
+    HINTQUEUE --> PATCHER
+    PATCHER --> DOM
+
+    INTEGRATION --> HOOKS_TS
+    INTEGRATION --> CONTEXT
+    DOM_STATE --> OBSERVERS
+    OBSERVERS --> WEB_APIS
+    DOM_STATE --> STATS
+    STATS --> INTEGRATION
+
+    DOM --> EVENTS
+    EVENTS --> SIGNALR_CLIENT
+    WEB_APIS --> DOM
+
+    style DOM_STATE fill:#FFD700
+    style INTEGRATION fill:#FFD700
+    style OBSERVERS fill:#FFD700
+    style STATS fill:#FFD700
+            </div>
+        </section>
+
+        <section id="performance">
+            <h2>Performance Characteristics</h2>
+            <p>
+                Latency comparison showing the performance benefits of cache hits in both
+                traditional Minimact and Minimact Punch scenarios.
+            </p>
+            <div class="features">
+                <div class="feature">
+                    <h4>Traditional SSR</h4>
+                    <p>~52ms total latency (network round-trip + processing)</p>
+                </div>
+                <div class="feature">
+                    <h4>Minimact Cache Hit</h4>
+                    <p>~2ms total latency (instant patch application)</p>
+                </div>
+                <div class="feature">
+                    <h4>Minimact Cache Miss</h4>
+                    <p>~52ms total latency (falls back to server render)</p>
+                </div>
+                <div class="feature">
+                    <h4>Minimact Punch Hit</h4>
+                    <p>~2ms total latency (DOM observer + instant patch)</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>
+                🌵 The cactus knows the topology of the desert. 🍹
+            </p>
+            <p>
+                <a href="https://github.com/minimact/minimact" target="_blank">View on GitHub</a> •
+                <a href="../README.md">Documentation</a> •
+                <a href="ARCHITECTURE_DIAGRAMS.md">Markdown Source</a>
+            </p>
+            <p style="margin-top: 1rem;">
+                Built with ❤️ for the .NET and React communities • © 2025 Minimact
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
