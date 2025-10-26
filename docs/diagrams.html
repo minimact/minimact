@@ -1537,7 +1537,7 @@ flowchart TD
     G -->|Yes| H[Get current component state]
     G -->|No| I[Skip - no update needed]
 
-    H --> J[Fill template with params<br/>template: Counter: {0}<br/>params: [5]<br/>= Counter: 5]
+    H --> J["Fill template with params<br/>template: Counter: {0}<br/>params: [5]<br/>= Counter: 5"]
     J --> K[Create TemplatePatch object]
     K --> L[Send via SignalR]
     L --> M[Client receives patch]
