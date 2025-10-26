@@ -9,6 +9,7 @@ pub mod logging;
 pub mod metrics;
 pub mod deep_state_traversal;  // Phase 7
 pub mod reorder_detection;     // Phase 8
+pub mod structural_template_extraction;  // Phase 5
 
 pub use vdom::{VNode, VElement, VText, Patch, TemplatePatch};
 pub use reconciler::{reconcile, reconcile_with_config};

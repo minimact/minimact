@@ -217,6 +217,33 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
                 }
             }
         }
+
+        // Phase 5: Replace conditional patch (structural templates)
+        Patch::ReplaceConditional { path, structural_template } => {
+            validate_path(path, config)?;
+
+            // Validate condition binding is not empty
+            if structural_template.condition_binding.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Condition binding cannot be empty".to_string()
+                ));
+            }
+
+            // Validate at least one branch exists
+            if structural_template.branches.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Structural template must have at least one branch".to_string()
+                ));
+            }
+
+            // TODO: Validate all branch VNodes recursively
+            // For now, just check they exist
+
+            if config.validate_applicability {
+                // Structural templates can apply to any node (they replace the entire node)
+                get_node_at_path(tree, path)?;
+            }
+        }
     }
 
     Ok(())

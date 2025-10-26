@@ -86,6 +86,25 @@ pub enum ItemTemplate {
     },
 }
 
+/// Structural template for conditional rendering (Phase 5)
+/// Stores multiple VNode branches based on condition binding value
+/// Enables 100% coverage for conditionals with O(1) memory
+///
+/// Example: {isLoggedIn ? <Welcome /> : <Login />}
+/// Branches: { "true": <Welcome />, "false": <Login /> }
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StructuralTemplate {
+    /// Binding that determines which branch to render (e.g., "isLoggedIn")
+    pub condition_binding: String,
+    /// Map from condition value to VNode template
+    /// For boolean: { "true": VNode, "false": VNode }
+    /// For enum/string: { "loading": VNode, "success": VNode, "error": VNode }
+    pub branches: HashMap<String, VNode>,
+    /// Optional: Default branch if condition value not in map
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_branch: Option<Box<VNode>>,
+}
+
 /// Represents a change operation for the DOM
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -147,6 +166,13 @@ pub enum Patch {
         path: Vec<usize>,
         #[serde(rename = "reorderTemplate")]
         reorder_template: crate::reorder_detection::ReorderTemplate,
+    },
+    /// Replace node using structural template (Phase 5)
+    /// Enables 100% coverage for conditional rendering with multiple branches
+    ReplaceConditional {
+        path: Vec<usize>,
+        #[serde(rename = "structuralTemplate")]
+        structural_template: StructuralTemplate,
     },
 }
 

@@ -257,6 +257,35 @@ impl Predictor {
             }
         }
 
+        // PHASE 5: Try structural template (for Replace patches with boolean/enum state changes)
+        if old_patches.len() == 1 && new_patches.len() == 1 {
+            if let Patch::Replace { path, node: new_node } = &new_patches[0] {
+                // Find the old node from old tree at this path
+                // For now, we'll extract from the patch itself if it's a Replace
+                if let Patch::Replace { path: old_path, node: old_node } = &old_patches[0] {
+                    if old_path == path {
+                        // Try to extract structural template
+                        use crate::structural_template_extraction::{StateChange as STStateChange, extract_structural_template};
+                        let st_state_change = STStateChange {
+                            component_id: state_change.component_id.clone(),
+                            state_key: state_change.state_key.clone(),
+                            old_value: state_change.old_value.clone(),
+                            new_value: state_change.new_value.clone(),
+                        };
+
+                        if let Some(structural_patch) = extract_structural_template(
+                            &st_state_change,
+                            path,
+                            old_node,
+                            new_node
+                        ) {
+                            return Some(vec![structural_patch]);
+                        }
+                    }
+                }
+            }
+        }
+
         // Only handle single patch for existing logic (Phases 1-3)
         if old_patches.len() != 1 || new_patches.len() != 1 {
             return None;
