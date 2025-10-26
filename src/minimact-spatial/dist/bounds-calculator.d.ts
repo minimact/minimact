@@ -10,6 +10,7 @@ import type { AreaDefinition, AbsoluteBounds } from './types';
 export declare function calculateBounds(definition: AreaDefinition): AbsoluteBounds;
 /**
  * Check if two bounds intersect
+ * Edge touching is NOT considered intersection (requires actual overlap)
  */
 export declare function boundsIntersect(a: AbsoluteBounds, b: AbsoluteBounds): boolean;
 /**

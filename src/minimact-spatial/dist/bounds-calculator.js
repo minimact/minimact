@@ -163,12 +163,13 @@ function resolveValue(value, referenceSize, referenceOffset) {
 }
 /**
  * Check if two bounds intersect
+ * Edge touching is NOT considered intersection (requires actual overlap)
  */
 export function boundsIntersect(a, b) {
-    return !(a.right < b.left ||
-        a.left > b.right ||
-        a.bottom < b.top ||
-        a.top > b.bottom);
+    return !(a.right <= b.left ||
+        a.left >= b.right ||
+        a.bottom <= b.top ||
+        a.top >= b.bottom);
 }
 /**
  * Calculate intersection bounds

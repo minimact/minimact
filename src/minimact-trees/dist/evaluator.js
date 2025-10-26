@@ -65,12 +65,34 @@ function traverse(node, context, debug, depth = 0) {
         }
         return node;
     }
+    // Check if this object is a decision tree node or a leaf value
+    // A plain object is a leaf value if it has no valid decision tree keys
+    const keys = Object.keys(node);
+    const hasAnyValidTreeKey = keys.some(key => {
+        try {
+            parseStateKey(key);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    });
+    // If no valid tree keys, this object is a leaf value
+    if (!hasAnyValidTreeKey) {
+        if (debug) {
+            console.log(`${indent}→ Leaf value (object with no tree keys):`, node);
+        }
+        return node;
+    }
     // Recursive case: traverse children
-    for (const key of Object.keys(node)) {
-        const parsed = parseStateKey(key);
-        if (!parsed) {
+    for (const key of keys) {
+        let parsed;
+        try {
+            parsed = parseStateKey(key);
+        }
+        catch (error) {
             if (debug) {
-                console.warn(`${indent}⚠️ Invalid key format: "${key}"`);
+                console.warn(`${indent}⚠️ Invalid key format: "${key}"`, error);
             }
             continue;
         }

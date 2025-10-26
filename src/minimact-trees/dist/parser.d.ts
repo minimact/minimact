@@ -8,18 +8,25 @@ import type { ParsedStateKey } from './types';
 /**
  * Parse a decision tree key into state name and expected value
  *
- * Examples:
- * - "roleAdmin" → { stateName: "role", expectedValue: "admin" }
- * - "count5" → { stateName: "count", expectedValue: 5 }
- * - "price19.99" → { stateName: "price", expectedValue: 19.99 }
- * - "isActiveTrue" → { stateName: "isActive", expectedValue: true }
- * - "statusCodePending" → { stateName: "statusCode", expectedValue: "pending" }
- * - "tierGold" → { stateName: "tier", expectedValue: "gold" }
+ * Format: stateName:Value
+ * - Use colon (:) to separate state name from value
+ * - Escape colons in values with backslash (\:)
  *
- * @param key - Decision tree key
- * @returns Parsed state key or null if invalid
+ * Examples:
+ * - "role:Admin" → { stateName: "role", expectedValue: "admin" }
+ * - "count:5" → { stateName: "count", expectedValue: 5 }
+ * - "price:19.99" → { stateName: "price", expectedValue: 19.99 }
+ * - "isActive:True" → { stateName: "isActive", expectedValue: true }
+ * - "statusCode:Pending" → { stateName: "statusCode", expectedValue: "pending" }
+ * - "tier:Gold" → { stateName: "tier", expectedValue: "gold" }
+ * - "message:Error\:Failed" → { stateName: "message", expectedValue: "error:failed" }
+ * - "balance:-50" → { stateName: "balance", expectedValue: -50 }
+ *
+ * @param key - Decision tree key in format "stateName:Value"
+ * @returns Parsed state key
+ * @throws Error if key is invalid
  */
-export declare function parseStateKey(key: string): ParsedStateKey | null;
+export declare function parseStateKey(key: string): ParsedStateKey;
 /**
  * Check if a state context matches a parsed key
  *

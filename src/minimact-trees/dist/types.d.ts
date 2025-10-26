@@ -13,11 +13,12 @@ export type DecisionTree<TResult = any> = {
 };
 /**
  * Parsed state key
- * e.g., "roleAdmin" → { stateName: "role", expectedValue: "admin" }
+ * e.g., "roleAdmin" → { stateName: "role", expectedValue: "admin", valueType: "string" }
  */
 export interface ParsedStateKey {
     stateName: string;
     expectedValue: any;
+    valueType: 'string' | 'number' | 'boolean';
 }
 /**
  * State context for evaluation

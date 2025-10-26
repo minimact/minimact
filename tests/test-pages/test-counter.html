@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Counter - Minimact</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #Counter-123 {
+      border: 2px solid #eee;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    h1 {
+      margin: 0 0 1rem 0;
+      font-size: 2rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div id="Counter-123">
+    <h1>Count: 0</h1>
+    <button id="increment">Increment</button>
+  </div>
+
+  <!-- Load REAL compiled Minimact client-runtime -->
+  <script src="/dist/minimact.js"></script>
+
+  <script>
+    // Debug: Check what's loaded
+    console.log('[Test] Minimact object:', typeof Minimact, Minimact);
+
+    // Initialize with mock server URL (must be absolute!)
+    const hubUrl = 'http://localhost:8765/minimact';
+    console.log('[Test] Connecting to hubUrl:', hubUrl);
+
+    // Pass root element as first param, options as second!
+    const minimact = new Minimact.Minimact(document.body, {
+      hubUrl: hubUrl,  // Points to MockSignalRServer
+      enableDebugLogging: true
+    });
+
+    console.log('[Test] Minimact instance created:', minimact);
+
+    // Start the client
+    minimact.start().then(() => {
+      console.log('[Test] Minimact started successfully');
+    }).catch(err => {
+      console.error('[Test] Minimact start failed:', err);
+    });
+
+    // Make it globally accessible for tests
+    window.minimactInstance = minimact;
+  </script>
+</body>
+</html>
