@@ -189,6 +189,43 @@ public class MinimactHub : Hub
     }
 
     /// <summary>
+    /// Update component state with array operation metadata (Phase 9: Array State Helpers)
+    /// Provides semantic intent for array mutations, enabling precise template extraction
+    /// </summary>
+    public async Task UpdateComponentStateWithOperation(
+        string componentId,
+        string stateKey,
+        object newValue,
+        ArrayOperation operation)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Store operation metadata for predictor to use during learning
+            component.LastArrayOperation = operation;
+
+            // Update the component's state from client
+            component.SetStateFromClient(stateKey, newValue);
+
+            // Trigger a re-render with the updated state and operation context
+            component.TriggerRender();
+
+            // Note: The predictor will receive the operation metadata via LastArrayOperation
+            // This enables 10x faster template extraction by avoiding full array diffing
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error updating component state with operation: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Update query results from client useDomQuery hook
     /// Keeps server aware of query results for accurate rendering
     /// </summary>

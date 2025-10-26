@@ -141,3 +141,25 @@ public class DomElementStateSnapshot
     public bool Exists { get; set; }
     public int Count { get; set; }
 }
+
+/// <summary>
+/// Array operation metadata for semantic state updates (Phase 9: Array State Helpers)
+/// Provides explicit intent for array mutations, enabling precise template extraction
+/// </summary>
+public class ArrayOperation
+{
+    /// <summary>
+    /// Type of array operation: Append, Prepend, InsertAt, RemoveAt, UpdateAt
+    /// </summary>
+    public string Type { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Index for InsertAt, RemoveAt, or UpdateAt operations
+    /// </summary>
+    public int? Index { get; set; }
+
+    /// <summary>
+    /// Item being added or updated
+    /// </summary>
+    public object? Item { get; set; }
+}

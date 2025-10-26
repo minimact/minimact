@@ -60,6 +60,12 @@ public abstract class MinimactComponent
     /// </summary>
     protected DynamicValueCompiler DynamicBindings { get; }
 
+    /// <summary>
+    /// Last array operation metadata (Phase 9: Array State Helpers)
+    /// Used by predictor for precise template extraction
+    /// </summary>
+    internal ArrayOperation? LastArrayOperation { get; set; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();

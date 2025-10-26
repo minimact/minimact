@@ -1,5 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { Patch } from './types';
+import { ArrayOperation } from './hooks';
 
 /**
  * Manages SignalR connection to the Minimact server hub
@@ -192,6 +193,25 @@ export class SignalRManager {
       this.log('Updated DOM element state', { componentId, stateKey, snapshot });
     } catch (error) {
       console.error('[Minimact] Failed to update DOM element state:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update component state with array operation metadata
+   * This provides semantic intent for array mutations, enabling precise template extraction
+   */
+  async updateComponentStateWithOperation(
+    componentId: string,
+    stateKey: string,
+    newValue: any,
+    operation: ArrayOperation
+  ): Promise<void> {
+    try {
+      await this.connection.invoke('UpdateComponentStateWithOperation', componentId, stateKey, newValue, operation);
+      this.log('Updated component state with operation', { componentId, stateKey, operation, newValue });
+    } catch (error) {
+      console.error('[Minimact] Failed to update component state with operation:', error);
       throw error;
     }
   }

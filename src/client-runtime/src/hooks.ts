@@ -167,6 +167,11 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
       });
   };
 
+  // If value is an array, add array helpers
+  if (Array.isArray(currentValue)) {
+    return [currentValue, createArrayStateSetter(setState, currentValue, stateKey, context)] as any;
+  }
+
   return [currentValue, setState];
 }
 
@@ -261,3 +266,187 @@ export function cleanupEffects(context: ComponentContext): void {
  * Export ComponentContext type for extensions
  */
 export type { ComponentContext };
+
+/**
+ * Array operation metadata for semantic state updates
+ * @public
+ */
+export interface ArrayOperation {
+  type: 'Append' | 'Prepend' | 'InsertAt' | 'RemoveAt' | 'UpdateAt';
+  index?: number;
+  item?: any;
+}
+
+/**
+ * Enhanced state setter with array helper methods
+ */
+export interface ArrayStateSetter<T> {
+  // Standard setter (for compatibility)
+  (newValue: T[] | ((prev: T[]) => T[])): void;
+
+  // Array operation helpers
+  append(item: T): void;
+  prepend(item: T): void;
+  insertAt(index: number, item: T): void;
+  removeAt(index: number): void;
+  updateAt(index: number, updates: Partial<T> | ((prev: T) => T)): void;
+  clear(): void;
+
+  // Batch operations
+  appendMany(items: T[]): void;
+  removeMany(indices: number[]): void;
+
+  // Conditional operations
+  removeWhere(predicate: (item: T) => boolean): void;
+  updateWhere(predicate: (item: T) => boolean, updates: Partial<T>): void;
+}
+
+/**
+ * Create array state setter with semantic helper methods
+ */
+function createArrayStateSetter<T>(
+  baseSetState: (value: T[]) => void,
+  currentArray: T[],
+  stateKey: string,
+  context: ComponentContext
+): ArrayStateSetter<T> {
+  // Base setter function
+  const setter: any = baseSetState;
+
+  // Append helper
+  setter.append = (item: T) => {
+    const newArray = [...currentArray, item];
+
+    // Update local state
+    context.state.set(stateKey, newArray);
+
+    // Update template state
+    templateState.updateState(context.componentId, stateKey, newArray);
+
+    // Notify server of APPEND operation (not just new array)
+    context.signalR.updateComponentStateWithOperation(
+      context.componentId,
+      stateKey,
+      newArray,
+      { type: 'Append', item }
+    ).catch(err => {
+      console.error('[Minimact] Failed to sync array append to server:', err);
+    });
+
+    // TODO: Try to predict patch using loop template
+    console.log(`[Minimact] 🔵 Array append: ${stateKey}`, item);
+  };
+
+  // Prepend helper
+  setter.prepend = (item: T) => {
+    const newArray = [item, ...currentArray];
+
+    context.state.set(stateKey, newArray);
+    templateState.updateState(context.componentId, stateKey, newArray);
+
+    context.signalR.updateComponentStateWithOperation(
+      context.componentId,
+      stateKey,
+      newArray,
+      { type: 'Prepend', item }
+    ).catch(err => {
+      console.error('[Minimact] Failed to sync array prepend to server:', err);
+    });
+
+    console.log(`[Minimact] 🔵 Array prepend: ${stateKey}`, item);
+  };
+
+  // InsertAt helper
+  setter.insertAt = (index: number, item: T) => {
+    const newArray = [...currentArray];
+    newArray.splice(index, 0, item);
+
+    context.state.set(stateKey, newArray);
+    templateState.updateState(context.componentId, stateKey, newArray);
+
+    context.signalR.updateComponentStateWithOperation(
+      context.componentId,
+      stateKey,
+      newArray,
+      { type: 'InsertAt', index, item }
+    ).catch(err => {
+      console.error('[Minimact] Failed to sync array insert to server:', err);
+    });
+
+    console.log(`[Minimact] 🔵 Array insertAt(${index}): ${stateKey}`, item);
+  };
+
+  // RemoveAt helper
+  setter.removeAt = (index: number) => {
+    const newArray = currentArray.filter((_, i) => i !== index);
+
+    context.state.set(stateKey, newArray);
+    templateState.updateState(context.componentId, stateKey, newArray);
+
+    context.signalR.updateComponentStateWithOperation(
+      context.componentId,
+      stateKey,
+      newArray,
+      { type: 'RemoveAt', index }
+    ).catch(err => {
+      console.error('[Minimact] Failed to sync array remove to server:', err);
+    });
+
+    console.log(`[Minimact] 🔵 Array removeAt(${index}): ${stateKey}`);
+  };
+
+  // UpdateAt helper
+  setter.updateAt = (index: number, updates: Partial<T> | ((prev: T) => T)) => {
+    const newArray = [...currentArray];
+    newArray[index] = typeof updates === 'function'
+      ? (updates as (prev: T) => T)(currentArray[index])
+      : { ...currentArray[index] as any, ...updates };
+
+    context.state.set(stateKey, newArray);
+    templateState.updateState(context.componentId, stateKey, newArray);
+
+    context.signalR.updateComponentStateWithOperation(
+      context.componentId,
+      stateKey,
+      newArray,
+      { type: 'UpdateAt', index, item: newArray[index] }
+    ).catch(err => {
+      console.error('[Minimact] Failed to sync array update to server:', err);
+    });
+
+    console.log(`[Minimact] 🔵 Array updateAt(${index}): ${stateKey}`, newArray[index]);
+  };
+
+  // Clear helper
+  setter.clear = () => {
+    baseSetState([]);
+  };
+
+  // RemoveWhere helper
+  setter.removeWhere = (predicate: (item: T) => boolean) => {
+    const newArray = currentArray.filter(item => !predicate(item));
+    baseSetState(newArray);
+  };
+
+  // UpdateWhere helper
+  setter.updateWhere = (predicate: (item: T) => boolean, updates: Partial<T>) => {
+    const newArray = currentArray.map(item =>
+      predicate(item) ? { ...item as any, ...updates } : item
+    );
+    baseSetState(newArray);
+  };
+
+  // AppendMany helper
+  setter.appendMany = (items: T[]) => {
+    const newArray = [...currentArray, ...items];
+    baseSetState(newArray);
+  };
+
+  // RemoveMany helper
+  setter.removeMany = (indices: number[]) => {
+    const newArray = currentArray.filter((_, i) => !indices.includes(i));
+    baseSetState(newArray);
+  };
+
+  return setter as ArrayStateSetter<T>;
+}
