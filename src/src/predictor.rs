@@ -229,7 +229,23 @@ impl Predictor {
     ) -> Option<Vec<Patch>> {
         use serde_json::Value;
 
-        // NEW: Try loop template first (for array state changes)
+        // PHASE 8: Try reorder template first (for ReorderChildren patches)
+        if new_patches.len() == 1 {
+            if let Patch::ReorderChildren { path, order } = &new_patches[0] {
+                if let Some(reorder_template) = crate::reorder_detection::infer_ordering_rule(
+                    &state_change.old_value,
+                    &state_change.new_value,
+                    &state_change.state_key
+                ) {
+                    return Some(vec![Patch::ReorderTemplate {
+                        path: path.clone(),
+                        reorder_template,
+                    }]);
+                }
+            }
+        }
+
+        // PHASE 4: Try loop template (for array state changes)
         if matches!(&state_change.new_value, Value::Array(_)) {
             if let Some(loop_patches) = self.extract_loop_template(
                 state_change,
@@ -383,11 +399,14 @@ impl Predictor {
     ///   3. Build template with placeholders for changed parts
     ///   4. Match changed parts to state variables from all_state
     ///
+    /// PHASE 7 ENHANCEMENT: Now supports nested object paths via deep_state_traversal
+    ///
     /// Example:
-    ///   old_content: "User: John Doe"
-    ///   new_content: "User: Jane Smith"
-    ///   all_state: { "firstName": "John", "lastName": "Doe" }
-    ///   → template: "User: {0} {1}", bindings: ["firstName", "lastName"]
+    ///   old_content: "User: John Doe from NYC"
+    ///   new_content: "User: Jane Smith from LA"
+    ///   all_state: { "user": { "name": "John", "address": { "city": "NYC" } } }
+    ///   → template: "User: {0} {1} from {2}",
+    ///     bindings: ["user.name", "user.lastName", "user.address.city"]
     fn extract_multi_variable_template(
         &self,
         old_content: &str,
@@ -396,10 +415,13 @@ impl Predictor {
     ) -> Option<TemplatePatch> {
         use serde_json::Value;
 
-        // For multi-variable templates, we need to detect which state variables appear
-        // Since we only have one changing state variable at a time in state_change,
-        // we need to find OTHER state variables that are also in the content
+        // PHASE 7: Use deep state traversal to find all values (including nested)
+        let state_matches = crate::deep_state_traversal::find_state_values_in_content(
+            all_state,
+            old_content
+        );
 
+        // Convert to our internal ValueMatch format
         #[derive(Clone)]
         struct ValueMatch {
             state_key: String,
@@ -407,43 +429,18 @@ impl Predictor {
             position: usize,
         }
 
-        let mut matches: Vec<ValueMatch> = Vec::new();
-
-        // Find all primitive state values that appear in old_content
-        for (key, value) in all_state {
-            let value_str = match value {
-                Value::String(s) if !s.is_empty() => s.clone(),
-                Value::Number(n) => n.to_string(),
-                Value::Bool(b) => b.to_string(),
-                _ => continue,
-            };
-
-            // Find this value in old_content
-            if let Some(pos) = old_content.find(&value_str) {
-                matches.push(ValueMatch {
-                    state_key: key.clone(),
-                    value_str,
-                    position: pos,
-                });
-            }
-        }
+        let mut matches: Vec<ValueMatch> = state_matches.iter().map(|m| ValueMatch {
+            state_key: m.path.clone(),  // Now includes nested paths like "user.address.city"
+            value_str: m.value_str.clone(),
+            position: m.content_position,
+        }).collect();
 
         // Need at least 2 variables for multi-variable template
         if matches.len() < 2 {
             return None;
         }
 
-        // Sort by position (leftmost first)
-        matches.sort_by_key(|m| m.position);
-
-        // Check for overlapping matches (ambiguous)
-        for i in 0..matches.len() - 1 {
-            let end_pos = matches[i].position + matches[i].value_str.len();
-            if end_pos > matches[i + 1].position {
-                // Overlapping - can't extract clean template
-                return None;
-            }
-        }
+        // Already sorted and de-overlapped by find_state_values_in_content()
 
         // Build template by replacing values with {0}, {1}, etc.
         let mut template = old_content.to_string();

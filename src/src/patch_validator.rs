@@ -195,6 +195,28 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
                 // List templates can apply to any node (will replace children)
             }
         }
+
+        // Phase 8: Reorder template patch
+        Patch::ReorderTemplate { path, reorder_template } => {
+            validate_path(path, config)?;
+
+            // Validate array binding is not empty
+            if reorder_template.array_binding.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Array binding cannot be empty".to_string()
+                ));
+            }
+
+            if config.validate_applicability {
+                let node = get_node_at_path(tree, path)?;
+                if !node.is_element() {
+                    return Err(MinimactError::PatchTypeMismatch {
+                        expected: "Element (to have children)",
+                        found: node.node_type(),
+                    });
+                }
+            }
+        }
     }
 
     Ok(())

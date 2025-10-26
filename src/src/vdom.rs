@@ -141,6 +141,13 @@ pub enum Patch {
         #[serde(rename = "loopTemplate")]
         loop_template: LoopTemplate,
     },
+    /// Reorder list using template (Phase 8)
+    /// Enables reordering patterns like sort/reverse/filter with O(1) memory
+    ReorderTemplate {
+        path: Vec<usize>,
+        #[serde(rename = "reorderTemplate")]
+        reorder_template: crate::reorder_detection::ReorderTemplate,
+    },
 }
 
 impl VNode {
