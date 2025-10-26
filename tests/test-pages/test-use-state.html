@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test useState - Minimact</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .component {
+      border: 2px solid #eee;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      margin: 0 0 1rem 0;
+      font-size: 1.5rem;
+    }
+    .value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #007bff;
+      margin: 1rem 0;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .status {
+      margin-top: 1rem;
+      padding: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>useState Synchronization Test</h1>
+
+  <div class="component" id="TestComponent-1">
+    <h2>Simple Counter</h2>
+    <div class="value" id="counter-value">Count: 0</div>
+    <button id="increment-btn">Increment</button>
+    <button id="decrement-btn">Decrement</button>
+    <button id="reset-btn">Reset</button>
+    <div class="status" id="status-1">Ready</div>
+  </div>
+
+  <div class="component" id="TestComponent-2">
+    <h2>Text Input</h2>
+    <div class="value" id="text-value">Text: (empty)</div>
+    <input type="text" id="text-input" placeholder="Type something...">
+    <button id="clear-btn">Clear</button>
+    <div class="status" id="status-2">Ready</div>
+  </div>
+
+  <div class="component" id="TestComponent-3">
+    <h2>Toggle State</h2>
+    <div class="value" id="toggle-value">State: false</div>
+    <button id="toggle-btn">Toggle</button>
+    <div class="status" id="status-3">Ready</div>
+  </div>
+
+  <!-- Load REAL compiled Minimact client-runtime -->
+  <script src="/dist/minimact.js"></script>
+
+  <script>
+    console.log('[Test] useState Test Page');
+    console.log('[Test] Minimact exports:', Object.keys(Minimact));
+
+    // Initialize Minimact
+    const hubUrl = 'http://localhost:8765/minimact';
+    const minimact = new Minimact.Minimact(document.body, {
+      hubUrl: hubUrl,
+      enableDebugLogging: true
+    });
+
+    // Start Minimact
+    minimact.start().then(() => {
+      console.log('[Test] Minimact started - ready for useState tests');
+      setupUseStateTests();
+    }).catch(err => {
+      console.error('[Test] Minimact start failed:', err);
+    });
+
+    function setupUseStateTests() {
+      // Get hooks from Minimact
+      const { useState, setComponentContext, clearComponentContext } = Minimact;
+
+      console.log('[Test] useState function:', useState);
+
+      // Component 1: Counter
+      setupCounter();
+
+      // Component 2: Text Input
+      setupTextInput();
+
+      // Component 3: Toggle
+      setupToggle();
+    }
+
+    function setupCounter() {
+      const componentId = 'TestComponent-1';
+      const element = document.getElementById(componentId);
+
+      // Create a component context using Minimact's internal managers
+      // In real Minimact, this would be created by the server during rendering
+      // We need to access private properties (for testing only!)
+      const context = {
+        componentId,
+        element,
+        state: new Map(),
+        effects: [],
+        refs: new Map(),
+        domElementStates: new Map(),
+        hintQueue: minimact['hintQueue'],
+        domPatcher: minimact['domPatcher'],
+        playgroundBridge: minimact['playgroundBridge'],
+        signalR: minimact['signalR']
+      };
+
+      let stateIndex = 0;
+
+      // Simulate component render (set context)
+      Minimact.setComponentContext(context);
+
+      // Call useState (like in component code)
+      const [count, setCount] = Minimact.useState(0);
+
+      // Clear context after render
+      Minimact.clearComponentContext();
+
+      console.log('[Test] Counter useState initialized:', { count });
+
+      // Wire up UI
+      document.getElementById('increment-btn').onclick = () => {
+        console.log('[Test] Increment clicked');
+        // Set context before calling setState
+        Minimact.setComponentContext(context);
+        setCount(count + 1);
+        Minimact.clearComponentContext();
+
+        // Update UI manually (in real Minimact, patches would update it)
+        updateCounterUI(context.state.get('state_0'));
+      };
+
+      document.getElementById('decrement-btn').onclick = () => {
+        console.log('[Test] Decrement clicked');
+        Minimact.setComponentContext(context);
+        const currentCount = context.state.get('state_0') || 0;
+        setCount(currentCount - 1);
+        Minimact.clearComponentContext();
+
+        updateCounterUI(context.state.get('state_0'));
+      };
+
+      document.getElementById('reset-btn').onclick = () => {
+        console.log('[Test] Reset clicked');
+        Minimact.setComponentContext(context);
+        setCount(0);
+        Minimact.clearComponentContext();
+
+        updateCounterUI(context.state.get('state_0'));
+      };
+
+      function updateCounterUI(value) {
+        document.getElementById('counter-value').textContent = `Count: ${value}`;
+        document.getElementById('status-1').textContent = `Last updated: ${new Date().toLocaleTimeString()} | State synced to server`;
+      }
+    }
+
+    function setupTextInput() {
+      const componentId = 'TestComponent-2';
+      const element = document.getElementById(componentId);
+
+      const context = {
+        componentId,
+        element,
+        state: new Map(),
+        effects: [],
+        refs: new Map(),
+        domElementStates: new Map(),
+        hintQueue: minimact['hintQueue'],
+        domPatcher: minimact['domPatcher'],
+        playgroundBridge: minimact['playgroundBridge'],
+        signalR: minimact['signalR']
+      };
+
+      Minimact.setComponentContext(context);
+      const [text, setText] = Minimact.useState('');
+      Minimact.clearComponentContext();
+
+      console.log('[Test] Text useState initialized');
+
+      document.getElementById('text-input').oninput = (e) => {
+        const value = e.target.value;
+        console.log('[Test] Text input changed:', value);
+
+        Minimact.setComponentContext(context);
+        setText(value);
+        Minimact.clearComponentContext();
+
+        updateTextUI(context.state.get('state_0'));
+      };
+
+      document.getElementById('clear-btn').onclick = () => {
+        console.log('[Test] Clear clicked');
+        Minimact.setComponentContext(context);
+        setText('');
+        Minimact.clearComponentContext();
+
+        document.getElementById('text-input').value = '';
+        updateTextUI(context.state.get('state_0'));
+      };
+
+      function updateTextUI(value) {
+        document.getElementById('text-value').textContent = `Text: ${value || '(empty)'}`;
+        document.getElementById('status-2').textContent = `Last updated: ${new Date().toLocaleTimeString()} | State synced to server`;
+      }
+    }
+
+    function setupToggle() {
+      const componentId = 'TestComponent-3';
+      const element = document.getElementById(componentId);
+
+      const context = {
+        componentId,
+        element,
+        state: new Map(),
+        effects: [],
+        refs: new Map(),
+        domElementStates: new Map(),
+        hintQueue: minimact['hintQueue'],
+        domPatcher: minimact['domPatcher'],
+        playgroundBridge: minimact['playgroundBridge'],
+        signalR: minimact['signalR']
+      };
+
+      Minimact.setComponentContext(context);
+      const [isOpen, setIsOpen] = Minimact.useState(false);
+      Minimact.clearComponentContext();
+
+      console.log('[Test] Toggle useState initialized');
+
+      document.getElementById('toggle-btn').onclick = () => {
+        const currentValue = context.state.get('state_0') || false;
+        console.log('[Test] Toggle clicked, current:', currentValue);
+
+        Minimact.setComponentContext(context);
+        setIsOpen(!currentValue);
+        Minimact.clearComponentContext();
+
+        updateToggleUI(context.state.get('state_0'));
+      };
+
+      function updateToggleUI(value) {
+        document.getElementById('toggle-value').textContent = `State: ${value}`;
+        document.getElementById('status-3').textContent = `Last updated: ${new Date().toLocaleTimeString()} | State synced to server`;
+      }
+    }
+
+    // Make context accessible for tests
+    window.minimactInstance = minimact;
+    window.testSetState = {
+      getState: (componentId) => {
+        // Helper to get component state from context
+        return null; // Will be populated by tests
+      }
+    };
+  </script>
+</body>
+</html>

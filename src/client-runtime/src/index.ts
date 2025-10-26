@@ -315,7 +315,7 @@ export { TemplateStateManager, templateState } from './template-state';
 export type { Template, TemplateMap, TemplatePatch } from './template-state';
 
 // Core hooks
-export { useState, useEffect, useRef } from './hooks';
+export { useState, useEffect, useRef, setComponentContext, clearComponentContext } from './hooks';
 export type { ComponentContext } from './hooks';
 
 // Pub/Sub hooks
