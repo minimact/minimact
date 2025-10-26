@@ -134,6 +134,49 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
                 }
             }
         }
+
+        // Template patches (runtime prediction)
+        Patch::UpdateTextTemplate { path, template_patch } => {
+            validate_path(path, config)?;
+
+            // Validate template string is not empty
+            if template_patch.template.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Template string cannot be empty".to_string()
+                ));
+            }
+
+            if config.validate_applicability {
+                let node = get_node_at_path(tree, path)?;
+                if !node.is_text() {
+                    return Err(MinimactError::PatchTypeMismatch {
+                        expected: "Text",
+                        found: node.node_type(),
+                    });
+                }
+            }
+        }
+
+        Patch::UpdatePropsTemplate { path, prop_name: _, template_patch } => {
+            validate_path(path, config)?;
+
+            // Validate template string is not empty
+            if template_patch.template.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Template string cannot be empty".to_string()
+                ));
+            }
+
+            if config.validate_applicability {
+                let node = get_node_at_path(tree, path)?;
+                if !node.is_element() {
+                    return Err(MinimactError::PatchTypeMismatch {
+                        expected: "Element",
+                        found: node.node_type(),
+                    });
+                }
+            }
+        }
     }
 
     Ok(())

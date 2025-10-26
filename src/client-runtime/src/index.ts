@@ -312,7 +312,10 @@ export {
 
 // Template state (for hot reload)
 export { TemplateStateManager, templateState } from './template-state';
-export type { Template, TemplateMap, TemplatePatch } from './template-state';
+export type { Template, TemplateMap } from './template-state';
+
+// Template renderer (for runtime prediction)
+export { TemplateRenderer } from './template-renderer';
 
 // Core hooks
 export { useState, useEffect, useRef, setComponentContext, clearComponentContext } from './hooks';

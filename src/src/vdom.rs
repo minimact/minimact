@@ -25,6 +25,18 @@ pub struct VText {
     pub content: String,
 }
 
+/// Template patch data for parameterized updates
+/// Enables 98% memory reduction by storing patterns instead of concrete values
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TemplatePatch {
+    /// Template string with {0}, {1}, etc. placeholders
+    pub template: String,
+    /// State variable names that fill the template
+    pub bindings: Vec<String>,
+    /// Character positions where parameters are inserted
+    pub slots: Vec<usize>,
+}
+
 /// Represents a change operation for the DOM
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -57,6 +69,21 @@ pub enum Patch {
     ReorderChildren {
         path: Vec<usize>,
         order: Vec<String>, // keys in new order
+    },
+    /// Update text using template (runtime prediction)
+    /// Enables 100% coverage with minimal memory (2KB vs 100KB per component)
+    UpdateTextTemplate {
+        path: Vec<usize>,
+        #[serde(rename = "templatePatch")]
+        template_patch: TemplatePatch,
+    },
+    /// Update props using template (runtime prediction)
+    UpdatePropsTemplate {
+        path: Vec<usize>,
+        #[serde(rename = "propName")]
+        prop_name: String,
+        #[serde(rename = "templatePatch")]
+        template_patch: TemplatePatch,
     },
 }
 

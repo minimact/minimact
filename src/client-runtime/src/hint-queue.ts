@@ -1,4 +1,5 @@
 import { Patch } from './types';
+import { TemplateRenderer } from './template-renderer';
 
 /**
  * Queued hint with pre-computed patches
@@ -10,6 +11,8 @@ interface QueuedHint {
   confidence: number;
   predictedState: Record<string, any>;
   queuedAt: number;
+  /** True if this hint contains template patches (for statistics) */
+  isTemplate?: boolean;
 }
 
 /**
@@ -37,12 +40,17 @@ export class HintQueue {
   }): void {
     const key = `${data.componentId}:${data.hintId}`;
 
+    // Check if this hint contains template patches
+    const isTemplate = data.patches.some(patch => TemplateRenderer.isTemplatePatch(patch));
+
     this.hints.set(key, {
       ...data,
-      queuedAt: Date.now()
+      queuedAt: Date.now(),
+      isTemplate
     });
 
-    this.log(`Queued hint '${data.hintId}' for component ${data.componentId}`, data);
+    const patchType = isTemplate ? '📐 TEMPLATE' : '📄 CONCRETE';
+    this.log(`${patchType} hint '${data.hintId}' queued for ${data.componentId}`, data);
 
     // Auto-expire old hints
     this.cleanupStaleHints();
@@ -65,15 +73,22 @@ export class HintQueue {
     // Check each hint to see if it matches the state change
     for (const hint of componentHints) {
       if (this.stateMatches(hint.predictedState, stateChanges)) {
-        this.log(`Hint '${hint.hintId}' matches! Applying queued patches`, { hint, stateChanges });
+        const patchType = hint.isTemplate ? '📐 TEMPLATE' : '📄 CONCRETE';
+        this.log(`${patchType} hint '${hint.hintId}' matched!`, { hint, stateChanges });
 
         // Remove from queue
         const key = `${componentId}:${hint.hintId}`;
         this.hints.delete(key);
 
+        // Materialize template patches with current state values
+        const materializedPatches = TemplateRenderer.materializePatches(
+          hint.patches,
+          stateChanges
+        );
+
         return {
           hintId: hint.hintId,
-          patches: hint.patches,
+          patches: materializedPatches,
           confidence: hint.confidence
         };
       }
@@ -150,9 +165,18 @@ export class HintQueue {
    * Get stats about queued hints
    */
   getStats() {
+    const allHints = Array.from(this.hints.values());
+    const templateHints = allHints.filter(h => h.isTemplate);
+    const concreteHints = allHints.filter(h => !h.isTemplate);
+
     return {
       totalHints: this.hints.size,
-      hintsByComponent: Array.from(this.hints.values()).reduce((acc, hint) => {
+      templateHints: templateHints.length,
+      concreteHints: concreteHints.length,
+      templatePercentage: this.hints.size > 0
+        ? Math.round((templateHints.length / this.hints.size) * 100)
+        : 0,
+      hintsByComponent: allHints.reduce((acc, hint) => {
         acc[hint.componentId] = (acc[hint.componentId] || 0) + 1;
         return acc;
       }, {} as Record<string, number>)

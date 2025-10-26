@@ -8,7 +8,7 @@ pub mod patch_validator;
 pub mod logging;
 pub mod metrics;
 
-pub use vdom::{VNode, VElement, VText, Patch};
+pub use vdom::{VNode, VElement, VText, Patch, TemplatePatch};
 pub use reconciler::{reconcile, reconcile_with_config};
 pub use predictor::{Predictor, StateChange, Prediction, PredictorConfig, EvictionPolicy};
 pub use error::{MinimactError, Result, ErrorCode, FfiResult};
