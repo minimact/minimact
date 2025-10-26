@@ -1,0 +1,65 @@
+{
+  "name": "Minimact Codebehind",
+  "scopeName": "source.cs.minimact.codebehind",
+  "fileTypes": ["codebehind.cs"],
+  "patterns": [
+    {
+      "include": "source.cs"
+    },
+    {
+      "comment": "Minimact component class",
+      "match": "\\b(public|private|internal|protected)\\s+(partial)\\s+(class)\\s+([A-Z]\\w+)",
+      "captures": {
+        "1": { "name": "storage.modifier.cs" },
+        "2": { "name": "storage.modifier.minimact" },
+        "3": { "name": "storage.type.cs" },
+        "4": { "name": "entity.name.type.class.minimact" }
+      }
+    },
+    {
+      "comment": "Minimact database context injection",
+      "match": "\\b(private|protected|readonly)\\s+(\\w+DbContext)\\s+(_\\w+);",
+      "captures": {
+        "1": { "name": "storage.modifier.cs" },
+        "2": { "name": "entity.name.type.minimact.dbcontext" },
+        "3": { "name": "variable.other.minimact.dbcontext" }
+      }
+    },
+    {
+      "comment": "Entity Framework queries",
+      "match": "\\.(Where|Select|OrderBy|OrderByDescending|Include|ThenInclude|FirstOrDefault|ToList|ToListAsync|FirstOrDefaultAsync|SingleOrDefault|SingleOrDefaultAsync|Any|AnyAsync|Count|CountAsync)\\b",
+      "name": "support.function.minimact.efcore"
+    },
+    {
+      "comment": "Minimact component constructor",
+      "begin": "public\\s+([A-Z]\\w+)\\s*\\(",
+      "end": "\\)",
+      "beginCaptures": {
+        "1": { "name": "entity.name.function.minimact.constructor" }
+      },
+      "patterns": [
+        {
+          "include": "source.cs"
+        }
+      ]
+    },
+    {
+      "comment": "Async method declaration",
+      "match": "\\b(public|private|internal|protected)\\s+(async)\\s+(Task|ValueTask)(<[^>]+>)?\\s+([A-Z]\\w+)\\s*\\(",
+      "captures": {
+        "1": { "name": "storage.modifier.cs" },
+        "2": { "name": "storage.modifier.async.minimact" },
+        "3": { "name": "storage.type.cs" },
+        "4": { "name": "meta.generic.cs" },
+        "5": { "name": "entity.name.function.minimact.async" }
+      }
+    },
+    {
+      "comment": "Minimact comments highlighting special patterns",
+      "match": "//\\s*(TODO|HACK|FIXME|NOTE|OPTIMIZE):",
+      "captures": {
+        "1": { "name": "keyword.other.minimact.comment" }
+      }
+    }
+  ]
+}

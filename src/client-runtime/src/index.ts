@@ -5,6 +5,7 @@ import { EventDelegation } from './event-delegation';
 import { HydrationManager } from './hydration';
 import { HintQueue } from './hint-queue';
 import { PlaygroundBridge } from './playground-bridge';
+import { HotReloadManager } from './hot-reload';
 import * as ClientComputed from './client-computed';
 import { MinimactOptions, Patch } from './types';
 

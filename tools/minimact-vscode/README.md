@@ -27,6 +27,34 @@ Or use the Command Palette:
 - **Minimact: Go to Codebehind**
 - **Minimact: Switch Between Related Files**
 
+### 👁️ Preview Generated C# (NEW!)
+
+See exactly what your TSX transforms into without building! Right-click any `.tsx` file and select "Preview Generated C#" to view a side-by-side diff.
+
+- **Live transformation**: Powered by the Minimact Babel plugin
+- **Instant feedback**: No need to run the build
+- **Debug transformations**: Understand how hooks map to C# code
+- **Compare with actual**: Compare preview with the actual generated file
+
+### 🎨 Component Scaffolding Wizard (NEW!)
+
+Create new Minimact components in seconds with an interactive wizard!
+
+1. Right-click a folder → "Create Component"
+2. Enter component name (e.g., "TodoList")
+3. Select options:
+   - ☑ Create codebehind file
+   - ☐ Add useState example
+   - ☐ Add useEffect example
+   - ☐ Add useDomElementState (Minimact Punch)
+   - ☐ Include TypeScript types file
+4. Files are generated and ready to use!
+
+**Generates**:
+- `ComponentName.tsx` - UI logic with your selected hooks
+- `ComponentName.codebehind.cs` - Business logic template (optional)
+- `ComponentName.types.ts` - TypeScript interfaces (optional)
+
 ### ⚡ Auto-Create Codebehind
 
 When you try to navigate to a codebehind file that doesn't exist, the extension offers to create it for you with a proper template including:
@@ -34,6 +62,40 @@ When you try to navigate to a codebehind file that doesn't exist, the extension 
 - Partial class definition
 - Constructor for dependency injection
 - Example database query method (commented out)
+
+### 📊 Build Status Indicator (NEW!)
+
+Track your Minimact builds in real-time with the status bar indicator!
+
+- **Live monitoring**: Automatically watches TSX file changes
+- **Component count**: Shows how many components are in your project
+- **Last build time**: Displays when the last transformation occurred
+- **Click for details**: Opens a detailed panel with transformation history
+- **Output channel**: View transformation logs in the "Minimact Build" output
+
+The status bar shows: `🌵 Minimact: 👁 Watching (12 components) | ✓ 2m ago`
+
+### 💡 Quick Fixes & Code Actions (NEW!)
+
+Smart code actions that appear when you need them!
+
+**Available Quick Fixes**:
+- **Create codebehind file**: Appears when codebehind doesn't exist
+- **Add missing imports**: Auto-detects missing hook imports and adds them
+- **Add usePredictHint**: Suggests optimistic updates for setState calls
+- **Convert to Minimact**: Converts React imports to Minimact
+
+**How to use**: Place cursor on the line and press `Cmd+.` (or `Ctrl+.`) to see available actions.
+
+### 🎨 Enhanced Syntax Highlighting (NEW!)
+
+Special syntax highlighting for `.codebehind.cs` files!
+
+- **Partial classes**: Highlighted differently than regular classes
+- **EF Core queries**: `.Where()`, `.ToListAsync()`, etc. highlighted
+- **Async methods**: Special highlighting for async Task methods
+- **DbContext injection**: Highlights database context fields
+- **Comment keywords**: TODO, HACK, FIXME highlighted
 
 ### 📝 Code Snippets
 
@@ -73,7 +135,13 @@ Configure the extension in VS Code settings:
   "minimact.makeGeneratedFilesReadOnly": false,
 
   // Default directory for components (default: "src/components")
-  "minimact.componentsDirectory": "src/components"
+  "minimact.componentsDirectory": "src/components",
+
+  // Show build status in status bar (default: true)
+  "minimact.showBuildStatus": true,
+
+  // Show notification when build/transformation fails (default: true)
+  "minimact.notifyOnBuildError": true
 }
 ```
 
@@ -106,6 +174,23 @@ src/components/
 - [Minimact Discussions](https://github.com/minimact/minimact/discussions)
 
 ## Release Notes
+
+### 0.2.0 (Tier 2 Features - Complete!)
+
+**New Features**:
+- 👁️ **Preview Generated C#**: Live transformation preview with side-by-side diff
+- 🎨 **Component Scaffolding Wizard**: Interactive component creation with customizable options
+- 📊 **Build Status Indicator**: Real-time build monitoring in status bar
+- 💡 **Quick Fixes & Code Actions**: Smart suggestions for missing imports, codebehind creation, etc.
+- 🎨 **Enhanced Syntax Highlighting**: Special highlighting for `.codebehind.cs` files
+- 📊 **Compare with Generated**: Compare preview with actual generated file
+
+**Improvements**:
+- Better integration with Babel plugin
+- Enhanced error messages and user feedback
+- Context menus for quick access to features
+- Live file watching and transformation tracking
+- Detailed build status panel with metrics
 
 ### 0.1.0 (Initial MVP)
 

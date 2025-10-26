@@ -2,7 +2,7 @@
   "name": "minimact",
   "displayName": "Minimact",
   "description": "Official VS Code extension for Minimact - Server-Side React for ASP.NET Core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "minimact",
   "icon": "media/icon.png",
   "engines": {
@@ -52,8 +52,60 @@
         "command": "minimact.createCodebehind",
         "title": "Create Codebehind File",
         "category": "Minimact"
+      },
+      {
+        "command": "minimact.previewGenerated",
+        "title": "Preview Generated C#",
+        "category": "Minimact",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "minimact.compareWithGenerated",
+        "title": "Compare with Generated C#",
+        "category": "Minimact",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "minimact.createComponent",
+        "title": "Create Component",
+        "category": "Minimact",
+        "icon": "$(add)"
+      },
+      {
+        "command": "minimact.showBuildStatus",
+        "title": "Show Build Status",
+        "category": "Minimact",
+        "icon": "$(dashboard)"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "minimact.previewGenerated",
+          "when": "resourceExtname == .tsx",
+          "group": "minimact@1"
+        },
+        {
+          "command": "minimact.compareWithGenerated",
+          "when": "resourceExtname == .tsx",
+          "group": "minimact@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "minimact.previewGenerated",
+          "when": "resourceExtname == .tsx",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "minimact.createComponent",
+          "when": "explorerResourceIsFolder",
+          "group": "minimact@1"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "minimact.goToTsx",
@@ -84,6 +136,14 @@
         "path": "./snippets/minimact.json"
       }
     ],
+    "grammars": [
+      {
+        "language": "csharp",
+        "scopeName": "source.cs.minimact.codebehind",
+        "path": "./syntaxes/minimact-codebehind.json",
+        "injectTo": ["source.cs"]
+      }
+    ],
     "configuration": {
       "title": "Minimact",
       "properties": {
@@ -101,6 +161,16 @@
           "type": "string",
           "default": "src/components",
           "description": "Default directory for components"
+        },
+        "minimact.showBuildStatus": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show build status in status bar"
+        },
+        "minimact.notifyOnBuildError": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notification when build/transformation fails"
         }
       }
     }
@@ -113,9 +183,15 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.80.0",
+    "@types/babel__core": "^7.20.5",
     "@types/node": "^18.0.0",
-    "typescript": "^5.0.0",
-    "@vscode/test-electron": "^2.3.0"
+    "@types/vscode": "^1.80.0",
+    "@vscode/test-electron": "^2.3.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-react": "^7.24.0",
+    "@babel/preset-typescript": "^7.24.0"
   }
 }
