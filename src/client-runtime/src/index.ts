@@ -209,6 +209,13 @@ export class Minimact {
   }
 
   /**
+   * Get component by ID (for hot reload)
+   */
+  getComponent(componentId: string): any {
+    return this.hydration.getComponent(componentId);
+  }
+
+  /**
    * Get client state for a component
    */
   getClientState(componentId: string, key: string): any {

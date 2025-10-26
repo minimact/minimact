@@ -1,11 +1,21 @@
 /**
- * Minimact Hot Reload - Tier 1 (Client-Side)
+ * Minimact Hot Reload - Predictive Mapping Approach
  *
- * Provides Vite-like hot reload for UI-only changes without C# rebuild
- * Target: <50ms for text/CSS changes
+ * Uses TSX pattern detection + prediction cache for INSTANT hot reload
+ * Target: <5ms for common edits (text, classes, attributes)
+ * Fallback: Server re-render for complex changes (~150ms)
  */
 
-import type { Minimact } from './minimact';
+import { TsxPatternDetector, type TsxEditPattern } from './tsx-pattern-detector';
+import type { Patch } from './types';
+import type { DOMPatcher } from './dom-patcher';
+import type { HydrationManager } from './hydration';
+
+// Forward declaration to avoid circular dependency
+interface Minimact {
+  domPatcher: DOMPatcher;
+  getComponent(componentId: string): any;
+}
 
 export interface HotReloadConfig {
   enabled: boolean;
@@ -16,7 +26,7 @@ export interface HotReloadConfig {
 }
 
 export interface HotReloadMessage {
-  type: 'file-change' | 'verification' | 'error' | 'connected';
+  type: 'file-change' | 'rerender-complete' | 'error' | 'connected';
   componentId?: string;
   filePath?: string;
   code?: string;
@@ -44,6 +54,9 @@ export class HotReloadManager {
   private minimact: Minimact;
   private metrics: HotReloadMetrics;
   private previousVNodes = new Map<string, any>();
+  private previousTsx = new Map<string, string>();
+  private tsxPredictionCache = new Map<string, Patch[]>();
+  private detector: TsxPatternDetector;
   private pendingVerifications = new Map<string, any>();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -67,6 +80,8 @@ export class HotReloadManager {
       cacheMisses: 0,
       errors: 0
     };
+
+    this.detector = new TsxPatternDetector();
 
     if (this.config.enabled) {
       this.connect();
@@ -145,16 +160,17 @@ export class HotReloadManager {
         await this.handleFileChange(message);
         break;
 
-      case 'verification':
-        await this.handleVerification(message);
-        break;
-
       case 'error':
         this.handleError(message);
         break;
 
       case 'connected':
         this.log('info', 'Hot reload server ready');
+        break;
+
+      case 'rerender-complete':
+        // Server finished re-render (naive fallback)
+        this.log('debug', 'Server re-render complete');
         break;
     }
 
@@ -163,7 +179,8 @@ export class HotReloadManager {
   }
 
   /**
-   * Handle file change - apply optimistic update
+   * Handle file change - PREDICTIVE MAPPING APPROACH
+   * Try prediction cache first (0-5ms), fall back to server (150ms)
    */
   private async handleFileChange(message: HotReloadMessage) {
     if (!message.componentId || !message.code) return;
@@ -172,57 +189,63 @@ export class HotReloadManager {
     this.log('debug', `📝 File changed: ${message.filePath}`);
 
     try {
-      // 1. Transform code to VNode (client-side)
-      // For MVP, we'll receive the VNode from server
-      // In future, we can use esbuild-wasm for client-side transform
-      const newVNode = message.vnode;
+      const previousCode = this.previousTsx.get(message.componentId) || '';
 
-      if (!newVNode) {
-        this.log('warn', 'No VNode provided in file-change message');
+      // First load - just cache TSX
+      if (!previousCode) {
+        this.previousTsx.set(message.componentId, message.code);
+        this.log('debug', 'First load - cached TSX');
         return;
       }
 
-      // 2. Get previous VNode
-      const prevVNode = this.previousVNodes.get(message.componentId);
+      // STEP 1: Detect edit pattern (1-2ms)
+      const pattern = this.detector.detectEditPattern(previousCode, message.code);
+      this.log('debug', `Detected pattern: ${pattern.type} (confidence: ${(pattern.confidence * 100).toFixed(0)}%)`);
 
-      if (!prevVNode) {
-        // First load - just cache it
-        this.previousVNodes.set(message.componentId, newVNode);
-        this.log('debug', 'First load - cached VNode');
-        return;
+      // STEP 2: Try prediction cache lookup (0ms)
+      if (pattern.confidence > 0.90) {
+        const cacheKey = this.detector.buildCacheKey(message.componentId, pattern);
+        const cachedPatches = this.tsxPredictionCache.get(cacheKey);
+
+        if (cachedPatches) {
+          // 🚀 INSTANT HOT RELOAD!
+          const component = this.minimact.getComponent(message.componentId);
+          if (component) {
+            this.minimact.domPatcher.applyPatches(component.element, cachedPatches);
+
+            const latency = performance.now() - startTime;
+            this.log('info', `🚀 INSTANT! Applied cached patches in ${latency.toFixed(1)}ms`);
+
+            this.metrics.cacheHits++;
+            this.showToast(`⚡ ${latency.toFixed(0)}ms`, 'success', 800);
+
+            // Flash component
+            this.flashComponent(component.element);
+
+            // Update cached TSX
+            this.previousTsx.set(message.componentId, message.code);
+
+            // Still verify in background
+            this.verifyWithServer(message.componentId, message.code);
+            return;
+          }
+        } else {
+          this.log('debug', `No cache hit for key: ${cacheKey}`);
+        }
       }
 
-      // 3. Compute diff
-      const patches = this.computePatches(prevVNode, newVNode);
+      // STEP 3: Fall back to server re-render (naive fallback)
+      this.log('info', `⚠️ No prediction - requesting server render`);
+      this.metrics.cacheMisses++;
 
-      if (patches.length === 0) {
-        this.log('debug', 'No changes detected');
-        return;
-      }
+      await this.requestServerRerender(message.componentId, message.code);
 
-      // 4. Apply patches optimistically
-      const component = this.minimact.getComponent(message.componentId);
-      if (component) {
-        this.minimact.domPatcher.applyPatches(component.element, patches);
-        this.log('info', `✅ Hot reload applied: ${patches.length} patches in ${(performance.now() - startTime).toFixed(1)}ms`);
+      const latency = performance.now() - startTime;
+      this.log('info', `✅ Server render complete in ${latency.toFixed(1)}ms`);
+      this.showToast(`🔄 ${latency.toFixed(0)}ms`, 'info', 1000);
 
-        // Show visual feedback
-        this.flashComponent(component.element);
-      }
-
-      // 5. Cache new VNode
-      this.previousVNodes.set(message.componentId, newVNode);
-
-      // 6. Mark as pending verification
-      this.pendingVerifications.set(message.componentId, {
-        optimisticVNode: newVNode,
-        timestamp: Date.now()
-      });
-
-      // 7. Show notification
-      if (this.config.showNotifications) {
-        this.showToast(`🔥 Updated ${message.componentId}`, 'success', 1000);
-      }
+      // Update cached TSX
+      this.previousTsx.set(message.componentId, message.code);
 
     } catch (error) {
       this.log('error', 'Hot reload failed:', error);
@@ -232,34 +255,66 @@ export class HotReloadManager {
   }
 
   /**
-   * Handle verification from server
+   * Request server to re-render component (naive fallback)
    */
-  private async handleVerification(message: HotReloadMessage) {
-    if (!message.componentId || !message.vnode) return;
+  private async requestServerRerender(componentId: string, code: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Server rerender timeout'));
+      }, 5000);
 
-    const pending = this.pendingVerifications.get(message.componentId);
-    if (!pending) return;
+      // Send request
+      this.ws?.send(JSON.stringify({
+        type: 'request-rerender',
+        componentId,
+        code,
+        timestamp: Date.now()
+      }));
 
-    // Compare optimistic VNode with server VNode
-    const matches = this.vnodesMatch(pending.optimisticVNode, message.vnode);
+      // Wait for response
+      const handler = (event: MessageEvent) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'rerender-complete' && msg.componentId === componentId) {
+          clearTimeout(timeout);
+          this.ws?.removeEventListener('message', handler);
+          resolve();
+        }
+      };
 
-    if (matches) {
-      this.log('debug', `✅ Verification passed for ${message.componentId}`);
-      this.metrics.cacheHits++;
-    } else {
-      // Mismatch! Apply correction
-      this.log('warn', `⚠️ Prediction mismatch for ${message.componentId} - applying correction`);
-      this.metrics.cacheMisses++;
+      this.ws?.addEventListener('message', handler);
+    });
+  }
 
-      const component = this.minimact.getComponent(message.componentId);
-      if (component) {
-        const patches = this.computePatches(pending.optimisticVNode, message.vnode);
-        this.minimact.domPatcher.applyPatches(component.element, patches);
-        this.previousVNodes.set(message.componentId, message.vnode);
-      }
+  /**
+   * Verify with server in background (non-blocking)
+   */
+  private async verifyWithServer(componentId: string, code: string): Promise<void> {
+    try {
+      // Request verification from server
+      this.ws?.send(JSON.stringify({
+        type: 'verify-tsx',
+        componentId,
+        code,
+        timestamp: Date.now()
+      }));
+
+      this.log('debug', `Verification requested for ${componentId}`);
+    } catch (error) {
+      this.log('warn', 'Verification request failed:', error);
     }
+  }
 
-    this.pendingVerifications.delete(message.componentId);
+  /**
+   * Populate TSX prediction cache from server hints
+   * This integrates with the existing usePredictHint system
+   */
+  populateTsxCache(hint: any): void {
+    if (!hint.tsxPattern || !hint.patches) return;
+
+    const cacheKey = this.detector.buildCacheKey(hint.componentId, hint.tsxPattern);
+    this.tsxPredictionCache.set(cacheKey, hint.patches);
+
+    this.log('debug', `📦 Cached TSX pattern: ${cacheKey} (${hint.patches.length} patches)`);
   }
 
   /**

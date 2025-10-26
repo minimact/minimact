@@ -1,17 +1,23 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { MinimactServerClient, HotReloadEvent, BuildCompleteEvent } from '../utils/serverClient';
 
 /**
  * Build status manager for Minimact
  * Monitors TSX file changes and tracks transformation status
+ * Integrates with hot reload for real-time updates
  */
 export class BuildStatusManager {
   private statusBarItem: vscode.StatusBarItem;
   private fileWatcher: vscode.FileSystemWatcher | null = null;
+  private serverClient: MinimactServerClient | null = null;
   private componentCount = 0;
   private lastBuildTime: Date | null = null;
+  private lastHotReloadTime: Date | null = null;
   private isWatching = false;
+  private isHotReloadActive = false;
   private recentTransformations: TransformationRecord[] = [];
+  private recentHotReloads: HotReloadRecord[] = [];
   private outputChannel: vscode.OutputChannel;
 
   constructor(private context: vscode.ExtensionContext) {
@@ -33,9 +39,9 @@ export class BuildStatusManager {
   }
 
   /**
-   * Start watching TSX files
+   * Start watching TSX files and connect to hot reload server
    */
-  private startWatching() {
+  private async startWatching() {
     // Check if user wants build status
     const config = vscode.workspace.getConfiguration('minimact');
     const showBuildStatus = config.get<boolean>('showBuildStatus', true);
@@ -64,6 +70,12 @@ export class BuildStatusManager {
     this.context.subscriptions.push(this.fileWatcher);
     this.isWatching = true;
     this.statusBarItem.show();
+
+    // Connect to hot reload server if enabled
+    const hotReloadEnabled = config.get<boolean>('hotReload.enabled', true);
+    if (hotReloadEnabled) {
+      await this.connectToHotReloadServer();
+    }
   }
 
   /**
@@ -86,25 +98,126 @@ export class BuildStatusManager {
     const startTime = Date.now();
     const fileName = path.basename(uri.fsPath);
 
-    this.log(`🔄 Transforming ${fileName}...`);
+    this.log(`🔄 File changed: ${fileName}...`);
 
-    // Simulate transformation tracking
-    // In a real implementation, this would hook into the actual build process
-    setTimeout(() => {
-      const elapsed = Date.now() - startTime;
-      const success = Math.random() > 0.1; // 90% success rate simulation
+    // If hot reload is active, events will come from server
+    // Otherwise, simulate (for backwards compatibility)
+    if (!this.isHotReloadActive) {
+      // Fallback: Simulate transformation tracking
+      setTimeout(() => {
+        const elapsed = Date.now() - startTime;
+        const success = Math.random() > 0.1; // 90% success rate simulation
 
-      this.recordTransformation(fileName, success, elapsed);
-      this.lastBuildTime = new Date();
-      this.updateStatusBar();
+        this.recordTransformation(fileName, success, elapsed);
+        this.lastBuildTime = new Date();
+        this.updateStatusBar();
 
-      if (success) {
-        this.log(`✓ ${fileName} → ${fileName.replace('.tsx', '.cs')} (${elapsed}ms)`);
-      } else {
-        this.log(`✗ ${fileName} → Error (${elapsed}ms)`);
-        this.showErrorNotification(fileName);
-      }
-    }, Math.random() * 100 + 50); // Random delay 50-150ms
+        if (success) {
+          this.log(`✓ ${fileName} → ${fileName.replace('.tsx', '.cs')} (${elapsed}ms)`);
+        } else {
+          this.log(`✗ ${fileName} → Error (${elapsed}ms)`);
+          this.showErrorNotification(fileName);
+        }
+      }, Math.random() * 100 + 50); // Random delay 50-150ms
+    }
+  }
+
+  /**
+   * Connect to hot reload server
+   */
+  private async connectToHotReloadServer() {
+    try {
+      const config = vscode.workspace.getConfiguration('minimact');
+      const port = config.get<number>('hotReload.port', 5000);
+
+      this.serverClient = new MinimactServerClient(this.outputChannel);
+
+      // Subscribe to hot reload events
+      this.serverClient.onHotReload((event) => {
+        this.handleHotReloadEvent(event);
+      });
+
+      // Subscribe to build complete events
+      this.serverClient.onBuildComplete((event) => {
+        this.recordTransformation(event.componentId, event.success, event.time);
+        this.lastBuildTime = new Date();
+        this.updateStatusBar();
+      });
+
+      // Subscribe to connection events
+      this.serverClient.onConnected(() => {
+        this.isHotReloadActive = true;
+        this.updateStatusBar();
+        vscode.window.showInformationMessage('🔥 Minimact Hot Reload connected!');
+      });
+
+      this.serverClient.onDisconnected(() => {
+        this.isHotReloadActive = false;
+        this.updateStatusBar();
+      });
+
+      // Attempt connection
+      await this.serverClient.connect(port);
+
+    } catch (error) {
+      this.log(`⚠️ Failed to connect to hot reload server: ${error}`);
+      // Fall back to file watching only
+      this.isHotReloadActive = false;
+    }
+  }
+
+  /**
+   * Handle hot reload event from server
+   */
+  private handleHotReloadEvent(event: HotReloadEvent) {
+    switch (event.type) {
+      case 'file-change':
+        this.log(`📝 Hot reload: ${event.filePath} changed`);
+        break;
+
+      case 'rerender-complete':
+        const type = event.latency && event.latency < 10 ? 'instant' : 'fallback';
+        this.recordHotReload(event.componentId!, type, event.latency || 0, type === 'instant');
+        this.lastHotReloadTime = new Date();
+        this.updateStatusBar();
+
+        this.log(`⚡ Hot reload: ${event.componentId} updated in ${event.latency}ms`);
+
+        // Show notification for slow reloads
+        const config = vscode.workspace.getConfiguration('minimact');
+        const showNotifications = config.get<boolean>('hotReload.showNotifications', true);
+        if (showNotifications && event.latency && event.latency > 100) {
+          vscode.window.showInformationMessage(
+            `🔄 ${event.componentId} reloaded in ${event.latency.toFixed(0)}ms`
+          );
+        }
+        break;
+
+      case 'error':
+        this.log(`❌ Hot reload error: ${event.error}`);
+        vscode.window.showErrorMessage(`Hot Reload Error: ${event.error}`);
+        break;
+    }
+  }
+
+  /**
+   * Record hot reload event
+   */
+  private recordHotReload(componentId: string, type: 'instant' | 'fallback', time: number, cacheHit: boolean) {
+    const record: HotReloadRecord = {
+      componentId,
+      type,
+      time,
+      timestamp: new Date(),
+      cacheHit
+    };
+
+    this.recentHotReloads.unshift(record);
+
+    // Keep only last 20 hot reloads
+    if (this.recentHotReloads.length > 20) {
+      this.recentHotReloads = this.recentHotReloads.slice(0, 20);
+    }
   }
 
   /**
@@ -156,7 +269,10 @@ export class BuildStatusManager {
 
     let text = '$(cactus) Minimact';
 
-    if (this.isWatching) {
+    // Hot reload status (priority over watching)
+    if (this.isHotReloadActive) {
+      text += ': $(flame) Hot Reload';
+    } else if (this.isWatching) {
       text += ': $(eye) Watching';
     }
 
@@ -164,7 +280,11 @@ export class BuildStatusManager {
       text += ` (${this.componentCount} component${this.componentCount === 1 ? '' : 's'})`;
     }
 
-    if (this.lastBuildTime) {
+    // Show last hot reload time if available
+    if (this.lastHotReloadTime) {
+      const elapsed = this.getTimeSince(this.lastHotReloadTime);
+      text += ` | $(zap) ${elapsed} ago`;
+    } else if (this.lastBuildTime) {
       const elapsed = this.getTimeSince(this.lastBuildTime);
       text += ` | $(check) ${elapsed} ago`;
     }
@@ -399,6 +519,9 @@ export class BuildStatusManager {
     if (this.fileWatcher) {
       this.fileWatcher.dispose();
     }
+    if (this.serverClient) {
+      this.serverClient.disconnect();
+    }
     this.outputChannel.dispose();
   }
 }
@@ -411,4 +534,15 @@ interface TransformationRecord {
   success: boolean;
   time: number;
   timestamp: Date;
+}
+
+/**
+ * Hot reload record
+ */
+interface HotReloadRecord {
+  componentId: string;
+  type: 'instant' | 'fallback';
+  time: number;
+  timestamp: Date;
+  cacheHit: boolean;
 }

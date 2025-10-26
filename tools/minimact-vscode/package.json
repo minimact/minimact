@@ -141,7 +141,9 @@
         "language": "csharp",
         "scopeName": "source.cs.minimact.codebehind",
         "path": "./syntaxes/minimact-codebehind.json",
-        "injectTo": ["source.cs"]
+        "injectTo": [
+          "source.cs"
+        ]
       }
     ],
     "configuration": {
@@ -171,6 +173,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show notification when build/transformation fails"
+        },
+        "minimact.hotReload.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hot reload connection to Minimact dev server"
+        },
+        "minimact.hotReload.port": {
+          "type": "number",
+          "default": 5000,
+          "description": "Port number for hot reload server connection"
+        },
+        "minimact.hotReload.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications for hot reload events"
         }
       }
     }
@@ -192,6 +209,8 @@
   "dependencies": {
     "@babel/core": "^7.24.0",
     "@babel/preset-react": "^7.24.0",
-    "@babel/preset-typescript": "^7.24.0"
+    "@babel/preset-typescript": "^7.24.0",
+    "@types/ws": "^8.18.1",
+    "ws": "^8.18.3"
   }
 }

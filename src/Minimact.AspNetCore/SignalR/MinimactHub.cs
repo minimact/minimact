@@ -329,6 +329,73 @@ public class MinimactHub : Hub
         }
     }
 
+    // ==================== HOT RELOAD METHODS ====================
+
+    /// <summary>
+    /// Handle client request to re-render component (naive fallback for hot reload)
+    /// Called when client can't find a prediction cache match
+    /// </summary>
+    public async Task RequestRerender(string componentId, string code)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("HotReload:Error", new
+            {
+                type = "error",
+                error = $"Component {componentId} not found",
+                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            });
+            return;
+        }
+
+        try
+        {
+            var startTime = Stopwatch.GetTimestamp();
+
+            // Trigger component re-render
+            // In future: Hot-swap the Render method from the new code
+            // For now: Just use existing render method
+            component.TriggerRender();
+
+            var elapsed = Stopwatch.GetElapsedTime(startTime);
+
+            // Notify client that re-render is complete
+            await Clients.Caller.SendAsync("HotReload:RerenderComplete", new
+            {
+                type = "rerender-complete",
+                componentId,
+                latency = elapsed.TotalMilliseconds,
+                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            });
+
+            Console.WriteLine($"[Minimact HMR] Server re-render: {componentId} in {elapsed.TotalMilliseconds:F1}ms");
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("HotReload:Error", new
+            {
+                type = "error",
+                error = ex.Message,
+                timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            });
+            Console.Error.WriteLine($"[Minimact HMR] Re-render error: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// Verify TSX changes in background (optional - for future validation)
+    /// </summary>
+    public async Task VerifyTsx(string componentId, string code)
+    {
+        // For future: Compile code and verify it matches client prediction
+        // For now: Just acknowledge
+        Console.WriteLine($"[Minimact HMR] Verification requested for {componentId} (not implemented yet)");
+        await Task.CompletedTask;
+    }
+
+    // ============================================================
+
     /// <summary>
     /// Called when client connects
     /// </summary>
