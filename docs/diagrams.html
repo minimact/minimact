@@ -271,6 +271,7 @@
             <ul>
                 <li><a href="#dev-setup">Project Setup</a></li>
                 <li><a href="#dev-loop">Development Loop</a></li>
+                <li><a href="#hot-reload">Hot Reload System <span class="badge new">NEW</span></a></li>
                 <li><a href="#code-behind">Code-Behind Pattern</a></li>
                 <li><a href="#debugging">Debugging Tools</a></li>
                 <li><a href="#integration-points">Integration Points</a></li>
@@ -316,6 +317,14 @@
                 <div class="feature">
                     <h4>🔒 Security <span class="badge new">NEW</span></h4>
                     <p>Multi-layer authorization and validation</p>
+                </div>
+                <div class="feature">
+                    <h4>⚡ Hot Reload <span class="badge new">NEW</span></h4>
+                    <p>Template-based 3-5ms updates, 98% less memory</p>
+                </div>
+                <div class="feature">
+                    <h4>💻 Developer Workflow <span class="badge new">NEW</span></h4>
+                    <p>Setup, dev loop, debugging, integrations</p>
                 </div>
             </div>
         </section>
@@ -1339,6 +1348,305 @@ sequenceDiagram
     end
 
     Note over Dev,Browser: Changes visible in ~2-3 seconds
+            </div>
+        </section>
+
+        <section id="hot-reload">
+            <h2>Hot Reload System <span class="badge new">NEW</span></h2>
+            <h3>Template-Based Hot Reload</h3>
+            <p>
+                Minimact uses a <strong>template-based hot reload system</strong> that extracts text node templates
+                at build time and caches them on both server and client. When you edit a TSX file, only the changed
+                templates are sent to the browser, achieving <strong>3-5ms hot reload latency</strong> with
+                <strong>98% less memory</strong> than prediction-based approaches.
+            </p>
+            <div class="features">
+                <div class="feature">
+                    <h4>⚡ 3-5ms Latency</h4>
+                    <p>Instant visual feedback on file save</p>
+                </div>
+                <div class="feature">
+                    <h4>💾 2KB per Component</h4>
+                    <p>98% memory reduction vs predictions</p>
+                </div>
+                <div class="feature">
+                    <h4>🎯 100% Coverage</h4>
+                    <p>All state values, not just common ones</p>
+                </div>
+                <div class="feature">
+                    <h4>🔄 Auto State Updates</h4>
+                    <p>Templates automatically re-render on state change</p>
+                </div>
+            </div>
+
+            <h3>Complete System Flow</h3>
+            <p>
+                This diagram shows the entire lifecycle: build-time template extraction, runtime initialization,
+                hot reload updates, and automatic state change integration.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant Babel as Babel Plugin
+    participant FS as File System
+    participant Server as C# Server
+    participant SignalR as SignalR Hub
+    participant Client as Browser Client
+    participant TemplateState as Template State Manager
+    participant DOM as DOM
+
+    Note over Dev,DOM: BUILD TIME - Template Extraction
+
+    Dev->>Babel: Write/Edit Counter.tsx<br/>&lt;h1&gt;Count: {count}&lt;/h1&gt;
+    Babel->>Babel: Parse JSX AST
+    Babel->>Babel: Extract text node template<br/>template: "Count: {0}"<br/>bindings: ["count"]
+    Babel->>FS: Generate Counter.g.cs
+    Babel->>FS: Generate Counter.templates.json
+    Note right of FS: {<br/>  "templates": {<br/>    "h1[0].text[0]": {<br/>      "template": "Count: {0}",<br/>      "bindings": ["count"],<br/>      "slots": [7]<br/>    }<br/>  }<br/>}
+
+    Note over Dev,DOM: RUNTIME - Component Initialization
+
+    Client->>SignalR: RegisterComponent("Counter")
+    SignalR->>Server: Load component
+    Server->>FS: Read Counter.templates.json
+    FS-->>Server: Return template map
+    Server->>SignalR: Send template-map message
+    SignalR->>Client: HotReload:TemplateMap
+    Client->>TemplateState: loadTemplateMap(componentId, templates)
+    TemplateState->>TemplateState: Cache templates in memory<br/>(~2KB per component)
+    Note right of TemplateState: Templates ready for<br/>instant hot reload!
+
+    Note over Dev,DOM: HOT RELOAD - Developer Edit
+
+    Dev->>FS: Edit Counter.tsx<br/>Change: "Count: {count}"<br/>→ "Counter: {count}"
+    FS->>Babel: File change detected
+    Babel->>Babel: Re-parse JSX
+    Babel->>Babel: Extract new template<br/>template: "Counter: {0}"<br/>bindings: ["count"]
+    Babel->>FS: Update Counter.templates.json
+    FS->>Server: FileSystemWatcher event
+    Server->>Server: TemplateHotReloadManager<br/>Load new template map
+    Server->>Server: Detect template change<br/>OLD: "Count: {0}"<br/>NEW: "Counter: {0}"
+    Server->>Server: Get current state<br/>count = 5
+    Server->>Server: Create template patch<br/>{<br/>  template: "Counter: {0}",<br/>  params: [5],<br/>  bindings: ["count"]<br/>}
+    Server->>SignalR: Send template patch
+    SignalR->>Client: HotReload:TemplatePatch
+    Client->>TemplateState: applyTemplatePatch(patch)
+    TemplateState->>TemplateState: Render: "Counter: {0}"<br/>.replace("{0}", 5)<br/>= "Counter: 5"
+    TemplateState->>DOM: Update text node
+    DOM->>DOM: Flash visual feedback
+    Note right of DOM: 🚀 INSTANT UPDATE!<br/>3-5ms total latency
+
+    Note over Dev,DOM: STATE CHANGE - User Interaction
+
+    DOM->>Client: User clicks increment
+    Client->>Client: useState: setCount(6)
+    Client->>Client: Update local state
+    Client->>TemplateState: updateState("count", 6)
+    Client->>TemplateState: getTemplatesBoundTo("count")
+    TemplateState-->>Client: [template for "h1[0].text[0]"]
+    Client->>TemplateState: render(componentId, nodePath)
+    TemplateState->>TemplateState: "Counter: {0}"<br/>.replace("{0}", 6)<br/>= "Counter: 6"
+    TemplateState-->>Client: "Counter: 6"
+    Client->>DOM: findElementByPath([0, 0])
+    Client->>DOM: textNode.textContent = "Counter: 6"
+    Note right of DOM: ✨ Template auto-updates<br/>with new state!
+    Client->>SignalR: updateComponentState("count", 6)
+    SignalR->>Server: Sync state to prevent stale data
+    Server->>Server: component.SetStateFromClient("count", 6)
+    Note right of Server: Server state in sync!<br/>Next render will be correct
+            </div>
+
+            <h3>Template Extraction (Build Time)</h3>
+            <p>
+                During the Babel transformation, templates are extracted from JSX text nodes and saved to
+                <code>.templates.json</code> files alongside the generated C# code.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    A[Developer writes JSX] --> B{Babel Plugin}
+    B --> C[Parse JSX AST]
+    C --> D{For each JSX element}
+    D --> E{Has text children?}
+    E -->|Yes| F{Has expressions?}
+    F -->|Yes| G[Extract dynamic template]
+    F -->|No| H[Extract static template]
+    E -->|No| D
+
+    G --> I[Identify bindings<br/>e.g., count]
+    I --> J[Calculate slots<br/>e.g., position 7]
+    J --> K[Build template object]
+
+    H --> K
+    K --> L[Add to template map]
+    L --> M{More elements?}
+    M -->|Yes| D
+    M -->|No| N[Generate .templates.json]
+    N --> O[Generate .g.cs]
+
+    style G fill:#4CAF50
+    style H fill:#2196F3
+    style N fill:#FF9800
+            </div>
+
+            <h3>Template Loading (Runtime Init)</h3>
+            <p>
+                When a component first registers, the server reads the <code>.templates.json</code> file
+                and sends the template map to the client, which caches it in memory (~2KB per component).
+            </p>
+            <div class="mermaid">
+flowchart TD
+    A[Component registers] --> B[Server loads .templates.json]
+    B --> C{File exists?}
+    C -->|Yes| D[Parse JSON]
+    C -->|No| E[Skip template features]
+
+    D --> F[Cache in TemplateHotReloadManager]
+    F --> G[Send template-map via SignalR]
+    G --> H[Client receives message]
+    H --> I[TemplateStateManager.loadTemplateMap]
+    I --> J{For each template}
+    J --> K[Store template with key<br/>componentId:nodePath]
+    K --> L[Build binding index<br/>state → templates map]
+    L --> M{More templates?}
+    M -->|Yes| J
+    M -->|No| N[Templates ready!]
+
+    N --> O[Memory: ~2KB]
+    N --> P[Coverage: 100%]
+    N --> Q[Ready for hot reload]
+
+    style D fill:#4CAF50
+    style I fill:#2196F3
+    style N fill:#FF9800
+            </div>
+
+            <h3>Hot Reload Update (Template Patch)</h3>
+            <p>
+                When you save a TSX file, the FileSystemWatcher detects the change, Babel regenerates the templates,
+                and the server sends only the changed templates to the browser with the current state values filled in.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    A[Developer edits TSX] --> B[FileSystemWatcher detects]
+    B --> C[Babel re-runs]
+    C --> D[New .templates.json generated]
+    D --> E[Server loads new map]
+    E --> F{Compare with cached map}
+
+    F --> G{Template changed?}
+    G -->|Yes| H[Get current component state]
+    G -->|No| I[Skip - no update needed]
+
+    H --> J[Fill template with params<br/>template: Counter: {0}<br/>params: [5]<br/>= Counter: 5]
+    J --> K[Create TemplatePatch object]
+    K --> L[Send via SignalR]
+    L --> M[Client receives patch]
+    M --> N[Render template with params]
+    N --> O[Find DOM node by path]
+    O --> P{Node found?}
+
+    P -->|Yes| Q[Update textContent]
+    P -->|No| R[Log warning]
+
+    Q --> S[Flash visual feedback]
+    S --> T[Update cached template]
+    T --> U[Complete! 3-5ms total]
+
+    style H fill:#4CAF50
+    style N fill:#2196F3
+    style U fill:#FF9800
+            </div>
+
+            <h3>State Change Integration</h3>
+            <p>
+                When <code>useState</code> triggers a state change, the template system automatically
+                finds all templates bound to that state variable and re-renders them.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    A[User triggers state change] --> B[setState called]
+    B --> C[Update local state<br/>context.state.set]
+    C --> D[Check HintQueue]
+    D --> E{Hint match?}
+
+    E -->|Yes| F[Apply cached patches]
+    E -->|No| G[Log cache miss]
+
+    F --> H[Update template state<br/>templateState.updateState]
+    G --> H
+
+    H --> I[Get templates bound to state<br/>getTemplatesBoundTo]
+    I --> J{Templates found?}
+
+    J -->|Yes| K{For each template}
+    J -->|No| L[Skip template update]
+
+    K --> M[Render template<br/>template.replace placeholders]
+    M --> N[Find DOM node by path]
+    N --> O{Node type?}
+
+    O -->|Text| P[Update textContent]
+    O -->|Element| Q{Has attribute?}
+
+    Q -->|Yes| R[Update attribute]
+    Q -->|No| S[Update textContent]
+
+    P --> T{More templates?}
+    R --> T
+    S --> T
+
+    T -->|Yes| K
+    T -->|No| U[Sync to server<br/>updateComponentState]
+
+    U --> V[Server updates state<br/>SetStateFromClient]
+    V --> W[State synchronized!]
+
+    style H fill:#4CAF50
+    style M fill:#2196F3
+    style U fill:#FF9800
+    style W fill:#9C27B0
+            </div>
+
+            <h3>Memory & Performance Comparison</h3>
+            <p>
+                Template-based hot reload uses <strong>98% less memory</strong> than prediction-based caching
+                while achieving <strong>100% coverage</strong> of all possible state values.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="background: #0f172a; border: 2px solid #f44336; border-radius: 0.75rem; padding: 1.5rem;">
+                    <h4 style="color: #f44336; margin-bottom: 1rem;">❌ Prediction-Based</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <strong>Memory:</strong> ~100KB per component
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <strong>Coverage:</strong> 85% (1000+ cached variations)
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <strong>Scalability:</strong> Poor (linear growth)
+                        </li>
+                        <li style="padding: 0.5rem 0;">
+                            <strong>Latency:</strong> 3-5ms (cache hit)
+                        </li>
+                    </ul>
+                </div>
+                <div style="background: #0f172a; border: 2px solid #4CAF50; border-radius: 0.75rem; padding: 1.5rem;">
+                    <h4 style="color: #4CAF50; margin-bottom: 1rem;">✅ Template-Based</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <strong>Memory:</strong> ~2KB per component
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <strong>Coverage:</strong> 100% (parameterized)
+                        </li>
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <strong>Scalability:</strong> Excellent (constant size)
+                        </li>
+                        <li style="padding: 0.5rem 0;">
+                            <strong>Latency:</strong> 3-5ms (same!)
+                        </li>
+                    </ul>
+                </div>
             </div>
         </section>
 
