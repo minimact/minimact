@@ -1,0 +1,121 @@
+{
+  "name": "minimact",
+  "displayName": "Minimact",
+  "description": "Official VS Code extension for Minimact - Server-Side React for ASP.NET Core",
+  "version": "0.1.0",
+  "publisher": "minimact",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "minimact",
+    "react",
+    "aspnetcore",
+    "csharp",
+    "tsx",
+    "server-side-rendering"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/babel.config.js",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "minimact.goToTsx",
+        "title": "Go to TSX Source",
+        "category": "Minimact"
+      },
+      {
+        "command": "minimact.goToGenerated",
+        "title": "Go to Generated C#",
+        "category": "Minimact"
+      },
+      {
+        "command": "minimact.goToCodebehind",
+        "title": "Go to Codebehind",
+        "category": "Minimact"
+      },
+      {
+        "command": "minimact.switchFiles",
+        "title": "Switch Between Related Files",
+        "category": "Minimact"
+      },
+      {
+        "command": "minimact.createCodebehind",
+        "title": "Create Codebehind File",
+        "category": "Minimact"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "minimact.goToTsx",
+        "key": "ctrl+k ctrl+t",
+        "mac": "cmd+k cmd+t",
+        "when": "editorLangId == csharp"
+      },
+      {
+        "command": "minimact.goToGenerated",
+        "key": "ctrl+k ctrl+c",
+        "mac": "cmd+k cmd+c",
+        "when": "editorLangId == typescriptreact"
+      },
+      {
+        "command": "minimact.goToCodebehind",
+        "key": "ctrl+k ctrl+b",
+        "mac": "cmd+k cmd+b"
+      },
+      {
+        "command": "minimact.switchFiles",
+        "key": "ctrl+k ctrl+s",
+        "mac": "cmd+k cmd+s"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typescriptreact",
+        "path": "./snippets/minimact.json"
+      }
+    ],
+    "configuration": {
+      "title": "Minimact",
+      "properties": {
+        "minimact.warnOnGeneratedFileEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warning when opening auto-generated .cs files"
+        },
+        "minimact.makeGeneratedFilesReadOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Make generated .cs files read-only in the editor"
+        },
+        "minimact.componentsDirectory": {
+          "type": "string",
+          "default": "src/components",
+          "description": "Default directory for components"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "@vscode/test-electron": "^2.3.0"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "Minimact Component": {
+    "prefix": "mcomp",
+    "body": [
+      "import { useState } from 'minimact';",
+      "",
+      "export function ${1:ComponentName}() {",
+      "  const [${2:state}, set${2/(.*)/${1:/capitalize}/}] = useState(${3:initialValue});",
+      "",
+      "  return (",
+      "    <div>",
+      "      $0",
+      "    </div>",
+      "  );",
+      "}"
+    ],
+    "description": "Create a new Minimact component"
+  },
+  "useState Hook": {
+    "prefix": "mstate",
+    "body": [
+      "const [${1:state}, set${1/(.*)/${1:/capitalize}/}] = useState(${2:initialValue});"
+    ],
+    "description": "Add useState hook"
+  },
+  "useEffect Hook": {
+    "prefix": "meffect",
+    "body": [
+      "useEffect(() => {",
+      "  $0",
+      "}, [${1:dependencies}]);"
+    ],
+    "description": "Add useEffect hook"
+  },
+  "useRef Hook": {
+    "prefix": "mref",
+    "body": [
+      "const ${1:ref} = useRef(${2:initialValue});"
+    ],
+    "description": "Add useRef hook"
+  },
+  "usePredictHint": {
+    "prefix": "mpred",
+    "body": [
+      "usePredictHint('${1:hintId}', {",
+      "  ${2:state}: ${3:value}",
+      "});"
+    ],
+    "description": "Add prediction hint for optimistic updates"
+  },
+  "useDomElementState (Minimact Punch)": {
+    "prefix": "mdom",
+    "body": [
+      "const ${1:element} = useDomElementState('${2:selector}');"
+    ],
+    "description": "Add useDomElementState hook (Minimact Punch)"
+  },
+  "Codebehind Class": {
+    "prefix": "mcb",
+    "body": [
+      "using Microsoft.EntityFrameworkCore;",
+      "",
+      "namespace MyApp.Components",
+      "{",
+      "    public partial class ${1:ComponentName}",
+      "    {",
+      "        private readonly AppDbContext _db;",
+      "",
+      "        public ${1:ComponentName}(AppDbContext db)",
+      "        {",
+      "            _db = db;",
+      "        }",
+      "",
+      "        $0",
+      "    }",
+      "}"
+    ],
+    "description": "Create codebehind class template"
+  },
+  "Database Query Method": {
+    "prefix": "mdb",
+    "body": [
+      "private async Task<${1:List<T>}> ${2:MethodName}()",
+      "{",
+      "    return await _db.${3:Table}",
+      "        .Where(${4:x => x.Condition})",
+      "        .ToListAsync();",
+      "}"
+    ],
+    "description": "Create async database query method"
+  },
+  "Authorize Attribute": {
+    "prefix": "mauth",
+    "body": [
+      "[Authorize(Roles = \"${1:Admin}\")]"
+    ],
+    "description": "Add Authorize attribute"
+  },
+  "useClientState": {
+    "prefix": "mclient",
+    "body": [
+      "const [${1:state}, set${1/(.*)/${1:/capitalize}/}] = useClientState(${2:initialValue});"
+    ],
+    "description": "Add useClientState hook (client-only, no server sync)"
+  },
+  "useTemplate": {
+    "prefix": "mtemplate",
+    "body": [
+      "useTemplate('${1:SidebarLayout}', { ${2:title}: '${3:Page Title}' });"
+    ],
+    "description": "Apply template layout"
+  }
+}
