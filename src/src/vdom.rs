@@ -219,6 +219,46 @@ impl VNode {
     }
 }
 
+/// Component metadata from Babel plugin
+/// Contains compile-time generated loop templates for predictive rendering
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComponentMetadata {
+    /// Component identifier (e.g., "TodoList_abc123")
+    pub component_id: String,
+    /// Component name (e.g., "TodoList")
+    pub component_name: String,
+    /// Loop templates keyed by state variable name
+    /// Maps state key (e.g., "todos") to Babel-generated loop template JSON
+    pub loop_templates: HashMap<String, String>,
+}
+
+impl ComponentMetadata {
+    /// Create new component metadata
+    pub fn new(component_id: impl Into<String>, component_name: impl Into<String>) -> Self {
+        Self {
+            component_id: component_id.into(),
+            component_name: component_name.into(),
+            loop_templates: HashMap::new(),
+        }
+    }
+
+    /// Add a loop template for a state key
+    pub fn add_loop_template(&mut self, state_key: impl Into<String>, template_json: impl Into<String>) {
+        self.loop_templates.insert(state_key.into(), template_json.into());
+    }
+
+    /// Get loop template for a state key
+    pub fn get_loop_template(&self, state_key: &str) -> Option<&String> {
+        self.loop_templates.get(state_key)
+    }
+
+    /// Parse loop template JSON into LoopTemplate struct
+    pub fn parse_loop_template(&self, state_key: &str) -> Option<LoopTemplate> {
+        self.get_loop_template(state_key)
+            .and_then(|json| serde_json::from_str(json).ok())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
