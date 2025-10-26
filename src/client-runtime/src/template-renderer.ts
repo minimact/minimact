@@ -1,4 +1,4 @@
-import { TemplatePatch, Patch, LoopTemplate, ItemTemplate, VNode, VElement, VText } from './types';
+import { TemplatePatch, Patch, LoopTemplate, ItemTemplate, VNode, VElement, VText, Binding } from './types';
 
 /**
  * Template Renderer
@@ -64,7 +64,12 @@ export class TemplateRenderer {
     if (templatePatch.conditionalTemplates && templatePatch.conditionalBindingIndex !== undefined) {
       const bindingIndex = templatePatch.conditionalBindingIndex;
       const conditionBinding = templatePatch.bindings[bindingIndex];
-      const conditionValue = stateValues[conditionBinding];
+
+      // Get condition value (handle both string and Binding object)
+      const conditionKey = typeof conditionBinding === 'object' && 'stateKey' in conditionBinding
+        ? conditionBinding.stateKey
+        : conditionBinding as string;
+      const conditionValue = stateValues[conditionKey];
 
       // Lookup the template for this condition value
       const conditionalTemplate = templatePatch.conditionalTemplates[String(conditionValue)];
@@ -76,14 +81,34 @@ export class TemplateRenderer {
         }
 
         // Otherwise, it's a conditional template with other bindings
-        const params = templatePatch.bindings.map(binding => stateValues[binding]);
+        // Apply transforms if present
+        const params = templatePatch.bindings.map(binding => {
+          if (typeof binding === 'object' && 'stateKey' in binding) {
+            const value = stateValues[binding.stateKey];
+            return binding.transform ? this.applyTransform(value, binding.transform) : value;
+          }
+          return stateValues[binding as string];
+        });
         return this.renderTemplate(conditionalTemplate, params);
       }
     }
 
     // Standard template rendering
-    const params = templatePatch.bindings.map(binding => {
-      return stateValues[binding];
+    const params = templatePatch.bindings.map((binding, index) => {
+      // Phase 6: Support Binding objects with transforms
+      if (typeof binding === 'object' && 'stateKey' in binding) {
+        const value = stateValues[binding.stateKey];
+
+        // Apply transform if present
+        if (binding.transform) {
+          return this.applyTransform(value, binding.transform);
+        }
+
+        return value;
+      }
+
+      // Backward compatibility: Simple string binding
+      return stateValues[binding as string];
     });
 
     return this.renderTemplate(templatePatch.template, params);
@@ -170,6 +195,77 @@ export class TemplateRenderer {
   }
 
   /**
+   * Apply transform to a value (Phase 6: Expression Templates)
+   * Security: Only whitelisted transforms are allowed
+   *
+   * @param value - Raw value from state
+   * @param transform - Transform string (e.g., "toFixed(2)", "* 100", "toUpperCase()")
+   * @returns Transformed value
+   *
+   * @example
+   * applyTransform(99.95, "toFixed(2)") → "99.95"
+   * applyTransform(0.847, "* 100") → 84.7
+   * applyTransform("hello", "toUpperCase()") → "HELLO"
+   */
+  static applyTransform(value: any, transform: string): any {
+    // Security: Whitelist-only approach for safe transforms
+
+    // toFixed(n) - Format number to n decimal places
+    if (transform.startsWith('toFixed(')) {
+      const decimals = parseInt(transform.match(/\d+/)?.[0] || '0');
+      return Number(value).toFixed(decimals);
+    }
+
+    // Arithmetic: * N (multiplication)
+    if (transform.startsWith('* ')) {
+      const multiplier = parseFloat(transform.substring(2));
+      return Number(value) * multiplier;
+    }
+
+    // Arithmetic: / N (division)
+    if (transform.startsWith('/ ')) {
+      const divisor = parseFloat(transform.substring(2));
+      return Number(value) / divisor;
+    }
+
+    // Arithmetic: + N (addition)
+    if (transform.startsWith('+ ')) {
+      const addend = parseFloat(transform.substring(2));
+      return Number(value) + addend;
+    }
+
+    // Arithmetic: - N (subtraction)
+    if (transform.startsWith('- ')) {
+      const subtrahend = parseFloat(transform.substring(2));
+      return Number(value) - subtrahend;
+    }
+
+    // String: toUpperCase()
+    if (transform === 'toUpperCase()' || transform === 'toUpperCase') {
+      return String(value).toUpperCase();
+    }
+
+    // String: toLowerCase()
+    if (transform === 'toLowerCase()' || transform === 'toLowerCase') {
+      return String(value).toLowerCase();
+    }
+
+    // String: trim()
+    if (transform === 'trim()' || transform === 'trim') {
+      return String(value).trim();
+    }
+
+    // Boolean: ! (negation)
+    if (transform === '!') {
+      return !value;
+    }
+
+    // Default: Unknown transform, log warning and return value as-is
+    console.warn(`[TemplateRenderer] Unknown transform: ${transform}`);
+    return value;
+  }
+
+  /**
    * Format a value for template substitution
    *
    * @param value - Value to format
@@ -218,7 +314,13 @@ export class TemplateRenderer {
    */
   static extractBindings(patch: Patch): string[] {
     if (patch.type === 'UpdateTextTemplate' || patch.type === 'UpdatePropsTemplate') {
-      return patch.templatePatch.bindings;
+      // Handle both string bindings and Binding objects
+      return patch.templatePatch.bindings.map(binding => {
+        if (typeof binding === 'object' && 'stateKey' in binding) {
+          return binding.stateKey;
+        }
+        return binding as string;
+      });
     }
     return [];
   }
@@ -234,7 +336,12 @@ export class TemplateRenderer {
     templatePatch: TemplatePatch,
     stateValues: Record<string, any>
   ): boolean {
-    return templatePatch.bindings.every(binding => binding in stateValues);
+    return templatePatch.bindings.every(binding => {
+      const key = typeof binding === 'object' && 'stateKey' in binding
+        ? binding.stateKey
+        : binding as string;
+      return key in stateValues;
+    });
   }
 
   /**
@@ -248,7 +355,19 @@ export class TemplateRenderer {
     templatePatch: TemplatePatch,
     stateValues: Record<string, any>
   ): string[] {
-    return templatePatch.bindings.filter(binding => !(binding in stateValues));
+    return templatePatch.bindings
+      .filter(binding => {
+        const key = typeof binding === 'object' && 'stateKey' in binding
+          ? binding.stateKey
+          : binding as string;
+        return !(key in stateValues);
+      })
+      .map(binding => {
+        if (typeof binding === 'object' && 'stateKey' in binding) {
+          return binding.stateKey;
+        }
+        return binding as string;
+      });
   }
 
   /**

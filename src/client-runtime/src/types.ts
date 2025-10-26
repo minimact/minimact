@@ -30,14 +30,25 @@ export interface VRawHtml extends VNode {
 }
 
 /**
+ * Binding with optional transform (Phase 6: Expression Templates)
+ * Enables computed values like toFixed(), arithmetic, string operations
+ */
+export interface Binding {
+  /** State variable name */
+  stateKey: string;
+  /** Optional: Transform to apply to value (e.g., "toFixed(2)", "* 100", "toUpperCase()") */
+  transform?: string;
+}
+
+/**
  * Template patch data for parameterized updates
  * Enables 98% memory reduction by storing patterns instead of concrete values
  */
 export interface TemplatePatch {
   /** Template string with {0}, {1}, etc. placeholders */
   template: string;
-  /** State variable names that fill the template */
-  bindings: string[];
+  /** State variable names that fill the template (simple string for backward compatibility) */
+  bindings: string[] | Binding[];
   /** Character positions where parameters are inserted */
   slots: number[];
   /** Optional: Conditional templates based on binding values */
