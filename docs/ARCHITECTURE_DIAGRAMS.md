@@ -723,3 +723,557 @@ These diagrams illustrate the complete architecture of Minimact and Minimact Pun
 The key innovation: **Server and client stay synchronized automatically**, preventing stale data issues while maintaining instant user feedback through predictive caching.
 
 🌵 The cactus knows the topology of the desert. 🍹
+
+---
+
+## Additional Deep-Dive Diagrams
+
+The following diagrams provide detailed answers to common architectural questions.
+
+---
+
+## Component Lifecycle & Initial Load
+
+### Initial Page Load Flow
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Server as ASP.NET Core
+    participant Rust as Rust Engine
+    participant Component
+    participant SignalR as SignalR Hub
+    participant Client as Client Runtime
+
+    Note over Browser,Client: 1. Initial SSR (No JavaScript Yet)
+    Browser->>Server: HTTP GET /page
+    Server->>Component: Create instance
+    Component->>Component: OnInitializedAsync()
+    Component->>Rust: Render() → VNode
+    Rust->>Rust: Generate HTML
+    Rust->>Server: HTML string
+    Server->>Browser: Return HTML page
+    Browser->>Browser: Display HTML immediately
+
+    Note over Browser,Client: 2. Progressive Enhancement (JavaScript Loads)
+    Browser->>Browser: Parse & execute ~5KB client.js
+    Browser->>Client: Initialize Minimact client
+    Client->>SignalR: Establish WebSocket connection
+
+    Note over Browser,Client: 3. Component Registration
+    SignalR->>Server: Connection established
+    Server->>SignalR: Assign ConnectionId
+    Client->>Client: Query DOM for [data-component-id]
+    Client->>SignalR: RegisterComponent(componentId)
+    SignalR->>Server: Store mapping: ConnectionId → ComponentId
+    Server->>Component: Attach connection to instance
+
+    Note over Browser,Client: 4. Ready State
+    Component->>Rust: Generate initial predictions
+    Rust->>SignalR: QueueHint messages
+    SignalR->>Client: Cache predictions
+    Client->>Client: System ready - instant interactions enabled
+
+    Note over Browser,Client: Result: Page works WITHOUT JS, enhanced WITH JS
+```
+
+### Component ID Tracking
+
+```mermaid
+graph LR
+    subgraph "Server-Side Rendering"
+        COMP[Component Instance]
+        ID[Generate GUID]
+        HTML[Rendered HTML]
+    end
+
+    subgraph "HTML Output"
+        ATTR[data-component-id attribute]
+    end
+
+    subgraph "Client-Side Discovery"
+        DOM[DOM Query]
+        MAP[ComponentId → Element Map]
+    end
+
+    subgraph "Server Registry"
+        REGISTRY[Component Registry]
+        CONN[ConnectionId → Component Map]
+    end
+
+    COMP --> ID
+    ID --> ATTR
+    ATTR --> HTML
+
+    HTML --> DOM
+    DOM --> MAP
+
+    MAP --> REGISTRY
+    REGISTRY --> CONN
+
+    style ATTR fill:#FFD700
+    style MAP fill:#90EE90
+```
+
+---
+
+## Prediction Engine Deep Dive
+
+### Learning & Pattern Detection
+
+```mermaid
+flowchart TD
+    START[User Interaction] --> RECORD[Record to History]
+
+    RECORD --> PATTERN{Pattern Analysis}
+
+    PATTERN -->|Frequency Analysis| FREQ[Track state change frequency]
+    PATTERN -->|Sequence Detection| SEQ[Detect interaction sequences]
+    PATTERN -->|Conditional Patterns| COND[Learn conditional branches]
+
+    FREQ --> CONFIDENCE[Calculate Confidence Score]
+    SEQ --> CONFIDENCE
+    COND --> CONFIDENCE
+
+    CONFIDENCE --> THRESHOLD{Confidence >= 0.7?}
+
+    THRESHOLD -->|Yes| GENERATE[Generate Prediction]
+    THRESHOLD -->|No| SKIP[Skip prediction]
+
+    GENERATE --> PRECOMPUTE[Pre-compute patches]
+    PRECOMPUTE --> QUEUE[Queue to client]
+
+    QUEUE --> MEASURE[Measure accuracy on use]
+    MEASURE --> FEEDBACK[Adjust confidence weights]
+    FEEDBACK --> PATTERN
+
+    SKIP --> END[End]
+
+    style GENERATE fill:#90EE90
+    style QUEUE fill:#90EE90
+    style CONFIDENCE fill:#FFD700
+```
+
+### Prediction Triggers & Processing
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Comp as Component
+    participant Pred as Prediction Engine
+    participant Rust as Rust Reconciler
+    participant Queue as Hint Queue
+
+    Note over Dev,Queue: Trigger 1: Explicit usePredictHint
+    Dev->>Comp: usePredictHint('increment', {count: count+1})
+    Comp->>Pred: Register hint
+    Pred->>Rust: Compute patches for predicted state
+    Rust->>Pred: Return patches
+    Pred->>Queue: QueueHint(hintId, patches, confidence: 1.0)
+
+    Note over Dev,Queue: Trigger 2: Automatic Pattern Learning
+    Comp->>Comp: setState(newValue)
+    Comp->>Pred: Notify state change
+    Pred->>Pred: Analyze historical patterns
+    Pred->>Pred: Detect: "count always increments by 1"
+    Pred->>Rust: Compute patches for likely next state
+    Rust->>Pred: Return patches
+    Pred->>Queue: QueueHint(hintId, patches, confidence: 0.85)
+
+    Note over Dev,Queue: Trigger 3: User Behavior Patterns
+    Comp->>Pred: Track: User hovered button for 500ms
+    Pred->>Pred: Pattern: Hover → Click (78% probability)
+    Pred->>Rust: Pre-compute click result
+    Rust->>Pred: Return patches
+    Pred->>Queue: QueueHint(hintId, patches, confidence: 0.78)
+
+    Note over Dev,Queue: Accuracy Feedback Loop
+    Queue->>Queue: User clicked → Check cache
+    Queue->>Pred: Report: Hit/Miss + actual state
+    Pred->>Pred: Update pattern weights
+```
+
+### Prediction Accuracy Measurement
+
+```mermaid
+graph TB
+    subgraph "Prediction Generation"
+        GEN[Generate Prediction]
+        CONF[Assign Confidence Score]
+        CACHE[Cache on Client]
+    end
+
+    subgraph "User Interaction"
+        CLICK[User Clicks]
+        CHECK[Check Cache]
+    end
+
+    subgraph "Verification"
+        MATCH{Patches Match?}
+        HIT[Cache Hit - Correct]
+        MISS[Cache Miss - Wrong]
+    end
+
+    subgraph "Feedback Loop"
+        RECORD[Record Outcome]
+        ANALYZE[Analyze Pattern]
+        ADJUST[Adjust Weights]
+    end
+
+    GEN --> CONF
+    CONF --> CACHE
+
+    CACHE --> CLICK
+    CLICK --> CHECK
+    CHECK --> MATCH
+
+    MATCH -->|Yes| HIT
+    MATCH -->|No| MISS
+
+    HIT --> RECORD
+    MISS --> RECORD
+
+    RECORD --> ANALYZE
+    ANALYZE --> ADJUST
+    ADJUST --> GEN
+
+    style HIT fill:#90EE90
+    style MISS fill:#FFB6C1
+    style ADJUST fill:#FFD700
+```
+
+---
+
+## Babel Plugin Transformation
+
+### TSX to C# Example
+
+**Input (Counter.tsx):**
+```typescript
+import { useState } from 'minimact';
+
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
+        </div>
+    );
+}
+```
+
+**Output (Counter.cs):**
+```csharp
+using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.VNodes;
+
+namespace MyApp.Components
+{
+    public partial class Counter : MinimactComponent
+    {
+        [State]
+        private int count = 0;
+
+        protected override VNode Render()
+        {
+            return new VElement("div",
+                new VElement("p", $"Count: {count}"),
+                new VElement("button",
+                    new VAttribute("onClick", nameof(Increment)),
+                    "Increment"
+                )
+            );
+        }
+
+        private void Increment()
+        {
+            count++;
+            SetState(nameof(count), count);
+        }
+    }
+}
+```
+
+### Transformation Pipeline
+
+```mermaid
+flowchart TD
+    START[Counter.tsx] --> PARSE[Babel Parse AST]
+
+    PARSE --> DETECT[Detect Hooks]
+    DETECT --> HOOK_STATE{Hook Type?}
+
+    HOOK_STATE -->|useState| GEN_STATE[Generate [State] field]
+    HOOK_STATE -->|useEffect| GEN_EFFECT[Generate lifecycle method]
+    HOOK_STATE -->|useRef| GEN_REF[Generate private field]
+
+    GEN_STATE --> TRACK_DEPS[Track dependencies]
+    GEN_EFFECT --> TRACK_DEPS
+    GEN_REF --> TRACK_DEPS
+
+    TRACK_DEPS --> JSX[Parse JSX]
+    JSX --> BUILD_VNODE[Build VNode tree]
+
+    BUILD_VNODE --> EVENTS{Event Handlers?}
+    EVENTS -->|Yes| GEN_METHODS[Generate C# methods]
+    EVENTS -->|No| CONTINUE
+
+    GEN_METHODS --> CONTINUE[Continue]
+    CONTINUE --> TYPE_MAP[Map TS types to C# types]
+
+    TYPE_MAP --> OUTPUT[Generate Counter.cs]
+
+    style GEN_STATE fill:#90EE90
+    style BUILD_VNODE fill:#FFD700
+    style OUTPUT fill:#3b82f6
+```
+
+### Type Mapping Table
+
+```mermaid
+graph LR
+    subgraph "TypeScript Types"
+        TS_NUM[number]
+        TS_STR[string]
+        TS_BOOL[boolean]
+        TS_ARR[Array&lt;T&gt;]
+        TS_OBJ[interface]
+        TS_FUNC[Function]
+    end
+
+    subgraph "C# Types"
+        CS_NUM[int / double]
+        CS_STR[string]
+        CS_BOOL[bool]
+        CS_ARR[List&lt;T&gt;]
+        CS_OBJ[class / record]
+        CS_FUNC[Action / Func]
+    end
+
+    TS_NUM --> CS_NUM
+    TS_STR --> CS_STR
+    TS_BOOL --> CS_BOOL
+    TS_ARR --> CS_ARR
+    TS_OBJ --> CS_OBJ
+    TS_FUNC --> CS_FUNC
+
+    style TS_NUM fill:#3b82f6
+    style TS_STR fill:#3b82f6
+    style TS_BOOL fill:#3b82f6
+    style CS_NUM fill:#10b981
+    style CS_STR fill:#10b981
+    style CS_BOOL fill:#10b981
+```
+
+---
+
+## Security & Authorization Model
+
+### Method Invocation Security
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant SignalR as SignalR Hub
+    participant Auth as Authorization
+    participant Registry as Component Registry
+    participant Comp as Component
+
+    Note over Client,Comp: Secure Method Invocation Flow
+
+    Client->>SignalR: InvokeComponentMethod(componentId, "UpdateProfile", args)
+
+    SignalR->>Auth: ValidateConnection()
+    Auth->>Auth: Check User.Identity
+    Auth->>Auth: Verify ConnectionId is authenticated
+
+    alt Not Authenticated
+        Auth->>Client: 401 Unauthorized
+    end
+
+    SignalR->>Registry: GetComponent(componentId)
+
+    alt Component Not Found
+        Registry->>Client: Error: Component not found
+    end
+
+    Registry->>Registry: Verify component belongs to this connection
+
+    alt Wrong Connection
+        Registry->>Client: Error: Unauthorized access
+    end
+
+    SignalR->>Comp: Check [Authorize] attribute on method
+
+    alt Has [Authorize(Roles="Admin")]
+        Comp->>Auth: Check User.IsInRole("Admin")
+        Auth-->>Comp: False
+        Comp->>Client: Error: Forbidden
+    end
+
+    Comp->>Comp: Validate method parameters
+
+    alt Invalid Parameters
+        Comp->>Client: Error: Validation failed
+    end
+
+    Comp->>Comp: Invoke method via reflection
+    Comp->>Comp: Update state
+    Comp->>Client: Success
+```
+
+### State Validation Flow
+
+```mermaid
+flowchart TD
+    START[Client sends UpdateComponentState] --> AUTH{User Authenticated?}
+
+    AUTH -->|No| REJECT1[Reject: 401 Unauthorized]
+    AUTH -->|Yes| OWNER{Owns Component?}
+
+    OWNER -->|No| REJECT2[Reject: 403 Forbidden]
+    OWNER -->|Yes| VALIDATE[Validate State Value]
+
+    VALIDATE --> TYPE{Type Valid?}
+    TYPE -->|No| REJECT3[Reject: Invalid type]
+    TYPE -->|Yes| RANGE{Range Valid?}
+
+    RANGE -->|No| REJECT4[Reject: Out of range]
+    RANGE -->|Yes| SANITIZE[Sanitize Input]
+
+    SANITIZE --> CUSTOM{Custom Validator?}
+    CUSTOM -->|Yes| RUN_VALIDATOR[Run validation logic]
+    CUSTOM -->|No| APPLY
+
+    RUN_VALIDATOR --> VALID{Valid?}
+    VALID -->|No| REJECT5[Reject: Custom validation failed]
+    VALID -->|Yes| APPLY[Apply state change]
+
+    APPLY --> LOG[Log change for audit]
+    LOG --> SUCCESS[Success]
+
+    style REJECT1 fill:#FFB6C1
+    style REJECT2 fill:#FFB6C1
+    style REJECT3 fill:#FFB6C1
+    style REJECT4 fill:#FFB6C1
+    style REJECT5 fill:#FFB6C1
+    style SUCCESS fill:#90EE90
+```
+
+### Security Layers
+
+```mermaid
+graph TB
+    subgraph "Layer 1: Connection Security"
+        SSL[HTTPS/WSS Only]
+        AUTH[ASP.NET Core Authentication]
+        SESSION[Session Management]
+    end
+
+    subgraph "Layer 2: Component Ownership"
+        REGISTRY[Component Registry]
+        MAPPING[ConnectionId → Component]
+        ISOLATION[Per-connection isolation]
+    end
+
+    subgraph "Layer 3: Method Authorization"
+        ATTR[Authorize Attributes]
+        ROLES[Role-based access]
+        CLAIMS[Claims-based access]
+    end
+
+    subgraph "Layer 4: Input Validation"
+        TYPE_CHECK[Type validation]
+        RANGE_CHECK[Range validation]
+        SANITIZE[Input sanitization]
+        CUSTOM[Custom validators]
+    end
+
+    subgraph "Layer 5: Rate Limiting"
+        THROTTLE[Request throttling]
+        QUOTA[Per-user quotas]
+        ABUSE[Abuse detection]
+    end
+
+    SSL --> REGISTRY
+    AUTH --> REGISTRY
+    SESSION --> REGISTRY
+
+    REGISTRY --> ATTR
+    MAPPING --> ATTR
+    ISOLATION --> ATTR
+
+    ATTR --> TYPE_CHECK
+    ROLES --> TYPE_CHECK
+    CLAIMS --> TYPE_CHECK
+
+    TYPE_CHECK --> THROTTLE
+    RANGE_CHECK --> THROTTLE
+    SANITIZE --> THROTTLE
+    CUSTOM --> THROTTLE
+
+    style SSL fill:#90EE90
+    style AUTH fill:#90EE90
+    style ATTR fill:#FFD700
+    style TYPE_CHECK fill:#3b82f6
+```
+
+### Example: Preventing Malicious State Updates
+
+```mermaid
+sequenceDiagram
+    participant Attacker as Malicious Client
+    participant SignalR
+    participant Validator
+    participant Component
+
+    Note over Attacker,Component: Attack Attempt: Send Invalid State
+
+    Attacker->>SignalR: UpdateComponentState("count", 999999999)
+
+    SignalR->>Validator: Validate state change
+
+    Validator->>Validator: Check type: int ✓
+    Validator->>Validator: Check range: > max allowed (1000)
+
+    Validator->>Attacker: ❌ Error: Value exceeds maximum (1000)
+
+    Note over Attacker,Component: Attack Attempt: Access Other User's Component
+
+    Attacker->>SignalR: InvokeComponentMethod("other-user-component", "DeleteAccount")
+
+    SignalR->>SignalR: Verify component ownership
+    SignalR->>SignalR: ComponentId belongs to different ConnectionId
+
+    SignalR->>Attacker: ❌ Error: Unauthorized access to component
+
+    Note over Attacker,Component: Attack Attempt: Call Protected Method
+
+    Attacker->>SignalR: InvokeComponentMethod("admin-panel", "DeleteAllUsers")
+
+    SignalR->>Component: Check [Authorize(Roles="Admin")]
+    Component->>Component: User.IsInRole("Admin") = false
+
+    Component->>Attacker: ❌ Error: Forbidden - Admin role required
+
+    Note over Attacker,Component: Result: All attacks blocked by security layers
+```
+
+---
+
+## Conclusion
+
+These additional diagrams provide deep dives into:
+
+1. **Component Lifecycle** - From initial SSR through SignalR connection to ready state
+2. **Prediction Engine** - Learning patterns, triggers, and accuracy measurement
+3. **Babel Transformation** - Concrete TSX→C# examples with type mapping
+4. **Security Model** - Multi-layer security with validation and authorization
+
+Together with the original diagrams, this provides complete architectural documentation for Minimact.
+
+**The cactus doesn't just survive—it thrives by knowing what comes next.** 🌵⚡

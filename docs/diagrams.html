@@ -249,6 +249,7 @@
 
         <nav>
             <h2>📑 Quick Navigation</h2>
+            <h3 style="color: #64748b; font-size: 0.875rem; margin-top: 1rem; margin-bottom: 0.5rem;">Core Diagrams</h3>
             <ul>
                 <li><a href="#core-architecture">Core Architecture</a></li>
                 <li><a href="#data-flow">Data Flow</a></li>
@@ -258,6 +259,13 @@
                 <li><a href="#integration">Integration Patterns</a></li>
                 <li><a href="#system-overview">System Overview</a></li>
                 <li><a href="#performance">Performance</a></li>
+            </ul>
+            <h3 style="color: #64748b; font-size: 0.875rem; margin-top: 1.5rem; margin-bottom: 0.5rem;">Deep Dives <span class="badge new">NEW</span></h3>
+            <ul>
+                <li><a href="#lifecycle">Component Lifecycle</a></li>
+                <li><a href="#prediction-engine">Prediction Engine</a></li>
+                <li><a href="#babel">Babel Transformation</a></li>
+                <li><a href="#security">Security Model</a></li>
             </ul>
         </nav>
 
@@ -284,6 +292,22 @@
                 <div class="feature">
                     <h4>🔄 State Sync</h4>
                     <p>NEW auto-sync pattern preventing stale data</p>
+                </div>
+                <div class="feature">
+                    <h4>🚀 Lifecycle <span class="badge new">NEW</span></h4>
+                    <p>Initial SSR through SignalR connection</p>
+                </div>
+                <div class="feature">
+                    <h4>🧠 Learning <span class="badge new">NEW</span></h4>
+                    <p>Pattern detection and confidence scoring</p>
+                </div>
+                <div class="feature">
+                    <h4>🔧 Babel <span class="badge new">NEW</span></h4>
+                    <p>TSX → C# transformation with examples</p>
+                </div>
+                <div class="feature">
+                    <h4>🔒 Security <span class="badge new">NEW</span></h4>
+                    <p>Multi-layer authorization and validation</p>
                 </div>
             </div>
         </section>
@@ -775,6 +799,415 @@ graph TB
                     <h4>Minimact Punch Hit</h4>
                     <p>~2ms total latency (DOM observer + instant patch)</p>
                 </div>
+            </div>
+        </section>
+
+        <section id="lifecycle">
+            <h2>Component Lifecycle & Initial Load</h2>
+            <h3>Initial Page Load Flow</h3>
+            <p>
+                How does the initial page load work? This diagram shows the progression from
+                SSR → HTML → SignalR connection upgrade, demonstrating how the page works
+                <strong>without JavaScript</strong> and is progressively enhanced <strong>with JavaScript</strong>.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant Browser
+    participant Server as ASP.NET Core
+    participant Rust as Rust Engine
+    participant Component
+    participant SignalR as SignalR Hub
+    participant Client as Client Runtime
+
+    Note over Browser,Client: 1. Initial SSR (No JavaScript Yet)
+    Browser->>Server: HTTP GET /page
+    Server->>Component: Create instance
+    Component->>Component: OnInitializedAsync()
+    Component->>Rust: Render() → VNode
+    Rust->>Rust: Generate HTML
+    Rust->>Server: HTML string
+    Server->>Browser: Return HTML page
+    Browser->>Browser: Display HTML immediately
+
+    Note over Browser,Client: 2. Progressive Enhancement (JavaScript Loads)
+    Browser->>Browser: Parse & execute ~5KB client.js
+    Browser->>Client: Initialize Minimact client
+    Client->>SignalR: Establish WebSocket connection
+
+    Note over Browser,Client: 3. Component Registration
+    SignalR->>Server: Connection established
+    Server->>SignalR: Assign ConnectionId
+    Client->>Client: Query DOM for [data-component-id]
+    Client->>SignalR: RegisterComponent(componentId)
+    SignalR->>Server: Store mapping: ConnectionId → ComponentId
+    Server->>Component: Attach connection to instance
+
+    Note over Browser,Client: 4. Ready State
+    Component->>Rust: Generate initial predictions
+    Rust->>SignalR: QueueHint messages
+    SignalR->>Client: Cache predictions
+    Client->>Client: System ready - instant interactions enabled
+
+    Note over Browser,Client: Result: Page works WITHOUT JS, enhanced WITH JS
+            </div>
+
+            <h3>Component ID Tracking</h3>
+            <p>
+                Components are identified and tracked between server and client using GUIDs
+                embedded in <code>data-component-id</code> attributes.
+            </p>
+            <div class="mermaid">
+graph LR
+    subgraph "Server-Side Rendering"
+        COMP[Component Instance]
+        ID[Generate GUID]
+        HTML[Rendered HTML]
+    end
+
+    subgraph "HTML Output"
+        ATTR[data-component-id attribute]
+    end
+
+    subgraph "Client-Side Discovery"
+        DOM[DOM Query]
+        MAP[ComponentId → Element Map]
+    end
+
+    subgraph "Server Registry"
+        REGISTRY[Component Registry]
+        CONN[ConnectionId → Component Map]
+    end
+
+    COMP --> ID
+    ID --> ATTR
+    ATTR --> HTML
+
+    HTML --> DOM
+    DOM --> MAP
+
+    MAP --> REGISTRY
+    REGISTRY --> CONN
+
+    style ATTR fill:#FFD700
+    style MAP fill:#90EE90
+            </div>
+        </section>
+
+        <section id="prediction-engine">
+            <h2>Prediction Engine Deep Dive</h2>
+            <h3>Learning & Pattern Detection</h3>
+            <p>
+                The prediction engine learns patterns through frequency analysis, sequence detection,
+                and conditional pattern recognition. It assigns confidence scores and only sends
+                predictions with ≥70% confidence.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    START[User Interaction] --> RECORD[Record to History]
+
+    RECORD --> PATTERN{Pattern Analysis}
+
+    PATTERN -->|Frequency Analysis| FREQ[Track state change frequency]
+    PATTERN -->|Sequence Detection| SEQ[Detect interaction sequences]
+    PATTERN -->|Conditional Patterns| COND[Learn conditional branches]
+
+    FREQ --> CONFIDENCE[Calculate Confidence Score]
+    SEQ --> CONFIDENCE
+    COND --> CONFIDENCE
+
+    CONFIDENCE --> THRESHOLD{Confidence >= 0.7?}
+
+    THRESHOLD -->|Yes| GENERATE[Generate Prediction]
+    THRESHOLD -->|No| SKIP[Skip prediction]
+
+    GENERATE --> PRECOMPUTE[Pre-compute patches]
+    PRECOMPUTE --> QUEUE[Queue to client]
+
+    QUEUE --> MEASURE[Measure accuracy on use]
+    MEASURE --> FEEDBACK[Adjust confidence weights]
+    FEEDBACK --> PATTERN
+
+    SKIP --> END[End]
+
+    style GENERATE fill:#90EE90
+    style QUEUE fill:#90EE90
+    style CONFIDENCE fill:#FFD700
+            </div>
+
+            <h3>Prediction Triggers</h3>
+            <p>
+                Three types of triggers: explicit <code>usePredictHint</code>, automatic pattern learning,
+                and user behavior patterns (e.g., hover → click probability).
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant Comp as Component
+    participant Pred as Prediction Engine
+    participant Rust as Rust Reconciler
+    participant Queue as Hint Queue
+
+    Note over Dev,Queue: Trigger 1: Explicit usePredictHint
+    Dev->>Comp: usePredictHint('increment', {count: count+1})
+    Comp->>Pred: Register hint
+    Pred->>Rust: Compute patches for predicted state
+    Rust->>Pred: Return patches
+    Pred->>Queue: QueueHint(hintId, patches, confidence: 1.0)
+
+    Note over Dev,Queue: Trigger 2: Automatic Pattern Learning
+    Comp->>Comp: setState(newValue)
+    Comp->>Pred: Notify state change
+    Pred->>Pred: Analyze historical patterns
+    Pred->>Pred: Detect: "count always increments by 1"
+    Pred->>Rust: Compute patches for likely next state
+    Rust->>Pred: Return patches
+    Pred->>Queue: QueueHint(hintId, patches, confidence: 0.85)
+
+    Note over Dev,Queue: Trigger 3: User Behavior Patterns
+    Comp->>Pred: Track: User hovered button for 500ms
+    Pred->>Pred: Pattern: Hover → Click (78% probability)
+    Pred->>Rust: Pre-compute click result
+    Rust->>Pred: Return patches
+    Pred->>Queue: QueueHint(hintId, patches, confidence: 0.78)
+
+    Note over Dev,Queue: Accuracy Feedback Loop
+    Queue->>Queue: User clicked → Check cache
+    Queue->>Pred: Report: Hit/Miss + actual state
+    Pred->>Pred: Update pattern weights
+            </div>
+        </section>
+
+        <section id="babel">
+            <h2>Babel Plugin Transformation</h2>
+            <h3>TSX to C# Example</h3>
+            <p>
+                Concrete before/after example showing how TypeScript/JSX transforms into C# with VNode trees.
+            </p>
+            <div style="background: #0f172a; border: 1px solid #475569; border-radius: 0.5rem; padding: 1.5rem; margin: 1.5rem 0;">
+                <h4 style="color: #3b82f6; margin-bottom: 1rem;">Input (Counter.tsx):</h4>
+                <pre style="background: #1e293b; padding: 1rem; border-radius: 0.25rem; overflow-x: auto; margin: 0;"><code style="color: #e2e8f0; font-family: monospace; font-size: 0.9rem;">import { useState } from 'minimact';
+
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        &lt;div&gt;
+            &lt;p&gt;Count: {count}&lt;/p&gt;
+            &lt;button onClick={() => setCount(count + 1)}&gt;
+                Increment
+            &lt;/button&gt;
+        &lt;/div&gt;
+    );
+}</code></pre>
+            </div>
+
+            <div style="background: #0f172a; border: 1px solid #475569; border-radius: 0.5rem; padding: 1.5rem; margin: 1.5rem 0;">
+                <h4 style="color: #10b981; margin-bottom: 1rem;">Output (Counter.cs):</h4>
+                <pre style="background: #1e293b; padding: 1rem; border-radius: 0.25rem; overflow-x: auto; margin: 0;"><code style="color: #e2e8f0; font-family: monospace; font-size: 0.9rem;">using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.VNodes;
+
+namespace MyApp.Components
+{
+    public partial class Counter : MinimactComponent
+    {
+        [State]
+        private int count = 0;
+
+        protected override VNode Render()
+        {
+            return new VElement("div",
+                new VElement("p", $"Count: {count}"),
+                new VElement("button",
+                    new VAttribute("onClick", nameof(Increment)),
+                    "Increment"
+                )
+            );
+        }
+
+        private void Increment()
+        {
+            count++;
+            SetState(nameof(count), count);
+        }
+    }
+}</code></pre>
+            </div>
+
+            <h3>Transformation Pipeline</h3>
+            <div class="mermaid">
+flowchart TD
+    START[Counter.tsx] --> PARSE[Babel Parse AST]
+
+    PARSE --> DETECT[Detect Hooks]
+    DETECT --> HOOK_STATE{Hook Type?}
+
+    HOOK_STATE -->|useState| GEN_STATE[Generate State field]
+    HOOK_STATE -->|useEffect| GEN_EFFECT[Generate lifecycle method]
+    HOOK_STATE -->|useRef| GEN_REF[Generate private field]
+
+    GEN_STATE --> TRACK_DEPS[Track dependencies]
+    GEN_EFFECT --> TRACK_DEPS
+    GEN_REF --> TRACK_DEPS
+
+    TRACK_DEPS --> JSX[Parse JSX]
+    JSX --> BUILD_VNODE[Build VNode tree]
+
+    BUILD_VNODE --> EVENTS{Event Handlers?}
+    EVENTS -->|Yes| GEN_METHODS[Generate C# methods]
+    EVENTS -->|No| CONTINUE
+
+    GEN_METHODS --> CONTINUE[Continue]
+    CONTINUE --> TYPE_MAP[Map TS types to C# types]
+
+    TYPE_MAP --> OUTPUT[Generate Counter.cs]
+
+    style GEN_STATE fill:#90EE90
+    style BUILD_VNODE fill:#FFD700
+    style OUTPUT fill:#3b82f6
+            </div>
+        </section>
+
+        <section id="security">
+            <h2>Security & Authorization Model</h2>
+            <h3>Method Invocation Security</h3>
+            <p>
+                Multi-layer security ensures only authenticated, authorized users can invoke
+                component methods with validated parameters.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant SignalR as SignalR Hub
+    participant Auth as Authorization
+    participant Registry as Component Registry
+    participant Comp as Component
+
+    Note over Client,Comp: Secure Method Invocation Flow
+
+    Client->>SignalR: InvokeComponentMethod(componentId, "UpdateProfile", args)
+
+    SignalR->>Auth: ValidateConnection()
+    Auth->>Auth: Check User.Identity
+    Auth->>Auth: Verify ConnectionId is authenticated
+
+    alt Not Authenticated
+        Auth->>Client: 401 Unauthorized
+    end
+
+    SignalR->>Registry: GetComponent(componentId)
+
+    alt Component Not Found
+        Registry->>Client: Error: Component not found
+    end
+
+    Registry->>Registry: Verify component belongs to this connection
+
+    alt Wrong Connection
+        Registry->>Client: Error: Unauthorized access
+    end
+
+    SignalR->>Comp: Check [Authorize] attribute on method
+
+    alt Has [Authorize(Roles="Admin")]
+        Comp->>Auth: Check User.IsInRole("Admin")
+        Auth-->>Comp: False
+        Comp->>Client: Error: Forbidden
+    end
+
+    Comp->>Comp: Validate method parameters
+
+    alt Invalid Parameters
+        Comp->>Client: Error: Validation failed
+    end
+
+    Comp->>Comp: Invoke method via reflection
+    Comp->>Comp: Update state
+    Comp->>Client: Success
+            </div>
+
+            <h3>State Validation Flow</h3>
+            <p>
+                All client state updates go through type checking, range validation,
+                sanitization, and custom validators before being applied.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    START[Client sends UpdateComponentState] --> AUTH{User Authenticated?}
+
+    AUTH -->|No| REJECT1[Reject: 401 Unauthorized]
+    AUTH -->|Yes| OWNER{Owns Component?}
+
+    OWNER -->|No| REJECT2[Reject: 403 Forbidden]
+    OWNER -->|Yes| VALIDATE[Validate State Value]
+
+    VALIDATE --> TYPE{Type Valid?}
+    TYPE -->|No| REJECT3[Reject: Invalid type]
+    TYPE -->|Yes| RANGE{Range Valid?}
+
+    RANGE -->|No| REJECT4[Reject: Out of range]
+    RANGE -->|Yes| SANITIZE[Sanitize Input]
+
+    SANITIZE --> CUSTOM{Custom Validator?}
+    CUSTOM -->|Yes| RUN_VALIDATOR[Run validation logic]
+    CUSTOM -->|No| APPLY
+
+    RUN_VALIDATOR --> VALID{Valid?}
+    VALID -->|No| REJECT5[Reject: Custom validation failed]
+    VALID -->|Yes| APPLY[Apply state change]
+
+    APPLY --> LOG[Log change for audit]
+    LOG --> SUCCESS[Success]
+
+    style REJECT1 fill:#FFB6C1
+    style REJECT2 fill:#FFB6C1
+    style REJECT3 fill:#FFB6C1
+    style REJECT4 fill:#FFB6C1
+    style REJECT5 fill:#FFB6C1
+    style SUCCESS fill:#90EE90
+            </div>
+
+            <h3>Attack Prevention Examples</h3>
+            <p>
+                Demonstrating how the security layers block malicious state updates, unauthorized
+                component access, and protected method invocation attempts.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant Attacker as Malicious Client
+    participant SignalR
+    participant Validator
+    participant Component
+
+    Note over Attacker,Component: Attack Attempt: Send Invalid State
+
+    Attacker->>SignalR: UpdateComponentState("count", 999999999)
+
+    SignalR->>Validator: Validate state change
+
+    Validator->>Validator: Check type: int ✓
+    Validator->>Validator: Check range: > max allowed (1000)
+
+    Validator->>Attacker: ❌ Error: Value exceeds maximum (1000)
+
+    Note over Attacker,Component: Attack Attempt: Access Other User's Component
+
+    Attacker->>SignalR: InvokeComponentMethod("other-user-component", "DeleteAccount")
+
+    SignalR->>SignalR: Verify component ownership
+    SignalR->>SignalR: ComponentId belongs to different ConnectionId
+
+    SignalR->>Attacker: ❌ Error: Unauthorized access to component
+
+    Note over Attacker,Component: Attack Attempt: Call Protected Method
+
+    Attacker->>SignalR: InvokeComponentMethod("admin-panel", "DeleteAllUsers")
+
+    SignalR->>Component: Check [Authorize(Roles="Admin")]
+    Component->>Component: User.IsInRole("Admin") = false
+
+    Component->>Attacker: ❌ Error: Forbidden - Admin role required
+
+    Note over Attacker,Component: Result: All attacks blocked by security layers
             </div>
         </section>
 
