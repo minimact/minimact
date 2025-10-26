@@ -424,9 +424,12 @@ public abstract class MinimactComponent
                 NewValue = State[key]
             };
 
-            // Pass all component state for multi-variable template extraction
-            GlobalPredictor.Learn(stateChange, CurrentVNode, newVNode, State);
-            Console.WriteLine($"[Minimact] Learned pattern for {ComponentId}::{key}");
+            // Get component metadata (Babel-generated loop templates)
+            var metadata = GetMetadata();
+
+            // Pass all component state for multi-variable template extraction + metadata
+            GlobalPredictor.LearnWithMetadata(stateChange, CurrentVNode, newVNode, State, metadata);
+            Console.WriteLine($"[Minimact] Learned pattern for {ComponentId}::{key} (metadata: {metadata?.LoopTemplates?.Count ?? 0} loop templates)");
         }
 
         // Update current tree

@@ -16,6 +16,8 @@ const {
   addTemplateMetadata
 } = require('./extractors/templates.cjs');
 const { extractLoopTemplates } = require('./extractors/loopTemplates.cjs');
+const { extractStructuralTemplates } = require('./extractors/structuralTemplates.cjs');
+const { extractExpressionTemplates } = require('./extractors/expressionTemplates.cjs');
 
 /**
  * Process a component function
@@ -169,6 +171,34 @@ function processComponent(path, state) {
       console.log(`[Minimact Loop Templates] Extracted ${loopTemplates.length} loop templates from ${componentName}:`);
       loopTemplates.forEach(lt => {
         console.log(`  - ${lt.stateKey}.map(${lt.itemVar} => ...)`);
+      });
+    }
+
+    // Extract structural templates for conditional rendering (Phase 5)
+    const structuralTemplates = extractStructuralTemplates(component.renderBody, component);
+    component.structuralTemplates = structuralTemplates;
+
+    if (structuralTemplates.length > 0) {
+      console.log(`[Minimact Structural Templates] Extracted ${structuralTemplates.length} structural templates from ${componentName}:`);
+      structuralTemplates.forEach(st => {
+        console.log(`  - ${st.type === 'conditional' ? 'Ternary' : 'Logical AND'}: ${st.conditionBinding}`);
+      });
+    }
+
+    // Extract expression templates for computed values (Phase 6)
+    const expressionTemplates = extractExpressionTemplates(component.renderBody, component);
+    component.expressionTemplates = expressionTemplates;
+
+    if (expressionTemplates.length > 0) {
+      console.log(`[Minimact Expression Templates] Extracted ${expressionTemplates.length} expression templates from ${componentName}:`);
+      expressionTemplates.forEach(et => {
+        if (et.method) {
+          console.log(`  - ${et.binding}.${et.method}(${et.args.join(', ')})`);
+        } else if (et.operator) {
+          console.log(`  - ${et.operator}${et.binding}`);
+        } else {
+          console.log(`  - ${et.bindings.join(', ')}`);
+        }
       });
     }
   }

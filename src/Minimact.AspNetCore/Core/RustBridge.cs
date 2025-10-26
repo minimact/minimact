@@ -35,6 +35,16 @@ public static class RustBridge
     );
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr minimact_predictor_learn_with_metadata(
+        IntPtr predictor,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string state_change_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string old_tree_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string new_tree_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? all_state_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? metadata_json
+    );
+
+    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr minimact_predictor_predict(
         IntPtr predictor,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string state_change_json,
@@ -138,6 +148,25 @@ public static class RustBridge
             var allStateJson = allState != null ? JsonConvert.SerializeObject(allState) : null;
 
             var resultPtr = minimact_predictor_learn(_handle, stateJson, oldJson, newJson, allStateJson);
+            MarshalAndFreeString(resultPtr); // Result is success message, just free it
+        }
+
+        /// <summary>
+        /// Learn a state change pattern with component metadata (Babel-generated templates)
+        /// </summary>
+        /// <param name="allState">Optional: Complete component state for multi-variable template extraction</param>
+        /// <param name="metadata">Optional: Component metadata with Babel-generated loop templates</param>
+        public void LearnWithMetadata(StateChange stateChange, VNode oldTree, VNode newTree, Dictionary<string, object>? allState = null, ComponentMetadata? metadata = null)
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(Predictor));
+
+            var stateJson = JsonConvert.SerializeObject(stateChange);
+            var oldJson = JsonConvert.SerializeObject(oldTree);
+            var newJson = JsonConvert.SerializeObject(newTree);
+            var allStateJson = allState != null ? JsonConvert.SerializeObject(allState) : null;
+            var metadataJson = metadata != null ? JsonConvert.SerializeObject(metadata) : null;
+
+            var resultPtr = minimact_predictor_learn_with_metadata(_handle, stateJson, oldJson, newJson, allStateJson, metadataJson);
             MarshalAndFreeString(resultPtr); // Result is success message, just free it
         }
 
