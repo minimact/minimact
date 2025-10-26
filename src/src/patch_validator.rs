@@ -177,6 +177,24 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
                 }
             }
         }
+
+        Patch::UpdateListTemplate { path, loop_template } => {
+            validate_path(path, config)?;
+
+            // Validate array binding is not empty
+            if loop_template.array_binding.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Array binding cannot be empty".to_string()
+                ));
+            }
+
+            // For Phase 4A, we just validate the path exists
+            // More thorough validation can be added in future phases
+            if config.validate_applicability {
+                let _node = get_node_at_path(tree, path)?;
+                // List templates can apply to any node (will replace children)
+            }
+        }
     }
 
     Ok(())

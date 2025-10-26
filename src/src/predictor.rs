@@ -216,7 +216,19 @@ impl Predictor {
     ) -> Option<Vec<Patch>> {
         use serde_json::Value;
 
-        // Only handle single patch for now
+        // NEW: Try loop template first (for array state changes)
+        if matches!(&state_change.new_value, Value::Array(_)) {
+            if let Some(loop_patches) = self.extract_loop_template(
+                state_change,
+                old_patches,
+                new_patches,
+                all_state
+            ) {
+                return Some(loop_patches);
+            }
+        }
+
+        // Only handle single patch for existing logic (Phases 1-3)
         if old_patches.len() != 1 || new_patches.len() != 1 {
             return None;
         }
@@ -516,6 +528,227 @@ impl Predictor {
         }
 
         None
+    }
+
+    /// Extract loop template from array state change (Phase 4)
+    ///
+    /// Detects patterns like:
+    ///   Old: [{ id: 1, text: "A" }, { id: 2, text: "B" }]
+    ///   New: [{ id: 1, text: "A" }, { id: 2, text: "B" }, { id: 3, text: "C" }]
+    ///   Patches: [Create { path: [0, 2], node: <li>C</li> }]
+    ///
+    /// Extracts:
+    ///   LoopTemplate {
+    ///     array_binding: "todos",
+    ///     item_template: Element { tag: "li", children: [Text("{item.text}")] }
+    ///   }
+    fn extract_loop_template(
+        &self,
+        state_change: &StateChange,
+        _old_patches: &[Patch],
+        new_patches: &[Patch],
+        all_state: &HashMap<String, serde_json::Value>
+    ) -> Option<Vec<Patch>> {
+        use serde_json::Value;
+        use crate::vdom::{LoopTemplate, ItemTemplate};
+
+        // 1. Detect array state change
+        let new_array = match &state_change.new_value {
+            Value::Array(arr) => arr,
+            _ => return None,
+        };
+
+        if new_array.is_empty() {
+            return None; // Can't extract template from empty array
+        }
+
+        // 2. Detect structural changes (Create/Remove/Replace)
+        let created_nodes: Vec<(&VNode, &Vec<usize>)> = new_patches.iter()
+            .filter_map(|p| {
+                if let Patch::Create { path, node } = p {
+                    Some((node, path))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if created_nodes.is_empty() {
+            return None; // No new nodes created, not a loop pattern
+        }
+
+        // 3. Try to extract item template from first created node
+        let (first_node, first_path) = created_nodes[0];
+        let item_template = self.extract_item_template(
+            first_node,
+            &state_change.state_key,
+            new_array
+        )?;
+
+        // 4. Get parent path (path without last element)
+        let parent_path = if first_path.is_empty() {
+            vec![]
+        } else {
+            first_path[..first_path.len() - 1].to_vec()
+        };
+
+        // 5. Build loop template
+        let loop_template = LoopTemplate {
+            array_binding: state_change.state_key.clone(),
+            item_template,
+            index_var: None, // TODO: Detect if index is used
+            separator: None, // TODO: Detect separators
+        };
+
+        crate::log_info!(
+            "📐 Loop template extracted for {}::{}: {} items",
+            state_change.component_id,
+            state_change.state_key,
+            new_array.len()
+        );
+
+        Some(vec![Patch::UpdateListTemplate {
+            path: parent_path,
+            loop_template,
+        }])
+    }
+
+    /// Extract item template from a VNode
+    /// Finds variable bindings from array items
+    fn extract_item_template(
+        &self,
+        node: &VNode,
+        array_state_key: &str,
+        array_items: &[serde_json::Value]
+    ) -> Option<crate::vdom::ItemTemplate> {
+        if array_items.is_empty() {
+            return None;
+        }
+
+        match node {
+            VNode::Text(text_node) => {
+                // Extract text template with item bindings
+                self.extract_text_item_template(&text_node.content, array_items)
+            }
+            VNode::Element(element) => {
+                // Extract element template with child templates
+                self.extract_element_item_template(element, array_items)
+            }
+        }
+    }
+
+    /// Extract text item template
+    /// Example: "Buy milk" → "{item.text}"
+    fn extract_text_item_template(
+        &self,
+        content: &str,
+        array_items: &[serde_json::Value]
+    ) -> Option<crate::vdom::ItemTemplate> {
+        use serde_json::Value;
+        use crate::vdom::{ItemTemplate, TemplatePatch};
+
+        // Try to find which array item property matches this content
+        if let Some(Value::Object(first_item)) = array_items.get(0) {
+            // Search for property that matches content
+            for (key, value) in first_item {
+                let value_str = match value {
+                    Value::String(s) => s.clone(),
+                    Value::Number(n) => n.to_string(),
+                    Value::Bool(b) => b.to_string(),
+                    _ => continue,
+                };
+
+                if content.contains(&value_str) {
+                    // Found match! Build template
+                    let pos = content.find(&value_str)?;
+                    let template = content.replace(&value_str, "{0}");
+                    let binding = format!("item.{}", key);
+
+                    crate::log_info!(
+                        "📐 Text item template: '{}' with binding '{}'",
+                        template,
+                        binding
+                    );
+
+                    return Some(ItemTemplate::Text {
+                        template_patch: TemplatePatch {
+                            template,
+                            bindings: vec![binding],
+                            slots: vec![pos],
+                            conditional_templates: None,
+                            conditional_binding_index: None,
+                        }
+                    });
+                }
+            }
+        }
+
+        None
+    }
+
+    /// Extract element item template
+    /// Example: <li class="todo">Buy milk</li> → Element template
+    fn extract_element_item_template(
+        &self,
+        element: &crate::vdom::VElement,
+        array_items: &[serde_json::Value]
+    ) -> Option<crate::vdom::ItemTemplate> {
+        use crate::vdom::ItemTemplate;
+
+        // For Phase 4A (simple text lists), we only handle text children
+        // Phase 4B will add support for props_templates
+
+        // Extract children templates
+        let mut children_templates = Vec::new();
+
+        for child in &element.children {
+            match child {
+                VNode::Text(text_node) => {
+                    if let Some(text_template) = self.extract_text_item_template(
+                        &text_node.content,
+                        array_items
+                    ) {
+                        children_templates.push(text_template);
+                    }
+                }
+                VNode::Element(child_element) => {
+                    if let Some(element_template) = self.extract_element_item_template(
+                        child_element,
+                        array_items
+                    ) {
+                        children_templates.push(element_template);
+                    }
+                }
+            }
+        }
+
+        // Extract key binding if element has key
+        let key_binding = if let Some(_key) = &element.key {
+            // Try to find which property is the key
+            // For now, default to "item.id"
+            Some("item.id".to_string())
+        } else {
+            None
+        };
+
+        let children = if children_templates.is_empty() {
+            None
+        } else {
+            Some(children_templates)
+        };
+
+        crate::log_info!(
+            "📐 Element item template: <{}> with {} children",
+            element.tag,
+            element.children.len()
+        );
+
+        Some(ItemTemplate::Element {
+            tag: element.tag.clone(),
+            props_templates: None, // TODO: Phase 4B
+            children_templates: children,
+            key_binding,
+        })
     }
 
     /// Save predictor state to JSON string
