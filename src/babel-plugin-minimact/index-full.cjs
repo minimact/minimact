@@ -14,10 +14,13 @@
 
 const t = require('@babel/types');
 const { traverse } = require('@babel/core');
+const fs = require('fs');
+const nodePath = require('path');
 
 // Modular imports
 const { processComponent } = require('./src/processComponent.cjs');
 const { generateCSharpFile } = require('./src/generators/csharpFile.cjs');
+const { generateTemplateMapJSON } = require('./src/extractors/templates.cjs');
 
 module.exports = function(babel) {
   return {
@@ -31,6 +34,31 @@ module.exports = function(babel) {
 
             state.file.metadata = state.file.metadata || {};
             state.file.metadata.minimactCSharp = csharpCode;
+
+            // Generate .templates.json files for hot reload
+            const inputFilePath = state.file.opts.filename;
+            if (inputFilePath) {
+              for (const component of state.file.minimactComponents) {
+                if (component.templates && Object.keys(component.templates).length > 0) {
+                  const templateMapJSON = generateTemplateMapJSON(
+                    component.name,
+                    component.templates,
+                    {} // Attribute templates already included in component.templates
+                  );
+
+                  // Write to .templates.json file
+                  const outputDir = nodePath.dirname(inputFilePath);
+                  const templateFilePath = nodePath.join(outputDir, `${component.name}.templates.json`);
+
+                  try {
+                    fs.writeFileSync(templateFilePath, JSON.stringify(templateMapJSON, null, 2));
+                    console.log(`[Minimact Templates] Generated ${templateFilePath}`);
+                  } catch (error) {
+                    console.error(`[Minimact Templates] Failed to write ${templateFilePath}:`, error);
+                  }
+                }
+              }
+            }
           }
         }
       },

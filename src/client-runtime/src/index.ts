@@ -310,6 +310,10 @@ export {
   getDebugInfo as getClientComputedDebugInfo
 } from './client-computed';
 
+// Template state (for hot reload)
+export { TemplateStateManager, templateState } from './template-state';
+export type { Template, TemplateMap, TemplatePatch } from './template-state';
+
 // Core hooks
 export { useState, useEffect, useRef } from './hooks';
 export type { ComponentContext } from './hooks';

@@ -266,6 +266,15 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Get current state dictionary for template parameterization
+    /// Used by hot reload to fill template parameters with current values
+    /// </summary>
+    public Dictionary<string, object> GetState()
+    {
+        return new Dictionary<string, object>(State);
+    }
+
+    /// <summary>
     /// Set query results from client-side useDomQuery hook
     /// Keeps server aware of query results for accurate rendering
     /// </summary>

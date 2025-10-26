@@ -2,6 +2,7 @@ import { HintQueue } from './hint-queue';
 import { DOMPatcher } from './dom-patcher';
 import { PlaygroundBridge } from './playground-bridge';
 import { SignalRManager } from './signalr-manager';
+import { templateState } from './template-state';
 
 /**
  * Component instance context for hooks
@@ -40,6 +41,21 @@ export function setComponentContext(context: ComponentContext): void {
  */
 export function clearComponentContext(): void {
   currentContext = null;
+}
+
+/**
+ * Find DOM element by path array
+ * Example: [0, 1, 0] → first child, second child, first child
+ */
+function findElementByPath(root: HTMLElement, path: number[]): Node | null {
+  let current: Node | null = root;
+
+  for (const index of path) {
+    if (!current || !current.childNodes) return null;
+    current = current.childNodes[index] || null;
+  }
+
+  return current;
 }
 
 /**
@@ -111,6 +127,38 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
 
     // Update state
     context.state.set(stateKey, actualNewValue);
+
+    // Update template state for template rendering
+    templateState.updateState(context.componentId, stateKey, actualNewValue);
+
+    // Re-render templates bound to this state
+    const boundTemplates = templateState.getTemplatesBoundTo(context.componentId, stateKey);
+    for (const template of boundTemplates) {
+      // Build node path from template path array
+      const nodePath = template.path.join('_');
+
+      // Render template with new value
+      const newText = templateState.render(context.componentId, nodePath);
+
+      if (newText !== null) {
+        // Find DOM element by path and update it
+        const element = findElementByPath(context.element, template.path);
+        if (element) {
+          if (element.nodeType === Node.TEXT_NODE) {
+            element.textContent = newText;
+          } else if (element instanceof HTMLElement) {
+            // For attribute templates
+            if (template.attribute) {
+              element.setAttribute(template.attribute, newText);
+            } else {
+              element.textContent = newText;
+            }
+          }
+
+          console.log(`[Minimact] 📋 Template updated: "${newText}" (${stateKey} changed)`);
+        }
+      }
+    }
 
     // Sync state to server to prevent stale data
     context.signalR.updateComponentState(context.componentId, stateKey, actualNewValue)

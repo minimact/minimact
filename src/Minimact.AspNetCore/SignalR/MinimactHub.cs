@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.Abstractions;
+using System.Diagnostics;
 
 namespace Minimact.AspNetCore.SignalR;
 

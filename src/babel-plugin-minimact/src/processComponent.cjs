@@ -10,6 +10,11 @@ const { tsTypeToCSharpType } = require('./types/typeConversion.cjs');
 const { extractHook } = require('./extractors/hooks.cjs');
 const { extractLocalVariables } = require('./extractors/localVariables.cjs');
 const { inferPropTypes } = require('./analyzers/propTypeInference.cjs');
+const {
+  extractTemplates,
+  extractAttributeTemplates,
+  addTemplateMetadata
+} = require('./extractors/templates.cjs');
 
 /**
  * Process a component function
@@ -143,6 +148,18 @@ function processComponent(path, state) {
   // Infer prop types from usage BEFORE replacing JSX with null
   // Pass the entire function body to analyze all usage (including JSX)
   inferPropTypes(component, body);
+
+  // Extract templates from JSX for hot reload (BEFORE replacing JSX with null)
+  if (component.renderBody) {
+    const textTemplates = extractTemplates(component.renderBody, component);
+    const attrTemplates = extractAttributeTemplates(component.renderBody, component);
+    const allTemplates = { ...textTemplates, ...attrTemplates };
+
+    // Add template metadata to component
+    addTemplateMetadata(component, allTemplates);
+
+    console.log(`[Minimact Templates] Extracted ${Object.keys(allTemplates).length} templates from ${componentName}`);
+  }
 
   // Now replace JSX to prevent @babel/preset-react from transforming it
   path.traverse({

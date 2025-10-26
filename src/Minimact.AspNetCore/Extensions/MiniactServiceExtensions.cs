@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.SignalR;
 using Minimact.AspNetCore.Routing;
+using Minimact.AspNetCore.HotReload;
 
 namespace Minimact.AspNetCore.Extensions;
 
@@ -23,6 +24,17 @@ public static class MinimactServiceExtensions
 
         // Add SignalR for real-time updates
         services.AddSignalR();
+
+        // Register hot reload services (development only)
+        services.AddSingleton<HotReloadFileWatcher>();
+        services.AddSingleton(sp =>
+        {
+            var hubContext = sp.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<MinimactHub>>();
+            var registry = sp.GetRequiredService<ComponentRegistry>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TemplateHotReloadManager>>();
+            var watchPath = System.IO.Directory.GetCurrentDirectory();
+            return new TemplateHotReloadManager(hubContext, registry, logger, watchPath);
+        });
 
         return services;
     }
