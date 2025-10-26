@@ -121,12 +121,14 @@ pub unsafe extern "C" fn minimact_reconcile(
 ///
 /// # Safety
 /// - All JSON pointers must be valid null-terminated UTF-8 strings
+/// - all_state_json can be null if not available
 #[no_mangle]
 pub unsafe extern "C" fn minimact_predictor_learn(
     handle: PredictorHandle,
     state_change_json: *const c_char,
     old_tree_json: *const c_char,
     new_tree_json: *const c_char,
+    all_state_json: *const c_char,
 ) -> FfiResult {
     let state_change_str = match CStr::from_ptr(state_change_json).to_str() {
         Ok(s) => s,
@@ -160,8 +162,23 @@ pub unsafe extern "C" fn minimact_predictor_learn(
         Err(e) => return FfiResult::error_str(&format!("Failed to parse new tree: {}", e)),
     };
 
+    // Parse all_state if provided (can be null)
+    let all_state = if all_state_json.is_null() {
+        None
+    } else {
+        match CStr::from_ptr(all_state_json).to_str() {
+            Ok(s) => {
+                match serde_json::from_str::<std::collections::HashMap<String, serde_json::Value>>(s) {
+                    Ok(state) => Some(state),
+                    Err(e) => return FfiResult::error_str(&format!("Failed to parse all_state: {}", e)),
+                }
+            }
+            Err(_) => return FfiResult::error_str("Invalid all_state_json encoding"),
+        }
+    };
+
     if let Some(mut predictor) = PREDICTORS.get_mut(&handle) {
-        match predictor.learn(state_change, &old_tree, &new_tree) {
+        match predictor.learn(state_change, &old_tree, &new_tree, all_state.as_ref()) {
             Ok(()) => FfiResult::success(),
             Err(e) => FfiResult::error_str(&format!("Learn failed: {}", e)),
         }

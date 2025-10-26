@@ -40,6 +40,10 @@ export interface TemplatePatch {
   bindings: string[];
   /** Character positions where parameters are inserted */
   slots: number[];
+  /** Optional: Conditional templates based on binding values */
+  conditionalTemplates?: Record<string, string>;
+  /** Optional: Index of the binding that determines which conditional template to use */
+  conditionalBindingIndex?: number;
 }
 
 export type Patch =

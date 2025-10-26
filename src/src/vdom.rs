@@ -30,11 +30,21 @@ pub struct VText {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TemplatePatch {
     /// Template string with {0}, {1}, etc. placeholders
+    /// For simple templates: "Count: {0}"
+    /// For conditionals: see conditional_templates
     pub template: String,
     /// State variable names that fill the template
     pub bindings: Vec<String>,
     /// Character positions where parameters are inserted
     pub slots: Vec<usize>,
+    /// Optional: Conditional templates based on binding values
+    /// Maps binding values to template strings
+    /// Example: { "true": "Active", "false": "Inactive" }
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conditional_templates: Option<std::collections::HashMap<String, String>>,
+    /// Optional: Index of the binding that determines which conditional template to use
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conditional_binding_index: Option<usize>,
 }
 
 /// Represents a change operation for the DOM

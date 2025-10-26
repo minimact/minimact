@@ -46,12 +46,42 @@ export class TemplateRenderer {
    * @example
    * const tp = { template: "Count: {0}", bindings: ["count"], slots: [7] };
    * renderTemplatePatch(tp, { count: 42 }) → "Count: 42"
+   *
+   * @example Conditional
+   * const tp = {
+   *   template: "{0}",
+   *   bindings: ["isActive"],
+   *   conditionalTemplates: { "true": "Active", "false": "Inactive" },
+   *   conditionalBindingIndex: 0
+   * };
+   * renderTemplatePatch(tp, { isActive: true }) → "Active"
    */
   static renderTemplatePatch(
     templatePatch: TemplatePatch,
     stateValues: Record<string, any>
   ): string {
-    // Extract parameter values from state based on bindings
+    // Check for conditional templates
+    if (templatePatch.conditionalTemplates && templatePatch.conditionalBindingIndex !== undefined) {
+      const bindingIndex = templatePatch.conditionalBindingIndex;
+      const conditionBinding = templatePatch.bindings[bindingIndex];
+      const conditionValue = stateValues[conditionBinding];
+
+      // Lookup the template for this condition value
+      const conditionalTemplate = templatePatch.conditionalTemplates[String(conditionValue)];
+
+      if (conditionalTemplate !== undefined) {
+        // If it's a simple conditional (just maps to string), return it
+        if (!conditionalTemplate.includes('{')) {
+          return conditionalTemplate;
+        }
+
+        // Otherwise, it's a conditional template with other bindings
+        const params = templatePatch.bindings.map(binding => stateValues[binding]);
+        return this.renderTemplate(conditionalTemplate, params);
+      }
+    }
+
+    // Standard template rendering
     const params = templatePatch.bindings.map(binding => {
       return stateValues[binding];
     });

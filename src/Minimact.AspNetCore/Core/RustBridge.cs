@@ -30,7 +30,8 @@ public static class RustBridge
         IntPtr predictor,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string state_change_json,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string old_tree_json,
-        [MarshalAs(UnmanagedType.LPUTF8Str)] string new_tree_json
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string new_tree_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? all_state_json
     );
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
@@ -126,15 +127,17 @@ public static class RustBridge
         /// <summary>
         /// Learn a state change pattern
         /// </summary>
-        public void Learn(StateChange stateChange, VNode oldTree, VNode newTree)
+        /// <param name="allState">Optional: Complete component state for multi-variable template extraction</param>
+        public void Learn(StateChange stateChange, VNode oldTree, VNode newTree, Dictionary<string, object>? allState = null)
         {
             if (_disposed) throw new ObjectDisposedException(nameof(Predictor));
 
             var stateJson = JsonConvert.SerializeObject(stateChange);
             var oldJson = JsonConvert.SerializeObject(oldTree);
             var newJson = JsonConvert.SerializeObject(newTree);
+            var allStateJson = allState != null ? JsonConvert.SerializeObject(allState) : null;
 
-            var resultPtr = minimact_predictor_learn(_handle, stateJson, oldJson, newJson);
+            var resultPtr = minimact_predictor_learn(_handle, stateJson, oldJson, newJson, allStateJson);
             MarshalAndFreeString(resultPtr); // Result is success message, just free it
         }
 

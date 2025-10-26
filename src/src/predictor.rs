@@ -206,16 +206,17 @@ impl Predictor {
     }
 
     /// Extract template from UpdateText patches
-    /// Detects if a patch content change follows a pattern with state variable
+    /// Detects if a patch content change follows a pattern with state variable(s)
     fn extract_template(
         &self,
         state_change: &StateChange,
         old_patches: &[Patch],
         new_patches: &[Patch],
+        all_state: &HashMap<String, serde_json::Value>,
     ) -> Option<Vec<Patch>> {
         use serde_json::Value;
 
-        // Only handle simple single-variable patterns for now (Phase 1)
+        // Only handle single patch for now
         if old_patches.len() != 1 || new_patches.len() != 1 {
             return None;
         }
@@ -225,12 +226,27 @@ impl Predictor {
                 Patch::UpdateText { path: old_path, content: old_content },
                 Patch::UpdateText { path: new_path, content: new_content }
             ) if old_path == new_path => {
-                // Try to detect pattern in text content
+                // Phase 2: Try conditional template first (for booleans)
+                if let Value::Bool(_) = &state_change.old_value {
+                    if let Some(template_patch) = self.extract_conditional_template(
+                        state_change,
+                        old_content,
+                        new_content,
+                        old_path
+                    ) {
+                        return Some(vec![Patch::UpdateTextTemplate {
+                            path: old_path.clone(),
+                            template_patch,
+                        }]);
+                    }
+                }
+
+                // Phase 1: Simple single-variable template
                 let old_value_str = match &state_change.old_value {
                     Value::Number(n) => n.to_string(),
                     Value::String(s) => s.clone(),
                     Value::Bool(b) => b.to_string(),
-                    _ => return None, // Only primitives for Phase 1
+                    _ => return None,
                 };
 
                 let new_value_str = match &state_change.new_value {
@@ -250,7 +266,7 @@ impl Predictor {
                     if expected == *new_content {
                         // ✅ Pattern found!
                         crate::log_info!(
-                            "📐 Template extracted for {}::{}: '{}'",
+                            "📐 Simple template extracted for {}::{}: '{}'",
                             state_change.component_id,
                             state_change.state_key,
                             template
@@ -262,15 +278,244 @@ impl Predictor {
                                 template,
                                 bindings: vec![state_change.state_key.clone()],
                                 slots: vec![pos],
+                                conditional_templates: None,
+                                conditional_binding_index: None,
                             },
                         }]);
                     }
                 }
 
+                // Phase 3: Try multi-variable template
+                // This catches cases like "Hello, {firstName} {lastName}!"
+                if let Some(template_patch) = self.extract_multi_variable_template(
+                    old_content,
+                    new_content,
+                    all_state
+                ) {
+                    return Some(vec![Patch::UpdateTextTemplate {
+                        path: old_path.clone(),
+                        template_patch,
+                    }]);
+                }
+
                 None
             }
-            _ => None, // Not an UpdateText patch
+            _ => None,
         }
+    }
+
+    /// Extract conditional template for boolean state changes
+    /// Example: true → "Active", false → "Inactive"
+    fn extract_conditional_template(
+        &self,
+        state_change: &StateChange,
+        old_content: &str,
+        new_content: &str,
+        path: &[usize],
+    ) -> Option<TemplatePatch> {
+        use serde_json::Value;
+        use std::collections::HashMap;
+
+        // Only for boolean toggles
+        let (old_bool, new_bool) = match (&state_change.old_value, &state_change.new_value) {
+            (Value::Bool(old), Value::Bool(new)) if old != new => (*old, *new),
+            _ => return None,
+        };
+
+        // Check if the content completely changed (no common substring pattern)
+        // This indicates a conditional template
+        if old_content != new_content && !old_content.contains(new_content) && !new_content.contains(old_content) {
+            let mut conditional_map = HashMap::new();
+            conditional_map.insert(old_bool.to_string(), old_content.to_string());
+            conditional_map.insert(new_bool.to_string(), new_content.to_string());
+
+            crate::log_info!(
+                "📐 Conditional template extracted for {}::{}: '{}' ↔ '{}'",
+                state_change.component_id,
+                state_change.state_key,
+                old_content,
+                new_content
+            );
+
+            return Some(TemplatePatch {
+                template: "{0}".to_string(), // Placeholder, actual value from conditional_templates
+                bindings: vec![state_change.state_key.clone()],
+                slots: vec![0],
+                conditional_templates: Some(conditional_map),
+                conditional_binding_index: Some(0),
+            });
+        }
+
+        None
+    }
+
+    /// Extract multi-variable template by finding changed substrings
+    /// Detects multiple variable changes in content like "Hello, {firstName} {lastName}!"
+    ///
+    /// Algorithm:
+    ///   1. Find longest common prefix/suffix to identify stable parts
+    ///   2. Extract changing parts from the middle
+    ///   3. Build template with placeholders for changed parts
+    ///   4. Match changed parts to state variables from all_state
+    ///
+    /// Example:
+    ///   old_content: "User: John Doe"
+    ///   new_content: "User: Jane Smith"
+    ///   all_state: { "firstName": "John", "lastName": "Doe" }
+    ///   → template: "User: {0} {1}", bindings: ["firstName", "lastName"]
+    fn extract_multi_variable_template(
+        &self,
+        old_content: &str,
+        new_content: &str,
+        all_state: &HashMap<String, serde_json::Value>
+    ) -> Option<TemplatePatch> {
+        use serde_json::Value;
+
+        // For multi-variable templates, we need to detect which state variables appear
+        // Since we only have one changing state variable at a time in state_change,
+        // we need to find OTHER state variables that are also in the content
+
+        #[derive(Clone)]
+        struct ValueMatch {
+            state_key: String,
+            value_str: String,
+            position: usize,
+        }
+
+        let mut matches: Vec<ValueMatch> = Vec::new();
+
+        // Find all primitive state values that appear in old_content
+        for (key, value) in all_state {
+            let value_str = match value {
+                Value::String(s) if !s.is_empty() => s.clone(),
+                Value::Number(n) => n.to_string(),
+                Value::Bool(b) => b.to_string(),
+                _ => continue,
+            };
+
+            // Find this value in old_content
+            if let Some(pos) = old_content.find(&value_str) {
+                matches.push(ValueMatch {
+                    state_key: key.clone(),
+                    value_str,
+                    position: pos,
+                });
+            }
+        }
+
+        // Need at least 2 variables for multi-variable template
+        if matches.len() < 2 {
+            return None;
+        }
+
+        // Sort by position (leftmost first)
+        matches.sort_by_key(|m| m.position);
+
+        // Check for overlapping matches (ambiguous)
+        for i in 0..matches.len() - 1 {
+            let end_pos = matches[i].position + matches[i].value_str.len();
+            if end_pos > matches[i + 1].position {
+                // Overlapping - can't extract clean template
+                return None;
+            }
+        }
+
+        // Build template by replacing values with {0}, {1}, etc.
+        let mut template = old_content.to_string();
+        let mut bindings = Vec::new();
+        let mut slots = Vec::new();
+        let mut offset: isize = 0;
+
+        for (index, vm) in matches.iter().enumerate() {
+            let placeholder = format!("{{{}}}", index);
+            let actual_pos = (vm.position as isize + offset) as usize;
+            let value_len = vm.value_str.len();
+
+            // Bounds check
+            if actual_pos + value_len > template.len() {
+                return None;
+            }
+
+            // Replace value with placeholder
+            template.replace_range(
+                actual_pos..(actual_pos + value_len),
+                &placeholder
+            );
+
+            bindings.push(vm.state_key.clone());
+            slots.push(vm.position);
+
+            // Update offset
+            offset += placeholder.len() as isize - value_len as isize;
+        }
+
+        // Now we need to render with NEW values to verify it matches new_content
+        // Problem: we don't have new_state, only all_state (which has old values)
+        // So we need to infer the new values from the diff
+
+        // For now, verify that the template structure is correct by checking
+        // if we can find corresponding values in new_content at similar positions
+        let mut test_render = template.clone();
+        let old_values: Vec<&str> = matches.iter().map(|m| m.value_str.as_str()).collect();
+
+        // Try to extract new values from new_content using the template structure
+        let mut new_values = Vec::new();
+        let mut search_pos = 0;
+
+        for (i, _) in matches.iter().enumerate() {
+            let placeholder = format!("{{{}}}", i);
+            if let Some(ph_pos) = test_render.find(&placeholder) {
+                // Find what comes after this placeholder in template
+                let after_ph = &test_render[(ph_pos + placeholder.len())..];
+
+                // Find the next fixed part (or end of string)
+                let next_fixed = if let Some(next_ph_idx) = after_ph.find('{') {
+                    &after_ph[..next_ph_idx]
+                } else {
+                    after_ph
+                };
+
+                // In new_content, find where this fixed part appears
+                let search_from = search_pos;
+                if let Some(fixed_pos) = new_content[search_from..].find(next_fixed) {
+                    let value_end = search_from + fixed_pos;
+                    let new_value = &new_content[search_pos..value_end];
+                    new_values.push(new_value.to_string());
+                    search_pos = value_end + next_fixed.len();
+                } else if next_fixed.is_empty() {
+                    // Last placeholder - take rest of string
+                    new_values.push(new_content[search_pos..].to_string());
+                    search_pos = new_content.len();
+                } else {
+                    // Can't find the fixed part - template doesn't match
+                    return None;
+                }
+            }
+        }
+
+        // Verify by rendering template with new values
+        let mut rendered = template.clone();
+        for (i, new_val) in new_values.iter().enumerate() {
+            rendered = rendered.replace(&format!("{{{}}}", i), new_val);
+        }
+
+        if rendered == new_content {
+            crate::log_info!(
+                "📐 Multi-variable template extracted with {} bindings: '{}'",
+                bindings.len(),
+                template
+            );
+
+            return Some(TemplatePatch {
+                template,
+                bindings,
+                slots,
+                conditional_templates: None,
+                conditional_binding_index: None,
+            });
+        }
+
+        None
     }
 
     /// Save predictor state to JSON string
@@ -301,7 +546,19 @@ impl Predictor {
     }
 
     /// Learn from an observed state change and its resulting patches
-    pub fn learn(&mut self, state_change: StateChange, old_tree: &VNode, new_tree: &VNode) -> crate::error::Result<()> {
+    ///
+    /// # Parameters
+    /// * `state_change` - The state change that triggered this render
+    /// * `old_tree` - VNode tree before the change
+    /// * `new_tree` - VNode tree after the change
+    /// * `all_state` - Complete component state (for multi-variable template extraction)
+    pub fn learn(
+        &mut self,
+        state_change: StateChange,
+        old_tree: &VNode,
+        new_tree: &VNode,
+        all_state: Option<&HashMap<String, serde_json::Value>>
+    ) -> crate::error::Result<()> {
         crate::log_debug!("Learning pattern for {}::{}", state_change.component_id, state_change.state_key);
 
         let new_patches = match reconcile(old_tree, new_tree) {
@@ -312,13 +569,17 @@ impl Predictor {
             }
         };
 
-        // Try to extract template (Phase 1: single UpdateText patches only)
+        // Try to extract template (supports single and multi-variable)
         let old_patches = match reconcile(old_tree, old_tree) {
             Ok(p) => p,
             Err(_) => vec![],
         };
 
-        if let Some(template_patches) = self.extract_template(&state_change, &old_patches, &new_patches) {
+        // Use all_state if provided, otherwise create empty HashMap
+        let empty_state = HashMap::new();
+        let state_ref = all_state.unwrap_or(&empty_state);
+
+        if let Some(template_patches) = self.extract_template(&state_change, &old_patches, &new_patches, state_ref) {
             // Store template prediction
             let pattern_key = self.make_pattern_key(&state_change);
             self.template_predictions.insert(
@@ -945,7 +1206,7 @@ mod tests {
 
         // Learn the pattern multiple times
         for _ in 0..5 {
-            predictor.learn(state_change.clone(), &old_tree, &new_tree).unwrap();
+            predictor.learn(state_change.clone(), &old_tree, &new_tree, None).unwrap();
         }
 
         // Now predict
@@ -969,7 +1230,7 @@ mod tests {
         };
 
         let tree = VNode::text("test");
-        predictor.learn(state_change, &tree, &tree).unwrap();
+        predictor.learn(state_change, &tree, &tree, None).unwrap();
 
         let stats = predictor.stats();
         assert_eq!(stats.unique_state_keys, 1);
@@ -996,8 +1257,8 @@ mod tests {
         let tree3 = VNode::element("div", HashMap::new(), vec![]);
 
         // Learn different outcomes
-        predictor.learn(state_change.clone(), &tree1, &tree2).unwrap();
-        predictor.learn(state_change.clone(), &tree1, &tree3).unwrap();
+        predictor.learn(state_change.clone(), &tree1, &tree2, None).unwrap();
+        predictor.learn(state_change.clone(), &tree1, &tree3, None).unwrap();
 
         // Low confidence - should return None
         let prediction = predictor.predict(&state_change, &tree1);
@@ -1020,7 +1281,7 @@ mod tests {
 
         // Learn pattern
         for _ in 0..5 {
-            predictor.learn(state_change.clone(), &old_tree, &new_tree).unwrap();
+            predictor.learn(state_change.clone(), &old_tree, &new_tree, None).unwrap();
         }
 
         // Make prediction
