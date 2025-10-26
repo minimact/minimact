@@ -1277,3 +1277,622 @@ These additional diagrams provide deep dives into:
 Together with the original diagrams, this provides complete architectural documentation for Minimact.
 
 **The cactus doesn't just survive—it thrives by knowing what comes next.** 🌵⚡
+
+---
+
+## Developer Workflow & Experience
+
+The following diagrams show how developers actually build and iterate on Minimact applications.
+
+---
+
+## Project Setup & Scaffolding
+
+### New Project Creation
+
+```mermaid
+flowchart TD
+    START[minimact new my-app] --> SCAFFOLD[Run scaffolding tool]
+
+    SCAFFOLD --> CREATE_DIRS[Create directory structure]
+    CREATE_DIRS --> GEN_FILES[Generate template files]
+    GEN_FILES --> INSTALL[Install dependencies]
+
+    INSTALL --> NPM[npm install]
+    INSTALL --> DOTNET[dotnet restore]
+
+    NPM --> READY[Project ready]
+    DOTNET --> READY
+
+    READY --> SHOW[Display welcome message]
+
+    style SCAFFOLD fill:#3b82f6
+    style READY fill:#90EE90
+```
+
+### Generated Project Structure
+
+```mermaid
+graph TB
+    subgraph "Project Root"
+        ROOT[my-app/]
+    end
+
+    subgraph "Source Code"
+        SRC[src/]
+        COMP[components/]
+        PAGES[pages/]
+        TEMPLATES[templates/]
+        SERVICES[services/]
+    end
+
+    subgraph "Component Files"
+        TSX[Counter.tsx<br/>Developer writes]
+        CS_GEN[Counter.cs<br/>Generated - do not edit]
+        CS_BEHIND[Counter.codebehind.cs<br/>Optional - business logic]
+    end
+
+    subgraph "Configuration"
+        BABEL[babel.config.js<br/>Minimact plugin]
+        TSCONFIG[tsconfig.json<br/>TypeScript config]
+        CSPROJ[MyApp.csproj<br/>C# project file]
+        PROGRAM[Program.cs<br/>ASP.NET setup]
+    end
+
+    subgraph "Client Assets"
+        WWWROOT[wwwroot/]
+        CLIENT_JS[minimact-client.js<br/>~5KB runtime]
+        STATIC[static assets]
+    end
+
+    subgraph "Build Output"
+        BIN[bin/]
+        OBJ[obj/]
+        DIST[dist/]
+    end
+
+    ROOT --> SRC
+    ROOT --> WWWROOT
+    ROOT --> BABEL
+    ROOT --> TSCONFIG
+    ROOT --> CSPROJ
+    ROOT --> PROGRAM
+    ROOT --> BIN
+
+    SRC --> COMP
+    SRC --> PAGES
+    SRC --> TEMPLATES
+    SRC --> SERVICES
+
+    COMP --> TSX
+    COMP --> CS_GEN
+    COMP --> CS_BEHIND
+
+    WWWROOT --> CLIENT_JS
+    WWWROOT --> STATIC
+
+    style TSX fill:#3b82f6
+    style CS_GEN fill:#f59e0b
+    style CS_BEHIND fill:#10b981
+```
+
+---
+
+## Development Loop
+
+### Inner Development Loop
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant IDE as VS Code/Rider
+    participant Watch as File Watcher
+    participant Babel as Babel Plugin
+    participant DotNet as .NET Compiler
+    participant Server as Dev Server
+    participant Browser
+
+    Note over Dev,Browser: Developer Iteration Cycle
+
+    Dev->>IDE: Edit Counter.tsx
+    IDE->>IDE: Save file
+
+    IDE->>Watch: File change detected
+    Watch->>Babel: Transform Counter.tsx
+
+    Babel->>Babel: Parse TSX AST
+    Babel->>Babel: Generate C# code
+    Babel->>CS_File: Write Counter.cs
+
+    Note over Watch,Server: Automatic Build
+    Watch->>DotNet: Trigger incremental build
+    DotNet->>DotNet: Compile Counter.cs
+
+    alt Compilation Error
+        DotNet->>IDE: Show error in Problems panel
+        IDE->>Dev: Display error
+    else Success
+        DotNet->>Server: Hot reload (if supported)
+        alt Hot Reload Available
+            Server->>Browser: Inject update (no refresh)
+        else No Hot Reload
+            Dev->>Browser: Manual refresh F5
+        end
+        Browser->>Browser: Re-render component
+    end
+
+    Note over Dev,Browser: Changes visible in ~2-3 seconds
+```
+
+### File Save Cascade
+
+```mermaid
+flowchart LR
+    SAVE[Save Counter.tsx] --> DETECT[File Watcher]
+
+    DETECT --> BABEL{Babel Transform}
+
+    BABEL -->|Generate| CS[Counter.cs]
+    BABEL -->|Error| TS_ERR[TypeScript Error<br/>Show in IDE]
+
+    CS --> COMPILE{C# Compile}
+
+    COMPILE -->|Success| HOT{Hot Reload?}
+    COMPILE -->|Error| CS_ERR[C# Error<br/>Show in IDE]
+
+    HOT -->|Yes| INJECT[Inject changes]
+    HOT -->|No| MANUAL[Manual refresh]
+
+    INJECT --> BROWSER[Browser updates]
+    MANUAL --> BROWSER
+
+    style SAVE fill:#3b82f6
+    style BROWSER fill:#90EE90
+    style TS_ERR fill:#FFB6C1
+    style CS_ERR fill:#FFB6C1
+```
+
+---
+
+## Build Pipeline
+
+### Development Build
+
+```mermaid
+flowchart TD
+    START[minimact dev] --> CLEAN[Clean previous build]
+
+    CLEAN --> WATCH_START[Start file watchers]
+
+    WATCH_START --> BABEL_WATCH[Babel: Watch *.tsx]
+    WATCH_START --> DOTNET_WATCH[dotnet: Watch *.cs]
+
+    BABEL_WATCH --> TRANSFORM[Transform all .tsx → .cs]
+    TRANSFORM --> COMPILE[dotnet build]
+
+    COMPILE --> RUN[dotnet run]
+
+    RUN --> SERVE[Start Kestrel server]
+    SERVE --> SIGNALR[Initialize SignalR hub]
+    SIGNALR --> READY[Server ready on localhost:5000]
+
+    READY --> LOOP[Watch loop active]
+
+    style READY fill:#90EE90
+    style LOOP fill:#FFD700
+```
+
+### Production Build
+
+```mermaid
+flowchart TD
+    START[minimact build] --> CLEAN[Clean output]
+
+    CLEAN --> BABEL[Babel: Transform all .tsx]
+    BABEL --> VERIFY[Verify no TypeScript errors]
+
+    VERIFY --> COMPILE[dotnet publish -c Release]
+
+    COMPILE --> OPTIMIZE[Optimize C# code]
+    OPTIMIZE --> MINIFY[Minify client.js]
+    MINIFY --> BUNDLE[Bundle assets]
+
+    BUNDLE --> OUTPUT[Output to /dist]
+
+    OUTPUT --> ARTIFACTS{Build artifacts}
+
+    ARTIFACTS --> DLLS[*.dll assemblies]
+    ARTIFACTS --> WWWROOT[wwwroot/ static files]
+    ARTIFACTS --> RUNTIME[ASP.NET runtime files]
+
+    style OUTPUT fill:#90EE90
+```
+
+---
+
+## Code-Behind Pattern
+
+### When to Use Code-Behind
+
+```mermaid
+graph TB
+    subgraph "Counter.tsx - UI Logic"
+        TSX_UI["export function Counter() {
+  const [count, setCount] = useState(0);
+  const data = useServerData();
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>+</button>
+    </div>
+  );
+}"]
+    end
+
+    subgraph "Counter.cs - Generated (Don't Edit)"
+        CS_GEN["public partial class Counter : MinimactComponent {
+  [State] private int count = 0;
+
+  protected override VNode Render() {
+    var data = UseServerData();
+    return new VElement(...);
+  }
+
+  private void increment() {
+    count++;
+    SetState(nameof(count), count);
+  }
+}"]
+    end
+
+    subgraph "Counter.codebehind.cs - Business Logic"
+        CS_BEHIND["public partial class Counter {
+  private readonly AppDbContext _db;
+
+  public Counter(AppDbContext db) {
+    _db = db;
+  }
+
+  private async Task<UserData> UseServerData() {
+    return await _db.Users
+      .Where(u => u.Id == UserId)
+      .Include(u => u.Orders)
+      .FirstOrDefaultAsync();
+  }
+}"]
+    end
+
+    TSX_UI -->|Babel transforms| CS_GEN
+    CS_GEN -->|partial class| CS_BEHIND
+
+    style TSX_UI fill:#3b82f6
+    style CS_GEN fill:#f59e0b
+    style CS_BEHIND fill:#10b981
+```
+
+### Code-Behind Use Cases
+
+```mermaid
+flowchart TD
+    QUESTION{What are you doing?}
+
+    QUESTION -->|UI state & logic| TSX[Write in .tsx only]
+    QUESTION -->|Database queries| CODEBEHIND[Use .codebehind.cs]
+    QUESTION -->|API calls| CODEBEHIND
+    QUESTION -->|Complex validation| CODEBEHIND
+    QUESTION -->|Business rules| CODEBEHIND
+    QUESTION -->|DI services| CODEBEHIND
+
+    TSX --> TSX_RESULT[Babel handles everything]
+    CODEBEHIND --> CS_RESULT[Manual C# code<br/>Full .NET power]
+
+    style TSX fill:#3b82f6
+    style CODEBEHIND fill:#10b981
+```
+
+---
+
+## Developer Commands
+
+### Common Workflows
+
+```mermaid
+graph LR
+    subgraph "Development Commands"
+        DEV[minimact dev]
+        BUILD[minimact build]
+        NEW_COMP[minimact new component]
+        NEW_PAGE[minimact new page]
+        TEST[minimact test]
+    end
+
+    subgraph "What They Do"
+        DEV_DESC["Start dev server
+        - File watching
+        - Hot reload
+        - Source maps"]
+
+        BUILD_DESC["Production build
+        - Optimize
+        - Minify
+        - Bundle"]
+
+        COMP_DESC["Scaffold component
+        - Counter.tsx
+        - Optional .codebehind.cs"]
+
+        PAGE_DESC["Scaffold page
+        - Route setup
+        - Template"]
+
+        TEST_DESC["Run tests
+        - Unit tests
+        - Integration tests"]
+    end
+
+    DEV --> DEV_DESC
+    BUILD --> BUILD_DESC
+    NEW_COMP --> COMP_DESC
+    NEW_PAGE --> PAGE_DESC
+    TEST --> TEST_DESC
+
+    style DEV fill:#3b82f6
+    style BUILD fill:#10b981
+```
+
+---
+
+## Debugging Experience
+
+### Error Handling & Display
+
+```mermaid
+sequenceDiagram
+    participant Dev
+    participant IDE
+    participant Babel
+    participant Compiler
+    participant Server
+    participant Browser
+    participant Playground
+
+    Note over Dev,Playground: TypeScript Error
+    Dev->>IDE: Write invalid TSX
+    IDE->>IDE: TypeScript LSP check
+    IDE->>Dev: Red squiggle + error
+    Dev->>IDE: Save anyway
+    IDE->>Babel: Transform
+    Babel->>IDE: ❌ Syntax Error
+    IDE->>Dev: Show in Problems panel
+
+    Note over Dev,Playground: C# Compilation Error
+    Dev->>IDE: Reference undefined method
+    Babel->>Compiler: Generate .cs
+    Compiler->>Compiler: ❌ Cannot resolve method
+    Compiler->>IDE: Error CS0103
+    IDE->>Dev: Show in Problems panel
+
+    Note over Dev,Playground: Runtime Error (Server)
+    Dev->>Browser: Trigger action
+    Browser->>Server: SignalR method call
+    Server->>Server: ❌ NullReferenceException
+    Server->>Browser: Error message
+    Browser->>Dev: Console error
+    Server->>IDE: Exception in Output panel
+
+    Note over Dev,Playground: Runtime Error (Client)
+    Browser->>Browser: ❌ Cannot apply patch
+    Browser->>Playground: Show error in bridge
+    Playground->>Dev: Visual indicator
+    Browser->>Dev: Console error with stack trace
+```
+
+### Debugging Tools
+
+```mermaid
+graph TB
+    subgraph "IDE Debugging"
+        BREAKPOINT[C# Breakpoints]
+        WATCH[Watch Variables]
+        CALL_STACK[Call Stack]
+        IMMEDIATE[Immediate Window]
+    end
+
+    subgraph "Browser DevTools"
+        CONSOLE[Console Logging]
+        NETWORK[SignalR Traffic]
+        ELEMENTS[DOM Inspection]
+        PERF[Performance Timeline]
+    end
+
+    subgraph "Minimact Tools"
+        PLAYGROUND[Playground Bridge]
+        HINTS[Hint Queue Viewer]
+        PATCHES[Patch Inspector]
+        METRICS[Performance Metrics]
+    end
+
+    BREAKPOINT --> SERVER_DEBUG[Debug server-side logic]
+    WATCH --> SERVER_DEBUG
+
+    CONSOLE --> CLIENT_DEBUG[Debug client-side]
+    NETWORK --> CLIENT_DEBUG
+
+    PLAYGROUND --> VISUAL[Visual debugging]
+    HINTS --> VISUAL
+    PATCHES --> VISUAL
+
+    style PLAYGROUND fill:#FFD700
+    style BREAKPOINT fill:#3b82f6
+    style CONSOLE fill:#10b981
+```
+
+---
+
+## Integration Points
+
+### Adding Database (EF Core)
+
+```mermaid
+flowchart TD
+    START[Need database access] --> INSTALL[Install EF Core packages]
+
+    INSTALL --> CONTEXT[Create DbContext]
+
+    CONTEXT --> MODELS[Define entity models]
+
+    MODELS --> REGISTER[Register in Program.cs]
+
+    REGISTER --> CONFIG["services.AddDbContext<AppDbContext>(...)"]
+
+    CONFIG --> MIGRATE[Create migrations]
+
+    MIGRATE --> USE[Use in component]
+
+    USE --> INJECT[Inject via constructor]
+
+    INJECT --> CODEBEHIND[Write queries in .codebehind.cs]
+
+    CODEBEHIND --> EXAMPLE["private async Task<List<Todo>> LoadTodos() {
+  return await _db.Todos
+    .Where(t => t.UserId == UserId)
+    .ToListAsync();
+}"]
+
+    style CONFIG fill:#3b82f6
+    style CODEBEHIND fill:#10b981
+```
+
+### Adding Authentication
+
+```mermaid
+flowchart LR
+    START[Add auth] --> CHOOSE{Auth type?}
+
+    CHOOSE -->|Cookie| COOKIE[ASP.NET Identity]
+    CHOOSE -->|JWT| JWT[JWT tokens]
+    CHOOSE -->|OAuth| OAUTH[External providers]
+
+    COOKIE --> SETUP_COOKIE[Configure in Program.cs]
+    JWT --> SETUP_JWT[Configure JWT middleware]
+    OAUTH --> SETUP_OAUTH[Configure OAuth providers]
+
+    SETUP_COOKIE --> USE_AUTH[Use in components]
+    SETUP_JWT --> USE_AUTH
+    SETUP_OAUTH --> USE_AUTH
+
+    USE_AUTH --> ATTR["[Authorize] attribute"]
+    USE_AUTH --> USER[Access User.Identity]
+    USE_AUTH --> CLAIMS[Access User.Claims]
+
+    style ATTR fill:#10b981
+```
+
+### Project Integration Overview
+
+```mermaid
+graph TB
+    subgraph "Minimact Component"
+        COMP[MyComponent.tsx]
+        CODEBEHIND[MyComponent.codebehind.cs]
+    end
+
+    subgraph "ASP.NET Core Services"
+        DB[(Database<br/>EF Core)]
+        AUTH[Authentication]
+        DI[Dependency Injection]
+        CONFIG[Configuration]
+        LOGGING[Logging]
+    end
+
+    subgraph "External Services"
+        API[External APIs]
+        CACHE[Redis Cache]
+        QUEUE[Message Queue]
+        STORAGE[Blob Storage]
+    end
+
+    CODEBEHIND --> DB
+    CODEBEHIND --> AUTH
+    CODEBEHIND --> DI
+    CODEBEHIND --> CONFIG
+    CODEBEHIND --> LOGGING
+
+    CODEBEHIND --> API
+    CODEBEHIND --> CACHE
+    CODEBEHIND --> QUEUE
+    CODEBEHIND --> STORAGE
+
+    style COMP fill:#3b82f6
+    style CODEBEHIND fill:#10b981
+    style DB fill:#FFD700
+```
+
+---
+
+## Complete Developer Journey
+
+### From Zero to Deployed App
+
+```mermaid
+flowchart TD
+    START[Developer starts] --> INSTALL[Install Minimact CLI]
+
+    INSTALL --> CREATE[minimact new my-app]
+
+    CREATE --> STRUCTURE[Project scaffolded]
+
+    STRUCTURE --> DEV_START[minimact dev]
+
+    DEV_START --> WRITE[Write components in TSX]
+
+    WRITE --> SAVE[Save file]
+
+    SAVE --> AUTO_BUILD[Automatic build & reload]
+
+    AUTO_BUILD --> BROWSER[See changes in browser]
+
+    BROWSER --> DEBUG{Need debugging?}
+
+    DEBUG -->|Yes| BREAKPOINT[Set C# breakpoints]
+    DEBUG -->|No| MORE{More features?}
+
+    BREAKPOINT --> BROWSER
+
+    MORE -->|Yes| ADD_DB[Add database]
+    MORE -->|No| READY[Ready for production]
+
+    ADD_DB --> ADD_AUTH[Add authentication]
+    ADD_AUTH --> ADD_API[Add API integration]
+    ADD_API --> TEST[Write tests]
+
+    TEST --> READY
+
+    READY --> BUILD_PROD[minimact build]
+
+    BUILD_PROD --> DEPLOY[Deploy to Azure/AWS]
+
+    DEPLOY --> LIVE[App is live! 🎉]
+
+    style START fill:#3b82f6
+    style LIVE fill:#90EE90
+    style WRITE fill:#FFD700
+```
+
+---
+
+## Conclusion - Developer Experience
+
+These diagrams show the complete developer workflow:
+
+1. **Project Setup** - Scaffolding and structure
+2. **Development Loop** - Inner loop with file watching and hot reload
+3. **Build Pipeline** - Dev vs production builds
+4. **Code-Behind Pattern** - When and how to use it
+5. **Commands** - Common workflows and CLI
+6. **Debugging** - Tools and error handling
+7. **Integration** - Database, auth, and services
+8. **Journey** - End-to-end developer experience
+
+**The cactus knows not just the topology, but how to navigate it.** 🌵🧭

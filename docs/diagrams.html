@@ -267,6 +267,14 @@
                 <li><a href="#babel">Babel Transformation</a></li>
                 <li><a href="#security">Security Model</a></li>
             </ul>
+            <h3 style="color: #64748b; font-size: 0.875rem; margin-top: 1.5rem; margin-bottom: 0.5rem;">Developer Workflow <span class="badge new">NEW</span></h3>
+            <ul>
+                <li><a href="#dev-setup">Project Setup</a></li>
+                <li><a href="#dev-loop">Development Loop</a></li>
+                <li><a href="#code-behind">Code-Behind Pattern</a></li>
+                <li><a href="#debugging">Debugging Tools</a></li>
+                <li><a href="#integration-points">Integration Points</a></li>
+            </ul>
         </nav>
 
         <section id="intro">
@@ -1211,9 +1219,288 @@ sequenceDiagram
             </div>
         </section>
 
+        <section id="dev-setup">
+            <h2>Project Setup & Scaffolding <span class="badge new">NEW</span></h2>
+            <h3>Generated Project Structure</h3>
+            <p>
+                When you create a new Minimact project, this is the directory structure you get.
+                Understanding where files go and what they do is crucial for development.
+            </p>
+            <div class="mermaid">
+graph TB
+    subgraph "Project Root"
+        ROOT[my-app/]
+    end
+
+    subgraph "Source Code"
+        SRC[src/]
+        COMP[components/]
+        PAGES[pages/]
+        TEMPLATES[templates/]
+        SERVICES[services/]
+    end
+
+    subgraph "Component Files"
+        TSX["Counter.tsx
+        Developer writes"]
+        CS_GEN["Counter.cs
+        Generated - do not edit"]
+        CS_BEHIND["Counter.codebehind.cs
+        Optional - business logic"]
+    end
+
+    subgraph "Configuration"
+        BABEL["babel.config.js
+        Minimact plugin"]
+        TSCONFIG["tsconfig.json
+        TypeScript config"]
+        CSPROJ["MyApp.csproj
+        C# project file"]
+        PROGRAM["Program.cs
+        ASP.NET setup"]
+    end
+
+    subgraph "Client Assets"
+        WWWROOT[wwwroot/]
+        CLIENT_JS["minimact-client.js
+        ~5KB runtime"]
+        STATIC[static assets]
+    end
+
+    ROOT --> SRC
+    ROOT --> WWWROOT
+    ROOT --> BABEL
+    ROOT --> TSCONFIG
+    ROOT --> CSPROJ
+    ROOT --> PROGRAM
+
+    SRC --> COMP
+    SRC --> PAGES
+    SRC --> TEMPLATES
+    SRC --> SERVICES
+
+    COMP --> TSX
+    COMP --> CS_GEN
+    COMP --> CS_BEHIND
+
+    WWWROOT --> CLIENT_JS
+    WWWROOT --> STATIC
+
+    style TSX fill:#3b82f6
+    style CS_GEN fill:#f59e0b
+    style CS_BEHIND fill:#10b981
+            </div>
+        </section>
+
+        <section id="dev-loop">
+            <h2>Development Loop <span class="badge new">NEW</span></h2>
+            <h3>Inner Development Loop</h3>
+            <p>
+                The file-save-to-browser-update cycle happens automatically. File watchers detect
+                changes, trigger Babel transformation, compile C#, and update the browser—all in ~2-3 seconds.
+            </p>
+            <div class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant IDE as VS Code/Rider
+    participant Watch as File Watcher
+    participant Babel as Babel Plugin
+    participant DotNet as .NET Compiler
+    participant Server as Dev Server
+    participant Browser
+
+    Note over Dev,Browser: Developer Iteration Cycle
+
+    Dev->>IDE: Edit Counter.tsx
+    IDE->>IDE: Save file
+
+    IDE->>Watch: File change detected
+    Watch->>Babel: Transform Counter.tsx
+
+    Babel->>Babel: Parse TSX AST
+    Babel->>Babel: Generate C# code
+    Babel->>CS_File: Write Counter.cs
+
+    Note over Watch,Server: Automatic Build
+    Watch->>DotNet: Trigger incremental build
+    DotNet->>DotNet: Compile Counter.cs
+
+    alt Compilation Error
+        DotNet->>IDE: Show error in Problems panel
+        IDE->>Dev: Display error
+    else Success
+        DotNet->>Server: Hot reload (if supported)
+        alt Hot Reload Available
+            Server->>Browser: Inject update (no refresh)
+        else No Hot Reload
+            Dev->>Browser: Manual refresh F5
+        end
+        Browser->>Browser: Re-render component
+    end
+
+    Note over Dev,Browser: Changes visible in ~2-3 seconds
+            </div>
+        </section>
+
+        <section id="code-behind">
+            <h2>Code-Behind Pattern <span class="badge new">NEW</span></h2>
+            <h3>When to Use Code-Behind</h3>
+            <p>
+                The code-behind pattern separates UI logic (TSX) from business logic (C#).
+                Use <code>.codebehind.cs</code> for database queries, API calls, and complex server-side operations.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="background: #0f172a; border: 2px solid #3b82f6; border-radius: 0.75rem; padding: 1.5rem;">
+                    <h4 style="color: #3b82f6; margin-bottom: 1rem;">Counter.tsx (UI Logic)</h4>
+                    <pre style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0; font-size: 0.85rem;"><code style="color: #e2e8f0;">export function Counter() {
+  const [count, setCount] = useState(0);
+  const data = useServerData();
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count}&lt;/p&gt;
+      &lt;button onClick={increment}&gt;+&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+                </div>
+                <div style="background: #0f172a; border: 2px solid #f59e0b; border-radius: 0.75rem; padding: 1.5rem;">
+                    <h4 style="color: #f59e0b; margin-bottom: 1rem;">Counter.cs (Generated)</h4>
+                    <pre style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0; font-size: 0.85rem;"><code style="color: #e2e8f0;">// ⚠️ DO NOT EDIT - Auto-generated
+public partial class Counter {
+  [State] private int count = 0;
+
+  protected override VNode Render() {
+    var data = UseServerData();
+    return new VElement(...);
+  }
+
+  private void increment() {
+    count++;
+    SetState("count", count);
+  }
+}</code></pre>
+                </div>
+                <div style="background: #0f172a; border: 2px solid #10b981; border-radius: 0.75rem; padding: 1.5rem;">
+                    <h4 style="color: #10b981; margin-bottom: 1rem;">Counter.codebehind.cs (Business Logic)</h4>
+                    <pre style="background: #1e293b; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0; font-size: 0.85rem;"><code style="color: #e2e8f0;">public partial class Counter {
+  private readonly AppDbContext _db;
+
+  public Counter(AppDbContext db) {
+    _db = db;
+  }
+
+  private async Task&lt;UserData&gt; UseServerData() {
+    return await _db.Users
+      .Where(u => u.Id == UserId)
+      .Include(u => u.Orders)
+      .FirstOrDefaultAsync();
+  }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="debugging">
+            <h2>Debugging Tools <span class="badge new">NEW</span></h2>
+            <h3>Debugging Across Layers</h3>
+            <p>
+                Minimact provides debugging tools for every layer: IDE breakpoints for C# server code,
+                browser DevTools for client code, and the Playground Bridge for visual inspection.
+            </p>
+            <div class="features">
+                <div class="feature">
+                    <h4>💻 IDE Debugging</h4>
+                    <p>Set C# breakpoints, watch variables, inspect call stacks in VS Code or Rider</p>
+                </div>
+                <div class="feature">
+                    <h4>🌐 Browser DevTools</h4>
+                    <p>Console logging, SignalR traffic inspection, DOM element inspection</p>
+                </div>
+                <div class="feature">
+                    <h4>🎯 Playground Bridge</h4>
+                    <p>Visual hint queue viewer, patch inspector, performance metrics</p>
+                </div>
+                <div class="feature">
+                    <h4>📊 Error Handling</h4>
+                    <p>TypeScript errors in IDE, C# errors in Problems panel, runtime errors in console</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="integration-points">
+            <h2>Integration Points <span class="badge new">NEW</span></h2>
+            <h3>Adding Database (EF Core)</h3>
+            <p>
+                Integrating Entity Framework Core is straightforward. Install packages, create DbContext,
+                register in DI, and use in <code>.codebehind.cs</code> files.
+            </p>
+            <div class="mermaid">
+flowchart TD
+    START[Need database access] --> INSTALL[Install EF Core packages]
+
+    INSTALL --> CONTEXT[Create DbContext]
+
+    CONTEXT --> MODELS[Define entity models]
+
+    MODELS --> REGISTER[Register in Program.cs]
+
+    REGISTER --> CONFIG["services.AddDbContext&lt;AppDbContext&gt;(...)"]
+
+    CONFIG --> MIGRATE[Create migrations]
+
+    MIGRATE --> USE[Use in component]
+
+    USE --> INJECT[Inject via constructor]
+
+    INJECT --> CODEBEHIND[Write queries in .codebehind.cs]
+
+    CODEBEHIND --> EXAMPLE["private async Task&lt;List&lt;Todo&gt;&gt; LoadTodos() {
+  return await _db.Todos
+    .Where(t => t.UserId == UserId)
+    .ToListAsync();
+}"]
+
+    style CONFIG fill:#3b82f6
+    style CODEBEHIND fill:#10b981
+            </div>
+
+            <h3>Full-Stack Integration</h3>
+            <p>
+                Minimact components can access the entire ASP.NET Core ecosystem through dependency injection
+                in <code>.codebehind.cs</code> files.
+            </p>
+            <div class="features">
+                <div class="feature">
+                    <h4>💾 Database</h4>
+                    <p>EF Core, Dapper, or any ORM</p>
+                </div>
+                <div class="feature">
+                    <h4>🔐 Authentication</h4>
+                    <p>ASP.NET Identity, JWT, OAuth</p>
+                </div>
+                <div class="feature">
+                    <h4>🔧 DI Services</h4>
+                    <p>Any registered service available</p>
+                </div>
+                <div class="feature">
+                    <h4>📡 External APIs</h4>
+                    <p>HttpClient, gRPC, etc.</p>
+                </div>
+                <div class="feature">
+                    <h4>💨 Caching</h4>
+                    <p>Redis, MemoryCache, etc.</p>
+                </div>
+                <div class="feature">
+                    <h4>📬 Messaging</h4>
+                    <p>RabbitMQ, Azure Service Bus</p>
+                </div>
+            </div>
+        </section>
+
         <footer>
             <p>
-                🌵 The cactus knows the topology of the desert. 🍹
+                🌵 The cactus knows not just the topology, but how to navigate it. 🧭
             </p>
             <p>
                 <a href="https://github.com/minimact/minimact" target="_blank">View on GitHub</a> •
