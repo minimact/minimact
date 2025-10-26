@@ -46,6 +46,41 @@ export interface TemplatePatch {
   conditionalBindingIndex?: number;
 }
 
+/**
+ * Loop template for array rendering (.map patterns)
+ * Stores ONE pattern that applies to ALL array items
+ * Enables 100% coverage for lists with minimal memory
+ */
+export interface LoopTemplate {
+  /** Array state binding (e.g., "todos", "items") */
+  array_binding: string;
+  /** Template for each item in the array */
+  item_template: ItemTemplate;
+  /** Optional: Index variable name (e.g., "index", "idx") */
+  index_var?: string;
+  /** Optional: Separator between items (e.g., ", " for inline lists) */
+  separator?: string;
+}
+
+/**
+ * Template for individual items in a loop
+ */
+export type ItemTemplate =
+  | {
+      /** Simple text template (e.g., "{item.name}") */
+      type: 'Text';
+      template_patch: TemplatePatch;
+    }
+  | {
+      /** Element template (e.g., <li>{item.text}</li>) */
+      type: 'Element';
+      tag: string;
+      props_templates?: Record<string, TemplatePatch>;
+      children_templates?: ItemTemplate[];
+      /** Key binding for list reconciliation (e.g., "item.id") */
+      key_binding?: string;
+    };
+
 export type Patch =
   | { type: 'Create'; path: number[]; node: VNode }
   | { type: 'Remove'; path: number[] }
@@ -55,7 +90,9 @@ export type Patch =
   | { type: 'ReorderChildren'; path: number[]; order: string[] }
   // Template patches for runtime prediction (100% coverage with minimal memory)
   | { type: 'UpdateTextTemplate'; path: number[]; templatePatch: TemplatePatch }
-  | { type: 'UpdatePropsTemplate'; path: number[]; propName: string; templatePatch: TemplatePatch };
+  | { type: 'UpdatePropsTemplate'; path: number[]; propName: string; templatePatch: TemplatePatch }
+  // Loop template patch for array rendering (.map patterns)
+  | { type: 'UpdateListTemplate'; path: number[]; loopTemplate: LoopTemplate };
 
 export interface ComponentState {
   [key: string]: any;

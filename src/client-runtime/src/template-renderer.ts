@@ -1,4 +1,4 @@
-import { TemplatePatch, Patch } from './types';
+import { TemplatePatch, Patch, LoopTemplate, ItemTemplate, VNode, VElement, VText } from './types';
 
 /**
  * Template Renderer
@@ -90,11 +90,11 @@ export class TemplateRenderer {
   }
 
   /**
-   * Convert a template patch to a concrete patch with current state
+   * Convert a template patch to concrete patch(es) with current state
    *
-   * @param patch - Template patch (UpdateTextTemplate or UpdatePropsTemplate)
+   * @param patch - Template patch (UpdateTextTemplate, UpdatePropsTemplate, or UpdateListTemplate)
    * @param stateValues - Current state values
-   * @returns Concrete patch (UpdateText or UpdateProps)
+   * @returns Concrete patch or array of patches
    *
    * @example
    * const patch = {
@@ -108,7 +108,7 @@ export class TemplateRenderer {
   static materializePatch(
     patch: Patch,
     stateValues: Record<string, any>
-  ): Patch {
+  ): Patch | Patch[] {
     switch (patch.type) {
       case 'UpdateTextTemplate': {
         const content = this.renderTemplatePatch(patch.templatePatch, stateValues);
@@ -128,6 +128,14 @@ export class TemplateRenderer {
         };
       }
 
+      case 'UpdateListTemplate': {
+        // Render loop template to VNodes
+        const vnodes = this.renderLoopTemplate(patch.loopTemplate, stateValues);
+
+        // Convert to concrete patches
+        return this.convertLoopToPatches(patch.path, vnodes);
+      }
+
       default:
         // Not a template patch, return as-is
         return patch;
@@ -145,7 +153,20 @@ export class TemplateRenderer {
     patches: Patch[],
     stateValues: Record<string, any>
   ): Patch[] {
-    return patches.map(patch => this.materializePatch(patch, stateValues));
+    const materialized: Patch[] = [];
+
+    for (const patch of patches) {
+      const result = this.materializePatch(patch, stateValues);
+
+      if (Array.isArray(result)) {
+        // UpdateListTemplate returns multiple patches
+        materialized.push(...result);
+      } else {
+        materialized.push(result);
+      }
+    }
+
+    return materialized;
   }
 
   /**
@@ -228,5 +249,160 @@ export class TemplateRenderer {
     stateValues: Record<string, any>
   ): string[] {
     return templatePatch.bindings.filter(binding => !(binding in stateValues));
+  }
+
+  /**
+   * Render loop template with current array state
+   *
+   * @param loopTemplate - Loop template data
+   * @param stateValues - Current state values (must include array binding)
+   * @returns Array of rendered VNodes
+   *
+   * @example
+   * const template = {
+   *   array_binding: "todos",
+   *   item_template: {
+   *     type: "Element",
+   *     tag: "li",
+   *     children_templates: [{
+   *       type: "Text",
+   *       template_patch: { template: "{0}", bindings: ["item.text"], slots: [0] }
+   *     }]
+   *   }
+   * };
+   * renderLoopTemplate(template, { todos: [{ text: "A" }, { text: "B" }] })
+   * → [<li>A</li>, <li>B</li>]
+   */
+  static renderLoopTemplate(
+    loopTemplate: LoopTemplate,
+    stateValues: Record<string, any>
+  ): VNode[] {
+    const array = stateValues[loopTemplate.array_binding];
+
+    if (!Array.isArray(array)) {
+      console.warn(
+        `[TemplateRenderer] Expected array for '${loopTemplate.array_binding}', got:`,
+        array
+      );
+      return [];
+    }
+
+    return array.map((item, index) => {
+      // Build item state with nested object access
+      const itemState = {
+        ...stateValues,
+        item,
+        index,
+        ...(loopTemplate.index_var ? { [loopTemplate.index_var]: index } : {})
+      };
+
+      // Flatten item object for binding access (item.text → "item.text": value)
+      const flattenedState = this.flattenItemState(itemState, item);
+
+      // Render item template
+      return this.renderItemTemplate(loopTemplate.item_template, flattenedState);
+    });
+  }
+
+  /**
+   * Flatten item object for template binding access
+   *
+   * @param itemState - Current state including item
+   * @param item - The array item to flatten
+   * @returns Flattened state with "item.property" keys
+   *
+   * @example
+   * flattenItemState({ item: { id: 1, text: "A" } }, { id: 1, text: "A" })
+   * → { "item.id": 1, "item.text": "A", item: {...}, ... }
+   */
+  private static flattenItemState(
+    itemState: Record<string, any>,
+    item: any
+  ): Record<string, any> {
+    const flattened = { ...itemState };
+
+    if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+      // Flatten object properties with "item." prefix
+      for (const key in item) {
+        flattened[`item.${key}`] = item[key];
+      }
+    }
+
+    return flattened;
+  }
+
+  /**
+   * Render item template to VNode
+   *
+   * @param itemTemplate - Template for individual list item
+   * @param stateValues - State values with flattened item properties
+   * @returns Rendered VNode
+   */
+  private static renderItemTemplate(
+    itemTemplate: ItemTemplate,
+    stateValues: Record<string, any>
+  ): VNode {
+    switch (itemTemplate.type) {
+      case 'Text': {
+        const content = this.renderTemplatePatch(itemTemplate.template_patch, stateValues);
+        return {
+          type: 'Text',
+          content
+        } as VText;
+      }
+
+      case 'Element': {
+        // Render props
+        const props: Record<string, string> = {};
+        if (itemTemplate.props_templates) {
+          for (const [propName, propTemplate] of Object.entries(itemTemplate.props_templates)) {
+            props[propName] = this.renderTemplatePatch(propTemplate, stateValues);
+          }
+        }
+
+        // Render children
+        const children = (itemTemplate.children_templates || []).map(childTemplate =>
+          this.renderItemTemplate(childTemplate, stateValues)
+        );
+
+        // Render key
+        const key = itemTemplate.key_binding
+          ? String(stateValues[itemTemplate.key_binding])
+          : undefined;
+
+        return {
+          type: 'Element',
+          tag: itemTemplate.tag,
+          props,
+          children,
+          key
+        } as VElement;
+      }
+
+      default:
+        throw new Error(`Unknown item template type: ${(itemTemplate as any).type}`);
+    }
+  }
+
+  /**
+   * Convert rendered loop VNodes to concrete patches
+   * Generates Create/Replace patches for list update
+   *
+   * @param parentPath - Path to parent element containing the list
+   * @param vnodes - Rendered VNodes for list items
+   * @returns Array of patches to update the list
+   */
+  private static convertLoopToPatches(
+    parentPath: number[],
+    vnodes: VNode[]
+  ): Patch[] {
+    // For Phase 4A simplicity: Replace entire list with Create patches
+    // TODO Phase 4C: Optimize with incremental diffing
+
+    return vnodes.map((node, index) => ({
+      type: 'Create',
+      path: [...parentPath, index],
+      node
+    } as Patch));
   }
 }

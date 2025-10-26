@@ -559,4 +559,29 @@ public abstract class MinimactComponent
             Console.WriteLine($"[Minimact] Hint '{hintId}': No prediction available");
         }
     }
+
+    /// <summary>
+    /// Get component metadata for Rust predictor.
+    /// Extracts loop templates from attributes for use in predictive rendering.
+    /// </summary>
+    /// <returns>ComponentMetadata with loop templates</returns>
+    public ComponentMetadata GetMetadata()
+    {
+        var metadata = new ComponentMetadata
+        {
+            ComponentId = ComponentId,
+            ComponentName = GetType().Name
+        };
+
+        // Extract loop templates from [LoopTemplate] attributes
+        var loopTemplateAttrs = GetType().GetCustomAttributes(typeof(LoopTemplateAttribute), false)
+            .Cast<LoopTemplateAttribute>();
+
+        foreach (var attr in loopTemplateAttrs)
+        {
+            metadata.LoopTemplates[attr.StateKey] = attr.TemplateJson;
+        }
+
+        return metadata;
+    }
 }

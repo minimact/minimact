@@ -15,6 +15,7 @@ const {
   extractAttributeTemplates,
   addTemplateMetadata
 } = require('./extractors/templates.cjs');
+const { extractLoopTemplates } = require('./extractors/loopTemplates.cjs');
 
 /**
  * Process a component function
@@ -159,6 +160,17 @@ function processComponent(path, state) {
     addTemplateMetadata(component, allTemplates);
 
     console.log(`[Minimact Templates] Extracted ${Object.keys(allTemplates).length} templates from ${componentName}`);
+
+    // Extract loop templates for predictive rendering (.map() patterns)
+    const loopTemplates = extractLoopTemplates(component.renderBody, component);
+    component.loopTemplates = loopTemplates;
+
+    if (loopTemplates.length > 0) {
+      console.log(`[Minimact Loop Templates] Extracted ${loopTemplates.length} loop templates from ${componentName}:`);
+      loopTemplates.forEach(lt => {
+        console.log(`  - ${lt.stateKey}.map(${lt.itemVar} => ...)`);
+      });
+    }
   }
 
   // Now replace JSX to prevent @babel/preset-react from transforming it

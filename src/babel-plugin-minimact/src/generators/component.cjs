@@ -15,6 +15,16 @@ function generateComponent(component) {
 
   const lines = [];
 
+  // Loop template attributes (for predictive rendering)
+  if (component.loopTemplates && component.loopTemplates.length > 0) {
+    for (const loopTemplate of component.loopTemplates) {
+      const templateJson = JSON.stringify(loopTemplate)
+        .replace(/"/g, '""'); // Escape quotes for C# verbatim string
+
+      lines.push(`[LoopTemplate("${loopTemplate.stateKey}", @"${templateJson}")]`);
+    }
+  }
+
   // Class declaration
   lines.push('[Component]');
 
