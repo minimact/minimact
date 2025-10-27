@@ -68,9 +68,16 @@ export default defineConfig({
       ],
       '/v1.0/api/': [
         {
-          text: 'API Reference',
+          text: 'Client API (TypeScript)',
           items: [
             { text: 'Hooks', link: '/v1.0/api/hooks' }
+          ]
+        },
+        {
+          text: 'Server API (C#)',
+          items: [
+            { text: 'Overview', link: '/v1.0/api/csharp/' },
+            { text: 'MinimactComponent', link: '/v1.0/api/csharp/minimact-component' }
           ]
         },
         {

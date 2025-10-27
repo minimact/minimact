@@ -16,12 +16,14 @@ public class MinimactHub : Hub
     private readonly ComponentRegistry _registry;
     private readonly IHubContext<MinimactHub> _hubContext;
     private readonly SignalRPatchSender _patchSender;
+    private readonly IContextCache _contextCache;
 
-    public MinimactHub(ComponentRegistry registry, IHubContext<MinimactHub> hubContext)
+    public MinimactHub(ComponentRegistry registry, IHubContext<MinimactHub> hubContext, IContextCache contextCache)
     {
         _registry = registry;
         _hubContext = hubContext;
         _patchSender = new SignalRPatchSender(hubContext, registry);
+        _contextCache = contextCache;
     }
 
     /// <summary>
@@ -737,6 +739,123 @@ public class MinimactHub : Hub
                 var attr = m.GetCustomAttribute<ServerTaskAttribute>();
                 return attr != null && attr.TaskId == taskId;
             });
+    }
+
+    #endregion
+
+    #region Context Management
+
+    /// <summary>
+    /// Request model for UpdateContext
+    /// </summary>
+    public class UpdateContextRequest
+    {
+        public string Key { get; set; } = null!;
+        public object Value { get; set; } = null!;
+        public string Scope { get; set; } = "request";
+        public string? UrlPattern { get; set; }
+        public int? Expiry { get; set; }
+    }
+
+    /// <summary>
+    /// Request model for ClearContext
+    /// </summary>
+    public class ClearContextRequest
+    {
+        public string Key { get; set; } = null!;
+        public string Scope { get; set; } = "request";
+        public string? UrlPattern { get; set; }
+    }
+
+    /// <summary>
+    /// Update a context value from the client useContext hook
+    /// </summary>
+    public async Task UpdateContext(UpdateContextRequest request)
+    {
+        try
+        {
+            // Parse scope
+            if (!Enum.TryParse<ContextScope>(request.Scope, ignoreCase: true, out var scope))
+            {
+                await Clients.Caller.SendAsync("Error", $"Invalid scope: {request.Scope}");
+                return;
+            }
+
+            // Validate URL pattern if scope is URL
+            if (scope == ContextScope.Url && string.IsNullOrEmpty(request.UrlPattern))
+            {
+                await Clients.Caller.SendAsync("Error", "URL pattern required for URL-scoped context");
+                return;
+            }
+
+            // Update cache
+            _contextCache.Set(
+                request.Key,
+                request.Value,
+                scope,
+                request.UrlPattern,
+                request.Expiry
+            );
+
+            // Find all components using this context and trigger re-render
+            var components = _registry.GetComponentsUsingContext(request.Key);
+
+            foreach (var componentId in components)
+            {
+                var component = _registry.GetComponent(componentId);
+                if (component != null)
+                {
+                    // Update component's context cache reference
+                    component.ContextCache = _contextCache;
+
+                    // Trigger re-render
+                    component.TriggerRender();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error updating context: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Clear a context value from the client useContext hook
+    /// </summary>
+    public async Task ClearContext(ClearContextRequest request)
+    {
+        try
+        {
+            // Parse scope
+            if (!Enum.TryParse<ContextScope>(request.Scope, ignoreCase: true, out var scope))
+            {
+                await Clients.Caller.SendAsync("Error", $"Invalid scope: {request.Scope}");
+                return;
+            }
+
+            // Clear from cache
+            _contextCache.Clear(request.Key, scope, request.UrlPattern);
+
+            // Find all components using this context and trigger re-render
+            var components = _registry.GetComponentsUsingContext(request.Key);
+
+            foreach (var componentId in components)
+            {
+                var component = _registry.GetComponent(componentId);
+                if (component != null)
+                {
+                    // Update component's context cache reference
+                    component.ContextCache = _contextCache;
+
+                    // Trigger re-render
+                    component.TriggerRender();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error clearing context: {ex.Message}");
+        }
     }
 
     #endregion

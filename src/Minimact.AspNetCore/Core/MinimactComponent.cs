@@ -51,6 +51,11 @@ public abstract class MinimactComponent
     protected Dictionary<string, object> ClientState { get; set; }
 
     /// <summary>
+    /// Context cache for useContext hook (server-side shared state)
+    /// </summary>
+    internal IContextCache? ContextCache { get; set; }
+
+    /// <summary>
     /// Lifecycle state machine (optional - for components with distinct lifecycle states)
     /// </summary>
     protected LifecycleStateMachine? Lifecycle { get; set; }
@@ -302,6 +307,57 @@ public abstract class MinimactComponent
         // applied cached patches. We just need to keep state in sync so the
         // next render (from other causes) has correct data.
     }
+
+    #region Context Methods (useContext hook support)
+
+    /// <summary>
+    /// Get a context value
+    /// </summary>
+    /// <typeparam name="T">Type of the context value</typeparam>
+    /// <param name="key">Context key</param>
+    /// <param name="scope">Scope of the context (default: Request)</param>
+    /// <param name="urlPattern">URL pattern (required for URL scope)</param>
+    /// <returns>Context value or default if not found</returns>
+    protected T? GetContext<T>(string key, ContextScope scope = ContextScope.Request, string? urlPattern = null)
+    {
+        if (ContextCache == null)
+            return default;
+
+        return ContextCache.Get<T>(key, scope, urlPattern);
+    }
+
+    /// <summary>
+    /// Set a context value
+    /// </summary>
+    /// <typeparam name="T">Type of the context value</typeparam>
+    /// <param name="key">Context key</param>
+    /// <param name="value">Value to store</param>
+    /// <param name="scope">Scope of the context (default: Request)</param>
+    /// <param name="urlPattern">URL pattern (required for URL scope)</param>
+    /// <param name="expiryMs">Expiry time in milliseconds (null = no expiry)</param>
+    protected void SetContext<T>(string key, T value, ContextScope scope = ContextScope.Request, string? urlPattern = null, int? expiryMs = null)
+    {
+        if (ContextCache == null)
+            return;
+
+        ContextCache.Set(key, value, scope, urlPattern, expiryMs);
+    }
+
+    /// <summary>
+    /// Clear a context value
+    /// </summary>
+    /// <param name="key">Context key</param>
+    /// <param name="scope">Scope of the context (default: Request)</param>
+    /// <param name="urlPattern">URL pattern (required for URL scope)</param>
+    protected void ClearContext(string key, ContextScope scope = ContextScope.Request, string? urlPattern = null)
+    {
+        if (ContextCache == null)
+            return;
+
+        ContextCache.Clear(key, scope, urlPattern);
+    }
+
+    #endregion
 
     /// <summary>
     /// Transition lifecycle state from client

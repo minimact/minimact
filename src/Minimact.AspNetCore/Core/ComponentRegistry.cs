@@ -10,6 +10,7 @@ public class ComponentRegistry
 {
     private readonly ConcurrentDictionary<string, MinimactComponent> _components = new();
     private readonly ConcurrentDictionary<string, HashSet<string>> _connectionComponents = new();
+    private readonly ConcurrentDictionary<string, HashSet<string>> _contextUsage = new();
 
     /// <summary>
     /// Register a component instance
@@ -85,4 +86,43 @@ public class ComponentRegistry
     /// Get count of active components
     /// </summary>
     public int Count => _components.Count;
+
+    /// <summary>
+    /// Register that a component uses a specific context
+    /// </summary>
+    /// <param name="componentId">Component ID</param>
+    /// <param name="contextKey">Context key being used</param>
+    public void RegisterContextUsage(string componentId, string contextKey)
+    {
+        _contextUsage.AddOrUpdate(
+            contextKey,
+            _ => new HashSet<string> { componentId },
+            (_, existing) =>
+            {
+                lock (existing)
+                {
+                    existing.Add(componentId);
+                }
+                return existing;
+            }
+        );
+    }
+
+    /// <summary>
+    /// Get all components that use a specific context
+    /// </summary>
+    /// <param name="contextKey">Context key</param>
+    /// <returns>List of component IDs using this context</returns>
+    public IEnumerable<string> GetComponentsUsingContext(string contextKey)
+    {
+        if (_contextUsage.TryGetValue(contextKey, out var components))
+        {
+            lock (components)
+            {
+                return new List<string>(components);
+            }
+        }
+
+        return Enumerable.Empty<string>();
+    }
 }

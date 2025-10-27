@@ -23,6 +23,19 @@ public static class MinimactServiceExtensions
         services.AddSingleton<ComponentRegistry>();
         services.AddSingleton<RustBridge.Predictor>();
 
+        // Register context cache (for useContext hook)
+        services.AddSingleton<IContextCache, InMemoryContextCache>();
+        services.AddHttpContextAccessor(); // Required for context cache
+
+        // Add session support (required for session-scoped contexts)
+        services.AddDistributedMemoryCache();
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
+
         // Add SignalR for real-time updates
         services.AddSignalR();
 
@@ -68,6 +81,12 @@ public static class MinimactServiceExtensions
         var predictor = app.ApplicationServices.GetRequiredService<RustBridge.Predictor>();
         MinimactComponent.GlobalPredictor = predictor;
         Console.WriteLine("[Minimact] Predictive rendering enabled");
+
+        // Add session middleware (required for session-scoped contexts)
+        app.UseSession();
+
+        // Add context cache middleware (cleanup after each request)
+        app.UseMiddleware<Middleware.ContextCacheMiddleware>();
 
         app.UseRouting();
         app.UseEndpoints(endpoints =>

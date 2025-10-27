@@ -321,6 +321,10 @@ export { TemplateRenderer } from './template-renderer';
 export { useState, useEffect, useRef, useServerTask, setComponentContext, clearComponentContext } from './hooks';
 export type { ComponentContext } from './hooks';
 
+// Context hooks
+export { createContext, useContext, setContextHookContext, clearContextHookContext } from './useContext';
+export type { Context, ContextOptions } from './useContext';
+
 // Server task types
 export type { ServerTask, ServerTaskOptions, ServerTaskStatus } from './server-task';
 

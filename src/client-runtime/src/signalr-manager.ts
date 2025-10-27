@@ -231,6 +231,19 @@ export class SignalRManager {
   }
 
   /**
+   * Generic invoke method for calling server hub methods
+   */
+  async invoke(methodName: string, ...args: any[]): Promise<void> {
+    try {
+      await this.connection.invoke(methodName, ...args);
+      this.log(`Invoked ${methodName}`, { args });
+    } catch (error) {
+      console.error(`[Minimact] Failed to invoke ${methodName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Subscribe to events
    */
   on(event: string, handler: Function): void {
