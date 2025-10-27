@@ -349,8 +349,26 @@ public abstract class MinimactComponent
         if (CurrentVNode == null || PatchSender == null || ConnectionId == null)
         {
             // First render - no prediction needed
-            CurrentVNode = VNode.Normalize(Render());
-            PreviousState = new Dictionary<string, object>(State);
+            try
+            {
+                CurrentVNode = VNode.Normalize(Render());
+                PreviousState = new Dictionary<string, object>(State);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Minimact] Error during first render of {ComponentId}: {ex.Message}");
+
+                var fallbackVNode = OnRenderError(ex);
+                if (fallbackVNode != null)
+                {
+                    CurrentVNode = VNode.Normalize(fallbackVNode);
+                    PreviousState = new Dictionary<string, object>(State);
+                }
+                else
+                {
+                    throw; // Re-throw if no fallback provided
+                }
+            }
             return;
         }
 
@@ -391,8 +409,27 @@ public abstract class MinimactComponent
             }
         }
 
-        // Now render the actual new tree
-        var newVNode = VNode.Normalize(Render());
+        // Now render the actual new tree with error boundary
+        VNode newVNode;
+        try
+        {
+            newVNode = VNode.Normalize(Render());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Minimact] Error during render of {ComponentId}: {ex.Message}");
+
+            var fallbackVNode = OnRenderError(ex);
+            if (fallbackVNode != null)
+            {
+                // Use fallback UI
+                newVNode = VNode.Normalize(fallbackVNode);
+            }
+            else
+            {
+                throw; // Re-throw if no fallback provided
+            }
+        }
 
         // Compute actual patches using Rust reconciliation engine
         var actualPatches = RustBridge.Reconcile(CurrentVNode, newVNode);
@@ -491,6 +528,23 @@ public abstract class MinimactComponent
     public virtual void OnStateChanged(string[] changedKeys)
     {
         // Override in derived components for custom logic
+    }
+
+    /// <summary>
+    /// Called when an error occurs during rendering (Error Boundary pattern)
+    /// Override to provide fallback UI instead of crashing
+    /// </summary>
+    /// <param name="exception">The exception that occurred during rendering</param>
+    /// <returns>Fallback VNode to display, or null to re-throw the exception</returns>
+    protected virtual VNode? OnRenderError(Exception exception)
+    {
+        // Default: Return null to re-throw
+        // Override to provide custom error UI:
+        // return new VElement("div",
+        //     new Dictionary<string, string> { ["class"] = "error-boundary" },
+        //     new VText($"Error: {exception.Message}")
+        // );
+        return null;
     }
 
     /// <summary>

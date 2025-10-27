@@ -5,6 +5,7 @@ using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.SignalR;
 using Minimact.AspNetCore.Routing;
 using Minimact.AspNetCore.HotReload;
+using Minimact.AspNetCore.Services;
 
 namespace Minimact.AspNetCore.Extensions;
 
@@ -35,6 +36,9 @@ public static class MinimactServiceExtensions
             var watchPath = System.IO.Directory.GetCurrentDirectory();
             return new TemplateHotReloadManager(hubContext, registry, logger, watchPath);
         });
+
+        // Register memory monitoring background service
+        services.AddHostedService<PredictorMemoryMonitor>();
 
         return services;
     }

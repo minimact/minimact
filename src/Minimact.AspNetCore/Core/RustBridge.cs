@@ -333,14 +333,38 @@ public class Prediction
 /// </summary>
 public class PredictorStats
 {
+    [JsonProperty("unique_state_keys")]
+    public int UniqueStateKeys { get; set; }
+
     [JsonProperty("total_patterns")]
     public int TotalPatterns { get; set; }
+
+    [JsonProperty("total_observations")]
+    public int TotalObservations { get; set; }
+
+    [JsonProperty("estimated_memory_bytes")]
+    public long EstimatedMemoryBytes { get; set; }
 
     [JsonProperty("total_predictions")]
     public int TotalPredictions { get; set; }
 
-    [JsonProperty("successful_predictions")]
-    public int SuccessfulPredictions { get; set; }
+    [JsonProperty("correct_predictions")]
+    public int CorrectPredictions { get; set; }
+
+    [JsonProperty("incorrect_predictions")]
+    public int IncorrectPredictions { get; set; }
+
+    [JsonProperty("hit_rate")]
+    public float HitRate { get; set; }
+
+    [JsonProperty("avg_confidence")]
+    public float AvgConfidence { get; set; }
+
+    [JsonProperty("active_patterns")]
+    public int ActivePatterns { get; set; }
+
+    [JsonProperty("prediction_hits")]
+    public int PredictionHits { get; set; }
 }
 
 /// <summary>
