@@ -1,0 +1,374 @@
+# Examples
+
+Learn Minimact through practical examples.
+
+## Basic Examples
+
+### Counter
+
+The classic counter example:
+
+```tsx
+import { useState } from 'minimact';
+
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div>
+            <h1>Count: {count}</h1>
+            <button onClick={() => setCount(count + 1)}>Increment</button>
+            <button onClick={() => setCount(count - 1)}>Decrement</button>
+            <button onClick={() => setCount(0)}>Reset</button>
+        </div>
+    );
+}
+```
+
+### Todo List
+
+```tsx
+import { useState } from 'minimact';
+
+interface Todo {
+    id: number;
+    text: string;
+    done: boolean;
+}
+
+export function TodoList() {
+    const [todos, setTodos] = useState<Todo[]>([]);
+    const [input, setInput] = useClientState('');
+
+    const addTodo = () => {
+        if (!input.trim()) return;
+        setTodos([...todos, {
+            id: Date.now(),
+            text: input,
+            done: false
+        }]);
+        setInput('');
+    };
+
+    const toggleTodo = (id: number) => {
+        setTodos(todos.map(t =>
+            t.id === id ? { ...t, done: !t.done } : t
+        ));
+    };
+
+    return (
+        <div>
+            <h1>Todo List</h1>
+            <div>
+                <input
+                    value={input}
+                    onInput={e => setInput(e.target.value)}
+                    placeholder="Add todo..."
+                />
+                <button onClick={addTodo}>Add</button>
+            </div>
+            <ul>
+                {todos.map(todo => (
+                    <li
+                        key={todo.id}
+                        onClick={() => toggleTodo(todo.id)}
+                        style={{ textDecoration: todo.done ? 'line-through' : 'none' }}
+                    >
+                        {todo.text}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+```
+
+## Hybrid State Example
+
+Mixing client and server state:
+
+```tsx
+import { useState, useClientState } from 'minimact';
+
+export function SearchBox() {
+    const [query, setQuery] = useClientState('');      // Client-only (instant)
+    const [results, setResults] = useState([]);        // Server-managed
+    const [loading, setLoading] = useState(false);
+
+    const search = async () => {
+        setLoading(true);
+        const data = await fetch(`/api/search?q=${query}`);
+        setResults(data);
+        setLoading(false);
+    };
+
+    return (
+        <div>
+            <input
+                value={query}
+                onInput={e => setQuery(e.target.value)}
+                placeholder="Search..."
+            />
+            <button onClick={search} disabled={loading}>
+                {loading ? 'Searching...' : 'Search'}
+            </button>
+
+            <ul>
+                {results.map(r => (
+                    <li key={r.id}>{r.title}</li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+```
+
+## Server Task Example
+
+Using C# runtime for database queries:
+
+```tsx
+import { useServerTask, useEffect } from 'minimact';
+
+export function UserList() {
+    const loadUsers = useServerTask(async () => {
+        return await db.Users
+            .Where(u => u.Active)
+            .OrderBy(u => u.Name)
+            .ToListAsync();
+    });
+
+    useEffect(() => {
+        loadUsers.start();
+    }, []);
+
+    if (loadUsers.status === 'running') {
+        return <div>Loading...</div>;
+    }
+
+    if (loadUsers.status === 'error') {
+        return <div>Error: {loadUsers.error.message}</div>;
+    }
+
+    return (
+        <ul>
+            {loadUsers.result?.map(user => (
+                <li key={user.id}>
+                    {user.name} - {user.email}
+                </li>
+            ))}
+        </ul>
+    );
+}
+```
+
+## Pagination Example
+
+```tsx
+import { usePaginatedServerTask } from 'minimact';
+
+export function UserTable() {
+    const users = usePaginatedServerTask(
+        async ({ page, pageSize }) => {
+            return await db.Users
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        },
+        {
+            pageSize: 10,
+            getTotalCount: async () => await db.Users.CountAsync(),
+            prefetchNext: true
+        }
+    );
+
+    return (
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {users.items.map(u => (
+                        <tr key={u.id}>
+                            <td>{u.name}</td>
+                            <td>{u.email}</td>
+                            <td>{u.role}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            <div className="pagination">
+                <button onClick={users.prev} disabled={!users.hasPrev}>
+                    ← Previous
+                </button>
+                <span>
+                    Page {users.page} of {users.totalPages}
+                </span>
+                <button onClick={users.next} disabled={!users.hasNext}>
+                    Next →
+                </button>
+            </div>
+
+            {users.pending && <div>Loading...</div>}
+        </div>
+    );
+}
+```
+
+## Modal Example
+
+```tsx
+import { useModal } from 'minimact';
+
+export function DeleteButton({ itemId, onDelete }) {
+    const confirmModal = useModal();
+
+    const handleConfirm = async () => {
+        await onDelete(itemId);
+        confirmModal.close();
+    };
+
+    return (
+        <>
+            <button onClick={confirmModal.open} className="btn-danger">
+                Delete
+            </button>
+
+            {confirmModal.isOpen && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h2>Confirm Delete</h2>
+                        <p>Are you sure you want to delete this item?</p>
+                        <div className="modal-actions">
+                            <button onClick={handleConfirm} className="btn-danger">
+                                Yes, Delete
+                            </button>
+                            <button onClick={confirmModal.close} className="btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+```
+
+## Form Validation Example
+
+```tsx
+import { useState, useValidation } from 'minimact';
+
+export function SignupForm() {
+    const email = useValidation('email', {
+        required: true,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    });
+
+    const password = useValidation('password', {
+        required: true,
+        minLength: 8
+    });
+
+    const handleSubmit = async (e: Event) => {
+        e.preventDefault();
+
+        if (!email.isValid || !password.isValid) {
+            return;
+        }
+
+        // Submit form
+        await fetch('/api/signup', {
+            method: 'POST',
+            body: JSON.stringify({
+                email: email.value,
+                password: password.value
+            })
+        });
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <div>
+                <label>Email</label>
+                <input
+                    type="email"
+                    value={email.value}
+                    onInput={email.onChange}
+                />
+                {email.error && <span className="error">{email.error}</span>}
+            </div>
+
+            <div>
+                <label>Password</label>
+                <input
+                    type="password"
+                    value={password.value}
+                    onInput={password.onChange}
+                />
+                {password.error && <span className="error">{password.error}</span>}
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+    );
+}
+```
+
+## Real-Time Updates Example
+
+Using SignalR for real-time data:
+
+```tsx
+import { useState, useEffect } from 'minimact';
+
+export function StockTicker() {
+    const [stocks, setStocks] = useState([]);
+
+    useEffect(() => {
+        // Subscribe to real-time updates
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/stockHub')
+            .build();
+
+        connection.on('StockUpdate', (update) => {
+            setStocks(prev => prev.map(s =>
+                s.symbol === update.symbol ? update : s
+            ));
+        });
+
+        connection.start();
+
+        return () => connection.stop();
+    }, []);
+
+    return (
+        <div>
+            <h1>Live Stock Prices</h1>
+            <ul>
+                {stocks.map(stock => (
+                    <li key={stock.symbol}>
+                        {stock.symbol}: ${stock.price}
+                        <span className={stock.change >= 0 ? 'up' : 'down'}>
+                            {stock.change >= 0 ? '▲' : '▼'} {stock.change}%
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+```
+
+## Next Steps
+
+- See full [API Reference](/api/hooks)
+- Learn about [Architecture](/architecture)
+- Read the [Getting Started Guide](/guide/getting-started)

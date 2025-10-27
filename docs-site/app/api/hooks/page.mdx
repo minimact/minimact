@@ -1,0 +1,542 @@
+# Hooks API Reference
+
+Minimact provides React-compatible hooks plus additional server-side hooks.
+
+## State Hooks
+
+### `useState`
+
+Server-side state management.
+
+```tsx
+const [state, setState] = useState(initialValue);
+```
+
+**Parameters:**
+- `initialValue` - Initial state value (or function returning initial value)
+
+**Returns:**
+- `[state, setState]` - Current state and setter function
+
+**Example:**
+
+```tsx
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={() => setCount(count + 1)}>+</button>
+            <button onClick={() => setCount(prev => prev - 1)}>-</button>
+        </div>
+    );
+}
+```
+
+**Notes:**
+- State persists on the server
+- State changes trigger re-render
+- Supports functional updates: `setState(prev => prev + 1)`
+- Can be pre-populated from database in codebehind
+
+---
+
+### `useClientState`
+
+Client-only state management (zero latency).
+
+```tsx
+const [state, setState] = useClientState(initialValue);
+```
+
+**Parameters:**
+- `initialValue` - Initial state value
+
+**Returns:**
+- `[state, setState]` - Current state and setter function
+
+**Example:**
+
+```tsx
+export function SearchBox() {
+    const [query, setQuery] = useClientState('');
+    const [results, setResults] = useState([]);
+
+    return (
+        <div>
+            <input
+                value={query}
+                onInput={e => setQuery(e.target.value)}
+                placeholder="Type to search..."
+            />
+            <button onClick={() => setResults(search(query))}>
+                Search
+            </button>
+        </div>
+    );
+}
+```
+
+**Notes:**
+- State lives only on client
+- Perfect for UI-only state (inputs, animations)
+- No server communication
+- Not accessible in codebehind
+
+---
+
+## Effect Hooks
+
+### `useEffect`
+
+Side effects and lifecycle management (runs on server).
+
+```tsx
+useEffect(() => {
+    // Effect code
+    return () => {
+        // Cleanup code
+    };
+}, [dependencies]);
+```
+
+**Parameters:**
+- `effect` - Function to run
+- `dependencies` - Array of values that trigger re-run when changed
+
+**Example:**
+
+```tsx
+export function Timer() {
+    const [seconds, setSeconds] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSeconds(s => s + 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    return <div>Elapsed: {seconds}s</div>;
+}
+```
+
+**Notes:**
+- Runs on **server**, not client
+- Cleanup function called on unmount
+- Empty deps `[]` = run once on mount
+- No deps = run on every render
+
+---
+
+### `useRef`
+
+Persistent reference across renders.
+
+```tsx
+const ref = useRef(initialValue);
+```
+
+**Parameters:**
+- `initialValue` - Initial value for `.current`
+
+**Returns:**
+- `{ current: T }` - Mutable ref object
+
+**Example:**
+
+```tsx
+export function InputFocus() {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    return (
+        <div>
+            <input ref={inputRef} />
+            <button onClick={() => inputRef.current?.focus()}>
+                Focus Input
+            </button>
+        </div>
+    );
+}
+```
+
+---
+
+## Server Task Hooks
+
+### `useServerTask`
+
+Execute async tasks on server with C# or Rust runtime.
+
+```tsx
+const task = useServerTask(async (args) => {
+    // Task code
+}, options);
+```
+
+**Parameters:**
+- `taskFn` - Async function to execute
+- `options`:
+  - `runtime?: 'csharp' | 'rust'` - Execution runtime (default: 'csharp')
+  - `parallel?: boolean` - Use multi-core parallelism
+  - `onProgress?: (progress) => void` - Progress callback
+
+**Returns:**
+- `task` object:
+  - `start(args)` - Start task execution
+  - `cancel()` - Cancel running task
+  - `promise` - Promise of result
+  - `status` - 'idle' | 'running' | 'complete' | 'error'
+  - `result` - Task result (when complete)
+  - `error` - Error (if failed)
+  - `progress` - Progress percentage (0-100)
+
+**Example (C# Runtime):**
+
+```tsx
+export function UserList() {
+    const loadUsers = useServerTask(async () => {
+        return await db.Users.Where(u => u.Active).ToListAsync();
+    });
+
+    useEffect(() => {
+        loadUsers.start();
+    }, []);
+
+    return (
+        <div>
+            {loadUsers.status === 'running' && <Spinner />}
+            {loadUsers.status === 'complete' && (
+                <ul>
+                    {loadUsers.result.map(u => <li key={u.id}>{u.name}</li>)}
+                </ul>
+            )}
+        </div>
+    );
+}
+```
+
+**Example (Rust Runtime):**
+
+```tsx
+export function DataProcessor() {
+    const crunch = useServerTask(async (numbers: number[]) => {
+        return numbers
+            .map(x => x * x)
+            .filter(x => x > 100)
+            .reduce((sum, x) => sum + x, 0);
+    }, { runtime: 'rust', parallel: true });
+
+    return (
+        <button onClick={() => crunch.start([1, 2, 3, 4, 5])}>
+            Process Data
+        </button>
+    );
+}
+```
+
+---
+
+### `usePaginatedServerTask`
+
+Server-side pagination with prefetching.
+
+```tsx
+const pagination = usePaginatedServerTask(fetchFn, options);
+```
+
+**Parameters:**
+- `fetchFn` - Function to fetch page data
+- `options`:
+  - `pageSize?: number` - Items per page (default: 20)
+  - `getTotalCount?: (filters) => Promise<number>` - Get total count
+  - `prefetchNext?: boolean` - Prefetch next page (default: true)
+  - `runtime?: 'csharp' | 'rust'` - Execution runtime
+  - `dependencies?: any[]` - Re-fetch when changed
+
+**Returns:**
+- `pagination` object:
+  - `items` - Current page items
+  - `page` - Current page number
+  - `totalPages` - Total page count
+  - `hasNext` - Has next page
+  - `hasPrev` - Has previous page
+  - `next()` - Go to next page
+  - `prev()` - Go to previous page
+  - `goTo(page)` - Go to specific page
+  - `pending` - Loading state
+
+**Example:**
+
+```tsx
+export function UserTable() {
+    const users = usePaginatedServerTask(
+        async ({ page, pageSize, filters }) => {
+            return await db.Users
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        },
+        {
+            pageSize: 20,
+            getTotalCount: async () => await db.Users.CountAsync(),
+            prefetchNext: true
+        }
+    );
+
+    return (
+        <div>
+            <table>
+                {users.items.map(u => (
+                    <tr key={u.id}>
+                        <td>{u.name}</td>
+                        <td>{u.email}</td>
+                    </tr>
+                ))}
+            </table>
+
+            <div>
+                <button onClick={users.prev} disabled={!users.hasPrev}>
+                    Previous
+                </button>
+                <span>Page {users.page} of {users.totalPages}</span>
+                <button onClick={users.next} disabled={!users.hasNext}>
+                    Next
+                </button>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## Semantic Hooks
+
+### `useModal`
+
+Modal dialog state management.
+
+```tsx
+const modal = useModal();
+```
+
+**Returns:**
+- `modal` object:
+  - `isOpen` - Modal open state
+  - `open()` - Open modal
+  - `close()` - Close modal
+  - `toggle()` - Toggle modal
+
+**Example:**
+
+```tsx
+export function DeleteButton() {
+    const modal = useModal();
+
+    return (
+        <>
+            <button onClick={modal.open}>Delete</button>
+
+            {modal.isOpen && (
+                <div className="modal">
+                    <p>Are you sure?</p>
+                    <button onClick={handleDelete}>Yes</button>
+                    <button onClick={modal.close}>Cancel</button>
+                </div>
+            )}
+        </>
+    );
+}
+```
+
+---
+
+### `useToggle`
+
+Boolean toggle state.
+
+```tsx
+const [value, toggle] = useToggle(initialValue);
+```
+
+**Parameters:**
+- `initialValue` - Initial boolean value
+
+**Returns:**
+- `[value, toggle]` - Current value and toggle function
+
+**Example:**
+
+```tsx
+export function Accordion() {
+    const [isOpen, toggle] = useToggle(false);
+
+    return (
+        <div>
+            <button onClick={toggle}>
+                {isOpen ? 'Collapse' : 'Expand'}
+            </button>
+            {isOpen && <div>Content...</div>}
+        </div>
+    );
+}
+```
+
+---
+
+### `useDropdown`
+
+Dropdown with data fetching.
+
+```tsx
+const dropdown = useDropdown(apiEndpoint);
+```
+
+**Parameters:**
+- `apiEndpoint` - API route to fetch options
+
+**Returns:**
+- `dropdown` object:
+  - `options` - Available options
+  - `selected` - Selected option
+  - `setSelected(option)` - Set selection
+  - `isOpen` - Dropdown open state
+  - `open()` - Open dropdown
+  - `close()` - Close dropdown
+
+**Example:**
+
+```tsx
+export function CountrySelector() {
+    const countries = useDropdown(Routes.Api.Countries.GetAll);
+
+    return (
+        <div>
+            <button onClick={countries.open}>
+                {countries.selected?.name || 'Select Country'}
+            </button>
+
+            {countries.isOpen && (
+                <ul>
+                    {countries.options.map(c => (
+                        <li key={c.id} onClick={() => countries.setSelected(c)}>
+                            {c.name}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}
+```
+
+---
+
+## Template Hooks
+
+### `useTemplate`
+
+Apply a layout template to component.
+
+```tsx
+useTemplate(templateName, props);
+```
+
+**Parameters:**
+- `templateName` - Template to use
+- `props` - Template props (title, etc.)
+
+**Built-in Templates:**
+- `DefaultLayout` - Basic page layout
+- `SidebarLayout` - Layout with sidebar
+- `AuthLayout` - Authentication pages
+- `AdminLayout` - Admin dashboard
+
+**Example:**
+
+```tsx
+export function Dashboard() {
+    useTemplate('SidebarLayout', {
+        title: 'Dashboard',
+        nav: ['Home', 'Profile', 'Settings']
+    });
+
+    return <h1>Welcome to your dashboard</h1>;
+}
+```
+
+---
+
+### `useMarkdown`
+
+Parse and render markdown content.
+
+```tsx
+const [html] = useMarkdown(markdown);
+```
+
+**Parameters:**
+- `markdown` - Markdown string
+
+**Returns:**
+- `[html]` - Parsed HTML
+
+**Example:**
+
+```tsx
+export function BlogPost() {
+    const [content] = useMarkdown(`
+# Hello World
+
+This **markdown** is parsed server-side!
+    `);
+
+    return <div markdown>{content}</div>;
+}
+```
+
+---
+
+## Prediction Hooks
+
+### `usePredictHint`
+
+Give hints to the prediction engine (optional).
+
+```tsx
+usePredictHint(hintKey, predictedState);
+```
+
+**Parameters:**
+- `hintKey` - Unique hint identifier
+- `predictedState` - State to predict
+
+**Example:**
+
+```tsx
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    // Hint: predict increment
+    usePredictHint('increment', { count: count + 1 });
+
+    return (
+        <button onClick={() => setCount(count + 1)}>
+            Count: {count}
+        </button>
+    );
+}
+```
+
+**Note:** You rarely need this! The template system handles 95-98% of cases automatically.
+
+---
+
+## Next Steps
+
+- Learn about [Components](/api/components)
+- Explore [CLI Reference](/api/cli)
+- See [Examples](/examples)

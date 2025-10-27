@@ -1,0 +1,101 @@
+# Minimact
+
+**Server-side React for ASP.NET Core with predictive rendering**
+
+import { Cards, Callout } from 'nextra/components'
+
+<div style={{ marginTop: '2rem' }}>
+  <p style={{ fontSize: '1.25rem', lineHeight: '1.75' }}>
+    Minimact brings the familiar React developer experience to server-side rendering with ASP.NET Core,
+    powered by a Rust reconciliation engine and intelligent predictive updates.
+  </p>
+</div>
+
+```tsx
+import { useState } from 'minimact';
+
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
+        </div>
+    );
+}
+```
+
+**That's it.** Write React, get server-rendered HTML with &lt;5ms perceived latency.
+
+---
+
+## Why Minimact?
+
+<Cards num={2}>
+  <Cards.Card title="For React Developers" href="/guide/getting-started">
+    Familiar JSX/TSX syntax with React hooks. No hydration needed.
+  </Cards.Card>
+  <Cards.Card title="For .NET Developers" href="/guide/getting-started">
+    Full ASP.NET Core integration with EF Core and dependency injection.
+  </Cards.Card>
+  <Cards.Card title="Predictive Rendering" href="/guide/predictive-rendering">
+    Rust-powered template system with 95-98% cache hit rate.
+  </Cards.Card>
+  <Cards.Card title="Hybrid State" href="/guide/concepts">
+    Mix server-side and client-side state seamlessly.
+  </Cards.Card>
+</Cards>
+
+---
+
+## Quick Start
+
+```bash
+# Install Minimact CLI
+npm install -g minimact-cli
+
+# Create new project
+minimact new my-app
+cd my-app
+
+# Start development server
+minimact dev
+```
+
+## Key Features
+
+- ✅ **~5KB client bundle** - No massive JS frameworks to load
+- ✅ **Zero hydration** - No client-side reconciliation overhead
+- ✅ **Instant interactions** - Predictive patches cached before user clicks
+- ✅ **Type-safe** - Full TypeScript → C# type inference
+- ✅ **ASP.NET Core** - Use EF Core, DI, and your favorite .NET tools
+
+---
+
+## How It Works
+
+Minimact flips the traditional model:
+
+1. Write UI in **TSX/JSX**
+2. Babel compiles to **C# classes**
+3. C# renders HTML on server
+4. **Rust engine predicts state changes** and pre-sends patches
+5. Client caches predicted patches **before interaction**
+6. User clicks → **instant DOM update (0ms network latency)**
+7. Server verifies in background and corrects if needed
+
+**No diffing. No runtime VDOM. Zero client reconciliation.**
+
+---
+
+## Next Steps
+
+<Cards num={2}>
+  <Cards.Card icon="🚀" title="Getting Started" href="/guide/getting-started" arrow />
+  <Cards.Card icon="🧠" title="Core Concepts" href="/guide/concepts" arrow />
+  <Cards.Card icon="📚" title="API Reference" href="/api/hooks" arrow />
+  <Cards.Card icon="💡" title="Examples" href="/examples" arrow />
+</Cards>

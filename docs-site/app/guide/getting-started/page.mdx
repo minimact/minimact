@@ -1,0 +1,110 @@
+# Getting Started
+
+This guide will help you create your first Minimact application in minutes.
+
+## Prerequisites
+
+- **Node.js** 18+ and npm
+- **.NET 8.0+** SDK
+- **Rust** (optional, for building from source)
+
+## Installation
+
+### 1. Install Minimact CLI
+
+```bash
+npm install -g minimact-cli
+```
+
+### 2. Create a New Project
+
+```bash
+minimact new my-app
+cd my-app
+```
+
+This creates a new Minimact project with the following structure:
+
+```
+my-app/
+├── src/
+│   ├── components/      # Your React components (.tsx)
+│   ├── pages/           # Page components
+│   └── Program.cs       # ASP.NET Core entry point
+├── minimact.config.js   # Minimact configuration
+└── package.json
+```
+
+### 3. Start Development Server
+
+```bash
+minimact dev
+```
+
+This starts:
+- The Babel watcher (TypeScript → C# transpilation)
+- The ASP.NET Core development server
+- Hot reload for both client and server
+
+Visit `http://localhost:5000` to see your app!
+
+## Your First Component
+
+Create a new file `src/components/Counter.tsx`:
+
+```tsx
+import { useState } from 'minimact';
+
+export function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div>
+            <h1>Count: {count}</h1>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
+            <button onClick={() => setCount(count - 1)}>
+                Decrement
+            </button>
+            <button onClick={() => setCount(0)}>
+                Reset
+            </button>
+        </div>
+    );
+}
+```
+
+### How It Works
+
+1. **Write TSX** - Familiar React syntax with hooks
+2. **Babel transpiles** - Converts your TSX to C# classes automatically
+3. **Server renders** - ASP.NET Core renders your component to HTML
+4. **Rust predicts** - Template system learns patterns and pre-sends patches
+5. **Client caches** - Predicted patches stored before interaction
+6. **Instant updates** - User clicks, patch applies immediately (0ms latency)
+
+## Understanding the Build Output
+
+When you save your component, Minimact generates:
+
+```
+src/components/Counter.tsx       (Your code)
+  ↓ Babel transpilation
+Generated/Counter.cs              (Generated C# class)
+```
+
+The generated C# includes:
+- Component class extending `MinimactComponent`
+- State management hooks
+- Render method returning VNodes
+- Event handlers
+
+You never need to touch the generated C# - just write React!
+
+## Next Steps
+
+- Learn about [Core Concepts](/guide/concepts)
+- Explore [Hooks](/guide/hooks) available in Minimact
+- Understand [Predictive Rendering](/guide/predictive-rendering)
+- Try [Hybrid State](/guide/hybrid-state) for client-only updates

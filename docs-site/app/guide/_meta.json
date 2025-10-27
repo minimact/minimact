@@ -1,0 +1,13 @@
+{
+  "getting-started": "Getting Started",
+  "for-react-devs": "For React Developers",
+  "for-dotnet-devs": "For .NET Developers",
+  "concepts": "Core Concepts",
+  "predictive-rendering": "Predictive Rendering",
+  "hybrid-state": "Hybrid State",
+  "hooks": "Hooks",
+  "components": "Components",
+  "templates": "Templates",
+  "server-tasks": "Server Tasks",
+  "deployment": "Deployment"
+}
