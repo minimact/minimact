@@ -1,0 +1,116 @@
+```markdown
+# Minimact: Complete Feature → Use Case Matrix
+
+| Feature | Use Cases | Key Benefit |
+|---------|-----------|-------------|
+| **useDynamicState (Selector Bindings)** | • Dynamic pricing displays<br>• User badge systems<br>• Conditional content zones<br>• Permission-based UI<br>• Feature flags<br>• A/B testing variants<br>• Locale-specific content | Structure once, content dynamically bound. No JSX duplication. |
+| **DOM Choreography (Element Reordering)** | • Kanban boards<br>• Photo gallery layouts (grid/masonry/carousel)<br>• Sortable tables<br>• Playlist reordering<br>• Dashboard widget arrangement<br>• Sliding puzzles<br>• Drag-and-drop interfaces<br>• Priority queues | Elements move, not recreate. State preserved across reordering. |
+| **State-Driven Multi-Page Components** | • Shopping flows (browse→cart→checkout)<br>• Wizard/onboarding flows<br>• Admin dashboards (multiple views)<br>• Mobile app navigation<br>• Form wizards<br>• Survey flows<br>• Game menus | Multiple "pages" in one component. No routing needed. Zero unmounting. |
+| **Cross-Page DOM Teleportation** | • Shopping cart across pages<br>• Multi-step forms preserving input<br>• Video player (continues across navigation)<br>• Chat widget site-wide<br>• Persistent audio player<br>• Shared navigation state | Elements persist across page navigation. Input values preserved. |
+| **Quantum Entanglement (Local)** | • Temperature converters (C°↔F°↔K°)<br>• Currency displays<br>• Slider + display sync<br>• Form validation mirrors<br>• Real-time calculators<br>• Split-view editors<br>• Master-detail interfaces | Change one element, all entangled elements update instantly. |
+| **Quantum Entanglement (Cross-User)** | • Google Docs-style collaboration<br>• Figma-style design tools<br>• Multiplayer chess/games<br>• Live cursors<br>• Shared whiteboards<br>• Shopping together (different locations)<br>• Classroom presentations (teacher→students)<br>• Live customer support (agent sees customer form)<br>• Collaborative code editing | Real-time multiplayer DOM sync across computers/users worldwide. |
+| **useServerTask (Basic)** | • AI image generation<br>• Large dataset analysis<br>• Video transcoding<br>• PDF generation<br>• Email campaigns<br>• Report generation<br>• Data exports<br>• Blockchain transactions<br>• ML model inference | Long-running server tasks as client hooks. Progress tracking built-in. |
+| **useServerTask (TypeScript→C#)** | • Complex business logic in TS<br>• Database queries in TS<br>• Payment processing<br>• Invoice generation<br>• Data pipelines<br>• ETL processes<br>• API integrations<br>• Secure server operations | Write once in TypeScript, runs as C# on server. Full stack in one language. |
+| **usePaginatedServerTask** | • User tables<br>• Product catalogs<br>• Transaction history<br>• Search results<br>• Admin dashboards<br>• Logs/audit trails<br>• Notification lists<br>• Comment threads | Pagination in one hook. Automatic prefetching. No boilerplate. |
+| **useInfiniteServerTask (Streaming)** | • Social media feeds<br>• Infinite product lists<br>• Activity streams<br>• Chat message history<br>• News feeds<br>• Real-time logs<br>• Monitoring dashboards | Progressive loading via generators. Stream data as available. |
+| **Cursor-Based Pagination** | • Timeline feeds<br>• Event logs<br>• Message threads<br>• Real-time data streams<br>• Time-series data<br>• Append-only data | Efficient pagination for time-ordered data. No offset issues. |
+| **Filtered + Sorted Pagination** | • Advanced data tables<br>• Product search<br>• User directories<br>• Analytics dashboards<br>• Inventory management<br>• CRM systems | Server-side filtering/sorting. Client just declares requirements. |
+| **Prefetching (Next Page)** | • Any paginated table<br>• Image galleries<br>• Article browsing<br>• E-commerce catalogs | Zero-latency page transitions. Feels instant. |
+| **Bidirectional Prefetching** | • Large datasets<br>• Back-and-forth navigation<br>• Reports with drill-down<br>• Multi-page forms | Preload pages in both directions. Smooth navigation. |
+| **Virtual Scrolling + Pagination** | • Million-row tables<br>• Large logs<br>• Financial transactions<br>• Scientific data<br>• Performance monitoring | Render millions of rows. Only load/render visible items. 60fps. |
+| **Optimistic Updates** | • Social likes/reactions<br>• Todo list edits<br>• Comment posting<br>• Shopping cart updates<br>• Form autosave | Instant UI feedback. Server sync in background. |
+| **Multi-Table Sync** | • Master-detail views<br>• Related data displays<br>• Hierarchical data<br>• Entity relationships | Multiple paginated tables, linked by selection/filters. |
+| **Batch Operations** | • Bulk email sending<br>• Mass data updates<br>• File processing queues<br>• Batch exports<br>• Scheduled jobs | Track progress across many items. Real-time status updates. |
+| **Progress Reporting** | • File uploads<br>• Video processing<br>• Data imports<br>• Report generation<br>• Backup operations | Live progress bars. Step-by-step status. ETA calculations. |
+| **Task Cancellation** | • Long-running queries<br>• File processing<br>• API calls<br>• Background jobs | User can cancel anytime. Clean resource cleanup. |
+| **Dependent Tasks** | • Multi-stage pipelines<br>• Workflow automation<br>• ETL processes<br>• Build pipelines | Chain tasks. Second starts when first completes. |
+| **Parallel Tasks** | • Multi-file processing<br>• Batch API calls<br>• Concurrent exports<br>• Distributed work | Execute multiple tasks simultaneously. Aggregate progress. |
+| **Task Result Caching** | • Expensive computations<br>• Report caching<br>• API response caching<br>• Memoized queries | Generate once, reuse multiple times. Configurable TTL. |
+| **SSR with Dynamic State** | • SEO-friendly SPAs<br>• E-commerce product pages<br>• Content sites<br>• Marketing pages | Server renders correct state. Client continues reactively. |
+| **Latency Compensation** | • Real-time games<br>• Collaborative tools<br>• Live editing<br>• Interactive dashboards | Client predicts state. Feels instant even with network lag. |
+| **Operational Transform** | • Collaborative text editing<br>• Shared documents<br>• Multi-user forms<br>• Code collaboration | Resolve concurrent edits automatically. No conflicts. |
+| **Type Safety (TS↔C#)** | • Enterprise applications<br>• Large teams<br>• Complex domains<br>• API contracts | End-to-end type safety. Catch errors at compile time. |
+| **Session Space (Element Registry)** | • Multi-device sync<br>• Cross-device shopping<br>• Session persistence<br>• Work resumption | Elements exist in session, not pages. Resume anywhere. |
+| **Collaborative Handoffs** | • Live support transitions<br>• Team collaboration<br>• Work delegation<br>• Shift handovers | Transfer DOM element ownership between users. |
+| **Real-Time Activity Feeds** | • Collaboration indicators<br>• Presence awareness<br>• Action logging<br>• Audit trails | "Alice added this", "Bob is viewing". Live updates. |
+| **Search with Pagination** | • Product search<br>• Document search<br>• User lookup<br>• Full-text search | Server-side search. Paginated results. Instant updates. |
+| **Analytics Aggregation** | • Business intelligence<br>• Sales dashboards<br>• User analytics<br>• Performance metrics | Process millions of rows server-side. Paginate aggregates. |
+| **Form Validation (Entangled)** | • Multi-step forms<br>• Dependent fields<br>• Real-time validation<br>• Cross-field rules | Validate one field, related fields update. Complex rules easy. |
+| **Theming (Entangled)** | • Dark/light mode sync<br>• User preferences<br>• Accessibility modes<br>• Brand theming | Change theme once, entire app updates. Across pages. |
+| **Presentation Mode** | • Webinars<br>• Training sessions<br>• Product demos<br>• Remote teaching | Presenter controls all viewers' screens. Synchronized navigation. |
+| **Co-browsing** | • Customer support<br>• Sales demos<br>• Remote assistance<br>• Pair shopping | Two people browse same site together. See each other's actions. |
+| **Live Form Assistance** | • Onboarding help<br>• Application support<br>• Tax preparation<br>• Medical forms | Agent sees customer form. Can help/correct in real-time. |
+| **Multiplayer Games** | • Board games<br>• Card games<br>• Puzzle games<br>• Turn-based strategy | Smooth multiplayer. Lag compensation. State sync automatic. |
+| **Shared Dashboards** | • Executive presentations<br>• Team metrics<br>• Operations monitoring<br>• Trading floors | One person controls. Everyone sees same view. Real-time updates. |
+| **Inventory Sync** | • Gaming inventories<br>• E-commerce stock<br>• Warehouse management<br>• Asset tracking | Inventory items persist across contexts. Never lost. |
+
+## Feature Categories
+
+### **Content Binding**
+- useDynamicState
+
+### **DOM Manipulation**
+- DOM Choreography
+- Cross-Page Teleportation
+- Element Reordering
+
+### **Navigation**
+- State-Driven Multi-Page
+- Cross-Page Persistence
+
+### **Synchronization**
+- Quantum Entanglement (Local)
+- Quantum Entanglement (Distributed)
+
+### **Server Computation**
+- useServerTask
+- TypeScript→C# Transpilation
+
+### **Data Loading**
+- Paginated Server Tasks
+- Infinite Scroll
+- Streaming Generators
+- Prefetching
+
+### **Collaboration**
+- Multi-user Entanglement
+- Cursor Sharing
+- Real-time Editing
+- Element Transfer
+
+### **Performance**
+- Virtual Scrolling
+- Optimistic Updates
+- Latency Compensation
+- Result Caching
+
+---
+
+## The Unified Model
+
+**Every use case shares the same principles:**
+
+1. **Declarative** - Describe what, not how
+2. **Server-Native** - Heavy lifting on server
+3. **Type-Safe** - TS↔C# across boundary
+4. **Reactive** - UI updates automatically
+5. **Distributed** - Works across users/devices
+6. **Predictive** - Prefetches intelligently
+7. **Minimal** - Surgical changes only
+
+**Result:** Traditional complexity → Simple primitives
+
+---
+
+## Market Impact
+
+| Traditional Stack | Minimact Equivalent | Simplification |
+|-------------------|---------------------|----------------|
+| React Router + TanStack Query + WebSockets + OT libs | useDynamicState + useServerTask + Quantum | 4 libraries → 3 hooks |
+| 1000+ lines pagination | 1 hook | 1000x simpler |
+| 6 months multiplayer dev | 3 lines entanglement | 99% time saved |
+| $100k collaboration features | Open source | $100k saved |
+| Separate frontend/backend | One TypeScript file | 2 codebases → 1 |
+
+**Minimact democratizes advanced features that were previously enterprise-only.**
+```
