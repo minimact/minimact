@@ -145,6 +145,35 @@ public class RealDOM
     }
 
     /// <summary>
+    /// Get computed style property from element
+    /// </summary>
+    public string? GetStyle(IElement element, string property)
+    {
+        // AngleSharp doesn't compute styles, but we can read inline styles
+        var styleAttr = element.GetAttribute("style");
+        if (string.IsNullOrEmpty(styleAttr))
+            return null;
+
+        // Parse inline style (simple parser for testing)
+        var styles = styleAttr.Split(';');
+        foreach (var style in styles)
+        {
+            var parts = style.Split(':');
+            if (parts.Length == 2)
+            {
+                var prop = parts[0].Trim();
+                var value = parts[1].Trim();
+                if (prop.Equals(property, StringComparison.OrdinalIgnoreCase))
+                {
+                    return value;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Append child to element
     /// </summary>
     public void AppendChild(INode parent, INode child)

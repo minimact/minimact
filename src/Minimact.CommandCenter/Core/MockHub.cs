@@ -335,6 +335,45 @@ public class MockHub
         }
     }
 
+    // ========================================
+    // Decision Trees (useDecisionTree from minimact-trees)
+    // ========================================
+
+    /// <summary>
+    /// Update decision tree state from MockClient
+    /// Uses REAL ComponentEngine - same code as production!
+    /// </summary>
+    public async Task UpdateDecisionTreeState(string componentId, string stateKey, object value, Dictionary<string, object>? context = null)
+    {
+        Console.WriteLine($"[MockHub] → UpdateDecisionTreeState({componentId}, {stateKey}, {value})");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[MockHub] ❌ Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            // Update component state with decision tree result
+            var patches = await _engine.UpdateComponentStateAsync(componentId, stateKey, value);
+
+            // Send patches via callback (in-memory transport)
+            if (patches.Count > 0)
+            {
+                Console.WriteLine($"[MockHub] ← Sending {patches.Count} patches to MockClient");
+                _client.OnApplyPatches(componentId, patches);
+            }
+
+            Console.WriteLine($"[MockHub] ✅ Decision tree state updated: {stateKey} = {value}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MockHub] ❌ Error updating decision tree state: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Find method with [ServerTask] attribute by task ID
     /// </summary>

@@ -298,6 +298,47 @@ public class RealHub
         }
     }
 
+    // ========================================
+    // Decision Trees (useDecisionTree from minimact-trees)
+    // SET BREAKPOINTS HERE to debug decision tree state changes!
+    // ========================================
+
+    /// <summary>
+    /// Update decision tree state from client
+    /// Called from JavaScript: connection.invoke('UpdateDecisionTreeState', { componentId, stateKey, value, context })
+    /// </summary>
+    public async Task UpdateDecisionTreeState(UpdateDecisionTreeStateRequest request)
+    {
+        Console.WriteLine($"[RealHub] 🔶 UpdateDecisionTreeState: {request.ComponentId}.{request.StateKey} = {request.Value}");
+
+        var component = _engine.GetComponent(request.ComponentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[RealHub] ⚠️  Component not found: {request.ComponentId}");
+            return;
+        }
+
+        try
+        {
+            // Update component state with decision tree result
+            // THIS IS WHERE YOU SET BREAKPOINTS FOR DECISION TREE CHANGES!
+            var patches = await _engine.UpdateComponentStateAsync(request.ComponentId, request.StateKey, request.Value);
+
+            // Send patches back to JavaScript
+            if (patches.Count > 0)
+            {
+                Console.WriteLine($"[RealHub] 📤 Sending {patches.Count} patches to JavaScript");
+                await _patchSender.SendPatchesAsync(request.ComponentId, patches);
+            }
+
+            Console.WriteLine($"[RealHub] ✅ Decision tree state updated: {request.StateKey} = {request.Value}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RealHub] ❌ Error updating decision tree state: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Find method with [ServerTask] attribute by task ID
     /// </summary>
@@ -311,6 +352,17 @@ public class RealHub
                 return attr != null && attr.TaskId == taskId;
             });
     }
+}
+
+/// <summary>
+/// Request model for UpdateDecisionTreeState
+/// </summary>
+public class UpdateDecisionTreeStateRequest
+{
+    public string ComponentId { get; set; } = string.Empty;
+    public string StateKey { get; set; } = string.Empty;
+    public object? Value { get; set; }
+    public Dictionary<string, object>? Context { get; set; }
 }
 
 /// <summary>
