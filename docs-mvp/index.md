@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /guide/getting-started
+      link: /v1.0/guide/getting-started
     - theme: alt
       text: View on GitHub
       link: https://github.com/yourusername/minimact

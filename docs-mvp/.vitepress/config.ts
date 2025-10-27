@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitepress'
 
+const currentVersion = '1.0'
+
 export default defineConfig({
   title: 'Minimact',
   description: 'Server-side React for ASP.NET Core with predictive rendering',
@@ -8,72 +10,160 @@ export default defineConfig({
     logo: '/logo.png',
 
     nav: [
-      { text: 'Guide', link: '/guide/getting-started' },
-      { text: 'Use Cases', link: '/use-cases' },
-      { text: 'API Reference', link: '/api/hooks' },
-      { text: 'Examples', link: '/examples' },
+      { text: 'Guide', link: '/v1.0/guide/getting-started' },
+      { text: 'Architecture', link: '/v1.0/architecture/what-makes-minimact-different' },
+      { text: 'Use Cases', link: '/v1.0/use-cases' },
+      { text: 'API Reference', link: '/v1.0/api/hooks' },
+      { text: 'Examples', link: '/v1.0/examples' },
       {
-        text: 'v1.0',
+        text: `v${currentVersion}`,
         items: [
           {
-            text: 'Changelog',
-            link: '/changelog'
-          },
-          {
-            text: 'Release Notes',
-            link: '/releases/v1.0'
+            text: 'v1.0 (Latest)',
+            link: '/v1.0/guide/getting-started',
+            activeMatch: '/v1.0/'
           }
+          // Future versions will be added here:
+          // {
+          //   text: 'v2.0',
+          //   link: '/v2.0/guide/getting-started'
+          // }
         ]
       }
     ],
 
     sidebar: {
-      '/guide/': [
+      '/v1.0/guide/': [
         {
           text: 'Introduction',
           items: [
-            { text: 'Getting Started', link: '/guide/getting-started' },
-            { text: 'Core Concepts', link: '/guide/concepts' },
-            { text: 'Use Cases', link: '/use-cases' }
+            { text: 'Getting Started', link: '/v1.0/guide/getting-started' },
+            { text: 'Core Concepts', link: '/v1.0/guide/concepts' },
+            { text: 'Use Cases', link: '/v1.0/use-cases' }
           ]
         },
         {
           text: 'Core Features',
           items: [
-            { text: 'Predictive Rendering', link: '/guide/predictive-rendering' },
-            { text: 'Server Tasks', link: '/use-cases#server-tasks-heavy-computation' },
-            { text: 'Pagination & Data', link: '/use-cases#pagination-data-fetching' },
-            { text: 'Real-Time Communication', link: '/use-cases#real-time-communication' }
+            { text: 'Predictive Rendering', link: '/v1.0/guide/predictive-rendering' },
+            { text: 'Server Tasks', link: '/v1.0/use-cases#server-tasks-heavy-computation' },
+            { text: 'Pagination & Data', link: '/v1.0/use-cases#pagination-data-fetching' },
+            { text: 'Real-Time Communication', link: '/v1.0/use-cases#real-time-communication' }
           ]
         },
         {
           text: 'Advanced',
           items: [
-            { text: 'DOM as Data Source', link: '/use-cases#dom-as-data-source-extensions' },
-            { text: 'Performance & Scheduling', link: '/use-cases#performance-scheduling' }
+            { text: 'DOM as Data Source', link: '/v1.0/use-cases#dom-as-data-source-extensions' },
+            { text: 'Performance & Scheduling', link: '/v1.0/use-cases#performance-scheduling' }
           ]
         },
         {
           text: 'Reference',
           items: [
-            { text: 'Hooks API', link: '/api/hooks' },
-            { text: 'Examples', link: '/examples' }
+            { text: 'Hooks API', link: '/v1.0/api/hooks' },
+            { text: 'Examples', link: '/v1.0/examples' }
           ]
         }
       ],
-      '/api/': [
+      '/v1.0/api/': [
         {
           text: 'API Reference',
           items: [
-            { text: 'Hooks', link: '/api/hooks' }
+            { text: 'Hooks', link: '/v1.0/api/hooks' }
           ]
         },
         {
           text: 'Quick Links',
           items: [
-            { text: 'Use Cases', link: '/use-cases' },
-            { text: 'Examples', link: '/examples' },
-            { text: 'Getting Started', link: '/guide/getting-started' }
+            { text: 'Use Cases', link: '/v1.0/use-cases' },
+            { text: 'Examples', link: '/v1.0/examples' },
+            { text: 'Getting Started', link: '/v1.0/guide/getting-started' }
+          ]
+        }
+      ],
+      '/v1.0/use-cases': [
+        {
+          text: 'Introduction',
+          items: [
+            { text: 'Getting Started', link: '/v1.0/guide/getting-started' },
+            { text: 'Core Concepts', link: '/v1.0/guide/concepts' },
+            { text: 'Use Cases', link: '/v1.0/use-cases' }
+          ]
+        },
+        {
+          text: 'Core Features',
+          items: [
+            { text: 'Predictive Rendering', link: '/v1.0/guide/predictive-rendering' },
+            { text: 'Server Tasks', link: '/v1.0/use-cases#server-tasks-heavy-computation' },
+            { text: 'Pagination & Data', link: '/v1.0/use-cases#pagination-data-fetching' },
+            { text: 'Real-Time Communication', link: '/v1.0/use-cases#real-time-communication' }
+          ]
+        },
+        {
+          text: 'Advanced',
+          items: [
+            { text: 'DOM as Data Source', link: '/v1.0/use-cases#dom-as-data-source-extensions' },
+            { text: 'Performance & Scheduling', link: '/v1.0/use-cases#performance-scheduling' }
+          ]
+        },
+        {
+          text: 'Reference',
+          items: [
+            { text: 'Hooks API', link: '/v1.0/api/hooks' },
+            { text: 'Examples', link: '/v1.0/examples' }
+          ]
+        }
+      ],
+      '/v1.0/architecture/': [
+        {
+          text: 'Architecture & Philosophy',
+          items: [
+            { text: 'What Makes Minimact Different', link: '/v1.0/architecture/what-makes-minimact-different' },
+            { text: 'Benefits Over React', link: '/v1.0/architecture/benefits-over-react' },
+            { text: 'Predictive Rendering 101', link: '/v1.0/architecture/predictive-rendering-101' },
+            { text: 'Posthydrationist Manifesto', link: '/v1.0/architecture/posthydrationist-manifesto' }
+          ]
+        },
+        {
+          text: 'Quick Links',
+          items: [
+            { text: 'Getting Started', link: '/v1.0/guide/getting-started' },
+            { text: 'Use Cases', link: '/v1.0/use-cases' },
+            { text: 'API Reference', link: '/v1.0/api/hooks' }
+          ]
+        }
+      ],
+      '/v1.0/examples': [
+        {
+          text: 'Introduction',
+          items: [
+            { text: 'Getting Started', link: '/v1.0/guide/getting-started' },
+            { text: 'Core Concepts', link: '/v1.0/guide/concepts' },
+            { text: 'Use Cases', link: '/v1.0/use-cases' }
+          ]
+        },
+        {
+          text: 'Core Features',
+          items: [
+            { text: 'Predictive Rendering', link: '/v1.0/guide/predictive-rendering' },
+            { text: 'Server Tasks', link: '/v1.0/use-cases#server-tasks-heavy-computation' },
+            { text: 'Pagination & Data', link: '/v1.0/use-cases#pagination-data-fetching' },
+            { text: 'Real-Time Communication', link: '/v1.0/use-cases#real-time-communication' }
+          ]
+        },
+        {
+          text: 'Advanced',
+          items: [
+            { text: 'DOM as Data Source', link: '/v1.0/use-cases#dom-as-data-source-extensions' },
+            { text: 'Performance & Scheduling', link: '/v1.0/use-cases#performance-scheduling' }
+          ]
+        },
+        {
+          text: 'Reference',
+          items: [
+            { text: 'Hooks API', link: '/v1.0/api/hooks' },
+            { text: 'Examples', link: '/v1.0/examples' }
           ]
         }
       ]
