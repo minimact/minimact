@@ -31,6 +31,9 @@ namespace Minimact.CommandCenter.Rangers;
 /// </summary>
 public class BlueRanger : RangerTest
 {
+    // Blue Ranger uses Mock client with MockHub for in-memory testing
+    protected override MinimactClientFactory.ClientType ClientType => MinimactClientFactory.ClientType.Mock;
+
     public override string Name => "🔵 Blue Ranger";
     public override string Description => "Predictive rendering with HintQueue";
 
@@ -53,7 +56,7 @@ public class BlueRanger : RangerTest
     {
         // Step 1: Initialize MockHub (in-memory testing)
         report.RecordStep("Initializing MockHub for in-memory testing...");
-        var hub = new MockHub(client);
+        var hub = new MockHub(client.MockClient);
         report.AssertNotNull(hub, "MockHub created");
 
         // Step 2: Initialize a Dropdown component
@@ -63,7 +66,7 @@ public class BlueRanger : RangerTest
 
         // Step 3: Simulate initial render
         report.RecordStep("Simulating initial render (dropdown closed)...");
-        SimulateInitialRender(context);
+        SimulateInitialRender(context.MockContext);
 
         // Verify initial state
         var dropdown = client.DOM.GetElementById("dropdown-menu");
@@ -83,7 +86,7 @@ public class BlueRanger : RangerTest
         // Step 5: Test cache hit performance
         report.RecordStep("Testing cache hit performance...");
         var sw = Stopwatch.StartNew();
-        SimulateDropdownToggle(context, open: true);
+        SimulateDropdownToggle(context.MockContext, open: true);
         var cacheHitLatency = sw.Elapsed.TotalMilliseconds;
         sw.Stop();
 
@@ -109,7 +112,7 @@ public class BlueRanger : RangerTest
         // Step 7: Test cache hit again
         report.RecordStep("Testing cache hit for close...");
         sw = Stopwatch.StartNew();
-        SimulateDropdownToggle(context, open: false);
+        SimulateDropdownToggle(context.MockContext, open: false);
         var cacheHitLatency2 = sw.Elapsed.TotalMilliseconds;
         sw.Stop();
 
@@ -127,7 +130,7 @@ public class BlueRanger : RangerTest
         context.HintQueue.ClearHints("DropdownComponent");
 
         sw = Stopwatch.StartNew();
-        SimulateDropdownToggle(context, open: true);
+        SimulateDropdownToggle(context.MockContext, open: true);
         var cacheMissLatency = sw.Elapsed.TotalMilliseconds;
         sw.Stop();
 

@@ -33,6 +33,9 @@ namespace Minimact.CommandCenter.Rangers;
 /// </summary>
 public class PinkRanger : RangerTest
 {
+    // Pink Ranger uses Mock client with MockHub for performance testing
+    protected override MinimactClientFactory.ClientType ClientType => MinimactClientFactory.ClientType.Mock;
+
     public override string Name => "🩷 Pink Ranger";
     public override string Description => "Performance stress testing";
 
@@ -55,7 +58,7 @@ public class PinkRanger : RangerTest
     {
         // Step 1: Initialize MockHub
         report.RecordStep("Initializing MockHub for performance testing...");
-        var hub = new MockHub(client);
+        var hub = new MockHub(client.MockClient);
 
         // ========================================
         // Test 1: High-Frequency State Updates
@@ -63,7 +66,7 @@ public class PinkRanger : RangerTest
         report.RecordStep("Test 1: High-frequency state updates (1000 updates)...");
 
         var context = client.InitializeComponent("CounterComponent", "counter-root");
-        SimulateCounterRender(context);
+        SimulateCounterRender(context.MockContext);
 
         // Queue hint for instant updates
         context.HintQueue.QueueHint(
@@ -78,7 +81,7 @@ public class PinkRanger : RangerTest
 
         for (int i = 0; i < updateCount; i++)
         {
-            SimulateStateUpdate(context, "count", i);
+            SimulateStateUpdate(context.MockContext, "count", i);
         }
 
         sw.Stop();
@@ -101,14 +104,14 @@ public class PinkRanger : RangerTest
         report.RecordStep("Test 2: Managing 50 concurrent components...");
 
         var componentCount = 50;
-        var components = new List<ComponentContext>();
+        var components = new List<UnifiedComponentContext>();
 
         sw = Stopwatch.StartNew();
 
         for (int i = 0; i < componentCount; i++)
         {
             var comp = client.InitializeComponent($"Component{i}", $"component-{i}");
-            SimulateCounterRender(comp);
+            SimulateCounterRender(comp.MockContext);
             components.Add(comp);
         }
 
@@ -128,7 +131,7 @@ public class PinkRanger : RangerTest
 
         foreach (var comp in components)
         {
-            SimulateStateUpdate(comp, "count", 1);
+            SimulateStateUpdate(comp.MockContext, "count", 1);
         }
 
         sw.Stop();
@@ -148,7 +151,7 @@ public class PinkRanger : RangerTest
         var largeContext = client.InitializeComponent("LargeComponent", "large-root");
 
         sw = Stopwatch.StartNew();
-        SimulateLargeDOMTree(largeContext, depth: 100);
+        SimulateLargeDOMTree(largeContext.MockContext, depth: 100);
         sw.Stop();
         var largeTreeTime = sw.ElapsedMilliseconds;
 
@@ -166,7 +169,7 @@ public class PinkRanger : RangerTest
         var largePatch = CreateBulkPatches(100);
 
         sw = Stopwatch.StartNew();
-        largeContext.DOMPatcher.ApplyPatches(largeContext.Element, largePatch);
+        largeContext.DOMPatcher.ApplyPatches((MockElement)largeContext.Element, largePatch);
         sw.Stop();
         var patchTime = sw.ElapsedMilliseconds;
 
@@ -230,12 +233,12 @@ public class PinkRanger : RangerTest
         for (int i = 0; i < 100; i++)
         {
             var tempContext = client.InitializeComponent($"Temp{i}", $"temp-{i}");
-            SimulateCounterRender(tempContext);
+            SimulateCounterRender(tempContext.MockContext);
 
             // Do some work
             for (int j = 0; j < 10; j++)
             {
-                SimulateStateUpdate(tempContext, "count", j);
+                SimulateStateUpdate(tempContext.MockContext, "count", j);
             }
         }
 

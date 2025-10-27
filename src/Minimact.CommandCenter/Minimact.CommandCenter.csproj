@@ -20,6 +20,15 @@
     <!-- JSON -->
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
 
+    <!-- JavaScript Engine - ClearScript V8 -->
+    <PackageReference Include="Microsoft.ClearScript.V8" Version="7.4.5" />
+
+    <!-- HTML Parser - AngleSharp -->
+    <PackageReference Include="AngleSharp" Version="1.1.2" />
+
+    <!-- Roslyn Compiler for dynamic compilation -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+
     <!-- Testing -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.6.6" />
@@ -36,6 +45,12 @@
 
     <!-- Reference Minimact.Workers for algorithm parity -->
     <ProjectReference Include="..\Minimact.Workers\Minimact.Workers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed client runtime script as resource -->
+    <!-- Note: This file must be built first: cd src/client-runtime && npm run build -->
+    <EmbeddedResource Include="..\..\src\client-runtime\dist\minimact.js" Link="Resources\minimact.js" Condition="Exists('..\..\src\client-runtime\dist\minimact.js')" />
   </ItemGroup>
 
 </Project>

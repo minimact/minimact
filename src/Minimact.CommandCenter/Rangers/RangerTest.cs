@@ -15,8 +15,13 @@ namespace Minimact.CommandCenter.Rangers;
 /// </summary>
 public abstract class RangerTest
 {
-    protected MockClient client = null!;
+    protected UnifiedMinimactClient client = null!;
     protected TestReport report = new();
+
+    /// <summary>
+    /// Override to specify which client type to use (defaults to Real)
+    /// </summary>
+    protected virtual MinimactClientFactory.ClientType ClientType => MinimactClientFactory.ClientType.Real;
 
     // Events for GUI tracking
     public event Action<string>? OnStepStarted;
@@ -66,11 +71,12 @@ public abstract class RangerTest
     /// </summary>
     public virtual async Task SetupAsync()
     {
-        client = new MockClient();
+        client = UnifiedMinimactClient.Create(ClientType);
         report = new TestReport { RangerName = Name, ParentTest = this };
 
         Console.WriteLine($"\n{'='*60}");
         Console.WriteLine($"🦕 {Name} - ACTIVATE!");
+        Console.WriteLine($"   Client Type: {ClientType} ({(client.IsRealClient ? "V8+AngleSharp" : "Mock")})");
         Console.WriteLine($"{'='*60}");
         Console.WriteLine($"Testing: {Description}\n");
     }
