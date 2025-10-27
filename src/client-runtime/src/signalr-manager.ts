@@ -1,4 +1,4 @@
-import * as signalR from '@microsoft/signalr';
+import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr';
 import { Patch } from './types';
 import { ArrayOperation } from './hooks';
 
@@ -6,7 +6,7 @@ import { ArrayOperation } from './hooks';
  * Manages SignalR connection to the Minimact server hub
  */
 export class SignalRManager {
-  private connection: signalR.HubConnection;
+  private connection: HubConnection;
   private reconnectInterval: number;
   private debugLogging: boolean;
   private eventHandlers: Map<string, Set<Function>>;
@@ -16,12 +16,12 @@ export class SignalRManager {
     this.debugLogging = options.debugLogging || false;
     this.eventHandlers = new Map();
 
-    this.connection = new signalR.HubConnectionBuilder()
+    this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl)
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: () => this.reconnectInterval
       })
-      .configureLogging(this.debugLogging ? signalR.LogLevel.Debug : signalR.LogLevel.Warning)
+      .configureLogging(this.debugLogging ? LogLevel.Debug : LogLevel.Warning)
       .build();
 
     this.setupEventHandlers();

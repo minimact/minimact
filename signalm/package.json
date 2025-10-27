@@ -1,0 +1,46 @@
+{
+  "name": "signalm",
+  "version": "0.1.0",
+  "description": "Lightweight real-time transport for modern browsers - compatible with ASP.NET Core SignalR",
+  "main": "dist/signalm.js",
+  "module": "dist/signalm.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "signalr",
+    "websocket",
+    "real-time",
+    "aspnetcore",
+    "dotnet",
+    "lightweight",
+    "minimact"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minimact/signalm"
+  },
+  "bugs": {
+    "url": "https://github.com/minimact/signalm/issues"
+  },
+  "homepage": "https://github.com/minimact/signalm#readme",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rollup": "^4.9.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.3.3"
+  }
+}
