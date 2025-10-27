@@ -3,6 +3,7 @@ import { DOMPatcher } from './dom-patcher';
 import { PlaygroundBridge } from './playground-bridge';
 import { SignalRManager } from './signalr-manager';
 import { templateState } from './template-state';
+import { ServerTask, ServerTaskImpl, ServerTaskOptions } from './server-task';
 
 /**
  * Component instance context for hooks
@@ -14,6 +15,7 @@ interface ComponentContext {
   effects: Array<{ callback: () => void | (() => void), deps: any[] | undefined, cleanup?: () => void }>;
   refs: Map<string, { current: any }>;
   domElementStates?: Map<string, any>; // For minimact-punch integration
+  serverTasks?: Map<string, ServerTaskImpl<any>>; // For useServerTask integration
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
@@ -25,6 +27,7 @@ let currentContext: ComponentContext | null = null;
 let stateIndex = 0;
 let effectIndex = 0;
 let refIndex = 0;
+let serverTaskIndex = 0;
 
 /**
  * Set the current component context (called before render)
@@ -34,6 +37,7 @@ export function setComponentContext(context: ComponentContext): void {
   stateIndex = 0;
   effectIndex = 0;
   refIndex = 0;
+  serverTaskIndex = 0;
 }
 
 /**
@@ -449,4 +453,56 @@ function createArrayStateSetter<T>(
   };
 
   return setter as ArrayStateSetter<T>;
+}
+
+/**
+ * useServerTask - Execute long-running operations on the server with reactive client state
+ *
+ * @param taskFactory - Optional async function (will be transpiled to C# by Babel plugin)
+ * @param options - Configuration options for the server task
+ * @returns ServerTask interface with status, result, and control methods
+ *
+ * @example
+ * const analysis = useServerTask(async () => {
+ *   // This code runs on the SERVER (transpiled to C#)
+ *   const data = await fetchData();
+ *   return processData(data);
+ * });
+ *
+ * // In JSX:
+ * <button onClick={analysis.start}>Start</button>
+ * {analysis.running && <Spinner />}
+ * {analysis.complete && <div>{analysis.result}</div>}
+ */
+export function useServerTask<T>(
+  taskFactory?: () => Promise<T>,
+  options: ServerTaskOptions = {}
+): ServerTask<T> {
+  if (!currentContext) {
+    throw new Error('useServerTask must be called within a component render');
+  }
+
+  const context = currentContext;
+  const index = serverTaskIndex++;
+  const taskKey = `serverTask_${index}`;
+
+  // Initialize serverTasks map if not exists
+  if (!context.serverTasks) {
+    context.serverTasks = new Map();
+  }
+
+  // Get or create server task instance
+  if (!context.serverTasks.has(taskKey)) {
+    const task = new ServerTaskImpl<T>(
+      taskKey,
+      context.componentId,
+      context.signalR,
+      context,
+      options
+    );
+
+    context.serverTasks.set(taskKey, task);
+  }
+
+  return context.serverTasks.get(taskKey)!;
 }

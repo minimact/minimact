@@ -318,8 +318,11 @@ export type { Template, TemplateMap } from './template-state';
 export { TemplateRenderer } from './template-renderer';
 
 // Core hooks
-export { useState, useEffect, useRef, setComponentContext, clearComponentContext } from './hooks';
+export { useState, useEffect, useRef, useServerTask, setComponentContext, clearComponentContext } from './hooks';
 export type { ComponentContext } from './hooks';
+
+// Server task types
+export type { ServerTask, ServerTaskOptions, ServerTaskStatus } from './server-task';
 
 // Pub/Sub hooks
 export { usePub, useSub } from './pub-sub';
