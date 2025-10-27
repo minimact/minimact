@@ -19,5 +19,21 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Start playing Zordon video when window loads
+        Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Start playing Zordon video
+        ZordonVideo.Play();
+    }
+
+    private void ZordonVideo_MediaEnded(object sender, RoutedEventArgs e)
+    {
+        // Loop the video
+        ZordonVideo.Position = TimeSpan.Zero;
+        ZordonVideo.Play();
     }
 }

@@ -53,4 +53,9 @@
     <EmbeddedResource Include="..\..\src\client-runtime\dist\minimact.js" Link="Resources\minimact.js" Condition="Exists('..\..\src\client-runtime\dist\minimact.js')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Include Zordon video as content -->
+    <Content Include="..\..\zordon.mp4" Link="Resources\zordon.mp4" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

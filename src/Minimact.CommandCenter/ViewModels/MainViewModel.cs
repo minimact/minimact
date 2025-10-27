@@ -68,21 +68,51 @@ public partial class MainViewModel : ObservableObject
         AvailableRangers.Add(new RangerInfo
         {
             Name = "Blue Ranger",
-            Description = "Predictive rendering test (coming soon)",
+            Description = "Predictive rendering test",
             Color = "#1E90FF",
             Emoji = "🔵",
-            TestType = null,
-            IsEnabled = false
+            TestType = typeof(BlueRanger),
+            IsEnabled = true
         });
 
         AvailableRangers.Add(new RangerInfo
         {
             Name = "Pink Ranger",
-            Description = "Performance stress test (coming soon)",
+            Description = "Performance stress test",
             Color = "#FF69B4",
             Emoji = "🩷",
-            TestType = null,
-            IsEnabled = false
+            TestType = typeof(PinkRanger),
+            IsEnabled = true
+        });
+
+        AvailableRangers.Add(new RangerInfo
+        {
+            Name = "Lavender Ranger",
+            Description = "Minimact-Punch Extension (useDomElementState)",
+            Color = "#E6E6FA",
+            Emoji = "🪻",
+            TestType = typeof(LavenderRanger),
+            IsEnabled = true
+        });
+
+        AvailableRangers.Add(new RangerInfo
+        {
+            Name = "Turquoise Ranger",
+            Description = "Minimact-Query Extension (useDomQuery - SQL for DOM)",
+            Color = "#40E0D0",
+            Emoji = "🩵",
+            TestType = typeof(TurquoiseRanger),
+            IsEnabled = true
+        });
+
+        AvailableRangers.Add(new RangerInfo
+        {
+            Name = "Diamond Ranger",
+            Description = "Template Prediction System (All 9 Phases)",
+            Color = "#B9F2FF",
+            Emoji = "💎",
+            TestType = typeof(DiamondRanger),
+            IsEnabled = true
         });
     }
 

@@ -85,16 +85,36 @@
         <Border Grid.Row="0" Background="#007ACC" Padding="15">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Zordon Video -->
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
+                <!-- Zordon Video -->
+                <Border Grid.Column="0"
+                        Width="120"
+                        Height="90"
+                        CornerRadius="10"
+                        BorderBrush="#FFD700"
+                        BorderThickness="3"
+                        Margin="0,0,15,0"
+                        Background="Black">
+                    <MediaElement Name="ZordonVideo"
+                                  Source="Resources/zordon.mp4"
+                                  LoadedBehavior="Manual"
+                                  UnloadedBehavior="Stop"
+                                  Stretch="UniformToFill"
+                                  MediaEnded="ZordonVideo_MediaEnded"
+                                  IsMuted="False"
+                                  Volume="0.5"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="Minimact Command Center" FontSize="24" FontWeight="Bold" Foreground="White"/>
                     <TextBlock Text="🦕 It's Morphin' Time! - Testing Hub for Minimact Core &amp; Punch" FontSize="12" Foreground="#E0E0E0" Margin="0,5,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="🧹 Clear History"
                             Command="{Binding ClearHistoryCommand}"
                             Style="{StaticResource RangerButton}"
