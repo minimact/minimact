@@ -122,6 +122,7 @@ export default defineConfig({
             { text: 'What Makes Minimact Different', link: '/v1.0/architecture/what-makes-minimact-different' },
             { text: 'Benefits Over React', link: '/v1.0/architecture/benefits-over-react' },
             { text: 'Predictive Rendering 101', link: '/v1.0/architecture/predictive-rendering-101' },
+            { text: 'Client Stack Overview', link: '/v1.0/architecture/client-stack' },
             { text: 'Posthydrationist Manifesto', link: '/v1.0/architecture/posthydrationist-manifesto' }
           ]
         },
@@ -170,7 +171,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/yourusername/minimact' }
+      { icon: 'github', link: 'https://github.com/minimact/minimact' }
     ],
 
     footer: {

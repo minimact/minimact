@@ -14,7 +14,7 @@ hero:
       link: /v1.0/guide/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/yourusername/minimact
+      link: https://github.com/minimact/minimact
 
 features:
   - icon: 🦕
@@ -45,35 +45,51 @@ features:
 ## Quick Start
 
 ```bash
-# Install via NuGet
-dotnet add package Minimact.AspNetCore
+# Install the .NET tool
+dotnet tool install -g minimact
 
-# Or clone the repository
-git clone https://github.com/yourusername/minimact.git
+# Create new ASP.NET project with Minimact
+dotnet minimact new MyApp
+cd MyApp
+
+# Install client dependencies
+cd client
+npm install
+
+# Start dev mode (watches TSX, transpiles to C#, runs server)
+npm run dev
 ```
 
 ## Example
 
-```csharp
-public class CounterComponent : MinimactComponent
-{
-    private int count = 0;
+Write familiar React code:
 
-    protected override string Render()
-    {
-        return $@"
-            <div>
-                <h1>Count: {count}</h1>
-                <button onclick='increment'>Increment</button>
-            </div>
-        ";
-    }
+```tsx
+import { useState } from 'minimact';
 
-    [ServerMethod]
-    public void Increment()
-    {
-        count++;
-        StateHasChanged();
-    }
+export function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Count: {count}
+    </button>
+  );
 }
 ```
+
+Babel transpiles to C#, Rust predicts the next state, and the client applies cached patches instantly (~2-3ms).
+
+## Why Minimact?
+
+### For React Developers
+**Finally, a path to .NET without learning Razor.** Keep writing React — get ASP.NET Core's power, security, and enterprise features.
+
+### For .NET Teams
+**Modern frontend DX without abandoning your stack.** Your team already knows C# and EF Core. Now they can build UIs with React syntax.
+
+### For CTOs
+**Solve the "React DX + .NET backend" problem.** One stack, one deployment, full type safety from database to DOM. Rust-powered performance makes ASP.NET Core shine (2-3ms interactions vs 47ms traditional SSR).
+
+### Better Than Blazor
+Blazor requires learning Razor syntax. Minimact uses React — the syntax millions of developers already know. Lower barrier, faster adoption, bigger talent pool.

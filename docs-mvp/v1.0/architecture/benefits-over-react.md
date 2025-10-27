@@ -469,6 +469,83 @@ import { useQuery } from '@tanstack/react-query'; // ❌ Use useServerTask
 
 **Philosophy:** Use libraries for their intended runtime (server or client).
 
+## Who Is Minimact For?
+
+### React Developers → .NET Pipeline
+
+**The Bridge Microsoft Has Been Trying to Build for Years**
+
+Millions of React developers want to use .NET for its:
+- Enterprise features (EF Core, Identity, Authorization)
+- Type safety (C# across the stack)
+- Azure integration
+- Corporate support
+
+But they don't want to learn Razor syntax. **Minimact solves this.**
+
+```tsx
+// Write this (React syntax you know)
+export function Dashboard() {
+  const [users] = useServerTask(async () => {
+    return await db.Users.Include(u => u.Orders).ToListAsync();
+  });
+
+  return <UserTable users={users} />;
+}
+
+// Get EF Core, C#, and .NET — without learning Blazor
+```
+
+### .NET Teams → Modern Frontend DX
+
+**Blazor Forces a Choice: Learn Razor or Stick with MVC**
+
+Your team already knows:
+- C# and LINQ
+- EF Core and migrations
+- ASP.NET Core middleware
+- Dependency injection
+
+They shouldn't need to learn a new syntax for the frontend. **Minimact uses React.**
+
+**Result:** Your .NET developers can build modern UIs with the syntax the entire industry uses.
+
+### CTOs → The "React DX + .NET Backend" Problem Solved
+
+**One Stack. One Deployment. Full Type Safety.**
+
+```
+Traditional Split Stack:
+├── Frontend: Next.js (Node.js, Vercel, TypeScript)
+├── Backend: ASP.NET Core (.NET, Azure, C#)
+├── Two deployments, two languages, coordination overhead
+└── API boundary = type safety gap
+
+Minimact Unified Stack:
+├── Components: React TSX → Transpiled to C#
+├── Server: ASP.NET Core (.NET, Azure, C#)
+├── Client: ~5KB runtime (predictive patches)
+├── One deployment, one language, end-to-end types
+└── No API boundary = no type safety gap
+```
+
+**Bonus:** Rust-powered performance (2-3ms interactions) makes ASP.NET Core look **fast**.
+
+### Better Than Blazor
+
+| Aspect | Blazor | Minimact |
+|--------|--------|----------|
+| **Syntax** | Razor (C#) | React JSX/TSX |
+| **Learning Curve** | High (new syntax) | Low (React is standard) |
+| **Talent Pool** | .NET developers only | React + .NET developers |
+| **Adoption Barrier** | Must learn Razor | Already know React |
+| **Prediction** | ❌ None | ✅ 95-98% coverage |
+| **Bundle Size** | ~300KB | ~5KB |
+
+**Key Insight:** React syntax is the universal language of frontend development. Minimact brings that to .NET.
+
+---
+
 ## TL;DR
 
 | Aspect | React | Minimact |
