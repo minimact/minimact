@@ -589,4 +589,155 @@ public class MinimactHub : Hub
             throw;
         }
     }
+
+    #region Server Tasks (useServerTask support)
+
+    /// <summary>
+    /// Start a server task
+    /// </summary>
+    public async Task StartServerTask(string componentId, string taskId, object[]? args = null)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Use reflection to call GetServerTask<T> with the correct type
+            var method = component.GetType()
+                .GetMethod("GetServerTask", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            if (method == null)
+            {
+                await Clients.Caller.SendAsync("Error", "GetServerTask method not found");
+                return;
+            }
+
+            // Find the task method to get return type
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                await Clients.Caller.SendAsync("Error", $"No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            // Get the task state
+            var genericMethod = method.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            // Start the task
+            await taskState.Start(args ?? Array.Empty<object>());
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error starting task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Retry a failed server task
+    /// </summary>
+    public async Task RetryServerTask(string componentId, string taskId, object[]? args = null)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            var method = component.GetType()
+                .GetMethod("GetServerTask", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                await Clients.Caller.SendAsync("Error", $"No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            var genericMethod = method!.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            await taskState.Retry(args ?? Array.Empty<object>());
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error retrying task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Cancel a running server task
+    /// </summary>
+    public async Task CancelServerTask(string componentId, string taskId)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            var method = component.GetType()
+                .GetMethod("GetServerTask", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                await Clients.Caller.SendAsync("Error", $"No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            var genericMethod = method!.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            taskState.Cancel();
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error cancelling task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Find method with [ServerTask] attribute by task ID
+    /// </summary>
+    private MethodInfo? FindTaskMethod(MinimactComponent component, string taskId)
+    {
+        return component.GetType()
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(m =>
+            {
+                var attr = m.GetCustomAttribute<ServerTaskAttribute>();
+                return attr != null && attr.TaskId == taskId;
+            });
+    }
+
+    #endregion
 }

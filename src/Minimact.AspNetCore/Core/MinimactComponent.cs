@@ -1,5 +1,6 @@
 using Minimact.AspNetCore.DynamicState;
 using Minimact.AspNetCore.Abstractions;
+using System.Reflection;
 
 namespace Minimact.AspNetCore.Core;
 
@@ -647,4 +648,134 @@ public abstract class MinimactComponent
 
         return metadata;
     }
+
+    #region Server Tasks (useServerTask support)
+
+    /// <summary>
+    /// Server task instances for this component
+    /// </summary>
+    private readonly Dictionary<string, object> _serverTasks = new();
+
+    /// <summary>
+    /// Get or create a server task by ID
+    /// </summary>
+    protected ServerTaskState<T> GetServerTask<T>(string taskId)
+    {
+        if (!_serverTasks.ContainsKey(taskId))
+        {
+            // Find method with [ServerTask(taskId)] attribute
+            var method = FindServerTaskMethod(taskId);
+            if (method == null)
+            {
+                throw new InvalidOperationException($"No method found with [ServerTask(\"{taskId}\")]");
+            }
+
+            // Create task state with factory that invokes the method
+            var taskState = new ServerTaskState<T>(
+                taskId,
+                (progress, cancellationToken) =>
+                {
+                    // Invoke the method with progress and cancellation token
+                    var parameters = new List<object>();
+                    foreach (var param in method.GetParameters())
+                    {
+                        if (param.ParameterType == typeof(IProgress<double>))
+                            parameters.Add(progress);
+                        else if (param.ParameterType == typeof(CancellationToken))
+                            parameters.Add(cancellationToken);
+                    }
+
+                    var result = method.Invoke(this, parameters.ToArray());
+                    if (result is Task<T> taskResult)
+                    {
+                        return taskResult;
+                    }
+
+                    throw new InvalidOperationException($"Method {method.Name} must return Task<{typeof(T).Name}>");
+                },
+                this
+            );
+
+            _serverTasks[taskId] = taskState;
+        }
+
+        return (ServerTaskState<T>)_serverTasks[taskId];
+    }
+
+    /// <summary>
+    /// Find method with [ServerTask] attribute by task ID
+    /// </summary>
+    private System.Reflection.MethodInfo? FindServerTaskMethod(string taskId)
+    {
+        return GetType()
+            .GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .FirstOrDefault(m =>
+            {
+                var attr = m.GetCustomAttribute<ServerTaskAttribute>();
+                return attr != null && attr.TaskId == taskId;
+            });
+    }
+
+    /// <summary>
+    /// Get task state for client serialization
+    /// </summary>
+    internal object? GetServerTaskState(string taskId)
+    {
+        if (!_serverTasks.ContainsKey(taskId))
+        {
+            return new
+            {
+                taskId,
+                status = "idle",
+                progress = 0.0,
+                result = (object?)null,
+                error = (string?)null,
+                startedAt = (DateTime?)null,
+                completedAt = (DateTime?)null,
+                duration = (double?)null
+            };
+        }
+
+        var task = _serverTasks[taskId];
+        var taskType = task.GetType();
+
+        // Use reflection to call GetStateForClient
+        var method = taskType.GetMethod("GetStateForClient");
+        if (method != null)
+        {
+            return method.Invoke(task, null);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get all server task states for this component
+    /// </summary>
+    internal Dictionary<string, object> GetAllServerTaskStates()
+    {
+        var states = new Dictionary<string, object>();
+
+        // Get all methods with [ServerTask] attribute
+        var taskMethods = GetType()
+            .GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .Where(m => m.GetCustomAttribute<ServerTaskAttribute>() != null);
+
+        foreach (var method in taskMethods)
+        {
+            var attr = method.GetCustomAttribute<ServerTaskAttribute>();
+            if (attr != null)
+            {
+                var state = GetServerTaskState(attr.TaskId);
+                if (state != null)
+                {
+                    states[attr.TaskId] = state;
+                }
+            }
+        }
+
+        return states;
+    }
+
+    #endregion
 }
