@@ -324,6 +324,10 @@ export type { ComponentContext } from './hooks';
 // Server task types
 export type { ServerTask, ServerTaskOptions, ServerTaskStatus } from './server-task';
 
+// Paginated server task
+export { usePaginatedServerTask } from './usePaginatedServerTask';
+export type { PaginatedServerTask, PaginatedServerTaskOptions, PaginationParams } from './usePaginatedServerTask';
+
 // Pub/Sub hooks
 export { usePub, useSub } from './pub-sub';
 export type { PubSubMessage } from './pub-sub';

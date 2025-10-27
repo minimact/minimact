@@ -1150,6 +1150,9 @@ function extractHook$1(path, component) {
     case 'useServerTask':
       extractUseServerTask(path, component);
       break;
+    case 'usePaginatedServerTask':
+      extractUsePaginatedServerTask(path, component);
+      break;
   }
 }
 
@@ -1510,6 +1513,8 @@ function extractUseServerTask(path, component) {
   // Extract options
   let streamingEnabled = isStreaming;
   let estimatedChunks = null;
+  let runtime = 'csharp'; // Default to C#
+  let parallel = false;
 
   if (options && t$a.isObjectExpression(options)) {
     for (const prop of options.properties) {
@@ -1519,6 +1524,12 @@ function extractUseServerTask(path, component) {
         }
         if (prop.key.name === 'estimatedChunks' && t$a.isNumericLiteral(prop.value)) {
           estimatedChunks = prop.value.value;
+        }
+        if (prop.key.name === 'runtime' && t$a.isStringLiteral(prop.value)) {
+          runtime = prop.value.value; // 'csharp' | 'rust' | 'auto'
+        }
+        if (prop.key.name === 'parallel' && t$a.isBooleanLiteral(prop.value)) {
+          parallel = prop.value.value;
         }
       }
     }
@@ -1534,7 +1545,126 @@ function extractUseServerTask(path, component) {
     parameters: parameters,
     isStreaming: streamingEnabled,
     estimatedChunks: estimatedChunks,
-    returnType: extractReturnType(asyncFunction)
+    returnType: extractReturnType(asyncFunction),
+    runtime: runtime, // 'csharp' | 'rust' | 'auto'
+    parallel: parallel // Enable Rayon parallel processing
+  });
+}
+
+/**
+ * Extract usePaginatedServerTask hook
+ *
+ * Detects: const users = usePaginatedServerTask(async ({ page, pageSize, filters }) => { ... }, options)
+ * Generates TWO server tasks:
+ *   1. Fetch task (with page params)
+ *   2. Count task (from getTotalCount option)
+ */
+function extractUsePaginatedServerTask(path, component) {
+  const parent = path.parent;
+
+  if (!t$a.isVariableDeclarator(parent)) return;
+
+  const taskName = parent.id.name;
+  const fetchFunction = path.node.arguments[0];
+  const options = path.node.arguments[1];
+
+  // Validate fetch function
+  if (!fetchFunction || (!t$a.isArrowFunctionExpression(fetchFunction) && !t$a.isFunctionExpression(fetchFunction))) {
+    console.warn('[usePaginatedServerTask] First argument must be an async function');
+    return;
+  }
+
+  if (!fetchFunction.async) {
+    console.warn('[usePaginatedServerTask] Function must be async');
+    return;
+  }
+
+  // Extract fetch function parameters
+  // Expected: ({ page, pageSize, filters }: PaginationParams<TFilter>) => Promise<T[]>
+  const parameters = [
+    { name: 'page', type: 'int' },
+    { name: 'pageSize', type: 'int' },
+    { name: 'filters', type: 'object' }
+  ];
+
+  // Extract options
+  let runtime = 'csharp'; // Default to C#
+  let parallel = false;
+  let pageSize = 20;
+  let getTotalCountFn = null;
+
+  if (options && t$a.isObjectExpression(options)) {
+    for (const prop of options.properties) {
+      if (t$a.isObjectProperty(prop) && t$a.isIdentifier(prop.key)) {
+        if (prop.key.name === 'runtime' && t$a.isStringLiteral(prop.value)) {
+          runtime = prop.value.value;
+        }
+        if (prop.key.name === 'parallel' && t$a.isBooleanLiteral(prop.value)) {
+          parallel = prop.value.value;
+        }
+        if (prop.key.name === 'pageSize' && t$a.isNumericLiteral(prop.value)) {
+          pageSize = prop.value.value;
+        }
+        if (prop.key.name === 'getTotalCount') {
+          getTotalCountFn = prop.value;
+        }
+      }
+    }
+  }
+
+  // Initialize component.useServerTask if needed
+  component.useServerTask = component.useServerTask || [];
+  component.paginatedTasks = component.paginatedTasks || [];
+
+  // 1. Add fetch task
+  const fetchTaskName = `${taskName}_fetch`;
+  component.useServerTask.push({
+    name: fetchTaskName,
+    asyncFunction: fetchFunction,
+    parameters: parameters,
+    isStreaming: false,
+    estimatedChunks: null,
+    returnType: 'List<object>', // Will be refined by type inference
+    runtime: runtime,
+    parallel: parallel
+  });
+
+  // 2. Add count task (if getTotalCount provided)
+  let countTaskName = null;
+  if (getTotalCountFn && (t$a.isArrowFunctionExpression(getTotalCountFn) || t$a.isFunctionExpression(getTotalCountFn))) {
+    countTaskName = `${taskName}_count`;
+
+    const countParameters = [
+      { name: 'filters', type: 'object' }
+    ];
+
+    component.useServerTask.push({
+      name: countTaskName,
+      asyncFunction: getTotalCountFn,
+      parameters: countParameters,
+      isStreaming: false,
+      estimatedChunks: null,
+      returnType: 'int',
+      runtime: runtime,
+      parallel: false // Count queries don't need parallelization
+    });
+  }
+
+  // Store pagination metadata
+  component.paginatedTasks.push({
+    name: taskName,
+    fetchTaskName: fetchTaskName,
+    countTaskName: countTaskName,
+    pageSize: pageSize,
+    runtime: runtime,
+    parallel: parallel
+  });
+
+  console.log(`[usePaginatedServerTask] Extracted pagination tasks for '${taskName}':`, {
+    fetch: fetchTaskName,
+    count: countTaskName,
+    runtime,
+    parallel
   });
 }
 

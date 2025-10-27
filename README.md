@@ -273,6 +273,117 @@ function Dashboard() {
 
 Built-in templates: `DefaultLayout`, `SidebarLayout`, `AuthLayout`, `AdminLayout`
 
+### ⚡ Server Tasks - TypeScript → Multi-Runtime Execution
+
+**Write TypeScript once. Execute on C# or Rust. Zero developer effort.**
+
+`useServerTask` enables you to write server-side async tasks in pure TypeScript that execute on either C# async Tasks or native Rust code with automatic transpilation:
+
+```typescript
+// Write TypeScript with familiar syntax
+const crunch = useServerTask(async (numbers: number[]) => {
+  return numbers
+    .map(x => x * x)
+    .filter(x => x > 100)
+    .reduce((sum, x) => sum + x, 0);
+}, { runtime: 'rust' }); // ← Choose your runtime!
+
+// Babel automatically generates idiomatic Rust:
+// numbers.iter().map(|x| x * x).filter(|x| x > 100).fold(0, |sum, x| sum + x)
+// Executes at native speed on Tokio runtime
+
+// Use in your component
+<button onClick={() => crunch.start([1, 2, 3, 4, 5])}>
+  Crunch Numbers
+</button>
+
+{crunch.status === 'running' && <Spinner />}
+{crunch.status === 'complete' && <p>Result: {crunch.result}</p>}
+```
+
+**Features:**
+- ✅ **TypeScript → C#/Rust transpilation** - Write once, execute anywhere
+- ✅ **Runtime selection** - `runtime: 'csharp'` or `runtime: 'rust'`
+- ✅ **Reactive state** - Auto re-renders on status/progress changes
+- ✅ **Promise support** - `await task.promise`
+- ✅ **Progress reporting** - Built-in progress tracking
+- ✅ **Streaming support** - For large datasets with chunked results
+- ✅ **10-100x performance** - Rust execution for CPU-intensive workloads
+
+**When to use each runtime:**
+
+| Use C# Runtime | Use Rust Runtime |
+|----------------|------------------|
+| Database queries (EF Core) | Large dataset transformations |
+| ASP.NET ecosystem | CPU-intensive computation |
+| .NET library dependencies | Real-time processing |
+| Simple business logic | Parallel workloads (multi-core) |
+| Rapid prototyping | Memory-constrained environments |
+
+**Example: Database Query (C#)**
+```typescript
+const users = useServerTask(async () => {
+  return await db.Users.Where(u => u.Active).ToListAsync();
+});
+```
+
+**Example: Heavy Processing (Rust)**
+```typescript
+const analysis = useServerTask(async (data: number[]) => {
+  return analyzeUserBehavior(data); // Complex math
+}, { runtime: 'rust', parallel: true }); // ALL THE CORES!
+```
+
+### 📄 Pagination Made Trivial
+
+**usePaginatedServerTask** builds on `useServerTask` to provide server-side pagination with zero boilerplate:
+
+```typescript
+const users = usePaginatedServerTask(
+  async ({ page, pageSize, filters }) => {
+    return await db.users
+      .where(u => filters.role ? u.role === filters.role : true)
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .toList();
+  },
+  {
+    pageSize: 20,
+    getTotalCount: async (filters) => {
+      return await db.users
+        .where(u => filters.role ? u.role === filters.role : true)
+        .count();
+    },
+    prefetchNext: true,
+    runtime: 'rust', // ← Works with Rust too!
+    dependencies: [filters]
+  }
+);
+
+// Use it in your component
+<ul>
+  {users.items.map(user => <li key={user.id}>{user.name}</li>)}
+</ul>
+
+<div>
+  <button onClick={users.prev} disabled={!users.hasPrev}>Previous</button>
+  <span>Page {users.page} of {users.totalPages}</span>
+  <button onClick={users.next} disabled={!users.hasNext}>Next</button>
+</div>
+
+{users.pending && <Spinner />}
+```
+
+**Features:**
+- ✅ **Automatic TypeScript → C#/Rust transpilation** - Reuses `useServerTask` infrastructure
+- ✅ **Smart prefetching** - Next page ready before user clicks
+- ✅ **Dependency tracking** - Re-fetch when filters change
+- ✅ **Runtime selection** - C# for databases, Rust for heavy processing
+- ✅ **Cache management** - Intelligent client-side caching
+- ✅ **Type-safe** - Full TypeScript inference
+
+**The secret:** `usePaginatedServerTask` is just a thin wrapper around `useServerTask`. It generates TWO server tasks (fetch + count), both transpiled to your chosen runtime. You get all the power of `useServerTask` (progress, errors, cancellation, etc.) with a pagination-specific API.
+
 ### 🎯 Zero-Cost Semantic Hooks
 
 High-level abstractions that compile away:
