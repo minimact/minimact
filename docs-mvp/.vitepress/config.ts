@@ -5,6 +5,7 @@ const currentVersion = '1.0'
 export default defineConfig({
   title: 'Minimact',
   description: 'Server-side React for ASP.NET Core with predictive rendering',
+  ignoreDeadLinks: true,
 
   themeConfig: {
     logo: '/logo.png',

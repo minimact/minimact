@@ -321,6 +321,10 @@ export { TemplateRenderer } from './template-renderer';
 export { useState, useEffect, useRef, useServerTask, setComponentContext, clearComponentContext } from './hooks';
 export type { ComponentContext } from './hooks';
 
+// useComputed hook (for client-side computation with browser APIs/libraries)
+export { useComputed } from './useComputed';
+export type { UseComputedOptions } from './useComputed';
+
 // Context hooks
 export { createContext, useContext, setContextHookContext, clearContextHookContext } from './useContext';
 export type { Context, ContextOptions } from './useContext';

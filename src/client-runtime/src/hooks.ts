@@ -4,6 +4,7 @@ import { PlaygroundBridge } from './playground-bridge';
 import { SignalRManager } from './signalr-manager';
 import { templateState } from './template-state';
 import { ServerTask, ServerTaskImpl, ServerTaskOptions } from './server-task';
+import { setComputedContext } from './useComputed';
 
 /**
  * Component instance context for hooks
@@ -16,6 +17,7 @@ interface ComponentContext {
   refs: Map<string, { current: any }>;
   domElementStates?: Map<string, any>; // For minimact-punch integration
   serverTasks?: Map<string, ServerTaskImpl<any>>; // For useServerTask integration
+  computedValues?: Map<string, any>; // For useComputed integration
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
@@ -38,6 +40,9 @@ export function setComponentContext(context: ComponentContext): void {
   effectIndex = 0;
   refIndex = 0;
   serverTaskIndex = 0;
+
+  // Reset computed index for useComputed hook
+  setComputedContext(context);
 }
 
 /**

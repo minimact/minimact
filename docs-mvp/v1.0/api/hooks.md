@@ -114,6 +114,383 @@ private int countRef = 0;
 private VNode? elementRef = null;
 ```
 
+### useComputed
+
+**Client-side computation with server-side rendering.** Compute values on the client using browser-only APIs or external libraries, then sync results to the server for rendering.
+
+This hook embodies Minimact's **dehydrationist architecture**: the client computes, but the server still does ALL rendering.
+
+#### Why useComputed?
+
+Sometimes you need browser-only APIs or libraries:
+- **lodash/moment** — Heavy libraries you don't want on the server
+- **Geolocation API** — `navigator.geolocation`
+- **Web Crypto API** — `crypto.subtle.encrypt()`
+- **Canvas/WebGL** — Graphics computations
+- **IndexedDB** — Client-side database queries
+
+**useComputed** lets you use these on the client, then sync results to the server for rendering.
+
+#### Basic Usage
+
+```tsx
+import { useComputed } from 'minimact';
+
+function UserList({ users }) {
+  // Compute on client using lodash
+  const sortedUsers = useComputed('sortedUsers', () => {
+    return _.sortBy(users, 'name');
+  }, [users]);
+
+  return (
+    <ul>
+      {sortedUsers.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**How it works:**
+1. Client runs `_.sortBy(users, 'name')`
+2. Result syncs to server via SignalR (`UpdateClientComputedState`)
+3. Server accesses value via `GetClientState<User[]>('sortedUsers')`
+4. Server renders `<li>` elements with sorted data
+
+#### Async Computations
+
+useComputed supports promises for async operations:
+
+```tsx
+function LocationMap() {
+  const location = useComputed('location', async () => {
+    const pos = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+    return {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude
+    };
+  }, []);
+
+  if (!location) return <div>Getting location...</div>;
+
+  return <Map center={location} />;
+}
+```
+
+#### Memoization & Caching
+
+By default, useComputed **memoizes** results to avoid unnecessary recomputation:
+
+```tsx
+const result = useComputed('result', () => {
+  console.log('Computing...');
+  return expensiveComputation(data);
+}, [data], {
+  memoize: true,    // Default: true
+  expiry: 5000      // Cache expires after 5 seconds
+});
+```
+
+**Without expiry:** Value is cached until dependencies change
+**With expiry:** Value recomputes after N milliseconds, even if deps haven't changed
+
+#### Debounce & Throttle
+
+Control how often results sync to the server:
+
+```tsx
+// Debounce: Wait 300ms after last change before syncing
+const filtered = useComputed('filtered', () => {
+  return items.filter(item => item.name.includes(searchTerm));
+}, [items, searchTerm], {
+  debounce: 300  // Wait for user to stop typing
+});
+
+// Throttle: Sync at most once every 1000ms
+const position = useComputed('position', () => {
+  return { x: mouseX, y: mouseY };
+}, [mouseX, mouseY], {
+  throttle: 1000  // Max once per second
+});
+```
+
+#### Initial Values
+
+Provide an initial value to avoid `null` on first render:
+
+```tsx
+const total = useComputed('total', () => {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}, [items], {
+  initialValue: 0  // Show 0 instead of null initially
+});
+```
+
+#### Complete Example: Client-Side Crypto
+
+```tsx
+import { useComputed, useState } from 'minimact';
+
+function SecureForm() {
+  const [password, setPassword] = useState('');
+
+  // Hash password on client using Web Crypto API
+  const hashedPassword = useComputed('hashedPassword', async () => {
+    if (!password) return null;
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }, [password], {
+    debounce: 500  // Wait for user to stop typing
+  });
+
+  const handleSubmit = async () => {
+    // Server receives hashedPassword via GetClientState<string>('hashedPassword')
+    await fetch('/api/register', {
+      method: 'POST',
+      body: JSON.stringify({ hashedPassword })
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      {hashedPassword && (
+        <div className="hash-preview">
+          Hash: {hashedPassword.substring(0, 16)}...
+        </div>
+      )}
+      <button type="submit">Register</button>
+    </form>
+  );
+}
+```
+
+#### Server-Side Access
+
+On the server, access computed values via `GetClientState<T>()`:
+
+```csharp
+public class SecureForm : MinimactComponent
+{
+    protected override VNode Render()
+    {
+        var hashedPassword = GetClientState<string>("hashedPassword");
+
+        // Render form with hashed password preview
+        return new VElement("form", new Dictionary<string, string>
+        {
+            { "onSubmit", "handleSubmit" }
+        }, /* ... */);
+    }
+
+    private async Task HandleSubmit()
+    {
+        var hashedPassword = GetClientState<string>("hashedPassword");
+        // Use hashedPassword for registration
+    }
+}
+```
+
+#### Performance Characteristics
+
+- **Memoization:** Avoids recomputation when deps unchanged
+- **Debounce/Throttle:** Reduces network traffic to server
+- **Expiry:** Automatic cache invalidation for time-sensitive data
+- **Async support:** Non-blocking computations with promises
+
+#### When to Use useComputed
+
+✅ **Use when you need:**
+- Browser-only APIs (geolocation, crypto, canvas)
+- Heavy client-side libraries (lodash, moment, d3)
+- Client-computed values for server rendering
+
+❌ **Don't use when:**
+- You can compute on the server (just use regular code)
+- You need pure client-side state (use `useState` on client)
+- The computation is trivial (no need for caching/memoization)
+
+#### vs React's useMemo
+
+React's `useMemo` only memoizes on the client. Minimact's `useComputed`:
+- Memoizes on client
+- Syncs to server
+- Server accesses via `GetClientState<T>()`
+- Server still does ALL rendering (dehydrationist!)
+
+---
+
+### createContext & useContext
+
+**Redis-like server-side cache system** for shared state across components with flexible lifetime management.
+
+Unlike React's context (which requires Provider components), Minimact's context is stored **server-side in a cache** with scoped lifetimes.
+
+#### createContext
+
+Create a context with specified scope and options.
+
+```tsx
+import { createContext } from 'minimact';
+
+// Session-scoped user context
+const UserContext = createContext<User>('current-user', {
+  scope: 'session',
+  expiry: 3600000 // 1 hour in ms
+});
+
+// URL-scoped dashboard filters
+const DashboardFilters = createContext<Filters>('dashboard-filters', {
+  scope: 'url',
+  urlPattern: '/dashboard/*',
+  expiry: 3600000
+});
+
+// Application-wide theme
+const ThemeContext = createContext<Theme>('app-theme', {
+  scope: 'application'
+});
+
+// Request-scoped (default)
+const RequestContext = createContext<RequestData>('request-data');
+```
+
+**Scope types:**
+- `'request'` — Tied to current HTTP request (default)
+- `'session'` — Tied to user session (persists across requests)
+- `'url'` — Scoped to URL pattern (e.g., `/dashboard/*`)
+- `'application'` — Global, shared across all users
+
+#### useContext
+
+Use a context — returns `[value, setValue, clearValue]`.
+
+**No Provider component needed** — the context is stored server-side in a cache.
+
+```tsx
+import { useContext } from 'minimact';
+
+// Component 1: Write to context
+function LoginForm() {
+  const [_, setUser] = useContext(UserContext);
+
+  const handleLogin = async (credentials) => {
+    const user = await authenticate(credentials);
+    setUser(user); // Stored in session-scoped cache
+  };
+
+  return <form onSubmit={handleLogin}>...</form>;
+}
+
+// Component 2: Read from context (no parent-child relationship needed!)
+function UserProfile() {
+  const [user] = useContext(UserContext);
+
+  if (!user) return <Login />;
+  return <div>Welcome, {user.name}</div>;
+}
+
+// Component 3: Clear context
+function LogoutButton() {
+  const [user, _, clearUser] = useContext(UserContext);
+
+  return (
+    <button onClick={clearUser}>
+      Logout {user?.name}
+    </button>
+  );
+}
+```
+
+**Key differences from React Context:**
+- ✅ **No Provider component** — just use it anywhere
+- ✅ **Server-side cache** — survives page navigation
+- ✅ **Scoped lifetimes** — session, URL, or application-wide
+- ✅ **Type-safe** — full TypeScript inference
+- ✅ **No parent-child relationship required** — any component can access
+
+**Common patterns:**
+
+```tsx
+// Authentication
+const AuthContext = createContext<User | null>('auth', {
+  scope: 'session',
+  expiry: 3600000
+});
+
+function useAuth() {
+  const [user, setUser, clearUser] = useContext(AuthContext);
+  return {
+    user,
+    login: (u: User) => setUser(u),
+    logout: () => clearUser(),
+    isAuthenticated: !!user
+  };
+}
+
+// Dashboard filters (persists while on dashboard pages)
+const FilterContext = createContext<Filters>('filters', {
+  scope: 'url',
+  urlPattern: '/dashboard/*',
+  expiry: 1800000, // 30 minutes
+  defaultValue: { sortBy: 'date', order: 'desc' }
+});
+
+function DashboardFilters() {
+  const [filters, setFilters] = useContext(FilterContext);
+
+  return (
+    <select
+      value={filters.sortBy}
+      onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+    >
+      <option value="date">Date</option>
+      <option value="name">Name</option>
+    </select>
+  );
+}
+
+// Application theme
+const ThemeContext = createContext<'light' | 'dark'>('theme', {
+  scope: 'application',
+  defaultValue: 'light'
+});
+
+function ThemeToggle() {
+  const [theme, setTheme] = useContext(ThemeContext);
+
+  return (
+    <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+      Current: {theme}
+    </button>
+  );
+}
+```
+
+**How it works:**
+
+1. **Client calls setter** → Updates local state instantly (optimistic UI)
+2. **Cached patches applied** → If prediction exists, apply immediately
+3. **SignalR syncs to server** → `UpdateContext` message sent
+4. **Server stores in cache** → With specified scope and expiry
+5. **Other components get updates** → Via SignalR patches
+
+**Performance:**
+- First access may require server round-trip
+- Subsequent accesses use cached patches (~2-3ms)
+- Changes propagate to all components using the same context
+
 ## Minimact-Specific Hooks
 
 ### useClientState
