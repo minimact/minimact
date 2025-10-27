@@ -3,6 +3,8 @@ using Minimact.AspNetCore.Abstractions;
 using Minimact.CommandCenter.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Minimact.CommandCenter.Core;
@@ -141,6 +143,174 @@ public class RealHub
 
         return hints;
     }
+
+    // ========================================
+    // Server Tasks (useServerTask support)
+    // SET BREAKPOINTS HERE to debug long-running operations!
+    // ========================================
+
+    /// <summary>
+    /// Start a server task
+    /// Called from JavaScript: connection.invoke('StartServerTask', componentId, taskId, args)
+    /// </summary>
+    public async Task StartServerTask(string componentId, string taskId, object[]? args = null)
+    {
+        Console.WriteLine($"[RealHub] 💜 StartServerTask: {componentId}.{taskId}");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[RealHub] ⚠️  Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            // THIS IS WHERE YOU SET BREAKPOINTS FOR SERVER TASKS!
+            // Use reflection to call GetServerTask<T> with the correct type
+            var method = component.GetType()
+                .GetMethod("GetServerTask", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+            if (method == null)
+            {
+                Console.WriteLine($"[RealHub] ❌ GetServerTask method not found");
+                return;
+            }
+
+            // Find the task method to get return type
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                Console.WriteLine($"[RealHub] ❌ No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            // Get the task state
+            var genericMethod = method.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            // Start the task (you can step through this!)
+            await taskState.Start(args ?? Array.Empty<object>());
+
+            Console.WriteLine($"[RealHub] ✅ Task started: {taskId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RealHub] ❌ Error starting task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Retry a failed server task
+    /// Called from JavaScript: connection.invoke('RetryServerTask', componentId, taskId, args)
+    /// </summary>
+    public async Task RetryServerTask(string componentId, string taskId, object[]? args = null)
+    {
+        Console.WriteLine($"[RealHub] 🔄 RetryServerTask: {componentId}.{taskId}");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[RealHub] ⚠️  Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            var method = component.GetType()
+                .GetMethod("GetServerTask", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                Console.WriteLine($"[RealHub] ❌ No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            var genericMethod = method!.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            await taskState.Retry(args ?? Array.Empty<object>());
+
+            Console.WriteLine($"[RealHub] ✅ Task retried: {taskId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RealHub] ❌ Error retrying task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Cancel a running server task
+    /// Called from JavaScript: connection.invoke('CancelServerTask', componentId, taskId)
+    /// </summary>
+    public async Task CancelServerTask(string componentId, string taskId)
+    {
+        Console.WriteLine($"[RealHub] 🚫 CancelServerTask: {componentId}.{taskId}");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[RealHub] ⚠️  Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            var method = component.GetType()
+                .GetMethod("GetServerTask", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                Console.WriteLine($"[RealHub] ❌ No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            var genericMethod = method!.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            taskState.Cancel();
+
+            Console.WriteLine($"[RealHub] ✅ Task cancelled: {taskId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RealHub] ❌ Error cancelling task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Find method with [ServerTask] attribute by task ID
+    /// </summary>
+    private System.Reflection.MethodInfo? FindTaskMethod(MinimactComponent component, string taskId)
+    {
+        return component.GetType()
+            .GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .FirstOrDefault(m =>
+            {
+                var attr = m.GetCustomAttribute<ServerTaskAttribute>();
+                return attr != null && attr.TaskId == taskId;
+            });
+    }
 }
 
 /// <summary>
@@ -204,6 +374,30 @@ public class RealPatchSender : IPatchSender
                 if (typeof Minimact !== 'undefined' && Minimact.handleError) {{
                     console.error('[Minimact] Error from server:', {errorJson});
                     Minimact.handleError('{componentId}', {errorJson});
+                }}
+            }})()
+        ");
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Send server task state update to JavaScript
+    /// This is called by ServerTaskState when task progress/status changes
+    /// </summary>
+    public Task SendServerTaskUpdateAsync(string componentId, string taskId, object state)
+    {
+        Console.WriteLine($"[RealPatchSender] Sending task update to JavaScript for {componentId}.{taskId}");
+
+        var stateJson = System.Text.Json.JsonSerializer.Serialize(state);
+
+        _client.JSRuntime.Execute($@"
+            (function() {{
+                if (typeof Minimact !== 'undefined' && Minimact.updateServerTask) {{
+                    console.log('[Minimact] Updating server task:', '{taskId}', {stateJson});
+                    Minimact.updateServerTask('{componentId}', '{taskId}', {stateJson});
+                }} else {{
+                    console.warn('[Minimact] updateServerTask not found - task updates may not work');
                 }}
             }})()
         ");

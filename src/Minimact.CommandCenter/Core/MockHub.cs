@@ -1,5 +1,7 @@
 using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.Abstractions;
+using System.Linq;
+using System.Reflection;
 
 namespace Minimact.CommandCenter.Core;
 
@@ -179,5 +181,171 @@ public class MockHub
             Console.WriteLine($"[MockHub] ← Sending hint '{hint.HintId}' to MockClient");
             _client.OnQueueHint(componentId, hint.HintId, hint.Patches, hint.Confidence);
         }
+    }
+
+    // ========================================
+    // Server Tasks (useServerTask support)
+    // ========================================
+
+    /// <summary>
+    /// Start a server task from MockClient
+    /// Uses REAL ComponentEngine - same code as production!
+    /// </summary>
+    public async Task StartServerTask(string componentId, string taskId, object[]? args = null)
+    {
+        Console.WriteLine($"[MockHub] → StartServerTask({componentId}, {taskId})");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[MockHub] ❌ Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            // Use reflection to call GetServerTask<T> with the correct type
+            var method = component.GetType()
+                .GetMethod("GetServerTask", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            if (method == null)
+            {
+                Console.WriteLine($"[MockHub] ❌ GetServerTask method not found");
+                return;
+            }
+
+            // Find the task method to get return type
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                Console.WriteLine($"[MockHub] ❌ No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            // Get the task state
+            var genericMethod = method.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            // Start the task
+            await taskState.Start(args ?? Array.Empty<object>());
+
+            Console.WriteLine($"[MockHub] ✅ Task started: {taskId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MockHub] ❌ Error starting task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Retry a failed server task from MockClient
+    /// Uses REAL ComponentEngine - same code as production!
+    /// </summary>
+    public async Task RetryServerTask(string componentId, string taskId, object[]? args = null)
+    {
+        Console.WriteLine($"[MockHub] → RetryServerTask({componentId}, {taskId})");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[MockHub] ❌ Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            var method = component.GetType()
+                .GetMethod("GetServerTask", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                Console.WriteLine($"[MockHub] ❌ No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            var genericMethod = method!.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            await taskState.Retry(args ?? Array.Empty<object>());
+
+            Console.WriteLine($"[MockHub] ✅ Task retried: {taskId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MockHub] ❌ Error retrying task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Cancel a running server task from MockClient
+    /// Uses REAL ComponentEngine - same code as production!
+    /// </summary>
+    public async Task CancelServerTask(string componentId, string taskId)
+    {
+        Console.WriteLine($"[MockHub] → CancelServerTask({componentId}, {taskId})");
+
+        var component = _engine.GetComponent(componentId);
+        if (component == null)
+        {
+            Console.WriteLine($"[MockHub] ❌ Component not found: {componentId}");
+            return;
+        }
+
+        try
+        {
+            var method = component.GetType()
+                .GetMethod("GetServerTask", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            var taskMethod = FindTaskMethod(component, taskId);
+            if (taskMethod == null)
+            {
+                Console.WriteLine($"[MockHub] ❌ No method found with [ServerTask(\"{taskId}\")]");
+                return;
+            }
+
+            var returnType = taskMethod.ReturnType;
+            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            var genericMethod = method!.MakeGenericMethod(returnType);
+            dynamic taskState = genericMethod.Invoke(component, new object[] { taskId })!;
+
+            taskState.Cancel();
+
+            Console.WriteLine($"[MockHub] ✅ Task cancelled: {taskId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MockHub] ❌ Error cancelling task: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Find method with [ServerTask] attribute by task ID
+    /// </summary>
+    private MethodInfo? FindTaskMethod(MinimactComponent component, string taskId)
+    {
+        return component.GetType()
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(m =>
+            {
+                var attr = m.GetCustomAttribute<ServerTaskAttribute>();
+                return attr != null && attr.TaskId == taskId;
+            });
     }
 }
