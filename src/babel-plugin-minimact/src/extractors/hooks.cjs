@@ -65,6 +65,9 @@ function extractHook(path, component) {
     case 'usePredictHint':
       extractUsePredictHint(path, component);
       break;
+    case 'useServerTask':
+      extractUseServerTask(path, component);
+      break;
   }
 }
 
@@ -381,6 +384,140 @@ function extractUsePredictHint(path, component) {
   });
 }
 
+/**
+ * Extract useServerTask
+ *
+ * Detects: const task = useServerTask(async () => { ... }, options)
+ * Transpiles async function → C# async Task<T>
+ * Generates [ServerTask] attribute
+ */
+function extractUseServerTask(path, component) {
+  const parent = path.parent;
+
+  if (!t.isVariableDeclarator(parent)) return;
+
+  const taskName = parent.id.name;
+  const asyncFunction = path.node.arguments[0];
+  const options = path.node.arguments[1];
+
+  // Validate async function
+  if (!asyncFunction || (!t.isArrowFunctionExpression(asyncFunction) && !t.isFunctionExpression(asyncFunction))) {
+    console.warn('[useServerTask] First argument must be an async function');
+    return;
+  }
+
+  if (!asyncFunction.async) {
+    console.warn('[useServerTask] Function must be async');
+    return;
+  }
+
+  // Check if streaming (async function*)
+  const isStreaming = asyncFunction.generator === true;
+
+  // Extract parameters
+  const parameters = asyncFunction.params.map(param => {
+    if (t.isIdentifier(param)) {
+      return {
+        name: param.name,
+        type: param.typeAnnotation ? extractTypeAnnotation(param.typeAnnotation) : 'object'
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
+  // Extract options
+  let streamingEnabled = isStreaming;
+  let estimatedChunks = null;
+  let runtime = 'csharp'; // Default to C#
+  let parallel = false;
+
+  if (options && t.isObjectExpression(options)) {
+    for (const prop of options.properties) {
+      if (t.isObjectProperty(prop) && t.isIdentifier(prop.key)) {
+        if (prop.key.name === 'stream' && t.isBooleanLiteral(prop.value)) {
+          streamingEnabled = prop.value.value;
+        }
+        if (prop.key.name === 'estimatedChunks' && t.isNumericLiteral(prop.value)) {
+          estimatedChunks = prop.value.value;
+        }
+        if (prop.key.name === 'runtime' && t.isStringLiteral(prop.value)) {
+          runtime = prop.value.value; // 'csharp' | 'rust' | 'auto'
+        }
+        if (prop.key.name === 'parallel' && t.isBooleanLiteral(prop.value)) {
+          parallel = prop.value.value;
+        }
+      }
+    }
+  }
+
+  // Initialize component.useServerTask if needed
+  component.useServerTask = component.useServerTask || [];
+
+  // Store server task info
+  component.useServerTask.push({
+    name: taskName,
+    asyncFunction: asyncFunction,
+    parameters: parameters,
+    isStreaming: streamingEnabled,
+    estimatedChunks: estimatedChunks,
+    returnType: extractReturnType(asyncFunction),
+    runtime: runtime, // 'csharp' | 'rust' | 'auto'
+    parallel: parallel // Enable Rayon parallel processing
+  });
+}
+
+/**
+ * Extract TypeScript type annotation
+ */
+function extractTypeAnnotation(typeAnnotation) {
+  // Strip TSTypeAnnotation wrapper
+  const actualType = typeAnnotation.typeAnnotation || typeAnnotation;
+
+  if (t.isTSStringKeyword(actualType)) {
+    return 'string';
+  }
+  if (t.isTSNumberKeyword(actualType)) {
+    return 'double';
+  }
+  if (t.isTSBooleanKeyword(actualType)) {
+    return 'bool';
+  }
+  if (t.isTSArrayType(actualType)) {
+    const elementType = extractTypeAnnotation(actualType.elementType);
+    return `List<${elementType}>`;
+  }
+  if (t.isTSTypeReference(actualType) && t.isIdentifier(actualType.typeName)) {
+    return actualType.typeName.name; // Use custom type as-is
+  }
+
+  return 'object';
+}
+
+/**
+ * Extract return type from async function
+ */
+function extractReturnType(asyncFunction) {
+  // Check for explicit return type annotation
+  if (asyncFunction.returnType) {
+    const returnType = asyncFunction.returnType.typeAnnotation;
+
+    // Promise<T> → T
+    if (t.isTSTypeReference(returnType) &&
+        t.isIdentifier(returnType.typeName) &&
+        returnType.typeName.name === 'Promise') {
+      if (returnType.typeParameters && returnType.typeParameters.params.length > 0) {
+        return extractTypeAnnotation(returnType.typeParameters.params[0]);
+      }
+    }
+
+    return extractTypeAnnotation(returnType);
+  }
+
+  // Try to infer from return statements
+  // For now, default to object
+  return 'object';
+}
+
 module.exports = {
   extractHook,
   extractUseState,
@@ -397,5 +534,6 @@ module.exports = {
   extractUseMicroTask,
   extractUseMacroTask,
   extractUseSignalR,
-  extractUsePredictHint
+  extractUsePredictHint,
+  extractUseServerTask
 };

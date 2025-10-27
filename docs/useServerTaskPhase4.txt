@@ -1,0 +1,226 @@
+Summary: usePaginatedServerTask Concept
+
+  Core Idea
+
+  A React-style hook that handles server-side paginated data fetching with automatic state management, prefetching, and zero boilerplate.
+
+  ---
+  Basic API
+
+  const result = usePaginatedServerTask(
+    async ({ page, pageSize }) => {
+      // This function runs on the SERVER (C#)
+      return await db.users
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .toList();
+    },
+    {
+      pageSize: 20,
+      prefetchNext: true,
+      getTotalCount: async () => await db.users.count()
+    }
+  );
+
+  ---
+  Returned Object
+
+  {
+    // Data
+    items: T[],              // Current page items
+    total: number,           // Total record count
+    totalPages: number,      // Calculated from total/pageSize
+
+    // Current state
+    page: number,            // Current page number (1-indexed)
+    pageSize: number,        // Records per page
+    pending: boolean,        // Loading state
+    error: string | null,    // Error message
+
+    // Navigation
+    hasNext: boolean,        // Can go forward
+    hasPrev: boolean,        // Can go backward
+    next: () => void,        // Go to next page
+    prev: () => void,        // Go to previous page
+    goto: (page) => void,    // Jump to specific page
+    refresh: () => void      // Reload current page
+  }
+
+  ---
+  Key Features
+
+  1. Server Execution
+
+  The query function runs on the server (transpiled to C#), giving direct database access:
+  // Runs as C# with full EF Core access
+  async ({ page, pageSize }) => {
+    return await _db.Users
+      .Where(u => u.Active)
+      .OrderBy(u => u.LastName)
+      .Skip((page - 1) * pageSize)
+      .Take(pageSize)
+      .ToListAsync();
+  }
+
+  2. Automatic Prefetching
+
+  {
+    prefetchNext: true,     // Preload next page in background
+    prefetchPrev: true,     // Preload previous page
+    prefetchRadius: 2       // Preload ± 2 pages
+  }
+  When user clicks "Next", data is already loaded → 0ms wait time
+
+  3. Filter/Sort Integration
+
+  const [filters, setFilters] = useState({ role: 'admin', status: 'active' });
+
+  const users = usePaginatedServerTask(async ({ page, pageSize }) => {
+    let query = db.users;
+
+    if (filters.role) {
+      query = query.where({ role: filters.role });
+    }
+
+    return await query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .toList();
+  }, {
+    dependencies: [filters]  // Re-run when filters change
+  });
+
+  4. Zero Boilerplate
+
+  Handles automatically:
+  - ✅ Page state management
+  - ✅ Loading states
+  - ✅ Error handling
+  - ✅ Total count tracking
+  - ✅ Bounds checking (can't go to page -1 or beyond last page)
+  - ✅ Caching and prefetching
+
+  ---
+  Usage Example
+
+  function UserTable() {
+    const users = usePaginatedServerTask(
+      async ({ page, pageSize }) => {
+        return await db.users
+          .orderBy('lastName')
+          .skip((page - 1) * pageSize)
+          .take(pageSize)
+          .toList();
+      },
+      { pageSize: 20, prefetchNext: true }
+    );
+
+    return (
+      <div>
+        <table>
+          <tbody>
+            {users.pending && <Spinner />}
+            {users.items.map(user => (
+              <tr key={user.id}>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="pagination">
+          <button onClick={users.prev} disabled={!users.hasPrev}>
+            Previous
+          </button>
+
+          <span>Page {users.page} of {users.totalPages}</span>
+
+          <button onClick={users.next} disabled={!users.hasNext}>
+            Next
+          </button>
+        </div>
+
+        <p>Showing {users.items.length} of {users.total} users</p>
+      </div>
+    );
+  }
+
+  ---
+  Comparison: Traditional vs This Concept
+
+  Traditional React Pagination (40+ lines):
+
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/users?page=${page}&size=20`)
+      .then(r => r.json())
+      .then(d => {
+        setData(d.items);
+        setTotal(d.total);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [page]);
+
+  const next = () => setPage(p => p + 1);
+  const prev = () => setPage(p => Math.max(1, p - 1));
+  // ... more boilerplate
+
+  usePaginatedServerTask (3 lines):
+
+  const users = usePaginatedServerTask(
+    async ({ page, pageSize }) => await db.users.skip(...).take(...).toList(),
+    { pageSize: 20 }
+  );
+
+  ---
+  Related Concepts from the Proposal
+
+  useInfiniteServerTask - Infinite Scroll
+
+  const products = useInfiniteServerTask(async function* ({ pageSize }) {
+    let page = 1;
+    while (true) {
+      const items = await db.products.skip(...).take(...).toList();
+      if (items.length === 0) break;
+      yield items;  // Stream to client
+      page++;
+    }
+  }, { pageSize: 50 });
+
+  // Returns: { items: [], loadMore: () => void, hasMore: boolean }
+
+  useCursorPaginatedServerTask - Cursor-based
+
+  const posts = useCursorPaginatedServerTask(
+    async ({ cursor, limit }) => {
+      return await db.posts
+        .where(p => !cursor || p.createdAt < cursor)
+        .orderByDescending('createdAt')
+        .take(limit)
+        .toList();
+    },
+    {
+      limit: 20,
+      getCursor: (items) => items[items.length - 1]?.createdAt
+    }
+  );
+
+  ---
+  Key Benefits
+
+  1. Server-Side Logic: All queries run on server with full database access
+  2. Zero Network Overhead: Prefetching eliminates wait times
+  3. Type Safety: TypeScript → C# type inference
+  4. No Boilerplate: One hook replaces 50+ lines of code
+  5. Automatic Optimization: Built-in caching, prefetching, bounds checking
+  6. Works with Filters/Sorts: Dependencies trigger re-fetch automatically

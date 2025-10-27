@@ -5,6 +5,7 @@
 const t = require('@babel/types');
 const { generateRenderBody } = require('./renderBody.cjs');
 const { generateCSharpExpression, generateCSharpStatement, setCurrentComponent } = require('./expressions.cjs');
+const { generateServerTaskMethods } = require('./serverTask.cjs');
 
 /**
  * Generate C# class for a component
@@ -195,6 +196,12 @@ function generateComponent(component) {
       lines.push(`    private ${csharpType} ${clientVar.name} => GetClientState<${csharpType}>("${clientVar.name}", default);`);
       lines.push('');
     }
+  }
+
+  // Server Task methods (useServerTask)
+  const serverTaskMethods = generateServerTaskMethods(component);
+  for (const line of serverTaskMethods) {
+    lines.push(line);
   }
 
   // Render method (or RenderContent for templates)
