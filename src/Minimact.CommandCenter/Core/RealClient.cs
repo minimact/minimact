@@ -26,13 +26,28 @@ public class RealClient : IDisposable
 
     public string ConnectionState => "Connected"; // Always connected to RealHub
 
-    public RealClient()
+    public RealClient() : this(null)
+    {
+    }
+
+    /// <summary>
+    /// Create RealClient with optional shared hub for multi-client testing
+    /// </summary>
+    /// <param name="sharedHub">Optional shared hub for quantum entanglement testing</param>
+    public RealClient(RealHub? sharedHub)
     {
         _dom = new RealDOM();
         _jsRuntime = new JSRuntime(_dom);
 
-        // Create RealHub with real ComponentEngine
-        _hub = new RealHub(this);
+        // Use shared hub OR create new one
+        _hub = sharedHub ?? new RealHub(this);
+
+        // If shared hub, register this client for quantum entanglement
+        if (sharedHub != null)
+        {
+            // Client will register itself with a unique ID later
+            Console.WriteLine("[RealClient] Using shared hub for multi-client testing");
+        }
 
         // Expose hub to JavaScript so client runtime can call hub methods
         _jsRuntime.ExposeHubConnection(_hub);

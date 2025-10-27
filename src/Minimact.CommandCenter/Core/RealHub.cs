@@ -352,6 +352,134 @@ public class RealHub
                 return attr != null && attr.TaskId == taskId;
             });
     }
+
+    // ========================================
+    // Quantum DOM Entanglement (minimact-quantum)
+    // SET BREAKPOINTS HERE to debug multi-client sync!
+    // ========================================
+
+    private Dictionary<string, List<EntanglementLink>> _entanglements = new();
+    private Dictionary<string, RealClient> _clients = new();
+
+    /// <summary>
+    /// Register a client for quantum entanglement
+    /// </summary>
+    public void RegisterQuantumClient(string clientId, RealClient client)
+    {
+        _clients[clientId] = client;
+        Console.WriteLine($"[RealHub] 🌌 Registered quantum client: {clientId}");
+    }
+
+    /// <summary>
+    /// Entangle two DOM elements across clients
+    /// Called from JavaScript: connection.invoke('EntangleElements', sourceClientId, sourceSelector, targetClientId, targetSelector, mode)
+    /// SET BREAKPOINT HERE to debug entanglement!
+    /// </summary>
+    public Task EntangleElements(string sourceClientId, string sourceSelector, string targetClientId, string targetSelector, string mode)
+    {
+        Console.WriteLine($"[RealHub] 🔗 Entangling: {sourceClientId}.{sourceSelector} <-> {targetClientId}.{targetSelector} ({mode})");
+
+        var link = new EntanglementLink
+        {
+            SourceClient = sourceClientId,
+            SourceSelector = sourceSelector,
+            TargetClient = targetClientId,
+            TargetSelector = targetSelector,
+            Mode = mode
+        };
+
+        if (!_entanglements.ContainsKey(sourceClientId))
+            _entanglements[sourceClientId] = new List<EntanglementLink>();
+
+        _entanglements[sourceClientId].Add(link);
+
+        // If bidirectional, create reverse link
+        if (mode == "bidirectional")
+        {
+            var reverseLink = new EntanglementLink
+            {
+                SourceClient = targetClientId,
+                SourceSelector = targetSelector,
+                TargetClient = sourceClientId,
+                TargetSelector = sourceSelector,
+                Mode = mode
+            };
+
+            if (!_entanglements.ContainsKey(targetClientId))
+                _entanglements[targetClientId] = new List<EntanglementLink>();
+
+            _entanglements[targetClientId].Add(reverseLink);
+
+            Console.WriteLine($"[RealHub] ↔️  Bidirectional link established");
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Transmit mutation vector from source client to entangled target client(s)
+    /// Called from JavaScript: connection.invoke('TransmitMutation', sourceClientId, sourceSelector, vector)
+    /// SET BREAKPOINT HERE to debug mutation propagation!
+    /// </summary>
+    public Task TransmitMutation(string sourceClientId, string sourceSelector, string vectorJson)
+    {
+        Console.WriteLine($"[RealHub] 📡 Transmitting mutation from {sourceClientId}.{sourceSelector}");
+
+        if (!_entanglements.ContainsKey(sourceClientId))
+        {
+            Console.WriteLine($"[RealHub] ⚠️  No entanglements found for {sourceClientId}");
+            return Task.CompletedTask;
+        }
+
+        // Find all entangled targets
+        foreach (var link in _entanglements[sourceClientId])
+        {
+            if (link.SourceSelector == sourceSelector && _clients.ContainsKey(link.TargetClient))
+            {
+                var targetClient = _clients[link.TargetClient];
+
+                Console.WriteLine($"[RealHub] ➡️  Forwarding to {link.TargetClient}.{link.TargetSelector}");
+
+                // Apply mutation to target client's DOM via JavaScript
+                targetClient.JSRuntime.Execute($@"
+                    (function() {{
+                        if (typeof quantum !== 'undefined' && quantum.applyMutation) {{
+                            console.log('[Quantum] Applying mutation from {sourceClientId}:', {vectorJson});
+                            quantum.applyMutation('{link.TargetSelector}', {vectorJson});
+                        }} else {{
+                            console.warn('[Quantum] applyMutation not found - using fallback');
+
+                            // Fallback: Manually apply mutation
+                            const vector = {vectorJson};
+                            const element = document.querySelector('{link.TargetSelector}');
+
+                            if (element && vector.type === 'setAttribute') {{
+                                element.setAttribute(vector.attribute, vector.value);
+                                console.log('[Quantum-Fallback] Applied:', vector.attribute, '=', vector.value);
+                            }} else if (element && vector.type === 'setProperty') {{
+                                element[vector.property] = vector.value;
+                                console.log('[Quantum-Fallback] Set property:', vector.property, '=', vector.value);
+                            }}
+                        }}
+                    }})()
+                ");
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// Entanglement link between two DOM elements across clients
+/// </summary>
+public class EntanglementLink
+{
+    public string SourceClient { get; set; } = string.Empty;
+    public string SourceSelector { get; set; } = string.Empty;
+    public string TargetClient { get; set; } = string.Empty;
+    public string TargetSelector { get; set; } = string.Empty;
+    public string Mode { get; set; } = string.Empty; // "unidirectional" or "bidirectional"
 }
 
 /// <summary>
