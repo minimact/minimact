@@ -9,6 +9,8 @@
 </p>
 
 <p align="center">
+  <a href="https://docs.minimact.com"><img src="https://img.shields.io/badge/docs-minimact.com-blue.svg" alt="Documentation"></a>
+  <a href="https://app.netlify.com/sites/minimact/deploys"><img src="https://api.netlify.com/api/v1/badges/4c1c36b7-74a4-4558-94b8-64a6996d1e64/deploy-status" alt="Netlify Status"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white" alt="Rust"></a>
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white" alt=".NET"></a>
@@ -753,6 +755,10 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 ---
 
 ## Documentation
+
+📚 **[Full Documentation at docs.minimact.com](https://docs.minimact.com)** - Complete guides, API reference, and examples
+
+### Additional Resources
 
 - [Vision & Architecture](./src/VISION.md) - Comprehensive technical overview
 - [Getting Started Guide](./docs/getting-started.md) - Step-by-step tutorial
