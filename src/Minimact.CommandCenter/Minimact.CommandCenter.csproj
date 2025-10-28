@@ -45,6 +45,9 @@
 
     <!-- Reference Minimact.Workers for algorithm parity -->
     <ProjectReference Include="..\Minimact.Workers\Minimact.Workers.csproj" />
+
+    <!-- Reference Minimact.Testing for public testing API -->
+    <ProjectReference Include="..\Minimact.Testing\Minimact.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
