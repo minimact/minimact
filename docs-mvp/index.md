@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Minimact
-  text: Server-side React for ASP.NET Core
-  tagline: Build reactive web apps with predictive rendering powered by Rust
+  text: The Posthydrationist Framework
+  tagline: Server-first UI with zero hydration, predictive patches, and Rust-fueled performance — built for ASP.NET Core.
   image:
     src: /logo.png
     alt: Minimact
@@ -83,6 +83,10 @@ export function Counter() {
 ```
 
 Babel transpiles to C#, Rust predicts the next state, and the client applies cached patches instantly (~2-3ms).
+
+> **The cactus doesn't hydrate — it stores.** 🌵
+
+---
 
 ## Why Minimact?
 

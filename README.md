@@ -3,9 +3,14 @@
 </p>
 
 <h1 align="center">Minimact</h1>
+<h2 align="center">The Posthydrationist Framework</h2>
 
 <p align="center">
-  <strong>Server-side React for ASP.NET Core with predictive rendering</strong>
+  <strong>Server-first UI with zero hydration, predictive patches, and Rust-fueled performance — built for ASP.NET Core.</strong>
+</p>
+
+<p align="center">
+  <em>The cactus doesn't hydrate — it stores.</em> 🌵
 </p>
 
 <p align="center">
