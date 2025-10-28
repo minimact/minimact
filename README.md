@@ -74,7 +74,7 @@ Traditional UI frameworks like React must reconcile every state change on the cl
 - ✅ **Easy deployment** - Standard ASP.NET Core hosting
 
 ### For End Users
-- ✅ **Fast initial load** - No massive JS bundles (~5KB client)
+- ✅ **Fast initial load** - 13.33 KB client (71% smaller than React)
 - ✅ **Instant interactions** - Predictive updates feel native
 - ✅ **Works without JS** - Progressive enhancement built-in
 - ✅ **Low bandwidth** - Only patches sent over the wire
@@ -559,7 +559,7 @@ In the scorching silence of the posthydrationist desert, traditional frameworks 
 Minimact is different. Like the cactus, it thrives not by reaching outward, but by turning inward - by minimizing waste, by knowing before needing, by storing what will be required before the request arrives.
 
 **Minimact is the cactus of the frontend ecosystem:**
-- **Minimal** - ~5KB client, zero reconciliation overhead
+- **Minimal** - 13.33 KB client (71% smaller than React), zero reconciliation overhead
 - **Resilient** - Works without JavaScript, degrades gracefully
 - **Latent power** - Pre-computed state changes waiting to execute
 - **Occasionally spiky** - Rust-powered performance that cuts through latency
@@ -598,10 +598,13 @@ Minimact consists of four main components:
 - Pattern learning and caching
 - Available as server-side library or WASM
 
-### 4. **Client Library** (JavaScript, ~5KB)
-- SignalR connection management
+### 4. **Client Library** (JavaScript)
+- **minimact**: 13.33 KB gzipped (WebSocket-based, modern browsers)
+- **minimact-r**: 25.03 KB gzipped (Full SignalR with fallbacks)
+- Real-time connection management
 - Event delegation
 - Optimistic patch application
+- Complete React-like hooks API
 - Fallback for no-JS scenarios
 
 ---
@@ -638,11 +641,12 @@ Minimact consists of four main components:
   - [x] Component registration and event handling
   - [x] Patch sending and state synchronization
   - [x] Client-computed state support
-- [x] **Client library** (JavaScript runtime, ~5KB)
-  - [x] SignalR connection management
+- [x] **Client library** (JavaScript runtime)
+  - [x] Two versions: minimact (13.33 KB) and minimact-r (25.03 KB)
+  - [x] SignalM/SignalR connection management
   - [x] DOM patching (surgical updates)
   - [x] Event delegation
-  - [x] Client state management (useClientState)
+  - [x] Complete React-like hooks (useState, useEffect, useRef, useContext, useComputed, etc.)
   - [x] Hydration system
   - [x] HintQueue for predictive patches
   - [x] Template renderer
@@ -670,7 +674,7 @@ See [VISION.md](./src/VISION.md) and [PHASES_1_TO_9_COMPLETION_SUMMARY.md](./doc
 | Feature | Minimact | Next.js/Remix | Blazor Server | HTMX |
 |---------|----------|---------------|---------------|------|
 | **Syntax** | React JSX/TSX | React JSX/TSX | Razor C# | HTML attrs |
-| **Bundle Size** | ~5KB | ~50-150KB | ~300KB | ~14KB |
+| **Bundle Size** | **13.33 KB** (71% smaller) | ~45 KB | ~300 KB | ~14 KB |
 | **Server** | .NET | Node.js | .NET | Any |
 | **Hydration** | None* | Required | None | None |
 | **Prediction** | ✅ Rust | ❌ | ❌ | ❌ |
@@ -707,7 +711,8 @@ See [VISION.md](./src/VISION.md) and [PHASES_1_TO_9_COMPLETION_SUMMARY.md](./doc
 
 **Initial Load**:
 - HTML size: ~10-50KB (typical page)
-- JavaScript: ~5KB (Minimact client)
+- JavaScript: 13.33 KB (Minimact client, 71% smaller than React)
+- Alternative: 25.03 KB with full SignalR (still 44% smaller than React)
 - Time to Interactive: <100ms
 
 **Interaction Latency** (with 20ms network latency):
