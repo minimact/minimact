@@ -20,7 +20,6 @@ public class ComponentContext
     // Minimact runtime references
     public HintQueue HintQueue { get; set; } = null!;
     public DOMPatcher DOMPatcher { get; set; } = null!;
-    public SignalRClientManager SignalR { get; set; } = null!;
     public PlaygroundBridge? PlaygroundBridge { get; set; }
 }
 

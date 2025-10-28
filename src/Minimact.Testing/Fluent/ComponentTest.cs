@@ -21,19 +21,22 @@ public class ComponentTest<T> where T : MinimactComponent
     private readonly ComponentContext _context;
     private readonly MockDOM _dom;
     private readonly bool _debugLogging;
+    private VNode _currentVNode; // Track VNode state internally
 
     internal ComponentTest(
         T component,
         MockElement element,
         ComponentContext context,
         MockDOM dom,
-        bool debugLogging)
+        bool debugLogging,
+        VNode initialVNode)
     {
         _component = component;
         _element = element;
         _context = context;
         _dom = dom;
         _debugLogging = debugLogging;
+        _currentVNode = initialVNode;
     }
 
     // ============================================================
@@ -110,19 +113,19 @@ public class ComponentTest<T> where T : MinimactComponent
             task.GetAwaiter().GetResult();
         }
 
-        // 2. Get old VNode
-        var oldVNode = _component.CurrentVNode;
+        // 2. Get old VNode (tracked internally)
+        var oldVNode = _currentVNode;
 
         // 3. Re-render component to get new VNode
-        var newVNode = _component.Render();
+        var newVNode = _component.RenderComponent();
 
         // 4. Use REAL Rust reconciler to compute patches (same as production!)
         //    Then apply them to MockDOM (same as browser!)
         var patcher = new DOMPatcher(_dom);
-        VNodeRenderer.ApplyRerender(_element, oldVNode!, newVNode, patcher);
+        VNodeRenderer.ApplyRerender(_element, oldVNode, newVNode, patcher);
 
         // 5. Update stored VNode for next render
-        _component.CurrentVNode = newVNode;
+        _currentVNode = newVNode;
 
         Log($"✓ Re-rendered after {methodName} (using Rust reconciler)");
     }

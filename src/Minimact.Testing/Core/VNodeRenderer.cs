@@ -42,7 +42,7 @@ public static class VNodeRenderer
     /// </summary>
     private static DOMPatch ConvertPatch(Patch rustPatch)
     {
-        return new DOMPatch
+        var patch = new DOMPatch
         {
             Type = rustPatch.Type switch
             {
@@ -53,11 +53,21 @@ public static class VNodeRenderer
                 "ReplaceChild" => PatchType.ReplaceChild,
                 _ => throw new NotSupportedException($"Unknown patch type: {rustPatch.Type}")
             },
-            Path = rustPatch.Path,
-            Content = rustPatch.Content,
-            Props = rustPatch.Props,
-            Node = rustPatch.Node
+            Path = rustPatch.Path.Select(i => i.ToString()).ToArray()
         };
+
+        // Map type-specific fields
+        if (rustPatch.Content != null)
+        {
+            patch.Value = rustPatch.Content;
+        }
+
+        if (rustPatch.Props != null)
+        {
+            patch.Attributes = rustPatch.Props;
+        }
+
+        return patch;
     }
 
     private static MockElement RenderElement(VElement element)

@@ -41,7 +41,7 @@ public class MinimactTestContext : IDisposable
         component.OnInitializedAsync().GetAwaiter().GetResult();
 
         // Render component to VNode
-        var vnode = component.Render();
+        var vnode = component.RenderComponent();
 
         // Convert VNode to MockElement (initial render only)
         var rootElement = VNodeRenderer.InitialRender(vnode);
@@ -49,9 +49,6 @@ public class MinimactTestContext : IDisposable
         rootElement.Attributes["data-minimact-component"] = componentId;
 
         _dom.AddRootElement(rootElement);
-
-        // Store VNode for future diffing
-        component.CurrentVNode = vnode;
 
         // Create component context (mirrors browser ComponentContext)
         var context = new ComponentContext
@@ -64,7 +61,7 @@ public class MinimactTestContext : IDisposable
             DomElementStates = new Dictionary<string, DomElementState>()
         };
 
-        return new ComponentTest<T>(component, rootElement, context, _dom, _enableDebugLogging);
+        return new ComponentTest<T>(component, rootElement, context, _dom, _enableDebugLogging, vnode);
     }
 
     /// <summary>
