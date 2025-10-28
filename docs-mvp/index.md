@@ -17,29 +17,29 @@ hero:
       link: https://github.com/minimact/minimact
 
 features:
-  - icon: 🦕
-    title: Server-Side React
-    details: Write React components that run on the server with automatic state synchronization to the client.
+  - icon: 🌵
+    title: Zero Hydration
+    details: No client-side VDOM reconciliation. No hydration waterfall. The server pre-computes everything.
 
   - icon: ⚡
-    title: Predictive Rendering
-    details: Rust-powered reconciliation engine that predicts and pre-renders UI updates before user interactions.
+    title: Predictive Patches
+    details: Rust engine pre-renders UI updates before user interaction. Patches cached and ready instantly.
 
   - icon: 🎯
-    title: ASP.NET Core Integration
-    details: Seamlessly integrates with ASP.NET Core using SignalR for real-time communication.
+    title: 13.33 KB Bundle
+    details: 71% smaller than React. WebSocket-based real-time sync. No bloat, just performance.
 
   - icon: 🔄
-    title: Automatic State Sync
-    details: State changes on the server automatically sync to the client with minimal overhead.
+    title: Server-First Architecture
+    details: All rendering happens on ASP.NET Core. Client only applies patches. Security by design.
 
   - icon: 📦
-    title: Component-Based
-    details: Build reusable server-side components with familiar React patterns and hooks.
+    title: React Syntax
+    details: Write familiar JSX/TSX with hooks. Transpiles to C#. No new syntax to learn.
 
   - icon: 🚀
-    title: High Performance
-    details: Optimized for speed with differential updates and efficient patch-based rendering.
+    title: 2-3ms Interactions
+    details: Cached patches execute instantly. 15× faster than traditional server rendering on 3G.
 ---
 
 ## Quick Start
