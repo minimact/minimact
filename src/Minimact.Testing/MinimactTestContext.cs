@@ -1,3 +1,4 @@
+using Minimact.AspNetCore.Core;
 using Minimact.Testing.Core;
 using Minimact.Testing.Fluent;
 
@@ -31,24 +32,28 @@ public class MinimactTestContext : IDisposable
     /// Render a Minimact component for testing
     /// Returns a fluent test interface for interactions and assertions
     /// </summary>
-    public ComponentTest<T> Render<T>() where T : class, new()
+    public ComponentTest<T> Render<T>() where T : MinimactComponent, new()
     {
         var component = new T();
         var componentId = Guid.NewGuid().ToString();
 
-        // Create root element (simplified - real implementation would convert VNode to MockElement)
-        var rootElement = new MockElement
-        {
-            Id = componentId,
-            TagName = "div",
-            Attributes = new Dictionary<string, string>
-            {
-                ["data-minimact-component"] = componentId
-            }
-        };
+        // Initialize component
+        component.OnInitializedAsync().GetAwaiter().GetResult();
+
+        // Render component to VNode
+        var vnode = component.Render();
+
+        // Convert VNode to MockElement (initial render only)
+        var rootElement = VNodeRenderer.InitialRender(vnode);
+        rootElement.Id = componentId;
+        rootElement.Attributes["data-minimact-component"] = componentId;
 
         _dom.AddRootElement(rootElement);
 
+        // Store VNode for future diffing
+        component.CurrentVNode = vnode;
+
+        // Create component context (mirrors browser ComponentContext)
         var context = new ComponentContext
         {
             ComponentId = componentId,

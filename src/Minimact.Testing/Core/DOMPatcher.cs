@@ -1,4 +1,4 @@
-using Minimact.CommandCenter.Models;
+using Minimact.Testing.Models;
 
 namespace Minimact.Testing.Core;
 

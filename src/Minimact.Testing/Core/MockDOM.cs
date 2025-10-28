@@ -30,6 +30,21 @@ public class MockDOM
     }
 
     /// <summary>
+    /// Replace a root element with a new one
+    /// Used for re-rendering in tests
+    /// </summary>
+    public void ReplaceRootElement(MockElement oldElement, MockElement newElement)
+    {
+        var index = _rootElements.IndexOf(oldElement);
+        if (index >= 0)
+        {
+            _rootElements[index] = newElement;
+            UncacheElement(oldElement);
+            CacheElement(newElement);
+        }
+    }
+
+    /// <summary>
     /// Get element by ID (searches entire DOM)
     /// </summary>
     public MockElement? GetElementById(string id)

@@ -1,3 +1,4 @@
+using Minimact.AspNetCore.Core;
 using Minimact.Testing.Core;
 
 namespace Minimact.Testing.Fluent;
@@ -8,12 +9,12 @@ namespace Minimact.Testing.Fluent;
 ///
 /// Example:
 /// <code>
-/// test.ClickAsync("button")
+/// test.Click("button")
 ///     .AssertText("button", "Count: 1")
 ///     .AssertState("count", 1);
 /// </code>
 /// </summary>
-public class ComponentTest<T> where T : class
+public class ComponentTest<T> where T : MinimactComponent
 {
     private readonly T _component;
     private readonly MockElement _element;
@@ -61,21 +62,69 @@ public class ComponentTest<T> where T : class
 
     /// <summary>
     /// Click an element
-    /// Usage: await test.ClickAsync("button");
+    /// Usage: test.Click("button");
     /// </summary>
     public ComponentTest<T> Click(string selector)
     {
         var element = Query(selector);
         Log($"Click: {selector}");
 
-        // In real implementation, this would:
         // 1. Get onClick handler from attributes
-        // 2. Invoke component method
-        // 3. Re-render
-        // 4. Compute patches
-        // 5. Apply patches to MockDOM
+        var onClickAttr = element.GetAttribute("data-onclick") ?? element.GetAttribute("onClick");
+        if (string.IsNullOrEmpty(onClickAttr))
+        {
+            throw new Exception($"Element '{selector}' has no click handler");
+        }
+
+        // 2. Parse method name (e.g., "Increment()" -> "Increment")
+        var methodName = ParseMethodName(onClickAttr);
+
+        // 3. Invoke method and re-render
+        InvokeMethodAndRerender(methodName);
 
         return this;
+    }
+
+    private string ParseMethodName(string handler)
+    {
+        var parenIndex = handler.IndexOf('(');
+        return parenIndex > 0 ? handler.Substring(0, parenIndex) : handler;
+    }
+
+    private void InvokeMethodAndRerender(string methodName, params object[] args)
+    {
+        // 1. Invoke the component method
+        var method = typeof(T).GetMethod(methodName,
+            System.Reflection.BindingFlags.Public |
+            System.Reflection.BindingFlags.NonPublic |
+            System.Reflection.BindingFlags.Instance);
+
+        if (method == null)
+        {
+            throw new Exception($"Method '{methodName}' not found on component {typeof(T).Name}");
+        }
+
+        var result = method.Invoke(_component, args);
+        if (result is Task task)
+        {
+            task.GetAwaiter().GetResult();
+        }
+
+        // 2. Get old VNode
+        var oldVNode = _component.CurrentVNode;
+
+        // 3. Re-render component to get new VNode
+        var newVNode = _component.Render();
+
+        // 4. Use REAL Rust reconciler to compute patches (same as production!)
+        //    Then apply them to MockDOM (same as browser!)
+        var patcher = new DOMPatcher(_dom);
+        VNodeRenderer.ApplyRerender(_element, oldVNode!, newVNode, patcher);
+
+        // 5. Update stored VNode for next render
+        _component.CurrentVNode = newVNode;
+
+        Log($"✓ Re-rendered after {methodName} (using Rust reconciler)");
     }
 
     /// <summary>
