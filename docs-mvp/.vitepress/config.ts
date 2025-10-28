@@ -17,6 +17,7 @@ export default defineConfig({
       { text: 'Use Cases', link: '/v1.0/use-cases' },
       { text: 'API Reference', link: '/v1.0/api/hooks' },
       { text: 'Examples', link: '/v1.0/examples' },
+      { text: 'Glossary', link: '/v1.0/glossary' },
       {
         text: `v${currentVersion}`,
         items: [

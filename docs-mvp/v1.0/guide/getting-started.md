@@ -1,6 +1,12 @@
 # Getting Started
 
-Welcome to Minimact! This guide will help you set up your first server-side React application with ASP.NET Core.
+Hey Minimalists! 👋
+
+Welcome to Minimact - the server-side React framework that eliminates hydration and delivers instant interactivity. This guide will help you set up your first application with ASP.NET Core and predictive rendering.
+
+:::tip New to Minimact?
+A **Minimalist** is a developer who uses Minimact - someone who embraces minimal code, maximum control, and DOM domination. Check out the [Glossary](/v1.0/glossary) for all Minimact terminology.
+:::
 
 ## Prerequisites
 
