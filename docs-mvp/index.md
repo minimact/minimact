@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Minimact
   text: The Posthydrationist Framework
-  tagline: Server-first UI with zero hydration, predictive patches, instant interactivity, and Rust-fueled performance — built for ASP.NET Core.
+  tagline: Server-first reactive UI with zero hydration, predictive patches, instant interactivity, and Rust-fueled performance — built for ASP.NET Core.
   image:
     src: /logo.png
     alt: Minimact
