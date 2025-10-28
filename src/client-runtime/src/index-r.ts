@@ -1,4 +1,4 @@
-import { SignalMManager } from './signalm-manager';
+import { SignalRManager } from './signalr-manager';
 import { DOMPatcher } from './dom-patcher';
 import { ClientStateManager } from './client-state';
 import { EventDelegation } from './event-delegation';
@@ -11,12 +11,10 @@ import { MinimactOptions, Patch } from './types';
 
 /**
  * Main Minimact client runtime
- * Orchestrates SignalM (lightweight WebSocket), DOM patching, state management, and hydration
- *
- * Bundle size: ~10 KB gzipped (vs 25 KB with SignalR)
+ * Orchestrates SignalR, DOM patching, state management, and hydration
  */
 export class Minimact {
-  private signalR: SignalMManager;
+  private signalR: SignalRManager;
   private domPatcher: DOMPatcher;
   private clientState: ClientStateManager;
   private hydration: HydrationManager;
@@ -45,8 +43,8 @@ export class Minimact {
       reconnectInterval: options.reconnectInterval || 5000
     };
 
-    // Initialize subsystems (using lightweight SignalM!)
-    this.signalR = new SignalMManager(this.options.hubUrl, {
+    // Initialize subsystems
+    this.signalR = new SignalRManager(this.options.hubUrl, {
       reconnectInterval: this.options.reconnectInterval,
       debugLogging: this.options.enableDebugLogging
     });
@@ -291,7 +289,7 @@ export class Minimact {
 }
 
 // Export all types and classes for advanced usage
-export { SignalMManager } from './signalm-manager';
+export { SignalRManager } from './signalr-manager';
 export { DOMPatcher } from './dom-patcher';
 export { ClientStateManager } from './client-state';
 export { EventDelegation } from './event-delegation';
@@ -345,9 +343,9 @@ export type { PubSubMessage } from './pub-sub';
 // Task scheduling hooks
 export { useMicroTask, useMacroTask, useAnimationFrame, useIdleCallback } from './task-scheduling';
 
-// NOTE: useSignalR hook is NOT available in the SignalM version
-// It requires the full SignalR client library
-// If you need useSignalR, use 'minimact/signalr' instead
+// SignalR hook
+export { useSignalR } from './signalr-hook';
+export type { SignalRHookState } from './signalr-hook';
 
 // Types
 export * from './types';

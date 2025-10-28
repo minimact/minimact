@@ -12,4 +12,5 @@ export { ExponentialBackoffRetryPolicy, FixedRetryPolicy, NoRetryPolicy, CustomR
 export type { IRetryPolicy } from './RetryPolicy';
 export { JsonProtocol } from './JsonProtocol';
 export { EventEmitter } from './EventEmitter';
+export { SignalMConnection } from './SignalMConnection';
 export declare const VERSION = "0.1.0";

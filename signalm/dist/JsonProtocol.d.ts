@@ -11,11 +11,11 @@ export declare class JsonProtocol {
     /**
      * Protocol name
      */
-    static readonly name = "json";
+    static readonly protocolName = "json";
     /**
      * Protocol version
      */
-    static readonly version = 1;
+    static readonly protocolVersion = 1;
     /**
      * Write invocation message (client → server RPC call)
      */

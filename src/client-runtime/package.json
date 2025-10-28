@@ -1,9 +1,27 @@
 {
   "name": "minimact-client",
   "version": "0.1.0",
-  "description": "Client-side runtime for Minimact framework - DOM patching and SignalR integration",
+  "description": "Client-side runtime for Minimact framework - Available in lightweight (SignalM) and full (SignalR) versions",
   "main": "dist/minimact.js",
-  "types": "dist/minimact.d.ts",
+  "module": "dist/minimact.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/minimact.esm.js",
+      "require": "./dist/minimact.js",
+      "default": "./dist/minimact.js"
+    },
+    "./minimact-r": {
+      "types": "./dist/index-r.d.ts",
+      "import": "./dist/minimact-r.esm.js",
+      "require": "./dist/minimact-r.js",
+      "default": "./dist/minimact-r.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -11,10 +29,13 @@
   },
   "keywords": [
     "minimact",
-    "virtual-dom",
+    "signalm",
     "signalr",
+    "virtual-dom",
     "reactive",
-    "dom-patching"
+    "dom-patching",
+    "websocket",
+    "real-time"
   ],
   "author": "",
   "license": "MIT",

@@ -1,7 +1,7 @@
 import { HintQueue } from './hint-queue';
 import { DOMPatcher } from './dom-patcher';
 import { PlaygroundBridge } from './playground-bridge';
-import { SignalRManager } from './signalr-manager';
+import { IConnectionManager } from './connection-manager';
 import { templateState } from './template-state';
 import { ServerTask, ServerTaskImpl, ServerTaskOptions } from './server-task';
 import { setComputedContext } from './useComputed';
@@ -21,7 +21,7 @@ interface ComponentContext {
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
-  signalR: SignalRManager; // For syncing state to server
+  signalR: IConnectionManager; // For syncing state to server (works with SignalR or SignalM)
 }
 
 // Global context tracking
