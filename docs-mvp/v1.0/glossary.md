@@ -302,6 +302,14 @@ Core Minimact insight: HTML structure (elements, hierarchy) should be decoupled 
 
 ## Common Phrases
 
+### "Never hydrate. Always Minimact."
+**The official Minimalist slogan.** The battle cry of the Posthydrationist movement.
+
+- **NEVER HYDRATE** - Reject client-side hydration entirely
+- **ALWAYS MINIMACT** - Choose server-first architecture with predictive rendering
+
+Used at conferences, on banners, in team spaces, and wherever Minimalists gather. This isn't just a tagline - it's a declaration of architectural intent.
+
 ### "Never hydrate"
 The core Minimact principle: eliminate hydration entirely by using patches and predictive rendering.
 

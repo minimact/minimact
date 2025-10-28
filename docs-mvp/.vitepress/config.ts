@@ -14,6 +14,7 @@ export default defineConfig({
       { text: 'Guide', link: '/v1.0/guide/getting-started' },
       { text: 'Extensions', link: '/v1.0/extensions/' },
       { text: 'Architecture', link: '/v1.0/architecture/what-makes-minimact-different' },
+      { text: 'Community', link: '/v1.0/community' },
       { text: 'Use Cases', link: '/v1.0/use-cases' },
       { text: 'API Reference', link: '/v1.0/api/hooks' },
       { text: 'Examples', link: '/v1.0/examples' },
