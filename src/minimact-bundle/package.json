@@ -1,0 +1,38 @@
+{
+  "name": "minimact-bundle",
+  "version": "0.1.0",
+  "description": "Declarative DOM selector primitives for Minimact - behavioral anchors without wrappers 🎯",
+  "main": "dist/minimact-bundle.js",
+  "module": "dist/minimact-bundle.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "minimact",
+    "dom",
+    "bundle",
+    "selector",
+    "declarative",
+    "jsx",
+    "behavioral",
+    "ssr"
+  ],
+  "author": "Minimact Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "minimact": "^0.1.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rollup": "^4.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}

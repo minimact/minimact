@@ -699,6 +699,72 @@ const price = useDecisionTree({
 // Result: 0 (matched roleAdmin path)
 ```
 
+### useBundle (minimact-bundle)
+
+Declarative DOM selector primitives for applying attributes without wrapper pollution.
+
+```tsx
+import { registerBundle, useBundle } from 'minimact-bundle';
+
+function Hero() {
+  const [visible, setVisible] = useState(false);
+
+  // Register what to target
+  useEffect(() => {
+    registerBundle("hero-animation", ".hero h1, .hero p, button");
+  }, []);
+
+  // Apply attributes declaratively
+  useBundle("hero-animation", {
+    class: visible ? "fade-in visible" : "fade-in"
+  });
+
+  return (
+    <section className="hero">
+      <h1>Welcome</h1>
+      <p>This is awesome</p>
+      <button onClick={() => setVisible(!visible)}>Toggle</button>
+    </section>
+  );
+}
+```
+
+**Key Features:**
+- No wrapper divs needed
+- CSS selector, function, or direct element targeting
+- Apply classes, styles, and attributes
+- Automatic cleanup on unmount
+- Theme switching, loading states, animations
+
+**MES Silver Certified** - Meets Minimact Extension Standards
+
+**Example: Theme Switching**
+```tsx
+const [theme, setTheme] = useState('light');
+
+useEffect(() => {
+  registerBundle("themed", "body, .card, .panel");
+}, []);
+
+useBundle("themed", {
+  class: `theme-${theme}`
+});
+```
+
+**Example: Loading States**
+```tsx
+const [loading, setLoading] = useState(false);
+
+useEffect(() => {
+  registerBundle("interactive", "button, input, select");
+}, []);
+
+useBundle("interactive", {
+  class: loading ? "disabled loading" : "",
+  'data-loading': loading
+});
+```
+
 ## Server Task Hooks
 
 ### useServerTask
