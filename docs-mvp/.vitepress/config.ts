@@ -12,6 +12,7 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/v1.0/guide/getting-started' },
+      { text: 'Extensions', link: '/v1.0/extensions/' },
       { text: 'Architecture', link: '/v1.0/architecture/what-makes-minimact-different' },
       { text: 'Use Cases', link: '/v1.0/use-cases' },
       { text: 'API Reference', link: '/v1.0/api/hooks' },
@@ -127,6 +128,7 @@ export default defineConfig({
         {
           text: 'Architecture & Philosophy',
           items: [
+            { text: 'Key Insights 🔑', link: '/v1.0/architecture/key-insights' },
             { text: 'What Makes Minimact Different', link: '/v1.0/architecture/what-makes-minimact-different' },
             { text: 'Benefits Over React', link: '/v1.0/architecture/benefits-over-react' },
             { text: 'Predictive Rendering 101', link: '/v1.0/architecture/predictive-rendering-101' },
@@ -173,6 +175,28 @@ export default defineConfig({
           items: [
             { text: 'Hooks API', link: '/v1.0/api/hooks' },
             { text: 'Examples', link: '/v1.0/examples' }
+          ]
+        }
+      ],
+      '/v1.0/extensions/': [
+        {
+          text: 'Quantum Stack',
+          items: [
+            { text: 'Overview', link: '/v1.0/extensions/' },
+            { text: 'minimact-punch 🥊', link: '/v1.0/extensions/punch' },
+            { text: 'minimact-query 🗃️', link: '/v1.0/extensions/query' },
+            { text: 'minimact-quantum 🌌', link: '/v1.0/extensions/quantum' },
+            { text: 'minimact-bundle 🎯', link: '/v1.0/extensions/bundle' },
+            { text: 'minimact-spatial 📐', link: '/v1.0/extensions/spatial' },
+            { text: 'minimact-trees 🌳', link: '/v1.0/extensions/trees' }
+          ]
+        },
+        {
+          text: 'Quick Links',
+          items: [
+            { text: 'Getting Started', link: '/v1.0/guide/getting-started' },
+            { text: 'Use Cases', link: '/v1.0/use-cases' },
+            { text: 'API Reference', link: '/v1.0/api/hooks' }
           ]
         }
       ]
