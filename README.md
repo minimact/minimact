@@ -387,6 +387,120 @@ const users = usePaginatedServerTask(
 
 **The secret:** `usePaginatedServerTask` is just a thin wrapper around `useServerTask`. It generates TWO server tasks (fetch + count), both transpiled to your chosen runtime. You get all the power of `useServerTask` (progress, errors, cancellation, etc.) with a pagination-specific API.
 
+### 🗄️ useContext - Redis-Like Server-Side Cache
+
+**Unlike React's context (Provider components), Minimact's context is a server-side cache with scoped lifetimes.**
+
+```typescript
+import { createContext, useContext } from 'minimact';
+
+// Session-scoped user context
+const UserContext = createContext<User>('current-user', {
+  scope: 'session',
+  expiry: 3600000 // 1 hour
+});
+
+// Component 1: Login form (writes to context)
+function LoginForm() {
+  const [_, setUser] = useContext(UserContext);
+
+  const handleLogin = async (credentials) => {
+    const user = await authenticate(credentials);
+    setUser(user); // Stored in session cache, survives page navigation
+  };
+
+  return <form onSubmit={handleLogin}>...</form>;
+}
+
+// Component 2: User profile (reads from context)
+function UserProfile() {
+  const [user] = useContext(UserContext);
+
+  if (!user) return <Login />;
+  return <div>Welcome, {user.name}</div>;
+}
+```
+
+**Scope types:**
+- `'request'` — Tied to current HTTP request (default)
+- `'session'` — Persists across requests for user session
+- `'url'` — Scoped to URL pattern (e.g., `/dashboard/*`)
+- `'application'` — Global, shared across all users
+
+**Key differences from React Context:**
+- ✅ No Provider component needed
+- ✅ Server-side cache survives page navigation
+- ✅ No parent-child relationship required
+- ✅ Works across different pages/routes
+
+### 🧮 useComputed - Client-Side Computation with Server Rendering
+
+**Compute values on the client using browser APIs, then sync to server for rendering.**
+
+```typescript
+import { useComputed } from 'minimact';
+
+// Use lodash on client (no server bundle bloat)
+function UserList({ users }) {
+  const sortedUsers = useComputed('sortedUsers', () => {
+    return _.sortBy(users, 'name');
+  }, [users]);
+
+  return <ul>{sortedUsers.map(u => <li>{u.name}</li>)}</ul>;
+}
+
+// Use browser geolocation API
+function LocationMap() {
+  const location = useComputed('location', async () => {
+    const pos = await new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(resolve);
+    });
+    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  }, []);
+
+  if (!location) return <div>Getting location...</div>;
+  return <Map center={location} />;
+}
+
+// Client-side password hashing with Web Crypto API
+function SecureForm() {
+  const [password, setPassword] = useState('');
+
+  const hashedPassword = useComputed('hashedPassword', async () => {
+    if (!password) return null;
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }, [password], {
+    debounce: 500  // Wait for user to stop typing
+  });
+
+  return <input type="password" value={password} />;
+}
+```
+
+**How it works:**
+1. Client runs computation using browser APIs/libraries
+2. Result syncs to server via `UpdateClientComputedState`
+3. Server accesses via `GetClientState<T>('key')`
+4. Server renders with computed value
+
+**Options:**
+- `memoize: true` — Cache results (default)
+- `expiry: 5000` — Cache expires after N milliseconds
+- `debounce: 300` — Wait N ms after last change before syncing
+- `throttle: 1000` — Sync at most once every N ms
+- `initialValue` — Value before first computation
+
+**Perfect for:**
+- Heavy client-side libraries (lodash, moment, d3)
+- Browser-only APIs (geolocation, crypto, canvas, IndexedDB)
+- Client-computed values for server rendering
+- Keeping large libraries off your server bundle
+
 ### 🎯 Zero-Cost Semantic Hooks
 
 High-level abstractions that compile away:
