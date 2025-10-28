@@ -792,11 +792,11 @@ function LandingPage() {
 
 ✅ **Single Language** - Write TypeScript, runs on server as C#
 ✅ **Type Safety** - Types flow from TS to C#
-✅ **Real-Time by Default** - SignalR built-in
+✅ **Real-Time by Default** - WebSocket/SignalR built-in
 ✅ **Server-Native** - Heavy computation on server automatically
 ✅ **Progress Tracking** - Built into every async operation
 ✅ **Unified Pagination** - One hook replaces 100+ lines
-✅ **Zero Client Overhead** - ~5KB runtime
+✅ **Minimal Client Bundle** - 13.33 KB (71% smaller than React)
 ✅ **Predictive Rendering** - 95-98% cache hit rates
 
 ## Who Benefits

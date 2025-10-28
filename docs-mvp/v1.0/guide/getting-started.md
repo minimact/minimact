@@ -49,6 +49,15 @@ cd client
 npm install
 ```
 
+This installs `minimact` (13.33 KB gzipped) by default.
+
+**Want full SignalR compatibility?** Install `minimact-r` instead (25.03 KB):
+```bash
+npm install minimact-r
+```
+
+Both versions have identical APIs. See [Bundle Size Comparison](#bundle-sizes) below.
+
 ### 4. Start Development Server
 
 ```bash
@@ -589,6 +598,42 @@ If port 5000 is taken:
 # Use a different port
 dotnet run --urls "http://localhost:5001"
 ```
+
+---
+
+## Bundle Sizes
+
+Minimact is available in two versions:
+
+| Version | Transport | Bundle Size (gzipped) | Browser Support |
+|---------|-----------|----------------------|-----------------|
+| **minimact** | SignalM (WebSocket + JSON) | **13.33 KB** | Modern browsers (95%+ users) |
+| **minimact-r** | SignalR (Full client) | **25.03 KB** | All browsers + legacy support |
+
+### Comparison to Other Frameworks
+
+| Framework | Size (gzipped) | vs Minimact |
+|-----------|---------------|-------------|
+| React 18 | 45 KB | **71% larger** |
+| Vue 3 | 34 KB | **155% larger** |
+| **Minimact** | **13.33 KB** | ✅ Default |
+| Minimact-R | 25.03 KB | 88% larger (still 44% smaller than React) |
+
+### When to Use Each Version
+
+**Use `minimact` (default) if:**
+- ✅ You're building for modern browsers (Chrome 51+, Firefox 54+, Safari 10+, Edge 15+)
+- ✅ You want the smallest possible bundle
+- ✅ You only need WebSocket transport
+- ✅ 95%+ of users have WebSocket support
+
+**Use `minimact-r` if:**
+- ✅ You need enterprise compatibility (old proxies, firewalls)
+- ✅ You need transport fallback (SSE, Long Polling)
+- ✅ You want to use the `useSignalR` hook for custom hubs
+- ✅ You need MessagePack protocol support
+
+**Migration is seamless** — just swap the package name. No code changes required!
 
 ---
 

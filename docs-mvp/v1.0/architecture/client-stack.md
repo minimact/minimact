@@ -39,7 +39,7 @@ Minimact's client modules form a coherent hierarchy of reactive capabilities —
             ▲
 ┌────────────────────────────┐
 │   minimact (core)          │  ← 0️⃣ Predictive Rendering
-│   ~5KB Runtime             │
+│   13.33 KB Runtime         │
 └────────────────────────────┘
 ```
 
@@ -60,10 +60,11 @@ npm install minimact
 
 ### What It Includes
 
-- **Hooks:** `useState`, `useEffect`, `useRef`, `useClientState`, `useServerTask`
-- **Predictive patches** via `usePredictHint`
+- **Hooks:** `useState`, `useEffect`, `useRef`, `useContext`, `useComputed`, `useServerTask`
+- **Predictive patches** via template cache
 - **Server-rendered HTML** with client patch application
-- **~5KB runtime** (gzipped)
+- **13.33 KB runtime** (gzipped) — 71% smaller than React
+- **Alternative:** `minimact-r` with full SignalR (25.03 KB)
 
 ### Key Features
 

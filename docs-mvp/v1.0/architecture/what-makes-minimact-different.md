@@ -8,10 +8,10 @@ Traditional server-side rendering frameworks face a dilemma:
 
 ```
 ┌─────────────────────────────────────────┐
-│  Traditional SSR Flow                   │
+│  Traditional SSR Flow (React)           │
 ├─────────────────────────────────────────┤
 │  1. Server renders HTML                 │
-│  2. Client downloads 50-150KB JS bundle │
+│  2. Client downloads 45 KB JS bundle    │
 │  3. Client "hydrates" - replays render  │
 │  4. Client reconciles every interaction │
 │  5. VDOM diff on every state change     │
@@ -33,7 +33,7 @@ Minimact flips the model entirely:
 │  Minimact Flow                          │
 ├─────────────────────────────────────────┤
 │  1. Server renders HTML                 │
-│  2. Client downloads ~5KB runtime       │
+│  2. Client downloads 13.33 KB runtime   │
 │  3. Server pre-computes state changes   │
 │  4. Client caches predicted patches     │
 │  5. User interacts → instant update     │
@@ -43,10 +43,10 @@ Minimact flips the model entirely:
 ```
 
 **Benefits:**
-- ✅ 5KB client vs 50-150KB (10-30x smaller)
+- ✅ 13.33 KB client vs 45 KB React (71% smaller)
 - ✅ No hydration required
 - ✅ Zero client-side reconciliation
-- ✅ 2-3ms perceived latency (vs 47ms traditional)
+- ✅ 2-3ms perceived latency (vs 30-60ms traditional)
 - ✅ Instant interactions (cached patches)
 
 ## Client-Side Stored Procedures
@@ -189,25 +189,28 @@ function SearchBox() {
 Traditional frameworks ship the framework to the client:
 
 ```
-Client Bundle:
+React Client Bundle:
 ├── React reconciliation engine
 ├── VDOM implementation
 ├── Component tree
 ├── State management
 └── Event system
-Total: 50-150KB
+Total: 45 KB (gzipped)
 ```
 
 Minimact ships only what's needed:
 
 ```
-Client Bundle:
-├── SignalR client
+Minimact Client Bundle:
+├── SignalM WebSocket client (or SignalR)
 ├── DOM patcher
 ├── Event delegation
-└── Patch cache
-Total: ~5KB
+├── Patch cache
+└── State synchronization
+Total: 13.33 KB (gzipped) - 71% smaller
 ```
+
+**With full SignalR:** 25.03 KB (still 44% smaller than React)
 
 **Why?** The server already has all the logic. Client just needs to:
 1. Send events to server
@@ -278,9 +281,9 @@ Works without JavaScript:
 
 | Aspect | Minimact | Next.js/Remix |
 |--------|----------|---------------|
-| **Client bundle** | ~5KB | ~50-150KB |
+| **Client bundle** | 13.33 KB (71% smaller) | ~45 KB |
 | **Hydration** | None | Required |
-| **Interaction latency** | 2-3ms | 47ms+ |
+| **Interaction latency** | 2-3ms | 30-60ms |
 | **Server language** | .NET | Node.js |
 | **Type safety** | TS→C# | TS only |
 
@@ -307,7 +310,7 @@ Works without JavaScript:
 | Aspect | Minimact | HTMX |
 |--------|----------|------|
 | **Paradigm** | Component-based | Hypermedia |
-| **Bundle size** | ~5KB | ~14KB |
+| **Bundle size** | 13.33 KB | ~14 KB |
 | **Type safety** | ✅ TS→C# | ❌ None |
 | **Prediction** | ✅ Intelligent | ❌ None |
 | **Complexity** | React components | HTML attributes |

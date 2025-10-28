@@ -6,18 +6,19 @@ This page breaks down the core tradeoffs and why Minimact feels faster, simpler,
 
 ## Feature Comparison Table
 
-| Feature | Traditional React | Minimact + Rust |
-|---------|------------------|-----------------|
-| **VDOM diff** | ✅ Yes (client-side) | ❌ Not needed |
+| Feature | Traditional React | Minimact |
+|---------|------------------|----------|
+| **VDOM diff** | ✅ Yes (client-side) | ❌ Not needed (server-side) |
 | **Prediction** | ❌ None | ✅ Template cache (Phases 1-9) |
-| **Execution** | JavaScript on client | Native Rust or C# |
+| **Execution** | JavaScript on client | Native Rust + C# on server |
 | **Hydration** | ✅ Required | ❌ Skipped entirely |
-| **Bundle Size** | ~150KB+ | ~5KB |
-| **Latency** | ~30-60ms | ~0-5ms (cached patches) |
+| **Bundle Size** | **45 KB** gzipped | **13.33 KB** gzipped (71% smaller) |
+| **Bundle Size (Full)** | ~45 KB | **25.03 KB** with SignalR (44% smaller) |
+| **Latency** | ~30-60ms | ~2-5ms (cached patches) |
 | **Learning Curve** | Medium | Low (React syntax + .NET) |
 | **Security** | Business logic in JS | ✅ Server-only logic |
 | **Type Safety** | TypeScript only | TS + full C# inference |
-| **Multi-Runtime** | ❌ No | ✅ Rust or C# |
+| **Multi-Runtime** | ❌ No | ✅ Rust reconciliation + C# |
 | **SSR Support** | Optional add-on | ✅ Core by design |
 | **Progressive Enhancement** | Manual | ✅ Built-in |
 
