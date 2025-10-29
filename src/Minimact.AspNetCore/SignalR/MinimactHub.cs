@@ -859,4 +859,299 @@ public class MinimactHub : Hub
     }
 
     #endregion
+
+    #region Template Inspector Methods (for SWIG Electron DevTools)
+
+    /// <summary>
+    /// Get metadata for a component including all loop templates
+    /// Used by Template Inspector in SWIG Electron
+    /// </summary>
+    public async Task<object> GetComponentMetadata(string componentId)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return new { success = false, error = "Component not found" };
+        }
+
+        try
+        {
+            var componentType = component.GetType();
+
+            // Extract [LoopTemplate] attributes
+            var loopTemplates = componentType
+                .GetCustomAttributes(typeof(LoopTemplateAttribute), true)
+                .Cast<LoopTemplateAttribute>()
+                .Select(attr => new
+                {
+                    stateKey = attr.StateKey,
+                    template = attr.TemplateJson
+                })
+                .ToList();
+
+            // Get current state
+            var state = new Dictionary<string, object>();
+            foreach (var kvp in component.State)
+            {
+                state[kvp.Key] = kvp.Value;
+            }
+
+            // Extract bindings from templates
+            var bindings = new List<string>();
+            // TODO: Parse template JSON to extract binding paths
+
+            return new
+            {
+                success = true,
+                data = new
+                {
+                    componentId,
+                    componentName = componentType.Name,
+                    templates = loopTemplates,
+                    state,
+                    bindings
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error getting component metadata: {ex.Message}");
+            return new { success = false, error = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Get all registered components
+    /// Used by Template Inspector component selector
+    /// </summary>
+    public async Task<object> GetAllComponents()
+    {
+        try
+        {
+            var componentIds = _registry.GetAllComponentIds();
+            var components = componentIds
+                .Select(id => _registry.GetComponent(id))
+                .Where(c => c != null)
+                .Select(c => new
+                {
+                    componentId = c!.ComponentId,
+                    componentName = c.GetType().Name,
+                    hasTemplates = c.GetType()
+                        .GetCustomAttributes(typeof(LoopTemplateAttribute), true)
+                        .Any()
+                })
+                .ToList();
+
+            return new
+            {
+                success = true,
+                data = components
+            };
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error getting components: {ex.Message}");
+            return new { success = false, error = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Preview template with custom state
+    /// Used by Template Preview feature
+    /// </summary>
+    public async Task<object> PreviewTemplate(PreviewTemplateRequest request)
+    {
+        var component = _registry.GetComponent(request.ComponentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {request.ComponentId} not found");
+            return new { success = false, error = "Component not found" };
+        }
+
+        try
+        {
+            var startTime = DateTime.UtcNow;
+
+            // Backup current state
+            var originalState = new Dictionary<string, object>(component.State);
+
+            // Apply preview state
+            foreach (var kvp in request.State)
+            {
+                component.State[kvp.Key] = kvp.Value;
+            }
+
+            // Render with preview state
+            var vnode = VNode.Normalize(component.RenderComponent());
+
+            // Convert VNode to HTML string (simplified)
+            var html = VNodeToHtml(vnode);
+
+            // Restore original state
+            foreach (var kvp in originalState)
+            {
+                component.State[kvp.Key] = kvp.Value;
+            }
+
+            var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
+            return new
+            {
+                success = true,
+                data = new
+                {
+                    html,
+                    performance = duration,
+                    bindings = request.State
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error previewing template: {ex.Message}");
+            return new { success = false, error = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Get template usage statistics
+    /// Used by Template Coverage feature
+    /// </summary>
+    public async Task<object> GetTemplateUsageStats(string componentId)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return new { success = false, error = "Component not found" };
+        }
+
+        try
+        {
+            // TODO: Implement usage tracking in component
+            // For now, return mock data structure
+            return new
+            {
+                success = true,
+                data = new
+                {
+                    componentId,
+                    templates = new List<object>
+                    {
+                        // Will be populated by client-side telemetry
+                    }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error getting usage stats: {ex.Message}");
+            return new { success = false, error = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Get template performance metrics
+    /// Used by Template Performance feature
+    /// </summary>
+    public async Task<object> GetTemplatePerformance(string componentId)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return new { success = false, error = "Component not found" };
+        }
+
+        try
+        {
+            // TODO: Implement performance tracking in component
+            // For now, return mock data structure
+            return new
+            {
+                success = true,
+                data = new
+                {
+                    componentId,
+                    metrics = new
+                    {
+                        avgTime = 0.0,
+                        minTime = 0.0,
+                        maxTime = 0.0,
+                        p50 = 0.0,
+                        p95 = 0.0,
+                        p99 = 0.0,
+                        applications = 0
+                    }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error getting performance metrics: {ex.Message}");
+            return new { success = false, error = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Request model for PreviewTemplate
+    /// </summary>
+    public class PreviewTemplateRequest
+    {
+        public string ComponentId { get; set; } = null!;
+        public string TemplateKey { get; set; } = null!;
+        public Dictionary<string, object> State { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Convert VNode to HTML string (simplified)
+    /// </summary>
+    private string VNodeToHtml(VNode vnode)
+    {
+        // Handle text nodes
+        if (vnode is VText textNode)
+        {
+            return System.Net.WebUtility.HtmlEncode(textNode.Content ?? "");
+        }
+
+        // Handle element nodes
+        if (vnode is VElement element)
+        {
+            var tag = element.Tag ?? "div";
+            var html = $"<{tag}";
+
+            // Add attributes
+            if (element.Props != null)
+            {
+                foreach (var prop in element.Props)
+                {
+                    if (prop.Key != "children" && prop.Value != null)
+                    {
+                        html += $" {prop.Key}=\"{System.Net.WebUtility.HtmlEncode(prop.Value.ToString())}\"";
+                    }
+                }
+            }
+
+            html += ">";
+
+            // Add children
+            if (element.Children != null)
+            {
+                foreach (var child in element.Children)
+                {
+                    html += VNodeToHtml(child);
+                }
+            }
+
+            html += $"</{tag}>";
+
+            return html;
+        }
+
+        // Unknown node type
+        return "";
+    }
+
+    #endregion
 }

@@ -7,23 +7,27 @@ import icon from '../../resources/icon.png?asset'
 import { ProjectManager } from './services/ProjectManager'
 import { TranspilerService } from './services/TranspilerService'
 import { ProcessController } from './services/ProcessController'
+import { SignalRClient } from './services/SignalRClient'
 
 // Import IPC handlers
 import { registerProjectHandlers } from './ipc/project'
 import { registerTranspilerHandlers } from './ipc/transpiler'
 import { registerProcessHandlers } from './ipc/process'
 import { registerFileHandlers } from './ipc/file'
+import { registerTemplateHandlers } from './ipc/template'
 
 // Initialize services
 const projectManager = new ProjectManager(app.getPath('userData'))
 const transpilerService = new TranspilerService()
 const processController = new ProcessController()
+const signalRClient = new SignalRClient()
 
 // Register IPC handlers
 registerProjectHandlers(projectManager)
 registerTranspilerHandlers(transpilerService)
 registerProcessHandlers(processController)
 registerFileHandlers()
+registerTemplateHandlers(signalRClient)
 
 function createWindow(): void {
   // Create the browser window.

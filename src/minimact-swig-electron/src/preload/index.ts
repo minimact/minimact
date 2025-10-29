@@ -59,6 +59,28 @@ const api = {
       ipcRenderer.invoke('file:openExternal', url),
     showInFolder: (filePath: string) =>
       ipcRenderer.invoke('file:showInFolder', filePath)
+  },
+
+  // Template APIs
+  template: {
+    getMetadata: (componentId: string) =>
+      ipcRenderer.invoke('template:getMetadata', componentId),
+    getComponents: () =>
+      ipcRenderer.invoke('template:getComponents'),
+    preview: (request: { componentId: string; templateKey: string; state: Record<string, any> }) =>
+      ipcRenderer.invoke('template:preview', request),
+    getUsageStats: (componentId: string) =>
+      ipcRenderer.invoke('template:getUsageStats', componentId),
+    getPerformance: (componentId: string) =>
+      ipcRenderer.invoke('template:getPerformance', componentId),
+    subscribeTelemetry: (componentId: string) =>
+      ipcRenderer.invoke('template:subscribeTelemetry', componentId),
+    unsubscribeTelemetry: () =>
+      ipcRenderer.invoke('template:unsubscribeTelemetry'),
+    onTelemetry: (callback: (telemetry: any) => void) => {
+      ipcRenderer.on('template:telemetry', (_, telemetry) => callback(telemetry));
+      return () => ipcRenderer.removeAllListeners('template:telemetry');
+    }
   }
 }
 

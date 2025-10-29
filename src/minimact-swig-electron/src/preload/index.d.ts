@@ -40,6 +40,21 @@ interface MinimactAPI {
     openExternal: (url: string) => Promise<APIResponse>
     showInFolder: (filePath: string) => Promise<APIResponse>
   }
+
+  template: {
+    getMetadata: (componentId: string) => Promise<APIResponse>
+    getComponents: () => Promise<APIResponse>
+    preview: (request: {
+      componentId: string
+      templateKey: string
+      state: Record<string, any>
+    }) => Promise<APIResponse>
+    getUsageStats: (componentId: string) => Promise<APIResponse>
+    getPerformance: (componentId: string) => Promise<APIResponse>
+    subscribeTelemetry: (componentId: string) => Promise<APIResponse>
+    unsubscribeTelemetry: () => Promise<APIResponse>
+    onTelemetry: (callback: (telemetry: any) => void) => () => void
+  }
 }
 
 declare global {
