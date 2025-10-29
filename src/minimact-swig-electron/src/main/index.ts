@@ -1,13 +1,35 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+// Import services
+import { ProjectManager } from './services/ProjectManager'
+import { TranspilerService } from './services/TranspilerService'
+import { ProcessController } from './services/ProcessController'
+
+// Import IPC handlers
+import { registerProjectHandlers } from './ipc/project'
+import { registerTranspilerHandlers } from './ipc/transpiler'
+import { registerProcessHandlers } from './ipc/process'
+import { registerFileHandlers } from './ipc/file'
+
+// Initialize services
+const projectManager = new ProjectManager(app.getPath('userData'))
+const transpilerService = new TranspilerService()
+const processController = new ProcessController()
+
+// Register IPC handlers
+registerProjectHandlers(projectManager)
+registerTranspilerHandlers(transpilerService)
+registerProcessHandlers(processController)
+registerFileHandlers()
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1400,
+    height: 900,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -40,7 +62,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.minimact.swig')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -48,9 +70,6 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
 
@@ -70,5 +89,7 @@ app.on('window-all-closed', () => {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+// Cleanup on quit
+app.on('quit', () => {
+  processController.stop()
+})
