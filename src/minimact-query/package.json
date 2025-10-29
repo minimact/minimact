@@ -1,6 +1,6 @@
 {
   "name": "@minimact/query",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SQL query interface for DOM state - treat the DOM as a relational database",
   "type": "module",
   "main": "dist/query.js",

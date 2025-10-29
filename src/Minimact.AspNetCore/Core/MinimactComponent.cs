@@ -713,6 +713,11 @@ public abstract class MinimactComponent
     private readonly Dictionary<string, object> _serverTasks = new();
 
     /// <summary>
+    /// Server reducer instances for this component
+    /// </summary>
+    private readonly Dictionary<string, object> _serverReducers = new();
+
+    /// <summary>
     /// Get or create a server task by ID
     /// </summary>
     protected ServerTaskState<T> GetServerTask<T>(string taskId)
@@ -826,6 +831,147 @@ public abstract class MinimactComponent
                 if (state != null)
                 {
                     states[attr.TaskId] = state;
+                }
+            }
+        }
+
+        return states;
+    }
+
+    #endregion
+
+    #region Server Reducers (useServerReducer support)
+
+    /// <summary>
+    /// Get or create a server reducer by ID
+    /// </summary>
+    protected ServerReducerState<TState, TAction> GetServerReducer<TState, TAction>(string reducerId)
+    {
+        if (!_serverReducers.ContainsKey(reducerId))
+        {
+            // Find method with [ServerReducer(reducerId)] attribute
+            var method = FindServerReducerMethod(reducerId);
+            if (method == null)
+            {
+                throw new InvalidOperationException($"No method found with [ServerReducer(\"{reducerId}\")]");
+            }
+
+            // Get initial state from first parameter's default value or create new instance
+            var parameters = method.GetParameters();
+            if (parameters.Length < 2)
+            {
+                throw new InvalidOperationException($"Reducer method must have at least 2 parameters (state, action)");
+            }
+
+            var stateType = parameters[0].ParameterType;
+            TState initialState = default!;
+
+            // Try to get initial state from method default value or create new instance
+            if (parameters[0].HasDefaultValue)
+            {
+                initialState = (TState)parameters[0].DefaultValue!;
+            }
+            else
+            {
+                initialState = Activator.CreateInstance<TState>();
+            }
+
+            // Create reducer state
+            var reducerState = new ServerReducerState<TState, TAction>(
+                reducerId,
+                initialState,
+                (state, action) =>
+                {
+                    // Invoke the reducer method
+                    var result = method.Invoke(this, new object[] { state!, action! });
+                    return (TState)result!;
+                },
+                this
+            );
+
+            _serverReducers[reducerId] = reducerState;
+        }
+
+        return (ServerReducerState<TState, TAction>)_serverReducers[reducerId];
+    }
+
+    /// <summary>
+    /// Find method with [ServerReducer] attribute by reducer ID
+    /// </summary>
+    private MethodInfo? FindServerReducerMethod(string reducerId)
+    {
+        return GetType()
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(m =>
+            {
+                var attr = m.GetCustomAttribute<ServerReducerAttribute>();
+                return attr != null && attr.ReducerId == reducerId;
+            });
+    }
+
+    /// <summary>
+    /// Send reducer state update to client via PatchSender
+    /// </summary>
+    internal async Task SendReducerStateUpdate(string reducerId, object newState, string? error)
+    {
+        if (PatchSender == null)
+        {
+            return;
+        }
+
+        await PatchSender.SendReducerStateUpdateAsync(ComponentId, reducerId, newState, error);
+    }
+
+    /// <summary>
+    /// Get the current state of a server reducer for serialization
+    /// </summary>
+    internal object? GetServerReducerState(string reducerId)
+    {
+        if (!_serverReducers.ContainsKey(reducerId))
+        {
+            return new
+            {
+                reducerId,
+                state = (object?)null,
+                dispatching = false,
+                error = (string?)null,
+                lastDispatchedAt = (DateTime?)null,
+                lastActionType = (string?)null
+            };
+        }
+
+        var reducer = _serverReducers[reducerId];
+        var reducerType = reducer.GetType();
+
+        // Use reflection to call GetSnapshot
+        var method = reducerType.GetMethod("GetSnapshot");
+        if (method != null)
+        {
+            return method.Invoke(reducer, null);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get all server reducer states for this component (for initial hydration)
+    /// </summary>
+    internal Dictionary<string, object?> GetAllServerReducerStates()
+    {
+        var states = new Dictionary<string, object?>();
+
+        var methods = GetType()
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var method in methods)
+        {
+            var attr = method.GetCustomAttribute<ServerReducerAttribute>();
+            if (attr != null)
+            {
+                var state = GetServerReducerState(attr.ReducerId);
+                if (state != null)
+                {
+                    states[attr.ReducerId] = state;
                 }
             }
         }

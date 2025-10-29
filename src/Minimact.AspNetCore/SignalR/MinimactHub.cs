@@ -743,6 +743,91 @@ public class MinimactHub : Hub
 
     #endregion
 
+    #region Server Reducer
+
+    /// <summary>
+    /// Dispatch an action to a server reducer
+    /// </summary>
+    public async Task DispatchServerReducer(string componentId, string reducerId, object action)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Find the reducer method with [ServerReducer] attribute
+            var reducerMethod = FindReducerMethod(component, reducerId);
+            if (reducerMethod == null)
+            {
+                await Clients.Caller.SendAsync("Error", $"No method found with [ServerReducer(\"{reducerId}\")]");
+                return;
+            }
+
+            // Get reducer state instance
+            var getReducerMethod = component.GetType()
+                .GetMethod("GetServerReducer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+            if (getReducerMethod == null)
+            {
+                await Clients.Caller.SendAsync("Error", "GetServerReducer method not found");
+                return;
+            }
+
+            // Get the state type from the reducer method's first parameter
+            var parameters = reducerMethod.GetParameters();
+            if (parameters.Length < 2)
+            {
+                await Clients.Caller.SendAsync("Error", $"Reducer method {reducerMethod.Name} must have at least 2 parameters (state, action)");
+                return;
+            }
+
+            var stateType = parameters[0].ParameterType;
+            var actionType = parameters[1].ParameterType;
+
+            // Call GetServerReducer<TState, TAction>(reducerId)
+            var genericMethod = getReducerMethod.MakeGenericMethod(stateType, actionType);
+            dynamic reducerState = genericMethod.Invoke(component, new object[] { reducerId })!;
+
+            // Deserialize action to the correct type
+            object? typedAction = null;
+            if (action is System.Text.Json.JsonElement jsonElement)
+            {
+                typedAction = System.Text.Json.JsonSerializer.Deserialize(jsonElement.GetRawText(), actionType);
+            }
+            else
+            {
+                typedAction = Convert.ChangeType(action, actionType);
+            }
+
+            // Dispatch the action to the reducer state
+            await reducerState.Dispatch(typedAction);
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error dispatching reducer action: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Find method with [ServerReducer] attribute by reducer ID
+    /// </summary>
+    private MethodInfo? FindReducerMethod(MinimactComponent component, string reducerId)
+    {
+        return component.GetType()
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(m =>
+            {
+                var attr = m.GetCustomAttribute<ServerReducerAttribute>();
+                return attr != null && attr.ReducerId == reducerId;
+            });
+    }
+
+    #endregion
+
     #region Context Management
 
     /// <summary>

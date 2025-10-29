@@ -178,6 +178,18 @@ export class Minimact {
       await this.registerAllComponents();
     });
 
+    // Handle server reducer state updates
+    this.signalR.on('UpdateServerReducerState', ({ componentId, reducerId, state, error }) => {
+      const component = this.hydration.getComponent(componentId);
+      if (component && component.context.serverReducers) {
+        const reducer = component.context.serverReducers.get(reducerId);
+        if (reducer) {
+          reducer._updateFromServer(state, error);
+          this.log('Server reducer state updated', { componentId, reducerId });
+        }
+      }
+    });
+
     // Handle errors
     this.signalR.on('error', ({ message }) => {
       console.error('[Minimact] Server error:', message);
@@ -320,7 +332,7 @@ export type { Template, TemplateMap } from './template-state';
 export { TemplateRenderer } from './template-renderer';
 
 // Core hooks
-export { useState, useEffect, useRef, useServerTask, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
+export { useState, useEffect, useRef, useServerTask, useServerReducer, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
 
 // useComputed hook (for client-side computation with browser APIs/libraries)
 export { useComputed } from './useComputed';
@@ -332,6 +344,9 @@ export type { Context, ContextOptions } from './useContext';
 
 // Server task types
 export type { ServerTask, ServerTaskOptions, ServerTaskStatus } from './server-task';
+
+// Server reducer types
+export type { ServerReducer } from './server-reducer';
 
 // Paginated server task
 export { usePaginatedServerTask } from './usePaginatedServerTask';

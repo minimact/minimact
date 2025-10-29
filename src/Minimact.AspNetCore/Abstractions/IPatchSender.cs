@@ -28,4 +28,9 @@ public interface IPatchSender
     /// Send error message to client
     /// </summary>
     Task SendErrorAsync(string componentId, string errorMessage);
+
+    /// <summary>
+    /// Send server reducer state update to client
+    /// </summary>
+    Task SendReducerStateUpdateAsync(string componentId, string reducerId, object newState, string? error);
 }

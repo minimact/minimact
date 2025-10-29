@@ -4,6 +4,7 @@ import { PlaygroundBridge } from './playground-bridge';
 import { IConnectionManager } from './connection-manager';
 import { templateState } from './template-state';
 import { ServerTask, ServerTaskImpl, ServerTaskOptions } from './server-task';
+import { ServerReducer, ServerReducerImpl } from './server-reducer';
 import { setComputedContext } from './useComputed';
 
 /**
@@ -16,6 +17,7 @@ export interface ComponentContext {
   effects: Array<{ callback: () => void | (() => void), deps: any[] | undefined, cleanup?: () => void }>;
   refs: Map<string, { current: any }>;
   serverTasks?: Map<string, ServerTaskImpl<any>>; // For useServerTask integration
+  serverReducers?: Map<string, ServerReducerImpl<any, any>>; // For useServerReducer integration
   computedValues?: Map<string, any>; // For useComputed integration
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
@@ -30,6 +32,7 @@ let stateIndex = 0;
 let effectIndex = 0;
 let refIndex = 0;
 let serverTaskIndex = 0;
+let serverReducerIndex = 0;
 
 /**
  * Set the current component context (called before render)
@@ -40,6 +43,7 @@ export function setComponentContext(context: ComponentContext): void {
   effectIndex = 0;
   refIndex = 0;
   serverTaskIndex = 0;
+  serverReducerIndex = 0;
 
   // Reset computed index for useComputed hook
   setComputedContext(context);
@@ -505,4 +509,67 @@ export function useServerTask<T>(
   }
 
   return context.serverTasks.get(taskKey)!;
+}
+
+/**
+ * useServerReducer - React-like reducer that executes on the server
+ *
+ * Similar to React's useReducer, but the reducer function runs on the server side.
+ * This allows complex state transitions with validation, side effects, and database
+ * operations to happen server-side while maintaining reactive UI updates.
+ *
+ * @example
+ * ```tsx
+ * type CounterState = { count: number };
+ * type CounterAction = { type: 'increment' } | { type: 'decrement' } | { type: 'set', value: number };
+ *
+ * const counter = useServerReducer<CounterState, CounterAction>({ count: 0 });
+ *
+ * // In JSX:
+ * <button onClick={() => counter.dispatch({ type: 'increment' })}>+</button>
+ * <span>{counter.state.count}</span>
+ * <button onClick={() => counter.dispatch({ type: 'decrement' })}>-</button>
+ * {counter.dispatching && <Spinner />}
+ * {counter.error && <div>Error: {counter.error.message}</div>}
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // With async dispatch (await the result)
+ * const handleReset = async () => {
+ *   const newState = await counter.dispatchAsync({ type: 'set', value: 0 });
+ *   console.log('Counter reset to:', newState.count);
+ * };
+ * ```
+ */
+export function useServerReducer<TState, TAction>(
+  initialState: TState
+): ServerReducer<TState, TAction> {
+  if (!currentContext) {
+    throw new Error('useServerReducer must be called within a component render');
+  }
+
+  const context = currentContext;
+  const index = serverReducerIndex++;
+  const reducerKey = `serverReducer_${index}`;
+
+  // Initialize serverReducers map if not exists
+  if (!context.serverReducers) {
+    context.serverReducers = new Map();
+  }
+
+  // Get or create server reducer instance
+  if (!context.serverReducers.has(reducerKey)) {
+    const reducer = new ServerReducerImpl<TState, TAction>(
+      reducerKey,
+      context.componentId,
+      context.signalR,
+      context,
+      initialState
+    );
+
+    context.serverReducers.set(reducerKey, reducer);
+  }
+
+  return context.serverReducers.get(reducerKey)!;
 }

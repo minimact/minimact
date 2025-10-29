@@ -1,6 +1,6 @@
 {
   "name": "@minimact/punch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DOM observation and reactivity addon for Minimact - the cactus that knows the desert 🌵+🍹",
   "type": "module",
   "main": "dist/punch.js",

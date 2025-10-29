@@ -54,4 +54,20 @@ public class SignalRPatchSender : IPatchSender
         await _hubContext.Clients.Client(component.ConnectionId)
             .SendAsync("Error", errorMessage);
     }
+
+    public async Task SendReducerStateUpdateAsync(string componentId, string reducerId, object newState, string? error)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null || string.IsNullOrEmpty(component.ConnectionId))
+            return;
+
+        await _hubContext.Clients.Client(component.ConnectionId)
+            .SendAsync("UpdateServerReducerState", new
+            {
+                componentId = componentId,
+                reducerId = reducerId,
+                state = newState,
+                error = error
+            });
+    }
 }
