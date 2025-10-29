@@ -57,6 +57,8 @@ public int GetNextCount(int current)
 
 ## Template System
 
+For a deep dive into how templates are generated, stored, and applied, see the [Template Patch System](/v1.0/architecture/template-patch-system).
+
 The Rust reconciliation engine extracts templates from your renders:
 
 ### Phase 1: Simple Templates
