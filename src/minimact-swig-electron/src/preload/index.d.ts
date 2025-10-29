@@ -67,6 +67,7 @@ interface MinimactAPI {
     subscribeStateChanges: (componentId: string) => Promise<APIResponse>
     unsubscribeStateChanges: (componentId: string) => Promise<APIResponse>
     isConnected: () => Promise<APIResponse<boolean>>
+    previewCascade: (componentId: string, stateKey: string, newValue: any) => Promise<APIResponse>
   }
 }
 

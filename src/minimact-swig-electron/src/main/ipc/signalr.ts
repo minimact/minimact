@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
 import { SignalRClient } from '../services/SignalRClient'
 import type { ComponentStateSnapshot, ComponentTree } from '../types/component-state'
+import type { PreviewCascadeResult } from '../types/cascade'
 
 let signalRClient: SignalRClient | null = null
 
@@ -146,6 +147,36 @@ export function registerSignalRHandlers(): void {
       data: signalRClient!.isConnected
     }
   })
+
+  // Preview state change cascade
+  ipcMain.handle(
+    'signalr:previewCascade',
+    async (_event, componentId: string, stateKey: string, newValue: any) => {
+      try {
+        const startTime = Date.now()
+        const result = await signalRClient!.invoke(
+          'PreviewStateChangeCascade',
+          componentId,
+          stateKey,
+          newValue
+        )
+        const computationTime = Date.now() - startTime
+
+        return {
+          success: true,
+          data: {
+            ...result,
+            computationTime
+          } as PreviewCascadeResult
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        }
+      }
+    }
+  )
 }
 
 export function getSignalRClient(): SignalRClient | null {

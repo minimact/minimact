@@ -104,7 +104,9 @@ const api = {
     unsubscribeStateChanges: (componentId: string) =>
       ipcRenderer.invoke('signalr:unsubscribeStateChanges', componentId),
     isConnected: () =>
-      ipcRenderer.invoke('signalr:isConnected')
+      ipcRenderer.invoke('signalr:isConnected'),
+    previewCascade: (componentId: string, stateKey: string, newValue: any) =>
+      ipcRenderer.invoke('signalr:previewCascade', componentId, stateKey, newValue)
   }
 }
 
