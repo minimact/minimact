@@ -4,7 +4,7 @@
  * SQL for the DOM - without React dependencies
  */
 import { DomQueryBuilder } from './query-builder';
-import type { DomElementState } from 'minimact-punch';
+import type { DomElementState } from '@minimact/punch';
 /**
  * Component context for server sync (matches minimact-punch integration pattern)
  */

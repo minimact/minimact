@@ -5,7 +5,7 @@
  */
 
 import { DomQueryBuilder } from './query-builder';
-import type { DomElementState } from 'minimact-punch';
+import type { DomElementState } from '@minimact/punch';
 
 /**
  * Component context for server sync (matches minimact-punch integration pattern)

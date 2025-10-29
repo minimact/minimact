@@ -1,5 +1,5 @@
-import type { DomElementState } from 'minimact-punch';
-import { queryDomElementStates } from 'minimact-punch';
+import type { DomElementState } from '@minimact/punch';
+import { queryDomElementStates } from '@minimact/punch';
 
 /**
  * Minimact Query - Fluent SQL-like API for querying DOM state

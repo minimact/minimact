@@ -1,4 +1,4 @@
-import type { DomElementState } from 'minimact-punch';
+import type { DomElementState } from '@minimact/punch';
 /** Infer the type of a grouped result */
 type GroupedResult<T, TKey> = {
     key: TKey;

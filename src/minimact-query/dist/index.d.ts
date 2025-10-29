@@ -32,5 +32,5 @@
  */
 export { DomQueryBuilder, domQuery } from './query-builder';
 export { useDomQuery, useDomQueryStatic, useDomQueryThrottled, useDomQueryDebounced, setQueryContext, clearQueryContext } from './integration';
-export type { DomElementState } from 'minimact-punch';
+export type { DomElementState } from '@minimact/punch';
 //# sourceMappingURL=index.d.ts.map

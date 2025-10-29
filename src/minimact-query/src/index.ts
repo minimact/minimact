@@ -44,5 +44,5 @@ export {
   clearQueryContext
 } from './integration';
 
-// Re-export types from minimact-punch for convenience
-export type { DomElementState } from 'minimact-punch';
+// Re-export types from @minimact/punch for convenience
+export type { DomElementState } from '@minimact/punch';
