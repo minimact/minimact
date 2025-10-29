@@ -131,7 +131,7 @@ export default function CreateProject() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={creating || !projectName || !targetDir}
+            disabled={!projectName || !targetDir}
             className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors"
           >
             {creating ? 'Creating Project...' : 'Create Project'}

@@ -247,7 +247,7 @@ app.Run();
    */
   private async createCounterTemplate(projectPath: string): Promise<void> {
     // Create Pages/Index.tsx
-    const indexTsx = `import { useState } from 'react';
+    const indexTsx = `import { useState } from 'minimact';
 
 export function Index() {
   const [count, setCount] = useState(0);
