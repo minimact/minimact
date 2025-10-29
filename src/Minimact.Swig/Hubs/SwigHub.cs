@@ -177,17 +177,23 @@ public class SwigHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         // Check if this was a target app and remove from registry
+        string? disconnectedAppName = null;
+
         lock (_registryLock)
         {
             var entry = _targetAppConnections.FirstOrDefault(x => x.Value == Context.ConnectionId);
             if (entry.Key != null)
             {
+                disconnectedAppName = entry.Key;
                 _targetAppConnections.Remove(entry.Key);
                 _logger.LogWarning($"❌ Target app disconnected: {entry.Key}");
-
-                // Notify Swig UI clients
-                await Clients.Others.SendAsync("TargetAppDisconnected", entry.Key);
             }
+        }
+
+        // Notify Swig UI clients (outside lock)
+        if (disconnectedAppName != null)
+        {
+            await Clients.Others.SendAsync("TargetAppDisconnected", disconnectedAppName);
         }
 
         await base.OnDisconnectedAsync(exception);
