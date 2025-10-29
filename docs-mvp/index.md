@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Minimact
-  text: A MINIMal Anticipatory Client Technology
-  tagline: Server-first reactive UI with zero hydration, predictive patches, instant interactivity, and Rust-fueled performance — built for ASP.NET Core.
+  text: The Posthydrationist Framework
+  tagline: Server-first reactive UI with MINIMal Anticatory Client Technology: zero hydration, predictive patches, instant interactivity, and Rust-fueled performance — built for ASP.NET Core.
   image:
     src: /logo.png
     alt: Minimact
