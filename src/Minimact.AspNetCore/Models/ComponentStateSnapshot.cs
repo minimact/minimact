@@ -11,6 +11,7 @@ public class ComponentStateSnapshot
     public Dictionary<string, object?> Refs { get; set; } = new();
     public Dictionary<string, DomElementStateSnapshot> DomElementStates { get; set; } = new();
     public Dictionary<string, object?> QueryResults { get; set; } = new();
+    public Dictionary<string, ComputedStateInfo> ComputedStates { get; set; } = new();
     public List<EffectInfo> Effects { get; set; } = new();
     public List<LoopTemplateInfo> Templates { get; set; } = new();
     public long Timestamp { get; set; }
@@ -30,6 +31,17 @@ public class DomElementStateSnapshot
     public List<string> ClassList { get; set; } = new();
     public bool Exists { get; set; }
     public int Count { get; set; }
+}
+
+/// <summary>
+/// Computed state information from useComputed hook
+/// </summary>
+public class ComputedStateInfo
+{
+    public string Key { get; set; } = string.Empty;
+    public object? Value { get; set; }
+    public List<string> Dependencies { get; set; } = new();
+    public long? LastComputedTimestamp { get; set; }
 }
 
 /// <summary>

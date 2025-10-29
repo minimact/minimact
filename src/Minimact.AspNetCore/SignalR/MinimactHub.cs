@@ -1192,5 +1192,39 @@ public class MinimactHub : Hub
         return component.GetStateSnapshot();
     }
 
+    /// <summary>
+    /// Request client to recompute all useComputed values for a component
+    /// Used by SWIG DevTools to manually trigger recomputation
+    /// </summary>
+    public async Task RecomputeClientComputed(string componentId, string? specificKey = null)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            await Clients.Caller.SendAsync("Error", $"Component {componentId} not found");
+            return;
+        }
+
+        try
+        {
+            // Send recompute request to client
+            await Clients.Client(Context.ConnectionId).SendAsync("RecomputeClientComputed", new
+            {
+                componentId,
+                key = specificKey  // null = recompute all, otherwise specific key
+            });
+
+            // Note: Client will:
+            // 1. Call computeFn() for all/specific useComputed hooks
+            // 2. Update local state with setValue()
+            // 3. Sync back to server via UpdateClientComputedState
+            // 4. Server will then re-render with new values
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", $"Error requesting recompute: {ex.Message}");
+        }
+    }
+
     #endregion
 }
