@@ -85,7 +85,7 @@ export class ProjectManager {
   async getRecentProjects(): Promise<RecentProject[]> {
     try {
       const data = await fs.readFile(this.recentProjectsPath, 'utf-8');
-      return JSON.parse(data);
+      return JSON.parse(stripBom(data));
     } catch {
       return [];
     }
@@ -140,7 +140,7 @@ export class ProjectManager {
       );
 
       const data = await fs.readFile(launchSettingsPath, 'utf-8');
-      const launchSettings = JSON.parse(data);
+      const launchSettings = JSON.parse(stripBom(data));
 
       // Extract port from applicationUrl
       const profile = Object.values(launchSettings.profiles)[0] as any;
@@ -228,7 +228,9 @@ app.Run();
 
     // 5. Update launchSettings.json to use port 5000
     const launchSettingsPath = path.join(projectPath, 'Properties', 'launchSettings.json');
-    const launchSettings = JSON.parse(await fs.readFile(launchSettingsPath, 'utf-8'));
+    const launchSettings = JSON.parse(
+      stripBom(await fs.readFile(launchSettingsPath, 'utf-8'))
+    );
 
     // Update first profile
     const profileName = Object.keys(launchSettings.profiles)[0];
@@ -290,4 +292,11 @@ function getFileType(ext: string): ProjectFile['type'] {
     default:
       return 'other';
   }
+}
+
+/**
+ * Remove UTF-8 BOM so JSON.parse succeeds with dotnet-generated files
+ */
+function stripBom(content: string): string {
+  return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
 }
