@@ -15,6 +15,13 @@ if not exist "%OUTPUT_DIR%" (
   mkdir "%OUTPUT_DIR%"
 )
 
+echo [pack-minimact-aspnetcore] Building Minimact.AspNetCore (Release)...
+dotnet build "%PROJECT_PATH%" --configuration Release
+if errorlevel 1 (
+  echo [pack-minimact-aspnetcore] dotnet build failed.
+  exit /b 1
+)
+
 echo [pack-minimact-aspnetcore] Packing Minimact.AspNetCore...
 dotnet pack "%PROJECT_PATH%" --configuration Release --output "%OUTPUT_DIR%"
 if errorlevel 1 (

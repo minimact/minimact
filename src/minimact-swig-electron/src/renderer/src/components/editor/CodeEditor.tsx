@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import Editor, { type Monaco } from '@monaco-editor/react'
+import Editor, { type Monaco, loader } from '@monaco-editor/react'
+import monaco from '../../lib/monaco'
+
+loader.config({ monaco })
 
 interface CodeEditorProps {
   filePath: string

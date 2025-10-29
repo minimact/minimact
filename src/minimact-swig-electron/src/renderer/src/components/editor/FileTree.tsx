@@ -6,6 +6,7 @@ export interface ProjectFile {
   path: string
   type: 'file' | 'directory'
   extension?: string
+  kind?: 'tsx' | 'jsx' | 'ts' | 'js' | 'cs' | 'csproj' | 'json' | 'other'
   children?: ProjectFile[]
 }
 
@@ -47,7 +48,7 @@ function FileTreeItem({ file, level, onFileClick, selectedFile }: FileTreeItemPr
     }
 
     // File type colors
-    const ext = file.extension?.toLowerCase()
+    const ext = file.extension?.toLowerCase() ?? file.kind?.toLowerCase()
     let color = 'text-gray-400'
 
     if (ext === 'tsx' || ext === 'jsx') color = 'text-cyan-400'

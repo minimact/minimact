@@ -110,14 +110,16 @@ export class ProjectManager {
           }
         } else if (entry.isFile()) {
           const ext = path.extname(entry.name).toLowerCase();
-          const type = getFileType(ext);
+          const kind = getFileKind(ext);
+          const extension = ext.startsWith('.') ? ext.slice(1) : ext;
 
-          if (type !== 'other') {
+          if (kind !== 'other') {
             files.push({
               path: fullPath,
               name: entry.name,
-              extension: ext,
-              type
+              extension,
+              type: 'file',
+              kind
             });
           }
         }
@@ -273,7 +275,7 @@ export function Index() {
 /**
  * Determine file type from extension
  */
-function getFileType(ext: string): ProjectFile['type'] {
+function getFileKind(ext: string): NonNullable<ProjectFile['kind']> {
   switch (ext) {
     case '.tsx':
       return 'tsx';

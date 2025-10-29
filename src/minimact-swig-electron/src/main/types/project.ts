@@ -25,8 +25,10 @@ export interface RecentProject {
 export interface ProjectFile {
   path: string;
   name: string;
-  extension: string;
-  type: 'tsx' | 'jsx' | 'ts' | 'js' | 'cs' | 'csproj' | 'json' | 'other';
+  extension?: string;
+  type: 'file' | 'directory';
+  kind?: 'tsx' | 'jsx' | 'ts' | 'js' | 'cs' | 'csproj' | 'json' | 'other';
+  children?: ProjectFile[];
   content?: string;
 }
 
