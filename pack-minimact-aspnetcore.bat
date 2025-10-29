@@ -15,6 +15,16 @@ if not exist "%OUTPUT_DIR%" (
   mkdir "%OUTPUT_DIR%"
 )
 
+echo [pack-minimact-aspnetcore] Building Minimact native library with cargo...
+pushd "%REPO_ROOT%src" >nul
+cargo build --release
+set "CARGO_EXIT=%ERRORLEVEL%"
+popd >nul
+if not "%CARGO_EXIT%"=="0" (
+  echo [pack-minimact-aspnetcore] cargo build failed.
+  exit /b %CARGO_EXIT%
+)
+
 echo [pack-minimact-aspnetcore] Building Minimact.AspNetCore (Release)...
 dotnet build "%PROJECT_PATH%" --configuration Release
 if errorlevel 1 (

@@ -8,7 +8,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>Minimact.AspNetCore</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Minimact Contributors</Authors>
     <Company>Minimact</Company>
     <Description>Server-first reactive web framework for ASP.NET Core with Rust-powered reconciliation and predictive DOM updates</Description>
@@ -31,15 +31,28 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+<Target Name="CopyNativeDllToPackageDir" AfterTargets="Build">
+  <Message Text="Copying Rust native DLL for NuGet packaging..." Importance="high" />
+  <Copy SourceFiles="..\target\release\minimact.dll"
+        DestinationFiles="$(ProjectDir)native\win-x64\minimact-nuget.dll"
+        SkipUnchangedFiles="true" />
+</Target>
+
+<ItemGroup>
+  <None Include="native\win-x64\minimact-nuget.dll"
+        Pack="true"
+        PackagePath="runtimes/win-x64/native/minimact.dll"
+        Condition="Exists('native\win-x64\minimact.dll')" />
+</ItemGroup>
+
   <ItemGroup>
     <!-- Include README in package -->
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\logo-rem.png" Pack="true" PackagePath="\" />
 
     <!-- Include Rust native library in NuGet package -->
-    <None Include="..\target\release\minimact.dll" Pack="true" PackagePath="runtimes\win-x64\native\" Condition="Exists('..\target\release\minimact.dll')" />
-    <None Include="..\target\release\libminimact.so" Pack="true" PackagePath="runtimes\linux-x64\native\" Condition="Exists('..\target\release\libminimact.so')" />
-    <None Include="..\target\release\libminimact.dylib" Pack="true" PackagePath="runtimes\osx-x64\native\" Condition="Exists('..\target\release\libminimact.dylib')" />
+    <None Include="..\target\release\libminimact.so" Pack="true" PackagePath="\runtimes\linux-x64\native\" Condition="Exists('..\target\release\libminimact.so')" />
+    <None Include="..\target\release\libminimact.dylib" Pack="true" PackagePath="\runtimes\osx-x64\native\" Condition="Exists('..\target\release\libminimact.dylib')" />
 
     <!-- Copy Rust native library to output directory for local development -->
     <Content Include="..\target\release\minimact.dll" Link="minimact.dll" CopyToOutputDirectory="PreserveNewest" Pack="false" Condition="Exists('..\target\release\minimact.dll')" />
