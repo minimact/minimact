@@ -1,15 +1,17 @@
 {
-  "name": "minimact-punch",
+  "name": "@minimact/punch",
   "version": "0.1.0",
   "description": "DOM observation and reactivity addon for Minimact - the cactus that knows the desert 🌵+🍹",
-  "main": "dist/minimact-punch.js",
-  "module": "dist/minimact-punch.esm.js",
+  "type": "module",
+  "main": "dist/punch.js",
+  "module": "dist/punch.esm.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "clean": "rimraf dist",
+    "build": "npm run clean && rollup -c",
     "dev": "rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -26,11 +28,16 @@
   "author": "Minimact Team",
   "license": "MIT",
   "peerDependencies": {
-    "minimact": "^0.1.0"
+    "@minimact/core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
+    "@minimact/core": "file:../client-runtime",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
+    "rimraf": "^6.0.1",
     "rollup": "^4.9.1",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"

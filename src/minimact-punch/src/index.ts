@@ -86,12 +86,12 @@ export {
  * Types for integration
  */
 export type {
-  ComponentContext,
   HintQueue,
   DOMPatcher,
   PlaygroundBridge,
   SignalRManager
 } from './integration';
+export type { ComponentContext } from '@minimact/core';
 
 /**
  * Confidence Worker (OPTIONAL)

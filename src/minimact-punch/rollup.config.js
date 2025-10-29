@@ -5,19 +5,19 @@ export default {
   input: 'src/index.ts',
   output: [
     {
-      file: 'dist/minimact-punch.js',
+      file: 'dist/punch.js',
       format: 'iife',
       name: 'MinimactPunch',
       globals: {
-        minimact: 'Minimact'
+        '@minimact/core': 'Minimact'
       }
     },
     {
-      file: 'dist/minimact-punch.esm.js',
+      file: 'dist/punch.esm.js',
       format: 'es'
     }
   ],
-  external: ['minimact'],
+  external: ['@minimact/core'],
   plugins: [
     resolve(),
     typescript({

@@ -9,19 +9,19 @@ import { setComputedContext } from './useComputed';
 /**
  * Component instance context for hooks
  */
-interface ComponentContext {
+export interface ComponentContext {
   componentId: string;
   element: HTMLElement;
   state: Map<string, any>;
   effects: Array<{ callback: () => void | (() => void), deps: any[] | undefined, cleanup?: () => void }>;
   refs: Map<string, { current: any }>;
-  domElementStates?: Map<string, any>; // For minimact-punch integration
   serverTasks?: Map<string, ServerTaskImpl<any>>; // For useServerTask integration
   computedValues?: Map<string, any>; // For useComputed integration
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
   playgroundBridge?: PlaygroundBridge;
   signalR: IConnectionManager; // For syncing state to server (works with SignalR or SignalM)
+  // Note: domElementStates and confidenceWorker are added via module augmentation by minimact-punch
 }
 
 // Global context tracking
@@ -270,11 +270,6 @@ export function cleanupEffects(context: ComponentContext): void {
   }
   context.effects = [];
 }
-
-/**
- * Export ComponentContext type for extensions
- */
-export type { ComponentContext };
 
 /**
  * Array operation metadata for semantic state updates

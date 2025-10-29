@@ -15,31 +15,7 @@
 import { DomElementState } from './dom-element-state';
 import type { DomElementStateOptions } from './types';
 import type { ConfidenceWorkerManager } from './confidence-worker-manager';
-/**
- * Component context interface (from Minimact)
- *
- * We declare this here to avoid circular dependencies.
- * The actual implementation comes from minimact core.
- */
-export interface ComponentContext {
-    componentId: string;
-    element: HTMLElement;
-    state: Map<string, any>;
-    effects: Array<{
-        callback: () => void | (() => void);
-        deps: any[] | undefined;
-        cleanup?: () => void;
-    }>;
-    refs: Map<string, {
-        current: any;
-    }>;
-    domElementStates?: Map<string, DomElementState>;
-    hintQueue: HintQueue;
-    domPatcher: DOMPatcher;
-    playgroundBridge?: PlaygroundBridge;
-    signalR: SignalRManager;
-    confidenceWorker?: ConfidenceWorkerManager;
-}
+import type { ComponentContext } from '@minimact/core';
 /**
  * SignalRManager interface for server synchronization
  */
@@ -157,12 +133,13 @@ export declare function useDomElementState(selector?: string, options?: DomEleme
  */
 export declare function cleanupDomElementStates(context: ComponentContext): void;
 /**
- * Extend ComponentContext to include domElementStates
+ * Extend ComponentContext to include minimact-punch extensions
  * This allows TypeScript to know about our extension
  */
-declare module 'minimact/types' {
+declare module '@minimact/core' {
     interface ComponentContext {
         domElementStates?: Map<string, DomElementState>;
+        confidenceWorker?: ConfidenceWorkerManager;
     }
 }
 //# sourceMappingURL=integration.d.ts.map
