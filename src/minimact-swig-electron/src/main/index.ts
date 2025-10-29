@@ -1,4 +1,4 @@
-﻿import { app, shell, BrowserWindow } from 'electron'
+﻿import { app, shell, BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -38,6 +38,89 @@ let splashHideTimeout: NodeJS.Timeout | null = null
 
 const SPLASH_DELAY_MS = 3000
 
+function createApplicationMenu(): void {
+  const isMac = process.platform === 'darwin'
+
+  const template: MenuItemConstructorOptions[] = [
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' }
+            ]
+          }
+        ]
+      : []),
+    {
+      label: 'File',
+      submenu: [isMac ? { role: 'close' } : { role: 'quit' }]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        ...(isMac
+          ? [{ role: 'pasteAndMatchStyle' }, { role: 'delete' }, { role: 'selectAll' }]
+          : [{ role: 'delete' }, { role: 'selectAll' }])
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { type: 'separator' },
+        {
+          role: 'toggleDevTools',
+          accelerator: isMac ? 'Alt+Command+I' : 'Ctrl+Shift+I'
+        },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac
+          ? [{ type: 'separator' }, { role: 'front' }, { type: 'separator' }, { role: 'window' }]
+          : [{ role: 'close' }])
+      ]
+    },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Minimact Docs',
+          click: () => shell.openExternal('https://github.com/minimact/minimact')
+        }
+      ]
+    }
+  ]
+
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+}
+
 function createSplashWindow(): void {
   splashWindow = new BrowserWindow({
     width: 490,
@@ -72,7 +155,7 @@ function createMainWindow(): void {
     width: 1400,
     height: 900,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -119,6 +202,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  createApplicationMenu()
   createSplashWindow()
   createMainWindow()
 
