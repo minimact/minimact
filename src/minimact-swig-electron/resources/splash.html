@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" style="background-color: #050b12;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minimact SWIG — Initializing</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: radial-gradient(circle at top, rgba(24, 115, 125, 0.45), transparent 65%)
+            fixed,
+          #050b12;
+        color: #d4e1e7;
+        overflow: hidden;
+      }
+
+      .stage {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .splash-card {
+        width: min(720px, calc(100vw - 48px));
+        height: min(600px, calc(100vh - 48px));
+        border-radius: 32px;
+        padding: 48px 56px;
+        background: rgba(6, 22, 33, 0.85);
+        border: 1px solid rgba(72, 223, 195, 0.2);
+        box-shadow: 0 36px 120px rgba(2, 20, 24, 0.65);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .splash-card::before {
+        content: "";
+        position: absolute;
+        inset: -4% -3%;
+        background-image: url("./swig-bg.png");
+        background-repeat: no-repeat;
+        background-size: contain;
+        opacity: 0.08;
+        filter: saturate(1.2) contrast(1.1);
+        transform: scale(2.8);
+      }
+
+      .splash-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(11, 58, 73, 0.65), rgba(8, 18, 28, 0.7));
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .inner {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 40px;
+        height: 100%;
+      }
+
+      .intro {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        border-radius: 999px;
+        background: rgba(72, 223, 195, 0.12);
+        border: 1px solid rgba(72, 223, 195, 0.4);
+        color: #85f7dd;
+        font-size: 11px;
+        letter-spacing: 0.5em;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 26px;
+        animation: fadeInUp 0.8s ease-out;
+      }
+
+      .inner img {
+        height: 470px;
+        position:absolute;
+        left:1%;
+        opacity: 0.8;
+        z-index: 2;
+        width: auto;
+        display: block;
+        border-radius: 40px;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(30px, 4vw, 48px);
+        font-weight: 700;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #a9fff3 5%, #48dfc3 55%, #9cb5ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 10px 20px rgba(24, 185, 227, 0.25);
+        animation: fadeInUp 1s ease-out;
+      }
+
+      p.subtitle {
+        margin: 0 0 32px;
+        max-width: 520px;
+        color: rgba(211, 229, 247, 0.8);
+        font-size: 16px;
+        line-height: 1.6;
+        animation: fadeInUp 1.2s ease-out;
+      }
+
+      .loader {
+        display: flex;
+        align-items: center;
+        z-index: 1000;
+        gap: 16px;
+        position:absolute;
+        top:490px;
+        animation: fadeInUp 1.4s ease-out;
+      }
+
+      .spinner {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 4px solid rgba(135, 243, 213, 0.25);
+        border-top-color: rgba(135, 243, 213, 0.9);
+        animation: spin 1s linear infinite;
+        box-shadow: 0 0 32px rgba(135, 243, 213, 0.35);
+      }
+
+      .loader-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .loader-text strong {
+        font-size: 14px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #b8fff0;
+      }
+
+      .loader-text span {
+        font-size: 13px;
+        color: rgba(211, 229, 247, 0.65);
+      }
+
+      .telemetry {
+        position: relative;
+        z-index: 1;
+        border-radius: 24px;
+        padding: 24px;
+        background: rgba(7, 16, 24, 0.78);
+        border: 1px solid rgba(114, 191, 255, 0.3);
+        box-shadow: inset 0 0 0 1px rgba(114, 191, 255, 0.12);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        animation: fadeInUp 1.2s ease-out;
+      }
+
+      .telemetry h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #b8ccff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .telemetry p {
+        margin: 0;
+        font-size: 14px;
+        color: rgba(211, 229, 247, 0.75);
+        line-height: 1.5;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 12px;
+      }
+
+      .timeline span {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        color: rgba(135, 243, 213, 0.75);
+      }
+
+      .timeline p {
+        font-size: 13px;
+        color: rgba(211, 229, 247, 0.6);
+      }
+
+      .version {
+        position: absolute;
+        bottom: 44px;
+        right: 28px;
+        font-size: 12px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgba(211, 229, 247, 0.45);
+        z-index: 1;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 960px) {
+        .inner {
+          grid-template-columns: 1fr;
+        }
+
+        .telemetry {
+          order: -1;
+        }
+
+        .splash-card {
+          padding: 32px;
+          height: min(600px, calc(100vh - 48px));
+        }
+      }
+
+      @media (max-width: 540px) {
+        .splash-card {
+          border-radius: 20px;
+          padding: 28px;
+        }
+
+        .badge {
+          letter-spacing: 0.3em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="splash-card">
+        <div class="inner">
+          <img src="./swig-bg.png" alt="SWIG ELECTRON">
+          <div class="loader">
+              <div class="spinner" aria-hidden="true"></div>
+              <div class="loader-text">
+                <strong>INITIALIZING</strong>
+                <span>Linking to watchdog processes and template inspectors…</span>
+              </div>
+            </div>
+        </div>
+        <div class="version">v1.0.0</div>
+      </div>
+    </div>
+  </body>
+</html>
