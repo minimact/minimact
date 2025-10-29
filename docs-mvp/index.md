@@ -5,7 +5,7 @@ hero:
   name: Minimact
   text: The Posthydrationist Framework
   tagline: >
-    Server-first reactive UI with **MINIMal Anticipatory Client Technology** —  
+    Server-first reactive UI with 'MINIMal Anticipatory Client Technology' —  
     zero hydration, predictive DOM patches, instant interactivity, and Rust-fueled performance.  
     Built for ASP.NET Core.
   image:
