@@ -55,6 +55,19 @@ interface MinimactAPI {
     unsubscribeTelemetry: () => Promise<APIResponse>
     onTelemetry: (callback: (telemetry: any) => void) => () => void
   }
+
+  signalr: {
+    connect: (url: string) => Promise<APIResponse>
+    disconnect: () => Promise<APIResponse>
+    getComponentTree: () => Promise<APIResponse>
+    getComponentState: (componentId: string) => Promise<APIResponse>
+    updateComponentState: (componentId: string, stateKey: string, value: any) => Promise<APIResponse>
+    getAllComponents: () => Promise<APIResponse>
+    triggerRender: (componentId: string) => Promise<APIResponse>
+    subscribeStateChanges: (componentId: string) => Promise<APIResponse>
+    unsubscribeStateChanges: (componentId: string) => Promise<APIResponse>
+    isConnected: () => Promise<APIResponse<boolean>>
+  }
 }
 
 declare global {

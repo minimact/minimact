@@ -15,6 +15,7 @@ import { registerTranspilerHandlers } from './ipc/transpiler'
 import { registerProcessHandlers } from './ipc/process'
 import { registerFileHandlers } from './ipc/file'
 import { registerTemplateHandlers } from './ipc/template'
+import { registerSignalRHandlers } from './ipc/signalr'
 
 // Initialize services
 const projectManager = new ProjectManager(app.getPath('userData'))
@@ -28,6 +29,7 @@ registerTranspilerHandlers(transpilerService)
 registerProcessHandlers(processController)
 registerFileHandlers()
 registerTemplateHandlers(signalRClient)
+registerSignalRHandlers()
 
 function createWindow(): void {
   // Create the browser window.

@@ -834,4 +834,56 @@ public abstract class MinimactComponent
     }
 
     #endregion
+
+    #region DevTools Telemetry
+
+    /// <summary>
+    /// Get complete component state snapshot for DevTools inspection
+    /// </summary>
+    public Models.ComponentStateSnapshot GetStateSnapshot()
+    {
+        return new Models.ComponentStateSnapshot
+        {
+            ComponentId = ComponentId,
+            ComponentName = GetType().Name,
+            State = State.ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value),
+            Refs = new Dictionary<string, object?>(),  // Refs are client-side only
+            DomElementStates = new Dictionary<string, Models.DomElementStateSnapshot>(),  // Also client-side
+            QueryResults = new Dictionary<string, object?>(),  // Client-side query results
+            Effects = new List<Models.EffectInfo>(),  // Effects are client-side
+            Templates = GetLoopTemplates(),
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+    }
+
+    /// <summary>
+    /// Extract loop template metadata from [LoopTemplate] attributes
+    /// </summary>
+    private List<Models.LoopTemplateInfo> GetLoopTemplates()
+    {
+        var templates = new List<Models.LoopTemplateInfo>();
+
+        var loopTemplateAttrs = GetType()
+            .GetCustomAttributes(typeof(LoopTemplateAttribute), inherit: true)
+            .Cast<LoopTemplateAttribute>();
+
+        foreach (var attr in loopTemplateAttrs)
+        {
+            // Parse the JSON template metadata
+            // The LoopTemplateAttribute stores JSON string with template info
+            templates.Add(new Models.LoopTemplateInfo
+            {
+                StateKey = attr.StateKey,
+                ArrayBinding = attr.StateKey,  // Usually same as state key
+                ItemVar = "item",  // Default from Babel plugin
+                IndexVar = null,
+                KeyBinding = null,
+                ItemTemplate = null  // TODO: Parse full template JSON
+            });
+        }
+
+        return templates;
+    }
+
+    #endregion
 }

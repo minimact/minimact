@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Play, Square, Hammer, Chrome } from 'lucide-react'
+import { Play, Square, Hammer, Chrome, Activity } from 'lucide-react'
 import FileTree, { type ProjectFile } from '../components/editor/FileTree'
 import CodeEditor from '../components/editor/CodeEditor'
 import Terminal from '../components/terminal/Terminal'
+import ComponentTree from '../components/inspector/ComponentTree'
+import StateInspector from '../components/inspector/StateInspector'
 
 interface Project {
   name: string
@@ -20,6 +22,9 @@ export default function Dashboard() {
   const [building, setBuilding] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null)
+  const [selectedComponentId, setSelectedComponentId] = useState<string | undefined>(undefined)
+  const [showInspector, setShowInspector] = useState(false)
+  const [signalRConnected, setSignalRConnected] = useState(false)
 
   useEffect(() => {
     if (projectPath) {
@@ -27,6 +32,26 @@ export default function Dashboard() {
       checkRunningStatus()
     }
   }, [projectPath])
+
+  useEffect(() => {
+    // Connect to SignalR when app is running
+    const connectSignalR = async () => {
+      if (isRunning && project) {
+        try {
+          await window.api.signalr.connect(`http://localhost:${project.port}/minimacthub`)
+          setSignalRConnected(true)
+        } catch (error) {
+          console.error('Failed to connect to SignalR:', error)
+          setSignalRConnected(false)
+        }
+      } else {
+        await window.api.signalr.disconnect()
+        setSignalRConnected(false)
+      }
+    }
+
+    connectSignalR()
+  }, [isRunning, project])
 
   const loadProject = async (path: string) => {
     try {
@@ -138,6 +163,16 @@ export default function Dashboard() {
         {/* Controls */}
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowInspector(!showInspector)}
+            disabled={!signalRConnected}
+            className={`px-4 py-2 ${signalRConnected && showInspector ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'} disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm`}
+            title={signalRConnected ? 'Toggle Component Inspector' : 'Start app to enable inspector'}
+          >
+            <Activity className="w-4 h-4" />
+            Inspector
+          </button>
+
+          <button
             onClick={handleBuild}
             disabled={building}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm"
@@ -183,7 +218,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - File Tree */}
+        {/* Left Sidebar - File Tree */}
         <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
           <div className="px-4 py-3 border-b border-gray-700">
             <h3 className="text-sm font-semibold text-gray-400">FILES</h3>
@@ -218,6 +253,29 @@ export default function Dashboard() {
             <Terminal />
           </div>
         </div>
+
+        {/* Right Sidebar - Component Inspector */}
+        {showInspector && signalRConnected && (
+          <div className="w-96 bg-gray-800 border-l border-gray-700 flex overflow-hidden">
+            {/* Component Tree */}
+            <div className="w-48 border-r border-gray-700 flex flex-col">
+              <div className="px-4 py-3 border-b border-gray-700">
+                <h3 className="text-xs font-semibold text-gray-400">COMPONENTS</h3>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ComponentTree
+                  onComponentSelect={setSelectedComponentId}
+                  selectedComponentId={selectedComponentId}
+                />
+              </div>
+            </div>
+
+            {/* State Inspector */}
+            <div className="flex-1 overflow-hidden">
+              <StateInspector componentId={selectedComponentId} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

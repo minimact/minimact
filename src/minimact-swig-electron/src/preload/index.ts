@@ -81,6 +81,30 @@ const api = {
       ipcRenderer.on('template:telemetry', (_, telemetry) => callback(telemetry));
       return () => ipcRenderer.removeAllListeners('template:telemetry');
     }
+  },
+
+  // SignalR APIs
+  signalr: {
+    connect: (url: string) =>
+      ipcRenderer.invoke('signalr:connect', url),
+    disconnect: () =>
+      ipcRenderer.invoke('signalr:disconnect'),
+    getComponentTree: () =>
+      ipcRenderer.invoke('signalr:getComponentTree'),
+    getComponentState: (componentId: string) =>
+      ipcRenderer.invoke('signalr:getComponentState', componentId),
+    updateComponentState: (componentId: string, stateKey: string, value: any) =>
+      ipcRenderer.invoke('signalr:updateComponentState', componentId, stateKey, value),
+    getAllComponents: () =>
+      ipcRenderer.invoke('signalr:getAllComponents'),
+    triggerRender: (componentId: string) =>
+      ipcRenderer.invoke('signalr:triggerRender', componentId),
+    subscribeStateChanges: (componentId: string) =>
+      ipcRenderer.invoke('signalr:subscribeStateChanges', componentId),
+    unsubscribeStateChanges: (componentId: string) =>
+      ipcRenderer.invoke('signalr:unsubscribeStateChanges', componentId),
+    isConnected: () =>
+      ipcRenderer.invoke('signalr:isConnected')
   }
 }
 

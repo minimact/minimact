@@ -1154,4 +1154,43 @@ public class MinimactHub : Hub
     }
 
     #endregion
+
+    #region State Inspector Methods (for SWIG Electron DevTools)
+
+    /// <summary>
+    /// Get component tree for hierarchical view in State Inspector
+    /// </summary>
+    public List<Models.ComponentTreeNode> GetComponentTree()
+    {
+        // For now, return flat list (component hierarchy not tracked yet)
+        // TODO: Track parent-child relationships in ComponentRegistry
+        var components = _registry.GetAllComponentIds()
+            .Select(id => _registry.GetComponent(id))
+            .Where(c => c != null)
+            .Select(c => new Models.ComponentTreeNode
+            {
+                ComponentId = c!.ComponentId,
+                ComponentName = c.GetType().Name,
+                Children = new List<Models.ComponentTreeNode>()
+            })
+            .ToList();
+
+        return components;
+    }
+
+    /// <summary>
+    /// Get complete state snapshot for a component
+    /// </summary>
+    public Models.ComponentStateSnapshot? GetComponentState(string componentId)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
+        {
+            return null;
+        }
+
+        return component.GetStateSnapshot();
+    }
+
+    #endregion
 }
