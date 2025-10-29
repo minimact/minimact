@@ -1,29 +1,30 @@
 {
-  "name": "minimact-client",
+  "name": "@minimact/core",
   "version": "0.1.0",
   "description": "Client-side runtime for Minimact framework - Available in lightweight (SignalM) and full (SignalR) versions",
-  "main": "dist/minimact.js",
-  "module": "dist/minimact.esm.js",
+  "main": "dist/core.js",
+  "module": "dist/core.esm.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/minimact.esm.js",
-      "require": "./dist/minimact.js",
-      "default": "./dist/minimact.js"
+      "import": "./dist/core.esm.js",
+      "require": "./dist/core.js",
+      "default": "./dist/core.js"
     },
-    "./minimact-r": {
+    "./r": {
       "types": "./dist/index-r.d.ts",
-      "import": "./dist/minimact-r.esm.js",
-      "require": "./dist/minimact-r.js",
-      "default": "./dist/minimact-r.js"
+      "import": "./dist/core-r.esm.js",
+      "require": "./dist/core-r.js",
+      "default": "./dist/core-r.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "clean": "rimraf dist",
+    "build": "npm run clean && rollup -c",
     "dev": "rollup -c -w",
     "test": "jest"
   },
@@ -39,15 +40,23 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minimact/minimact.git"
+  },
   "dependencies": {
     "@microsoft/signalr": "^8.0.0",
     "tslib": "^2.8.1"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
+    "rimraf": "^6.0.1",
     "rollup": "^4.9.6",
     "rollup-plugin-filesize": "^10.0.0",
     "rollup-plugin-visualizer": "^6.0.5",

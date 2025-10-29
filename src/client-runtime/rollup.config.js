@@ -41,25 +41,25 @@ export default [
     input: 'src/index.ts',
     output: [
       {
-        file: 'dist/minimact.js',
+        file: 'dist/core.js',
         format: 'iife',
         name: 'Minimact',
         sourcemap: true
       },
       {
-        file: 'dist/minimact.min.js',
+        file: 'dist/core.min.js',
         format: 'iife',
         name: 'Minimact',
         sourcemap: true,
         plugins: [terser(terserConfig)]
       },
       {
-        file: 'dist/minimact.esm.js',
+        file: 'dist/core.esm.js',
         format: 'es',
         sourcemap: true
       },
       {
-        file: 'dist/minimact.esm.min.js',
+        file: 'dist/core.esm.min.js',
         format: 'es',
         sourcemap: true,
         plugins: [terser(terserConfig)]
@@ -82,25 +82,25 @@ export default [
     input: 'src/index-r.ts',
     output: [
       {
-        file: 'dist/minimact-r.js',
+        file: 'dist/core-r.js',
         format: 'iife',
         name: 'Minimact',
         sourcemap: true
       },
       {
-        file: 'dist/minimact-r.min.js',
+        file: 'dist/core-r.min.js',
         format: 'iife',
         name: 'Minimact',
         sourcemap: true,
         plugins: [terser(terserConfig)]
       },
       {
-        file: 'dist/minimact-r.esm.js',
+        file: 'dist/core-r.esm.js',
         format: 'es',
         sourcemap: true
       },
       {
-        file: 'dist/minimact-r.esm.min.js',
+        file: 'dist/core-r.esm.min.js',
         format: 'es',
         sourcemap: true,
         plugins: [terser(terserConfig)]
