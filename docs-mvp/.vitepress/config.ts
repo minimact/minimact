@@ -62,6 +62,12 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Plugin System',
+          items: [
+            { text: 'Creating Plugins', link: '/v1.0/guide/creating-plugins' }
+          ]
+        },
+        {
           text: 'Advanced',
           items: [
             { text: 'DOM as Data Source', link: '/v1.0/use-cases#dom-as-data-source-extensions' },
@@ -88,6 +94,12 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/v1.0/api/csharp/' },
             { text: 'MinimactComponent', link: '/v1.0/api/csharp/minimact-component' }
+          ]
+        },
+        {
+          text: 'Plugin System',
+          items: [
+            { text: 'Plugin API Reference', link: '/v1.0/api/plugin-api' }
           ]
         },
         {

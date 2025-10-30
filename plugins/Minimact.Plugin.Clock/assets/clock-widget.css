@@ -1,0 +1,105 @@
+/* Clock Widget Styles */
+
+.clock-widget {
+  padding: 24px;
+  border-radius: 12px;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  min-width: 200px;
+  display: inline-block;
+}
+
+/* Light Theme */
+.clock-widget.light {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.clock-widget.light .clock-time {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Dark Theme */
+.clock-widget.dark {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #e0e0e0;
+  border: 1px solid #404040;
+}
+
+.clock-widget.dark .clock-time {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Time Display */
+.clock-time {
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+/* Date Display */
+.clock-date {
+  font-size: 16px;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+/* Timezone Display */
+.clock-timezone {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-top: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Hover Effect */
+.clock-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .clock-widget {
+    padding: 16px;
+    min-width: 160px;
+  }
+
+  .clock-time {
+    font-size: 36px;
+  }
+
+  .clock-date {
+    font-size: 14px;
+  }
+
+  .clock-timezone {
+    font-size: 10px;
+  }
+}
+
+/* Animation for seconds (optional) */
+@keyframes tick {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.clock-time {
+  animation: tick 1s infinite;
+}

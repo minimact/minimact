@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Minimact.Plugin.Clock</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Minimact Team</Authors>
+    <Company>Minimact</Company>
+    <Description>A customizable clock widget plugin for Minimact with real-time updates</Description>
+    <PackageTags>minimact;plugin;widget;clock;time</PackageTags>
+    <PackageProjectUrl>https://github.com/minimact/plugins</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/minimact/plugins</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference to Minimact.AspNetCore -->
+    <ProjectReference Include="..\..\src\Minimact.AspNetCore\Minimact.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed all assets as resources -->
+    <EmbeddedResource Include="assets\**\*" />
+
+    <!-- Include schema file -->
+    <EmbeddedResource Include="clock.schema.json" />
+
+    <!-- Include README and icon in package -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" Condition="Exists('icon.png')" />
+  </ItemGroup>
+
+</Project>
