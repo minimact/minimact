@@ -356,7 +356,7 @@ pluginManager.Register(plugin);
 
 When `<Plugin>` is encountered:
 
-```
+```text
 1. TSX: <Plugin name="Clock" state={time} />
    ↓
 2. Babel: new PluginNode("Clock", time)
@@ -378,7 +378,7 @@ When `<Plugin>` is encountered:
 
 State changes trigger template patches:
 
-```
+```text
 1. Client: setTime(newTime)
    ↓
 2. Client: Applies cached template patch (0ms latency!)
@@ -431,7 +431,7 @@ public class MyPlugin : MinimactPluginBase
 }
 ```
 
-### 3. MinimactPlugin<TState> (Recommended)
+### 3. `MinimactPlugin<TState>` (Recommended)
 
 Type-safe with auto-validation:
 
@@ -911,7 +911,7 @@ dotnet nuget push Minimact.Plugin.Clock.1.0.0.nupkg \
 
 ## Next Steps
 
-- [Plugin API Reference](/v1.0/api/plugins)
+- [Plugin API Reference](/v1.0/api/plugin-api)
 - [Example Plugins](https://github.com/minimact/plugins)
 - [Template Patch System](/v1.0/architecture/template-patch-system)
 
