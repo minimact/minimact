@@ -5,7 +5,7 @@
  * Phase 3: Babel Plugin Integration
  */
 
-const { generateExpression } = require('./expressions');
+const { generateExpression } = require('./expressions.cjs');
 
 /**
  * Generate C# code for a plugin usage
