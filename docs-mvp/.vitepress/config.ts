@@ -56,6 +56,12 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Development Tools',
+          items: [
+            { text: 'Minimact SWIG', link: '/v1.0/guide/minimact-swig' }
+          ]
+        },
+        {
           text: 'Advanced',
           items: [
             { text: 'DOM as Data Source', link: '/v1.0/use-cases#dom-as-data-source-extensions' },
@@ -137,6 +143,13 @@ export default defineConfig({
             { text: 'Client Stack Overview', link: '/v1.0/architecture/client-stack' },
             { text: 'Template Patch System', link: '/v1.0/architecture/template-patch-system' },
             { text: 'Posthydrationist Manifesto', link: '/v1.0/architecture/posthydrationist-manifesto' }
+          ]
+        },
+        {
+          text: 'Deep Dives',
+          items: [
+            { text: 'Template Patch System - Deep Dive', link: '/v1.0/architecture/template-patch-system-deep-dive' },
+            { text: 'State Synchronization', link: '/v1.0/architecture/state-synchronization' }
           ]
         },
         {

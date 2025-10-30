@@ -885,6 +885,398 @@ function UserList() {
 - `reload()` - Reload current page
 - `setPageSize(size)` - Change page size
 
+### useServerReducer
+
+**Server-side reducer for complex state transitions.** Similar to React's `useReducer`, but the reducer function executes on the server, enabling validation, side effects, and database operations while maintaining reactive UI updates.
+
+#### Why useServerReducer?
+
+Traditional `useState` works great for simple values, but complex state transitions often need:
+- **Validation** - Ensure state changes are valid before applying
+- **Side effects** - Update database, send notifications, log events
+- **Complex logic** - Multi-step updates, conditional transitions
+- **Business rules** - Enforce server-side constraints
+
+**useServerReducer** moves this logic to the server while keeping UI reactive.
+
+#### Basic Usage
+
+```tsx
+import { useServerReducer } from 'minimact';
+
+type CounterState = { count: number };
+type CounterAction =
+  | { type: 'increment' }
+  | { type: 'decrement' }
+  | { type: 'set', value: number };
+
+function Counter() {
+  const counter = useServerReducer<CounterState, CounterAction>({ count: 0 });
+
+  return (
+    <div>
+      <button onClick={() => counter.dispatch({ type: 'decrement' })}>-</button>
+      <span>{counter.state.count}</span>
+      <button onClick={() => counter.dispatch({ type: 'increment' })}>+</button>
+      {counter.dispatching && <Spinner />}
+      {counter.error && <div className="error">{counter.error.message}</div>}
+    </div>
+  );
+}
+```
+
+**Server-side reducer (C#):**
+
+```csharp
+public class Counter : MinimactComponent
+{
+    [ServerReducer]
+    public CounterState CounterReducer(CounterState state, CounterAction action)
+    {
+        return action.Type switch
+        {
+            "increment" => new CounterState { Count = state.Count + 1 },
+            "decrement" => new CounterState { Count = state.Count - 1 },
+            "set" => new CounterState { Count = action.Value },
+            _ => state
+        };
+    }
+}
+```
+
+#### Async Dispatch
+
+Wait for the server to process the action and return the new state:
+
+```tsx
+const handleReset = async () => {
+  try {
+    const newState = await counter.dispatchAsync({ type: 'set', value: 0 });
+    console.log('Counter reset to:', newState.count);
+    toast.success('Reset successful!');
+  } catch (error) {
+    console.error('Reset failed:', error);
+    toast.error('Failed to reset counter');
+  }
+};
+
+return <button onClick={handleReset}>Reset</button>;
+```
+
+#### Complex Example: Shopping Cart
+
+```tsx
+type CartState = {
+  items: CartItem[];
+  total: number;
+  tax: number;
+  shipping: number;
+};
+
+type CartAction =
+  | { type: 'addItem', item: CartItem }
+  | { type: 'removeItem', itemId: string }
+  | { type: 'updateQuantity', itemId: string, quantity: number }
+  | { type: 'applyDiscount', code: string }
+  | { type: 'clear' };
+
+function ShoppingCart() {
+  const cart = useServerReducer<CartState, CartAction>({
+    items: [],
+    total: 0,
+    tax: 0,
+    shipping: 0
+  });
+
+  const handleAddToCart = async (product: Product) => {
+    const newState = await cart.dispatchAsync({
+      type: 'addItem',
+      item: {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1
+      }
+    });
+
+    toast.success(`Added ${product.name} to cart`);
+    console.log('New total:', newState.total);
+  };
+
+  return (
+    <div>
+      <h2>Shopping Cart ({cart.state.items.length} items)</h2>
+
+      {cart.state.items.map(item => (
+        <div key={item.id} className="cart-item">
+          <span>{item.name}</span>
+          <input
+            type="number"
+            value={item.quantity}
+            onChange={(e) => cart.dispatch({
+              type: 'updateQuantity',
+              itemId: item.id,
+              quantity: parseInt(e.target.value)
+            })}
+            disabled={cart.dispatching}
+          />
+          <button
+            onClick={() => cart.dispatch({ type: 'removeItem', itemId: item.id })}
+            disabled={cart.dispatching}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+
+      {cart.dispatching && (
+        <div className="loading">
+          <Spinner />
+          <p>Updating cart...</p>
+        </div>
+      )}
+
+      <div className="cart-summary">
+        <p>Subtotal: ${cart.state.total.toFixed(2)}</p>
+        <p>Tax: ${cart.state.tax.toFixed(2)}</p>
+        <p>Shipping: ${cart.state.shipping.toFixed(2)}</p>
+        <h3>Total: ${(cart.state.total + cart.state.tax + cart.state.shipping).toFixed(2)}</h3>
+      </div>
+
+      <button
+        onClick={() => cart.dispatch({ type: 'clear' })}
+        disabled={cart.dispatching || cart.state.items.length === 0}
+      >
+        Clear Cart
+      </button>
+
+      {cart.error && (
+        <div className="error">
+          <p>Error: {cart.error.message}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**Server-side reducer with validation and side effects:**
+
+```csharp
+public class ShoppingCart : MinimactComponent
+{
+    [ServerReducer]
+    public async Task<CartState> CartReducer(CartState state, CartAction action)
+    {
+        switch (action.Type)
+        {
+            case "addItem":
+                // Validation
+                if (state.Items.Count >= 50)
+                {
+                    throw new InvalidOperationException("Cart is full (max 50 items)");
+                }
+
+                var newItem = action.Item;
+                var existingItem = state.Items.FirstOrDefault(i => i.Id == newItem.Id);
+
+                if (existingItem != null)
+                {
+                    // Update quantity of existing item
+                    existingItem.Quantity += newItem.Quantity;
+                }
+                else
+                {
+                    // Add new item
+                    state.Items.Add(newItem);
+                }
+
+                // Side effect: Log to analytics
+                await _analytics.TrackEvent("cart_item_added", new { itemId = newItem.Id });
+
+                break;
+
+            case "removeItem":
+                var itemToRemove = state.Items.FirstOrDefault(i => i.Id == action.ItemId);
+                if (itemToRemove != null)
+                {
+                    state.Items.Remove(itemToRemove);
+
+                    // Side effect: Log removal
+                    await _analytics.TrackEvent("cart_item_removed", new { itemId = action.ItemId });
+                }
+                break;
+
+            case "updateQuantity":
+                var itemToUpdate = state.Items.FirstOrDefault(i => i.Id == action.ItemId);
+                if (itemToUpdate != null)
+                {
+                    // Validation
+                    if (action.Quantity <= 0)
+                    {
+                        throw new ArgumentException("Quantity must be greater than 0");
+                    }
+                    if (action.Quantity > 99)
+                    {
+                        throw new ArgumentException("Max quantity is 99");
+                    }
+
+                    itemToUpdate.Quantity = action.Quantity;
+                }
+                break;
+
+            case "applyDiscount":
+                // Validation: Check discount code
+                var discount = await _discountService.ValidateCode(action.Code);
+                if (discount == null)
+                {
+                    throw new InvalidOperationException("Invalid discount code");
+                }
+
+                state.DiscountCode = action.Code;
+                state.DiscountAmount = discount.Amount;
+
+                // Side effect: Mark discount as used
+                await _discountService.MarkAsUsed(action.Code);
+                break;
+
+            case "clear":
+                state.Items.Clear();
+                state.DiscountCode = null;
+                state.DiscountAmount = 0;
+                break;
+        }
+
+        // Recalculate totals
+        state.Total = state.Items.Sum(i => i.Price * i.Quantity);
+        state.Tax = state.Total * 0.08m; // 8% tax
+        state.Shipping = state.Total > 50 ? 0 : 9.99m; // Free shipping over $50
+
+        // Apply discount
+        if (state.DiscountAmount > 0)
+        {
+            state.Total -= state.DiscountAmount;
+        }
+
+        return state;
+    }
+}
+```
+
+#### Reducer Properties
+
+- `reducer.state` - Current reducer state
+- `reducer.dispatching` - Boolean: Action is being processed
+- `reducer.error` - Error object if last action failed
+- `reducer.lastDispatchedAt` - Date: When last action was dispatched
+- `reducer.lastActionType` - String: Type of last action (if action has `type` field)
+
+#### Reducer Methods
+
+- `dispatch(action)` - Fire-and-forget dispatch (non-blocking)
+- `dispatchAsync(action)` - Async dispatch (returns Promise with new state)
+
+#### How It Works
+
+1. **Client dispatches action** → `reducer.dispatch({ type: 'increment' })`
+2. **Optimistic UI update** → `reducer.dispatching = true` (instant feedback)
+3. **SignalR sends action to server** → `DispatchServerReducer` message
+4. **Server executes reducer** → Validation, side effects, state computation
+5. **Server sends new state** → Via SignalR patches
+6. **Client applies patches** → UI updates with actual result
+7. **Error handling** → If server returns error, `reducer.error` is set
+
+**Timeline:**
+- **0ms**: Client calls `dispatch()`
+- **0-2ms**: `dispatching = true` applied (hint queue match if predicted)
+- **2ms**: SignalR message sent to server
+- **10-50ms**: Server processes action, returns new state
+- **50-100ms**: Client receives patches, applies to DOM
+
+#### Error Handling
+
+Server-side errors are captured and exposed via `reducer.error`:
+
+```tsx
+{counter.error && (
+  <div className="error">
+    <p>Error: {counter.error.message}</p>
+    <button onClick={() => counter.dispatch({ type: 'retry' })}>
+      Retry
+    </button>
+  </div>
+)}
+```
+
+**Server-side error:**
+
+```csharp
+[ServerReducer]
+public CounterState CounterReducer(CounterState state, CounterAction action)
+{
+    if (action.Type == "set" && action.Value < 0)
+    {
+        throw new ArgumentException("Count cannot be negative");
+    }
+
+    // ... rest of reducer
+}
+```
+
+#### Optimistic Updates with Predictions
+
+Like `useState`, `useServerReducer` integrates with the hint queue for instant feedback:
+
+```tsx
+// Server pre-computes patches for common actions
+usePredictHint(() => ({
+  serverReducer_0: {
+    state: { count: counter.state.count + 1 },
+    dispatching: true
+  }
+}), 0.95);
+
+// When user clicks, predicted patch applies instantly (0-2ms)
+<button onClick={() => counter.dispatch({ type: 'increment' })}>+</button>
+```
+
+#### vs React's useReducer
+
+| Feature | React useReducer | Minimact useServerReducer |
+|---------|------------------|---------------------------|
+| **Execution** | Client-side | Server-side |
+| **Validation** | Client only | Server (secure) |
+| **Side effects** | useEffect needed | Built-in (async reducer) |
+| **Database access** | No | Yes |
+| **Type safety** | TypeScript | C# + TypeScript |
+| **Network** | None | SignalR (async) |
+| **Optimistic UI** | Manual | Automatic (hint queue) |
+
+#### vs useState
+
+Use `useServerReducer` when:
+- ✅ Complex state transitions (multiple fields, conditional logic)
+- ✅ Server-side validation required
+- ✅ Side effects needed (DB updates, notifications)
+- ✅ Business rules enforcement
+- ✅ Audit logging
+
+Use `useState` when:
+- ✅ Simple single-value state
+- ✅ No validation needed
+- ✅ No side effects
+- ✅ Client-only state (UI toggles, etc.)
+
+#### Best Practices
+
+1. **Keep reducers pure (when possible)** - Avoid side effects in simple cases
+2. **Use action types** - Define clear action types with TypeScript unions
+3. **Handle errors gracefully** - Always check `reducer.error`
+4. **Show loading states** - Use `reducer.dispatching` for spinners
+5. **Use dispatchAsync for critical actions** - Wait for confirmation on important operations
+6. **Predict common actions** - Use `usePredictHint` for instant feedback on frequent actions
+
 ## Pub/Sub Hooks
 
 ### usePub
