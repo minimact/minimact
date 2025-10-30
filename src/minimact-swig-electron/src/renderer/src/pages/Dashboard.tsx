@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Play, Square, Hammer, Chrome, Activity } from 'lucide-react'
+import { Play, Square, Hammer, Chrome, Activity, Zap, FilePlus } from 'lucide-react'
 import FileTree, { type ProjectFile } from '../components/editor/FileTree'
 import CodeEditor from '../components/editor/CodeEditor'
 import Terminal from '../components/terminal/Terminal'
 import ComponentTree from '../components/inspector/ComponentTree'
 import StateInspector from '../components/inspector/StateInspector'
+import AddPageModal from '../components/pages/AddPageModal'
 
 interface Project {
   name: string
@@ -20,11 +21,14 @@ export default function Dashboard() {
   const [project, setProject] = useState<Project | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [building, setBuilding] = useState(false)
+  const [transpiling, setTranspiling] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null)
   const [selectedComponentId, setSelectedComponentId] = useState<string | undefined>(undefined)
   const [showInspector, setShowInspector] = useState(false)
   const [signalRConnected, setSignalRConnected] = useState(false)
+  const [showAddPageModal, setShowAddPageModal] = useState(false)
+  const [fileTreeRefreshKey, setFileTreeRefreshKey] = useState(0)
 
   useEffect(() => {
     if (projectPath) {
@@ -70,6 +74,26 @@ export default function Dashboard() {
     const result = await window.api.process.isRunning()
     if (result.success && result.data !== undefined) {
       setIsRunning(result.data)
+    }
+  }
+
+  const handleTranspile = async () => {
+    if (!project) return
+
+    setTranspiling(true)
+    try {
+      const result = await window.api.transpiler.transpileProject(project.path)
+      if (result.success) {
+        console.log('Transpilation succeeded!')
+        // Refresh file tree to show generated C# files
+        setFileTreeRefreshKey(prev => prev + 1)
+      } else {
+        console.error('Transpilation failed:', result.error)
+      }
+    } catch (error) {
+      console.error('Transpilation error:', error)
+    } finally {
+      setTranspiling(false)
     }
   }
 
@@ -163,6 +187,15 @@ export default function Dashboard() {
         {/* Controls */}
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowAddPageModal(true)}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded transition-colors flex items-center gap-2 text-sm"
+            title="Add new page with route configuration"
+          >
+            <FilePlus className="w-4 h-4" />
+            New Page
+          </button>
+
+          <button
             onClick={() => setShowInspector(!showInspector)}
             disabled={!signalRConnected}
             className={`px-4 py-2 ${signalRConnected && showInspector ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'} disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm`}
@@ -170,6 +203,16 @@ export default function Dashboard() {
           >
             <Activity className="w-4 h-4" />
             Inspector
+          </button>
+
+          <button
+            onClick={handleTranspile}
+            disabled={transpiling}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm"
+            title="Transpile all TSX files to C# and generate routes.json"
+          >
+            <Zap className="w-4 h-4" />
+            {transpiling ? 'Transpiling...' : 'Transpile'}
           </button>
 
           <button
@@ -228,6 +271,7 @@ export default function Dashboard() {
               projectPath={project.path}
               onFileClick={handleFileClick}
               selectedFile={selectedFile}
+              refreshKey={fileTreeRefreshKey}
             />
           </div>
         </div>
@@ -277,6 +321,18 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Add Page Modal */}
+      <AddPageModal
+        isOpen={showAddPageModal}
+        onClose={() => setShowAddPageModal(false)}
+        projectPath={project?.path || ''}
+        onPageCreated={() => {
+          // Refresh file tree to show the new file
+          setFileTreeRefreshKey(prev => prev + 1)
+          console.log('Page created successfully!')
+        }}
+      />
     </div>
   )
 }

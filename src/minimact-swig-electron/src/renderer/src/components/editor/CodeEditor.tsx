@@ -66,6 +66,175 @@ export default function CodeEditor({ filePath, onSave }: CodeEditorProps) {
   }
 
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+    // Configure TypeScript compiler options for JSX
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      jsxFactory: 'React.createElement',
+      reactNamespace: 'React',
+      allowNonTsExtensions: true,
+      allowJs: true,
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      module: monaco.languages.typescript.ModuleKind.ESNext,
+      noEmit: true,
+      esModuleInterop: true,
+      typeRoots: ['node_modules/@types']
+    })
+
+    // Add React type definitions for JSX support
+    const reactTypes = `
+      declare namespace React {
+        type ReactNode = any;
+        type ReactElement = any;
+        type CSSProperties = any;
+
+        interface HTMLAttributes<T> {
+          children?: ReactNode;
+          className?: string;
+          style?: CSSProperties;
+          onClick?: (event: any) => void;
+          onChange?: (event: any) => void;
+          onSubmit?: (event: any) => void;
+          onInput?: (event: any) => void;
+          onFocus?: (event: any) => void;
+          onBlur?: (event: any) => void;
+          onKeyDown?: (event: any) => void;
+          onKeyUp?: (event: any) => void;
+          onKeyPress?: (event: any) => void;
+          id?: string;
+          role?: string;
+          tabIndex?: number;
+          title?: string;
+          [key: string]: any;
+        }
+
+        interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+          type?: string;
+          value?: string | number;
+          placeholder?: string;
+          disabled?: boolean;
+          readOnly?: boolean;
+          required?: boolean;
+          checked?: boolean;
+          name?: string;
+          maxLength?: number;
+          minLength?: number;
+          max?: number | string;
+          min?: number | string;
+          step?: number | string;
+          pattern?: string;
+          autoComplete?: string;
+          autoFocus?: boolean;
+        }
+
+        interface ButtonHTMLAttributes<T> extends HTMLAttributes<T> {
+          type?: 'button' | 'submit' | 'reset';
+          disabled?: boolean;
+        }
+
+        interface FormHTMLAttributes<T> extends HTMLAttributes<T> {
+          action?: string;
+          method?: string;
+          encType?: string;
+          target?: string;
+        }
+
+        interface LabelHTMLAttributes<T> extends HTMLAttributes<T> {
+          htmlFor?: string;
+        }
+
+        interface SelectHTMLAttributes<T> extends HTMLAttributes<T> {
+          multiple?: boolean;
+          value?: string | string[];
+          disabled?: boolean;
+        }
+
+        interface TextareaHTMLAttributes<T> extends HTMLAttributes<T> {
+          value?: string;
+          placeholder?: string;
+          rows?: number;
+          cols?: number;
+          disabled?: boolean;
+        }
+
+        interface AnchorHTMLAttributes<T> extends HTMLAttributes<T> {
+          href?: string;
+          target?: string;
+          rel?: string;
+        }
+
+        interface ImgHTMLAttributes<T> extends HTMLAttributes<T> {
+          src?: string;
+          alt?: string;
+          width?: number | string;
+          height?: number | string;
+          loading?: 'lazy' | 'eager';
+        }
+      }
+
+      declare global {
+        namespace JSX {
+          interface IntrinsicElements {
+            div: React.HTMLAttributes<HTMLDivElement>;
+            span: React.HTMLAttributes<HTMLSpanElement>;
+            p: React.HTMLAttributes<HTMLParagraphElement>;
+            h1: React.HTMLAttributes<HTMLHeadingElement>;
+            h2: React.HTMLAttributes<HTMLHeadingElement>;
+            h3: React.HTMLAttributes<HTMLHeadingElement>;
+            h4: React.HTMLAttributes<HTMLHeadingElement>;
+            h5: React.HTMLAttributes<HTMLHeadingElement>;
+            h6: React.HTMLAttributes<HTMLHeadingElement>;
+            button: React.ButtonHTMLAttributes<HTMLButtonElement>;
+            input: React.InputHTMLAttributes<HTMLInputElement>;
+            textarea: React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+            select: React.SelectHTMLAttributes<HTMLSelectElement>;
+            option: React.HTMLAttributes<HTMLOptionElement>;
+            form: React.FormHTMLAttributes<HTMLFormElement>;
+            label: React.LabelHTMLAttributes<HTMLLabelElement>;
+            a: React.AnchorHTMLAttributes<HTMLAnchorElement>;
+            img: React.ImgHTMLAttributes<HTMLImageElement>;
+            ul: React.HTMLAttributes<HTMLUListElement>;
+            ol: React.HTMLAttributes<HTMLOListElement>;
+            li: React.HTMLAttributes<HTMLLIElement>;
+            table: React.HTMLAttributes<HTMLTableElement>;
+            thead: React.HTMLAttributes<HTMLTableSectionElement>;
+            tbody: React.HTMLAttributes<HTMLTableSectionElement>;
+            tr: React.HTMLAttributes<HTMLTableRowElement>;
+            th: React.HTMLAttributes<HTMLTableCellElement>;
+            td: React.HTMLAttributes<HTMLTableCellElement>;
+            header: React.HTMLAttributes<HTMLElement>;
+            footer: React.HTMLAttributes<HTMLElement>;
+            nav: React.HTMLAttributes<HTMLElement>;
+            section: React.HTMLAttributes<HTMLElement>;
+            article: React.HTMLAttributes<HTMLElement>;
+            aside: React.HTMLAttributes<HTMLElement>;
+            main: React.HTMLAttributes<HTMLElement>;
+            br: React.HTMLAttributes<HTMLBRElement>;
+            hr: React.HTMLAttributes<HTMLHRElement>;
+            pre: React.HTMLAttributes<HTMLPreElement>;
+            code: React.HTMLAttributes<HTMLElement>;
+            strong: React.HTMLAttributes<HTMLElement>;
+            em: React.HTMLAttributes<HTMLElement>;
+            i: React.HTMLAttributes<HTMLElement>;
+            b: React.HTMLAttributes<HTMLElement>;
+            u: React.HTMLAttributes<HTMLElement>;
+            small: React.HTMLAttributes<HTMLElement>;
+            blockquote: React.HTMLAttributes<HTMLQuoteElement>;
+            iframe: React.HTMLAttributes<HTMLIFrameElement>;
+            video: React.HTMLAttributes<HTMLVideoElement>;
+            audio: React.HTMLAttributes<HTMLAudioElement>;
+            canvas: React.HTMLAttributes<HTMLCanvasElement>;
+            svg: React.HTMLAttributes<SVGElement>;
+          }
+        }
+      }
+    `
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      reactTypes,
+      'file:///node_modules/@types/react/index.d.ts'
+    )
+
     // Add Ctrl+S / Cmd+S save shortcut
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
       handleSave()

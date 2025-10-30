@@ -15,10 +15,11 @@ export class TranspilerService {
   private babelPluginPath: string;
 
   constructor(babelPluginPath?: string) {
-    // Default to babel-plugin-minimact in parent directory
+    // Default to babel-plugin-minimact
+    // From dist/main/services -> ../../../babel-plugin-minimact
     this.babelPluginPath = babelPluginPath || path.join(
       __dirname,
-      '../../../../../babel-plugin-minimact'
+      '../../../babel-plugin-minimact/index-full.cjs'
     );
   }
 
@@ -35,15 +36,38 @@ export class TranspilerService {
       // Determine output path (.tsx -> .cs)
       const outputPath = tsxPath.replace(/\.tsx$/, '.cs');
 
-      // Transpile using babel
-      const result = await babel.transformAsync(tsxContent, this.getBabelConfig());
+      // Log for debugging
+      console.log('[Transpiler] Transpiling:', tsxPath);
+      console.log('[Transpiler] Plugin path:', this.babelPluginPath);
 
-      if (!result || !result.code) {
+      // Use raw path - Test proved Windows paths work correctly
+      const result = await babel.transformAsync(tsxContent, {
+        filename: tsxPath,
+        presets: [
+          ['@babel/preset-react', { runtime: 'automatic' }],
+          '@babel/preset-typescript'
+        ],
+        plugins: [
+          [this.babelPluginPath, {
+            target: 'csharp',
+            framework: 'minimact'
+          }]
+        ]
+      });
+
+      if (!result) {
         throw new Error('Transpilation produced no output');
       }
 
+      // Extract C# code from metadata (babel plugin stores it there)
+      const csharpCode = result.metadata?.minimactCSharp;
+
+      if (!csharpCode) {
+        throw new Error('Transpilation did not generate C# code. Check if the file contains valid Minimact components.');
+      }
+
       // Write C# output
-      await fs.writeFile(outputPath, result.code, 'utf-8');
+      await fs.writeFile(outputPath, csharpCode, 'utf-8');
 
       const duration = Date.now() - startTime;
 
@@ -54,6 +78,9 @@ export class TranspilerService {
       };
     } catch (error) {
       const duration = Date.now() - startTime;
+
+      console.error('[Transpiler] Error transpiling:', tsxPath);
+      console.error('[Transpiler] Error details:', error);
 
       return {
         success: false,
@@ -107,25 +134,6 @@ export class TranspilerService {
       filesTranspiled,
       errors,
       duration
-    };
-  }
-
-  /**
-   * Get Babel configuration for transpilation
-   */
-  private getBabelConfig(): babel.TransformOptions {
-    return {
-      filename: 'component.tsx',
-      presets: [
-        ['@babel/preset-react', { runtime: 'automatic' }],
-        '@babel/preset-typescript'
-      ],
-      plugins: [
-        [this.babelPluginPath, {
-          target: 'csharp',
-          framework: 'minimact'
-        }]
-      ]
     };
   }
 }

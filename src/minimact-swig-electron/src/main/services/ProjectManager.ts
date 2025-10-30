@@ -95,39 +95,66 @@ export class ProjectManager {
    * Scan project files (TSX, C#, etc.)
    */
   async scanProjectFiles(projectPath: string): Promise<ProjectFile[]> {
-    const files: ProjectFile[] = [];
-
-    async function scanDirectory(dir: string) {
+    async function scanDirectory(dir: string): Promise<ProjectFile[]> {
       const entries = await fs.readdir(dir, { withFileTypes: true });
+      const items: ProjectFile[] = [];
+
+      // Separate directories and files for sorting
+      const directories: typeof entries = [];
+      const files: typeof entries = [];
 
       for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-
-        // Skip node_modules, bin, obj, .git
+        // Skip excluded directories
         if (entry.isDirectory()) {
-          if (!['node_modules', 'bin', 'obj', '.git', 'dist', 'out'].includes(entry.name)) {
-            await scanDirectory(fullPath);
+          if (!['node_modules', 'bin', 'obj', '.git', 'dist', 'out', '.vs'].includes(entry.name)) {
+            directories.push(entry);
           }
-        } else if (entry.isFile()) {
-          const ext = path.extname(entry.name).toLowerCase();
-          const kind = getFileKind(ext);
-          const extension = ext.startsWith('.') ? ext.slice(1) : ext;
-
-          if (kind !== 'other') {
-            files.push({
-              path: fullPath,
-              name: entry.name,
-              extension,
-              type: 'file',
-              kind
-            });
-          }
+        } else {
+          files.push(entry);
         }
       }
+
+      // Sort alphabetically
+      directories.sort((a, b) => a.name.localeCompare(b.name));
+      files.sort((a, b) => a.name.localeCompare(b.name));
+
+      // Process directories first (recursive)
+      for (const entry of directories) {
+        const fullPath = path.join(dir, entry.name);
+        const children = await scanDirectory(fullPath);
+
+        // Only include directories that have children
+        if (children.length > 0) {
+          items.push({
+            path: fullPath,
+            name: entry.name,
+            type: 'directory',
+            children
+          });
+        }
+      }
+
+      // Process files
+      for (const entry of files) {
+        const fullPath = path.join(dir, entry.name);
+        const ext = path.extname(entry.name).toLowerCase();
+        const kind = getFileKind(ext);
+        const extension = ext.startsWith('.') ? ext.slice(1) : ext;
+
+        // Include all files (not just specific kinds) for better visibility
+        items.push({
+          path: fullPath,
+          name: entry.name,
+          extension,
+          type: 'file',
+          kind
+        });
+      }
+
+      return items;
     }
 
-    await scanDirectory(projectPath);
-    return files;
+    return await scanDirectory(projectPath);
   }
 
   /**
@@ -211,7 +238,7 @@ export class ProjectManager {
     await fs.mkdir(path.join(projectPath, 'Components'), { recursive: true });
 
     // 4. Replace Program.cs with Minimact setup
-    const programCs = `using Minimact.AspNetCore;
+    const programCs = `using Minimact.AspNetCore.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -219,9 +246,7 @@ builder.Services.AddMinimact();
 
 var app = builder.Build();
 
-app.UseMinimact();
-
-app.MapMinimactPage("/", () => new Pages.Index());
+app.UseMinimact(); // Auto-discovers pages from ./Generated/routes.json
 
 app.Run();
 `;

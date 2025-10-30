@@ -14,6 +14,7 @@ interface FileTreeProps {
   projectPath: string
   onFileClick: (file: ProjectFile) => void
   selectedFile?: ProjectFile | null
+  refreshKey?: number
 }
 
 interface FileTreeItemProps {
@@ -102,14 +103,14 @@ function FileTreeItem({ file, level, onFileClick, selectedFile }: FileTreeItemPr
   )
 }
 
-export default function FileTree({ projectPath, onFileClick, selectedFile }: FileTreeProps) {
+export default function FileTree({ projectPath, onFileClick, selectedFile, refreshKey }: FileTreeProps) {
   const [files, setFiles] = useState<ProjectFile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadFiles()
-  }, [projectPath])
+  }, [projectPath, refreshKey])
 
   const loadFiles = async () => {
     try {
