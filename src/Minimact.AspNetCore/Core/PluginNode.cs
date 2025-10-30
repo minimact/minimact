@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Minimact.AspNetCore.Core;
 
 /// <summary>
@@ -17,10 +19,23 @@ public class PluginNode : VNode
     public object State { get; }
 
     public PluginNode(string pluginName, object state)
-        : base("plugin", new { name = pluginName }, null)
     {
         PluginName = pluginName;
         State = state;
+    }
+
+    public override string ToHtml()
+    {
+        // Plugins will be rendered by the PluginManager
+        // This returns a placeholder that will be replaced during rendering
+        return $"<div data-plugin=\"{PluginName}\" data-plugin-state='{JsonSerializer.Serialize(State)}'></div>";
+    }
+
+    public override int EstimateSize()
+    {
+        // Estimate size as: tag + attributes + serialized state
+        var stateJson = JsonSerializer.Serialize(State);
+        return 100 + PluginName.Length + stateJson.Length;
     }
 
     public override string ToString()

@@ -6,6 +6,8 @@ using Minimact.AspNetCore.SignalR;
 using Minimact.AspNetCore.Routing;
 using Minimact.AspNetCore.HotReload;
 using Minimact.AspNetCore.Services;
+using Minimact.AspNetCore.Plugins;
+using Minimact.AspNetCore.Middleware;
 
 namespace Minimact.AspNetCore.Extensions;
 
@@ -53,6 +55,9 @@ public static class MinimactServiceExtensions
         // Register memory monitoring background service
         services.AddHostedService<PredictorMemoryMonitor>();
 
+        // Register plugin system
+        services.AddSingleton<PluginManager>();
+
         return services;
     }
 
@@ -68,6 +73,22 @@ public static class MinimactServiceExtensions
 
         services.AddSingleton(options);
         services.AddMinimact();
+
+        // Auto-discover plugins if enabled
+        if (options.AutoDiscoverPlugins)
+        {
+            var sp = services.BuildServiceProvider();
+            var pluginManager = sp.GetRequiredService<PluginManager>();
+            pluginManager.AutoDiscover();
+        }
+
+        // Register explicit plugins
+        foreach (var plugin in options.ExplicitPlugins)
+        {
+            var sp = services.BuildServiceProvider();
+            var pluginManager = sp.GetRequiredService<PluginManager>();
+            pluginManager.Register(plugin);
+        }
 
         return services;
     }
@@ -87,6 +108,20 @@ public static class MinimactServiceExtensions
 
         // Add context cache middleware (cleanup after each request)
         app.UseMiddleware<Middleware.ContextCacheMiddleware>();
+
+        // Add plugin asset serving middleware
+        var options = app.ApplicationServices.GetService<MinimactOptions>();
+        if (options?.PluginAssets != null)
+        {
+            app.UsePluginAssets(
+                options.PluginAssets.BasePath,
+                options.PluginAssets.VersionAssetUrls,
+                options.PluginAssets.CacheDuration);
+        }
+        else
+        {
+            app.UsePluginAssets(); // Use defaults
+        }
 
         app.UseRouting();
         app.UseEndpoints(endpoints =>
@@ -131,4 +166,58 @@ public class MinimactOptions
     /// Enable debug logging (default: false)
     /// </summary>
     public bool EnableDebugLogging { get; set; } = false;
+
+    /// <summary>
+    /// Enable automatic plugin discovery via reflection (default: true)
+    /// </summary>
+    public bool AutoDiscoverPlugins { get; set; } = true;
+
+    /// <summary>
+    /// Explicitly registered plugins (alternative to auto-discovery)
+    /// </summary>
+    public List<IMinimactPlugin> ExplicitPlugins { get; set; } = new();
+
+    /// <summary>
+    /// Plugin asset serving options
+    /// </summary>
+    public PluginAssetOptions PluginAssets { get; set; } = new();
+
+    /// <summary>
+    /// Register a plugin explicitly
+    /// </summary>
+    public MinimactOptions RegisterPlugin<T>() where T : IMinimactPlugin, new()
+    {
+        ExplicitPlugins.Add(new T());
+        return this;
+    }
+
+    /// <summary>
+    /// Register a plugin instance explicitly
+    /// </summary>
+    public MinimactOptions RegisterPlugin(IMinimactPlugin plugin)
+    {
+        ExplicitPlugins.Add(plugin);
+        return this;
+    }
+}
+
+/// <summary>
+/// Configuration options for plugin asset serving
+/// </summary>
+public class PluginAssetOptions
+{
+    /// <summary>
+    /// Base path for serving plugin assets (default: /plugin-assets)
+    /// </summary>
+    public string BasePath { get; set; } = "/plugin-assets";
+
+    /// <summary>
+    /// Whether to version asset URLs (e.g., /plugin-assets/Clock@1.0.0/clock.css)
+    /// </summary>
+    public bool VersionAssetUrls { get; set; } = true;
+
+    /// <summary>
+    /// Cache duration for plugin assets (in seconds, default: 86400 = 24 hours)
+    /// </summary>
+    public int CacheDuration { get; set; } = 86400;
 }
