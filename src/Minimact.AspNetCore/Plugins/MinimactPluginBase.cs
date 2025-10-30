@@ -20,9 +20,7 @@ public abstract class MinimactPluginBase : IMinimactPlugin
         var schema = GetStateSchema();
         if (string.IsNullOrEmpty(schema)) return true;
 
-        // TODO: Implement JSON schema validation
-        // For now, return true (validation will be added in Phase 2)
-        return true;
+        return JsonSchemaValidator.Validate(state, schema);
     }
 
     public virtual PluginAssets GetAssets()
@@ -62,8 +60,6 @@ public abstract class MinimactPlugin<TState> : MinimactPluginBase
 
     public override string GetStateSchema()
     {
-        // TODO: Auto-generate JSON schema from TState type
-        // For now, return empty (will be implemented in Phase 2)
-        return string.Empty;
+        return JsonSchemaGenerator.Generate<TState>();
     }
 }
