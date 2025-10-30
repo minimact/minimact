@@ -18,6 +18,7 @@ const {
 const { extractLoopTemplates } = require('./extractors/loopTemplates.cjs');
 const { extractStructuralTemplates } = require('./extractors/structuralTemplates.cjs');
 const { extractExpressionTemplates } = require('./extractors/expressionTemplates.cjs');
+const { analyzePluginUsage, validatePluginUsage } = require('./analyzers/analyzePluginUsage.cjs');
 
 /**
  * Process a component function
@@ -46,6 +47,7 @@ function processComponent(path, state) {
     eventHandlers: [],
     localVariables: [], // Local variables (const/let/var) in function body
     renderBody: null,
+    pluginUsages: [], // Plugin instances (<Plugin name="..." state={...} />)
     stateTypes: new Map(), // Track which hook each state came from
     dependencies: new Map(), // Track dependencies per JSX node
     externalImports: new Set(), // Track external library identifiers
@@ -199,6 +201,21 @@ function processComponent(path, state) {
         } else {
           console.log(`  - ${et.bindings.join(', ')}`);
         }
+      });
+    }
+
+    // Analyze plugin usage (Phase 3: Plugin System)
+    const pluginUsages = analyzePluginUsage(path, component);
+    component.pluginUsages = pluginUsages;
+
+    if (pluginUsages.length > 0) {
+      // Validate plugin usage
+      validatePluginUsage(pluginUsages);
+
+      console.log(`[Minimact Plugins] Found ${pluginUsages.length} plugin usage(s) in ${componentName}:`);
+      pluginUsages.forEach(plugin => {
+        const versionInfo = plugin.version ? ` v${plugin.version}` : '';
+        console.log(`  - <Plugin name="${plugin.pluginName}"${versionInfo} state={${plugin.stateBinding.binding}} />`);
       });
     }
   }

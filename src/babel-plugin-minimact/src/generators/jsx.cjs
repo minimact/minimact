@@ -34,6 +34,25 @@ function generateJSXElement(node, component, indent) {
   const attributes = node.openingElement.attributes;
   const children = node.children;
 
+  // Check if this is a Plugin element
+  if (tagName === 'Plugin') {
+    const { generatePluginNode } = require('./plugin.cjs');
+    // Find the matching plugin metadata from component.pluginUsages
+    const pluginMetadata = component.pluginUsages.find(p => {
+      // Match by finding the plugin in the same location in the tree
+      // For now, just use the first match (simple case)
+      return true; // TODO: Improve matching logic if multiple plugins
+    });
+
+    if (pluginMetadata) {
+      return generatePluginNode(pluginMetadata, component);
+    } else {
+      // Fallback if plugin metadata not found (shouldn't happen)
+      console.warn(`[jsx.cjs] Plugin metadata not found for <Plugin> element`);
+      return 'new VText("<!-- Plugin not found -->")'
+    }
+  }
+
   // Check if this element has markdown attribute and markdown content
   const hasMarkdownAttr = attributes.some(attr =>
     t.isJSXAttribute(attr) && attr.name.name === 'markdown'

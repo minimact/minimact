@@ -3,12 +3,16 @@
  */
 
 const { generateComponent } = require('./component.cjs');
+const { usesPlugins } = require('./plugin.cjs');
 
 /**
  * Generate C# file from components
  */
 function generateCSharpFile(components, state) {
   const lines = [];
+
+  // Check if any component uses plugins
+  const hasPlugins = components.some(c => usesPlugins(c));
 
   // Usings
   lines.push('using Minimact.AspNetCore.Core;');
@@ -17,6 +21,12 @@ function generateCSharpFile(components, state) {
   lines.push('using System.Collections.Generic;');
   lines.push('using System.Linq;');
   lines.push('using System.Threading.Tasks;');
+
+  // Add plugin using directives if any component uses plugins
+  if (hasPlugins) {
+    lines.push('using Minimact.AspNetCore.Plugins;');
+  }
+
   lines.push('');
 
   // Namespace (extract from file path or use default)
