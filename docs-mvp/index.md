@@ -75,7 +75,7 @@ That's it! From zero to running app in under 2 minutes.
 Write familiar React code:
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
