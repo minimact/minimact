@@ -1,0 +1,23 @@
+# Jekyll configuration for GitHub Pages
+# This tells Jekyll not to process files with Liquid template syntax
+
+# Exclude files from processing
+exclude:
+  - node_modules/
+  - vendor/
+  - .gitignore
+
+# Don't process these file types with Liquid
+# (They contain {{ }} syntax that conflicts with Liquid templates)
+exclude_from_liquid:
+  - "*.html"
+
+# Alternative: Use raw/endraw tags, but better to exclude entirely
+# for files with lots of {{ }} like Mermaid diagrams
+
+# If the above doesn't work, you can also mark specific files:
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: none
