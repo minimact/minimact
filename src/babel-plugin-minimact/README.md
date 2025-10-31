@@ -1,10 +1,12 @@
-# babel-plugin-minimact
+# @minimact/babel-plugin
 
 Babel plugin that transforms JSX/TSX React components into C# Minimact components for server-side rendering with ASP.NET Core.
 
 ## Purpose
 
 Minimact allows developers to write familiar React syntax (JSX/TSX with hooks) that gets compiled to C# classes running on ASP.NET Core. This plugin handles the transformation from JavaScript to C#.
+
+> **Note**: This package is designed to work seamlessly with **Minimact Swig**, the official Electron-based IDE for Minimact development.
 
 ## Features
 
@@ -101,7 +103,7 @@ namespace Generated.Components
 ### Install
 
 ```bash
-npm install --save-dev babel-plugin-minimact @babel/core
+npm install --save-dev @minimact/babel-plugin @babel/core
 ```
 
 ### Configure Babel
@@ -114,10 +116,25 @@ module.exports = {
     '@babel/preset-react'
   ],
   plugins: [
-    'babel-plugin-minimact'
+    '@minimact/babel-plugin'
   ]
 };
 ```
+
+### Usage with Minimact Swig
+
+Minimact Swig automatically uses this plugin for transpilation. No manual configuration needed!
+
+When you:
+1. Create a new project in Swig
+2. Edit TSX files in the Monaco editor
+3. Save the file
+
+Swig automatically:
+- Invokes this Babel plugin
+- Transpiles TSX → C#
+- Writes the generated .cs files
+- Triggers a rebuild (if auto-build is enabled)
 
 ### Build
 

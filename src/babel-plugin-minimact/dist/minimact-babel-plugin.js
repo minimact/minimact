@@ -74,7 +74,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Type Conversion
 	 */
 
-	const t$e = globalThis.__BABEL_TYPES__;
+	const t$f = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Convert TypeScript type annotation to C# type
@@ -83,28 +83,28 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  if (!tsType) return 'dynamic';
 
 	  // TSStringKeyword -> string
-	  if (t$e.isTSStringKeyword(tsType)) return 'string';
+	  if (t$f.isTSStringKeyword(tsType)) return 'string';
 
 	  // TSNumberKeyword -> double
-	  if (t$e.isTSNumberKeyword(tsType)) return 'double';
+	  if (t$f.isTSNumberKeyword(tsType)) return 'double';
 
 	  // TSBooleanKeyword -> bool
-	  if (t$e.isTSBooleanKeyword(tsType)) return 'bool';
+	  if (t$f.isTSBooleanKeyword(tsType)) return 'bool';
 
 	  // TSAnyKeyword -> dynamic
-	  if (t$e.isTSAnyKeyword(tsType)) return 'dynamic';
+	  if (t$f.isTSAnyKeyword(tsType)) return 'dynamic';
 
 	  // TSArrayType -> List<T>
-	  if (t$e.isTSArrayType(tsType)) {
+	  if (t$f.isTSArrayType(tsType)) {
 	    const elementType = tsTypeToCSharpType$2(tsType.elementType);
 	    return `List<${elementType}>`;
 	  }
 
 	  // TSTypeLiteral (object type) -> dynamic
-	  if (t$e.isTSTypeLiteral(tsType)) return 'dynamic';
+	  if (t$f.isTSTypeLiteral(tsType)) return 'dynamic';
 
 	  // TSTypeReference (custom types, interfaces) -> dynamic
-	  if (t$e.isTSTypeReference(tsType)) return 'dynamic';
+	  if (t$f.isTSTypeReference(tsType)) return 'dynamic';
 
 	  // Default to dynamic for full JSX semantics
 	  return 'dynamic';
@@ -116,12 +116,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function inferType$1(node) {
 	  if (!node) return 'dynamic';
 
-	  if (t$e.isStringLiteral(node)) return 'string';
-	  if (t$e.isNumericLiteral(node)) return 'int';
-	  if (t$e.isBooleanLiteral(node)) return 'bool';
-	  if (t$e.isNullLiteral(node)) return 'dynamic';
-	  if (t$e.isArrayExpression(node)) return 'List<dynamic>';
-	  if (t$e.isObjectExpression(node)) return 'dynamic';
+	  if (t$f.isStringLiteral(node)) return 'string';
+	  if (t$f.isNumericLiteral(node)) return 'int';
+	  if (t$f.isBooleanLiteral(node)) return 'bool';
+	  if (t$f.isNullLiteral(node)) return 'dynamic';
+	  if (t$f.isArrayExpression(node)) return 'List<dynamic>';
+	  if (t$f.isObjectExpression(node)) return 'dynamic';
 
 	  return 'dynamic';
 	}
@@ -136,7 +136,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Dependency Analyzer
 	 */
 
-	const t$d = globalThis.__BABEL_TYPES__;
+	const t$e = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Analyze dependencies in JSX expressions
@@ -149,7 +149,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    if (!node) return;
 
 	    // Check if this is an identifier that's a state variable
-	    if (t$d.isIdentifier(node)) {
+	    if (t$e.isIdentifier(node)) {
 	      const name = node.name;
 	      if (component.stateTypes.has(name)) {
 	        deps.add({
@@ -160,25 +160,25 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Recursively walk the tree
-	    if (t$d.isConditionalExpression(node)) {
+	    if (t$e.isConditionalExpression(node)) {
 	      walk(node.test);
 	      walk(node.consequent);
 	      walk(node.alternate);
-	    } else if (t$d.isLogicalExpression(node)) {
+	    } else if (t$e.isLogicalExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$d.isMemberExpression(node)) {
+	    } else if (t$e.isMemberExpression(node)) {
 	      walk(node.object);
 	      walk(node.property);
-	    } else if (t$d.isCallExpression(node)) {
+	    } else if (t$e.isCallExpression(node)) {
 	      walk(node.callee);
 	      node.arguments.forEach(walk);
-	    } else if (t$d.isBinaryExpression(node)) {
+	    } else if (t$e.isBinaryExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$d.isUnaryExpression(node)) {
+	    } else if (t$e.isUnaryExpression(node)) {
 	      walk(node.argument);
-	    } else if (t$d.isArrowFunctionExpression(node) || t$d.isFunctionExpression(node)) {
+	    } else if (t$e.isArrowFunctionExpression(node) || t$e.isFunctionExpression(node)) {
 	      walk(node.body);
 	    }
 	  }
@@ -237,14 +237,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Pattern Detection
 	 */
 
-	const t$c = globalThis.__BABEL_TYPES__;
+	const t$d = globalThis.__BABEL_TYPES__;
 
 
 	/**
 	 * Detect if attributes contain spread operators
 	 */
 	function hasSpreadProps(attributes) {
-	  return attributes.some(attr => t$c.isJSXSpreadAttribute(attr));
+	  return attributes.some(attr => t$d.isJSXSpreadAttribute(attr));
 	}
 
 	/**
@@ -252,35 +252,35 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 */
 	function hasDynamicChildren(children) {
 	  return children.some(child => {
-	    if (!t$c.isJSXExpressionContainer(child)) return false;
+	    if (!t$d.isJSXExpressionContainer(child)) return false;
 	    const expr = child.expression;
 
 	    // Check for .map() calls
-	    if (t$c.isCallExpression(expr) &&
-	        t$c.isMemberExpression(expr.callee) &&
-	        t$c.isIdentifier(expr.callee.property, { name: 'map' })) {
+	    if (t$d.isCallExpression(expr) &&
+	        t$d.isMemberExpression(expr.callee) &&
+	        t$d.isIdentifier(expr.callee.property, { name: 'map' })) {
 	      return true;
 	    }
 
 	    // Check for array expressions from LINQ/Select
-	    if (t$c.isCallExpression(expr) &&
-	        t$c.isMemberExpression(expr.callee) &&
-	        (t$c.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-	         t$c.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	    if (t$d.isCallExpression(expr) &&
+	        t$d.isMemberExpression(expr.callee) &&
+	        (t$d.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t$d.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
 	      return true;
 	    }
 
 	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-	    if (t$c.isConditionalExpression(expr)) {
-	      if (t$c.isJSXElement(expr.consequent) || t$c.isJSXFragment(expr.consequent) ||
-	          t$c.isJSXElement(expr.alternate) || t$c.isJSXFragment(expr.alternate)) {
+	    if (t$d.isConditionalExpression(expr)) {
+	      if (t$d.isJSXElement(expr.consequent) || t$d.isJSXFragment(expr.consequent) ||
+	          t$d.isJSXElement(expr.alternate) || t$d.isJSXFragment(expr.alternate)) {
 	        return true;
 	      }
 	    }
 
 	    // Check for logical expressions with JSX: {condition && <Element/>}
-	    if (t$c.isLogicalExpression(expr)) {
-	      if (t$c.isJSXElement(expr.right) || t$c.isJSXFragment(expr.right)) {
+	    if (t$d.isLogicalExpression(expr)) {
+	      if (t$d.isJSXElement(expr.right) || t$d.isJSXFragment(expr.right)) {
 	        return true;
 	      }
 	    }
@@ -294,14 +294,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 */
 	function hasComplexProps(attributes) {
 	  return attributes.some(attr => {
-	    if (!t$c.isJSXAttribute(attr)) return false;
+	    if (!t$d.isJSXAttribute(attr)) return false;
 	    const value = attr.value;
 
-	    if (!t$c.isJSXExpressionContainer(value)) return false;
+	    if (!t$d.isJSXExpressionContainer(value)) return false;
 	    const expr = value.expression;
 
 	    // Check for conditional spread: {...(condition && { prop: value })}
-	    if (t$c.isConditionalExpression(expr) || t$c.isLogicalExpression(expr)) {
+	    if (t$d.isConditionalExpression(expr) || t$d.isLogicalExpression(expr)) {
 	      return true;
 	    }
 
@@ -319,31 +319,31 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Event Handlers Extractor
 	 */
 
-	const t$b = globalThis.__BABEL_TYPES__;
+	const t$c = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Extract event handler name
 	 */
 	function extractEventHandler(value, component) {
-	  if (t$b.isStringLiteral(value)) {
+	  if (t$c.isStringLiteral(value)) {
 	    return value.value;
 	  }
 
-	  if (t$b.isJSXExpressionContainer(value)) {
+	  if (t$c.isJSXExpressionContainer(value)) {
 	    const expr = value.expression;
 
-	    if (t$b.isArrowFunctionExpression(expr) || t$b.isFunctionExpression(expr)) {
+	    if (t$c.isArrowFunctionExpression(expr) || t$c.isFunctionExpression(expr)) {
 	      // Inline arrow function - extract to named method
 	      const handlerName = `Handle${component.eventHandlers.length}`;
 	      component.eventHandlers.push({ name: handlerName, body: expr.body });
 	      return handlerName;
 	    }
 
-	    if (t$b.isIdentifier(expr)) {
+	    if (t$c.isIdentifier(expr)) {
 	      return expr.name;
 	    }
 
-	    if (t$b.isCallExpression(expr)) {
+	    if (t$c.isCallExpression(expr)) {
 	      // () => someMethod() - extract
 	      const handlerName = `Handle${component.eventHandlers.length}`;
 	      component.eventHandlers.push({ name: handlerName, body: expr });
@@ -359,6 +359,153 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	var eventHandlers = {
 	  extractEventHandler
 	};
+
+	/**
+	 * Generate C# code for Plugin elements
+	 * Transforms <Plugin name="..." state={...} /> to C# PluginNode instances
+	 *
+	 * Phase 3: Babel Plugin Integration
+	 */
+
+	var plugin;
+	var hasRequiredPlugin;
+
+	function requirePlugin () {
+		if (hasRequiredPlugin) return plugin;
+		hasRequiredPlugin = 1;
+		const { generateExpression } = requireExpressions();
+
+		/**
+		 * Generate C# code for a plugin usage
+		 * @param {Object} pluginMetadata - Plugin usage metadata from analyzer
+		 * @param {Object} componentState - Component metadata
+		 * @returns {string} C# code
+		 */
+		function generatePluginNode(pluginMetadata, componentState) {
+		  const { pluginName, stateBinding, version } = pluginMetadata;
+
+		  // Generate state expression
+		  const stateCode = generateStateExpression(stateBinding);
+
+		  // Generate PluginNode constructor call
+		  if (version) {
+		    // Future: Support version-specific plugin loading
+		    // For now, version is informational only
+		    return `new PluginNode("${pluginName}", ${stateCode}) /* v${version} */`;
+		  }
+
+		  return `new PluginNode("${pluginName}", ${stateCode})`;
+		}
+
+		/**
+		 * Generate C# expression for plugin state
+		 * @param {Object} stateBinding - State binding metadata
+		 * @param {Object} componentState - Component metadata
+		 * @returns {string} C# code
+		 */
+		function generateStateExpression(stateBinding, componentState) {
+		  switch (stateBinding.type) {
+		    case 'identifier':
+		      // Simple identifier: state={currentTime} -> currentTime
+		      return stateBinding.name;
+
+		    case 'memberExpression':
+		      // Member expression: state={this.state.time} -> state.time (remove 'this')
+		      return stateBinding.binding;
+
+		    case 'objectExpression':
+		      // Inline object: state={{ hours: h, minutes: m }}
+		      return generateInlineObject(stateBinding);
+
+		    case 'complexExpression':
+		      // Complex expression: evaluate using expression generator
+		      return generateExpression(stateBinding.expression);
+
+		    default:
+		      throw new Error(`Unknown state binding type: ${stateBinding.type}`);
+		  }
+		}
+
+		/**
+		 * Generate C# code for inline object expression
+		 * @param {Object} stateBinding - State binding with objectExpression type
+		 * @param {Object} componentState - Component metadata
+		 * @returns {string} C# anonymous object code
+		 */
+		function generateInlineObject(stateBinding, componentState) {
+		  const properties = stateBinding.properties;
+
+		  if (!properties || properties.length === 0) {
+		    return 'new { }';
+		  }
+
+		  const propStrings = properties.map(prop => {
+		    const key = prop.key.name || prop.key.value;
+		    const value = generateExpression(prop.value);
+		    return `${key} = ${value}`;
+		  });
+
+		  return `new { ${propStrings.join(', ')} }`;
+		}
+
+		/**
+		 * Generate using directives needed for plugins
+		 * @returns {Array<string>} Using statements
+		 */
+		function generatePluginUsings() {
+		  return [
+		    'using Minimact.AspNetCore.Core;',
+		    'using Minimact.AspNetCore.Plugins;'
+		  ];
+		}
+
+		/**
+		 * Check if component uses plugins (for conditional using statement inclusion)
+		 * @param {Object} componentState - Component metadata
+		 * @returns {boolean}
+		 */
+		function usesPlugins(componentState) {
+		  return componentState.pluginUsages && componentState.pluginUsages.length > 0;
+		}
+
+		/**
+		 * Generate comment documenting plugin usage
+		 * @param {Object} pluginMetadata - Plugin metadata
+		 * @returns {string} C# comment
+		 */
+		function generatePluginComment(pluginMetadata) {
+		  const { pluginName, stateBinding, version } = pluginMetadata;
+
+		  const versionInfo = version ? ` (v${version})` : '';
+		  const stateInfo = stateBinding.stateType
+		    ? ` : ${stateBinding.stateType}`
+		    : '';
+
+		  return `// Plugin: ${pluginName}${versionInfo}, State: ${stateBinding.binding}${stateInfo}`;
+		}
+
+		/**
+		 * Generate validation code for plugin state (optional, for runtime safety)
+		 * @param {Object} pluginMetadata - Plugin metadata
+		 * @returns {string|null} C# validation code or null
+		 */
+		function generatePluginValidation(pluginMetadata) {
+		  // Future enhancement: Generate runtime validation
+		  // For now, validation happens in PluginManager
+		  return null;
+		}
+
+		plugin = {
+		  generatePluginNode,
+		  generateStateExpression,
+		  generateInlineObject,
+		  generatePluginUsings,
+		  generatePluginComment,
+		  generatePluginValidation,
+		  usesPlugins
+		};
+		return plugin;
+	}
 
 	/**
 	 * JSX Generators
@@ -401,6 +548,25 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  const tagName = node.openingElement.name.name;
 		  const attributes = node.openingElement.attributes;
 		  const children = node.children;
+
+		  // Check if this is a Plugin element
+		  if (tagName === 'Plugin') {
+		    const { generatePluginNode } = requirePlugin();
+		    // Find the matching plugin metadata from component.pluginUsages
+		    const pluginMetadata = component.pluginUsages.find(p => {
+		      // Match by finding the plugin in the same location in the tree
+		      // For now, just use the first match (simple case)
+		      return true; // TODO: Improve matching logic if multiple plugins
+		    });
+
+		    if (pluginMetadata) {
+		      return generatePluginNode(pluginMetadata, component);
+		    } else {
+		      // Fallback if plugin metadata not found (shouldn't happen)
+		      console.warn(`[jsx.cjs] Plugin metadata not found for <Plugin> element`);
+		      return 'new VText("<!-- Plugin not found -->")'
+		    }
+		  }
 
 		  // Check if this element has markdown attribute and markdown content
 		  const hasMarkdownAttr = attributes.some(attr =>
@@ -1092,7 +1258,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Hook Extractors
 	 */
 
-	const t$a = globalThis.__BABEL_TYPES__;
+	const t$b = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$2 } = requireExpressions();
 	const { inferType } = typeConversion;
 
@@ -1102,7 +1268,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractHook$1(path, component) {
 	  const node = path.node;
 
-	  if (!t$a.isIdentifier(node.callee)) return;
+	  if (!t$b.isIdentifier(node.callee)) return;
 
 	  const hookName = node.callee.name;
 
@@ -1170,8 +1336,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseState(path, component, hookType) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
-	  if (!t$a.isArrayPattern(parent.id)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$b.isArrayPattern(parent.id)) return;
 
 	  const [stateVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -1211,7 +1377,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseRef(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const refName = parent.id.name;
 	  const initialValue = path.node.arguments[0];
@@ -1228,8 +1394,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseMarkdown(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
-	  if (!t$a.isArrayPattern(parent.id)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$b.isArrayPattern(parent.id)) return;
 
 	  const [contentVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -1251,24 +1417,24 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  const templateName = path.node.arguments[0];
 	  const templateProps = path.node.arguments[1];
 
-	  if (t$a.isStringLiteral(templateName)) {
+	  if (t$b.isStringLiteral(templateName)) {
 	    component.useTemplate = {
 	      name: templateName.value,
 	      props: {}
 	    };
 
 	    // Extract template props if provided
-	    if (templateProps && t$a.isObjectExpression(templateProps)) {
+	    if (templateProps && t$b.isObjectExpression(templateProps)) {
 	      for (const prop of templateProps.properties) {
-	        if (t$a.isObjectProperty(prop) && t$a.isIdentifier(prop.key)) {
+	        if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
 	          const propName = prop.key.name;
 	          let propValue = '';
 
-	          if (t$a.isStringLiteral(prop.value)) {
+	          if (t$b.isStringLiteral(prop.value)) {
 	            propValue = prop.value.value;
-	          } else if (t$a.isNumericLiteral(prop.value)) {
+	          } else if (t$b.isNumericLiteral(prop.value)) {
 	            propValue = prop.value.value.toString();
-	          } else if (t$a.isBooleanLiteral(prop.value)) {
+	          } else if (t$b.isBooleanLiteral(prop.value)) {
 	            propValue = prop.value.value.toString();
 	          }
 
@@ -1285,7 +1451,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseValidation(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const fieldName = parent.id.name;
 	  const fieldKey = path.node.arguments[0];
@@ -1293,24 +1459,24 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	  const validationInfo = {
 	    name: fieldName,
-	    fieldKey: t$a.isStringLiteral(fieldKey) ? fieldKey.value : fieldName,
+	    fieldKey: t$b.isStringLiteral(fieldKey) ? fieldKey.value : fieldName,
 	    rules: {}
 	  };
 
 	  // Extract validation rules from the object
-	  if (validationRules && t$a.isObjectExpression(validationRules)) {
+	  if (validationRules && t$b.isObjectExpression(validationRules)) {
 	    for (const prop of validationRules.properties) {
-	      if (t$a.isObjectProperty(prop) && t$a.isIdentifier(prop.key)) {
+	      if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
 	        const ruleName = prop.key.name;
 	        let ruleValue = null;
 
-	        if (t$a.isStringLiteral(prop.value)) {
+	        if (t$b.isStringLiteral(prop.value)) {
 	          ruleValue = prop.value.value;
-	        } else if (t$a.isNumericLiteral(prop.value)) {
+	        } else if (t$b.isNumericLiteral(prop.value)) {
 	          ruleValue = prop.value.value;
-	        } else if (t$a.isBooleanLiteral(prop.value)) {
+	        } else if (t$b.isBooleanLiteral(prop.value)) {
 	          ruleValue = prop.value.value;
-	        } else if (t$a.isRegExpLiteral(prop.value)) {
+	        } else if (t$b.isRegExpLiteral(prop.value)) {
 	          ruleValue = `/${prop.value.pattern}/${prop.value.flags || ''}`;
 	        }
 
@@ -1328,7 +1494,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseModal(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const modalName = parent.id.name;
 
@@ -1343,8 +1509,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseToggle(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
-	  if (!t$a.isArrayPattern(parent.id)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$b.isArrayPattern(parent.id)) return;
 
 	  const [stateVar, toggleFunc] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -1364,7 +1530,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseDropdown(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const dropdownName = parent.id.name;
 	  const routeArg = path.node.arguments[0];
@@ -1372,7 +1538,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  let routeReference = null;
 
 	  // Try to extract route reference (e.g., Routes.Api.Units.GetAll)
-	  if (routeArg && t$a.isMemberExpression(routeArg)) {
+	  if (routeArg && t$b.isMemberExpression(routeArg)) {
 	    routeReference = generateCSharpExpression$2(routeArg);
 	  }
 
@@ -1387,7 +1553,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 */
 	function extractUsePub(path, component) {
 	  const parent = path.parent;
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const pubName = parent.id.name;
 	  const channel = path.node.arguments[0];
@@ -1395,7 +1561,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  component.usePub = component.usePub || [];
 	  component.usePub.push({
 	    name: pubName,
-	    channel: t$a.isStringLiteral(channel) ? channel.value : null
+	    channel: t$b.isStringLiteral(channel) ? channel.value : null
 	  });
 	}
 
@@ -1404,7 +1570,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 */
 	function extractUseSub(path, component) {
 	  const parent = path.parent;
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const subName = parent.id.name;
 	  const channel = path.node.arguments[0];
@@ -1413,7 +1579,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  component.useSub = component.useSub || [];
 	  component.useSub.push({
 	    name: subName,
-	    channel: t$a.isStringLiteral(channel) ? channel.value : null,
+	    channel: t$b.isStringLiteral(channel) ? channel.value : null,
 	    hasCallback: !!callback
 	  });
 	}
@@ -1440,7 +1606,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  component.useMacroTask = component.useMacroTask || [];
 	  component.useMacroTask.push({
 	    body: callback,
-	    delay: t$a.isNumericLiteral(delay) ? delay.value : 0
+	    delay: t$b.isNumericLiteral(delay) ? delay.value : 0
 	  });
 	}
 
@@ -1449,7 +1615,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 */
 	function extractUseSignalR(path, component) {
 	  const parent = path.parent;
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const signalRName = parent.id.name;
 	  const hubUrl = path.node.arguments[0];
@@ -1458,7 +1624,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  component.useSignalR = component.useSignalR || [];
 	  component.useSignalR.push({
 	    name: signalRName,
-	    hubUrl: t$a.isStringLiteral(hubUrl) ? hubUrl.value : null,
+	    hubUrl: t$b.isStringLiteral(hubUrl) ? hubUrl.value : null,
 	    hasOnMessage: !!onMessage
 	  });
 	}
@@ -1472,7 +1638,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	  component.usePredictHint = component.usePredictHint || [];
 	  component.usePredictHint.push({
-	    hintId: t$a.isStringLiteral(hintId) ? hintId.value : null,
+	    hintId: t$b.isStringLiteral(hintId) ? hintId.value : null,
 	    predictedState: predictedState
 	  });
 	}
@@ -1487,14 +1653,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUseServerTask(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const taskName = parent.id.name;
 	  const asyncFunction = path.node.arguments[0];
 	  const options = path.node.arguments[1];
 
 	  // Validate async function
-	  if (!asyncFunction || (!t$a.isArrowFunctionExpression(asyncFunction) && !t$a.isFunctionExpression(asyncFunction))) {
+	  if (!asyncFunction || (!t$b.isArrowFunctionExpression(asyncFunction) && !t$b.isFunctionExpression(asyncFunction))) {
 	    console.warn('[useServerTask] First argument must be an async function');
 	    return;
 	  }
@@ -1509,7 +1675,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	  // Extract parameters
 	  const parameters = asyncFunction.params.map(param => {
-	    if (t$a.isIdentifier(param)) {
+	    if (t$b.isIdentifier(param)) {
 	      return {
 	        name: param.name,
 	        type: param.typeAnnotation ? extractTypeAnnotation(param.typeAnnotation) : 'object'
@@ -1524,19 +1690,19 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  let runtime = 'csharp'; // Default to C#
 	  let parallel = false;
 
-	  if (options && t$a.isObjectExpression(options)) {
+	  if (options && t$b.isObjectExpression(options)) {
 	    for (const prop of options.properties) {
-	      if (t$a.isObjectProperty(prop) && t$a.isIdentifier(prop.key)) {
-	        if (prop.key.name === 'stream' && t$a.isBooleanLiteral(prop.value)) {
+	      if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
+	        if (prop.key.name === 'stream' && t$b.isBooleanLiteral(prop.value)) {
 	          streamingEnabled = prop.value.value;
 	        }
-	        if (prop.key.name === 'estimatedChunks' && t$a.isNumericLiteral(prop.value)) {
+	        if (prop.key.name === 'estimatedChunks' && t$b.isNumericLiteral(prop.value)) {
 	          estimatedChunks = prop.value.value;
 	        }
-	        if (prop.key.name === 'runtime' && t$a.isStringLiteral(prop.value)) {
+	        if (prop.key.name === 'runtime' && t$b.isStringLiteral(prop.value)) {
 	          runtime = prop.value.value; // 'csharp' | 'rust' | 'auto'
 	        }
-	        if (prop.key.name === 'parallel' && t$a.isBooleanLiteral(prop.value)) {
+	        if (prop.key.name === 'parallel' && t$b.isBooleanLiteral(prop.value)) {
 	          parallel = prop.value.value;
 	        }
 	      }
@@ -1570,14 +1736,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractUsePaginatedServerTask(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$a.isVariableDeclarator(parent)) return;
+	  if (!t$b.isVariableDeclarator(parent)) return;
 
 	  const taskName = parent.id.name;
 	  const fetchFunction = path.node.arguments[0];
 	  const options = path.node.arguments[1];
 
 	  // Validate fetch function
-	  if (!fetchFunction || (!t$a.isArrowFunctionExpression(fetchFunction) && !t$a.isFunctionExpression(fetchFunction))) {
+	  if (!fetchFunction || (!t$b.isArrowFunctionExpression(fetchFunction) && !t$b.isFunctionExpression(fetchFunction))) {
 	    console.warn('[usePaginatedServerTask] First argument must be an async function');
 	    return;
 	  }
@@ -1601,16 +1767,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  let pageSize = 20;
 	  let getTotalCountFn = null;
 
-	  if (options && t$a.isObjectExpression(options)) {
+	  if (options && t$b.isObjectExpression(options)) {
 	    for (const prop of options.properties) {
-	      if (t$a.isObjectProperty(prop) && t$a.isIdentifier(prop.key)) {
-	        if (prop.key.name === 'runtime' && t$a.isStringLiteral(prop.value)) {
+	      if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
+	        if (prop.key.name === 'runtime' && t$b.isStringLiteral(prop.value)) {
 	          runtime = prop.value.value;
 	        }
-	        if (prop.key.name === 'parallel' && t$a.isBooleanLiteral(prop.value)) {
+	        if (prop.key.name === 'parallel' && t$b.isBooleanLiteral(prop.value)) {
 	          parallel = prop.value.value;
 	        }
-	        if (prop.key.name === 'pageSize' && t$a.isNumericLiteral(prop.value)) {
+	        if (prop.key.name === 'pageSize' && t$b.isNumericLiteral(prop.value)) {
 	          pageSize = prop.value.value;
 	        }
 	        if (prop.key.name === 'getTotalCount') {
@@ -1639,7 +1805,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	  // 2. Add count task (if getTotalCount provided)
 	  let countTaskName = null;
-	  if (getTotalCountFn && (t$a.isArrowFunctionExpression(getTotalCountFn) || t$a.isFunctionExpression(getTotalCountFn))) {
+	  if (getTotalCountFn && (t$b.isArrowFunctionExpression(getTotalCountFn) || t$b.isFunctionExpression(getTotalCountFn))) {
 	    countTaskName = `${taskName}_count`;
 
 	    const countParameters = [
@@ -1683,20 +1849,20 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  // Strip TSTypeAnnotation wrapper
 	  const actualType = typeAnnotation.typeAnnotation || typeAnnotation;
 
-	  if (t$a.isTSStringKeyword(actualType)) {
+	  if (t$b.isTSStringKeyword(actualType)) {
 	    return 'string';
 	  }
-	  if (t$a.isTSNumberKeyword(actualType)) {
+	  if (t$b.isTSNumberKeyword(actualType)) {
 	    return 'double';
 	  }
-	  if (t$a.isTSBooleanKeyword(actualType)) {
+	  if (t$b.isTSBooleanKeyword(actualType)) {
 	    return 'bool';
 	  }
-	  if (t$a.isTSArrayType(actualType)) {
+	  if (t$b.isTSArrayType(actualType)) {
 	    const elementType = extractTypeAnnotation(actualType.elementType);
 	    return `List<${elementType}>`;
 	  }
-	  if (t$a.isTSTypeReference(actualType) && t$a.isIdentifier(actualType.typeName)) {
+	  if (t$b.isTSTypeReference(actualType) && t$b.isIdentifier(actualType.typeName)) {
 	    return actualType.typeName.name; // Use custom type as-is
 	  }
 
@@ -1712,8 +1878,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const returnType = asyncFunction.returnType.typeAnnotation;
 
 	    // Promise<T> → T
-	    if (t$a.isTSTypeReference(returnType) &&
-	        t$a.isIdentifier(returnType.typeName) &&
+	    if (t$b.isTSTypeReference(returnType) &&
+	        t$b.isIdentifier(returnType.typeName) &&
 	        returnType.typeName.name === 'Promise') {
 	      if (returnType.typeParameters && returnType.typeParameters.params.length > 0) {
 	        return extractTypeAnnotation(returnType.typeParameters.params[0]);
@@ -1752,7 +1918,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Local Variables Extractor
 	 */
 
-	const t$9 = globalThis.__BABEL_TYPES__;
+	const t$a = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$1 } = requireExpressions();
 	const { tsTypeToCSharpType: tsTypeToCSharpType$1 } = typeConversion;
 
@@ -1764,63 +1930,63 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  visited.add(node);
 
 	  // Direct identifier match
-	  if (t$9.isIdentifier(node) && externalImports.has(node.name)) {
+	  if (t$a.isIdentifier(node) && externalImports.has(node.name)) {
 	    return true;
 	  }
 
 	  // Member expression (_.sortBy, moment().format)
-	  if (t$9.isMemberExpression(node)) {
+	  if (t$a.isMemberExpression(node)) {
 	    return usesExternalLibrary(node.object, externalImports, visited);
 	  }
 
 	  // Call expression (_.sortBy(...), moment(...))
-	  if (t$9.isCallExpression(node)) {
+	  if (t$a.isCallExpression(node)) {
 	    return usesExternalLibrary(node.callee, externalImports, visited) ||
 	           node.arguments.some(arg => usesExternalLibrary(arg, externalImports, visited));
 	  }
 
 	  // Binary/Logical expressions
-	  if (t$9.isBinaryExpression(node) || t$9.isLogicalExpression(node)) {
+	  if (t$a.isBinaryExpression(node) || t$a.isLogicalExpression(node)) {
 	    return usesExternalLibrary(node.left, externalImports, visited) ||
 	           usesExternalLibrary(node.right, externalImports, visited);
 	  }
 
 	  // Conditional expression
-	  if (t$9.isConditionalExpression(node)) {
+	  if (t$a.isConditionalExpression(node)) {
 	    return usesExternalLibrary(node.test, externalImports, visited) ||
 	           usesExternalLibrary(node.consequent, externalImports, visited) ||
 	           usesExternalLibrary(node.alternate, externalImports, visited);
 	  }
 
 	  // Array expressions
-	  if (t$9.isArrayExpression(node)) {
+	  if (t$a.isArrayExpression(node)) {
 	    return node.elements.some(el => el && usesExternalLibrary(el, externalImports, visited));
 	  }
 
 	  // Object expressions
-	  if (t$9.isObjectExpression(node)) {
+	  if (t$a.isObjectExpression(node)) {
 	    return node.properties.some(prop =>
-	      t$9.isObjectProperty(prop) && usesExternalLibrary(prop.value, externalImports, visited)
+	      t$a.isObjectProperty(prop) && usesExternalLibrary(prop.value, externalImports, visited)
 	    );
 	  }
 
 	  // Arrow functions and function expressions
-	  if (t$9.isArrowFunctionExpression(node) || t$9.isFunctionExpression(node)) {
+	  if (t$a.isArrowFunctionExpression(node) || t$a.isFunctionExpression(node)) {
 	    return usesExternalLibrary(node.body, externalImports, visited);
 	  }
 
 	  // Block statement
-	  if (t$9.isBlockStatement(node)) {
+	  if (t$a.isBlockStatement(node)) {
 	    return node.body.some(stmt => usesExternalLibrary(stmt, externalImports, visited));
 	  }
 
 	  // Return statement
-	  if (t$9.isReturnStatement(node)) {
+	  if (t$a.isReturnStatement(node)) {
 	    return usesExternalLibrary(node.argument, externalImports, visited);
 	  }
 
 	  // Expression statement
-	  if (t$9.isExpressionStatement(node)) {
+	  if (t$a.isExpressionStatement(node)) {
 	    return usesExternalLibrary(node.expression, externalImports, visited);
 	  }
 
@@ -1835,19 +2001,19 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	  for (const declarator of declarations) {
 	    // Skip if it's a hook call (already handled)
-	    if (t$9.isCallExpression(declarator.init)) {
+	    if (t$a.isCallExpression(declarator.init)) {
 	      const callee = declarator.init.callee;
-	      if (t$9.isIdentifier(callee) && callee.name.startsWith('use')) {
+	      if (t$a.isIdentifier(callee) && callee.name.startsWith('use')) {
 	        continue; // Skip hook calls
 	      }
 	    }
 
 	    // Check if this is an event handler (arrow function or function expression)
-	    if (t$9.isIdentifier(declarator.id) && declarator.init) {
+	    if (t$a.isIdentifier(declarator.id) && declarator.init) {
 	      const varName = declarator.id.name;
 
 	      // If it's an arrow function or function expression
-	      if (t$9.isArrowFunctionExpression(declarator.init) || t$9.isFunctionExpression(declarator.init)) {
+	      if (t$a.isArrowFunctionExpression(declarator.init) || t$a.isFunctionExpression(declarator.init)) {
 	        // Check if the function body uses external libraries
 	        const usesExternal = usesExternalLibrary(declarator.init.body, component.externalImports);
 
@@ -1912,7 +2078,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Infers C# types for props based on how they're used in the component
 	 */
 
-	const t$8 = globalThis.__BABEL_TYPES__;
+	const t$9 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Infer prop types from usage in the component body
@@ -1938,7 +2104,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    if (!node) return;
 
 	    // Handle BlockStatement (function body)
-	    if (t$8.isBlockStatement(node)) {
+	    if (t$9.isBlockStatement(node)) {
 	      for (const statement of node.body) {
 	        analyzePropUsage(statement);
 	      }
@@ -1946,7 +2112,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Handle VariableDeclaration
-	    if (t$8.isVariableDeclaration(node)) {
+	    if (t$9.isVariableDeclaration(node)) {
 	      for (const declarator of node.declarations) {
 	        if (declarator.init) {
 	          analyzePropUsage(declarator.init);
@@ -1956,19 +2122,19 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Handle ReturnStatement
-	    if (t$8.isReturnStatement(node)) {
+	    if (t$9.isReturnStatement(node)) {
 	      analyzePropUsage(node.argument);
 	      return;
 	    }
 
 	    // Handle ExpressionStatement
-	    if (t$8.isExpressionStatement(node)) {
+	    if (t$9.isExpressionStatement(node)) {
 	      analyzePropUsage(node.expression);
 	      return;
 	    }
 
 	    // Check if prop is used in conditional context (implies boolean)
-	    if (t$8.isConditionalExpression(node)) {
+	    if (t$9.isConditionalExpression(node)) {
 	      const testName = extractPropName(node.test);
 	      if (testName && propUsage[testName]) {
 	        propUsage[testName].usedAsBoolean = true;
@@ -1978,7 +2144,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Check if prop is used in logical expression (implies boolean)
-	    if (t$8.isLogicalExpression(node)) {
+	    if (t$9.isLogicalExpression(node)) {
 	      const leftName = extractPropName(node.left);
 	      if (leftName && propUsage[leftName]) {
 	        propUsage[leftName].usedAsBoolean = true;
@@ -1987,9 +2153,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Check if prop is used with .map(), .filter(), etc (implies array)
-	    if (t$8.isCallExpression(node) && t$8.isMemberExpression(node.callee)) {
+	    if (t$9.isCallExpression(node) && t$9.isMemberExpression(node.callee)) {
 	      const objectName = extractPropName(node.callee.object);
-	      const methodName = t$8.isIdentifier(node.callee.property) ? node.callee.property.name : null;
+	      const methodName = t$9.isIdentifier(node.callee.property) ? node.callee.property.name : null;
 
 	      if (objectName && propUsage[objectName]) {
 	        if (methodName === 'map' || methodName === 'filter' || methodName === 'forEach' ||
@@ -2007,7 +2173,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Check if prop is used in arithmetic operations (implies number)
-	    if (t$8.isBinaryExpression(node)) {
+	    if (t$9.isBinaryExpression(node)) {
 	      if (['+', '-', '*', '/', '%', '>', '<', '>=', '<='].includes(node.operator)) {
 	        const leftName = extractPropName(node.left);
 	        const rightName = extractPropName(node.right);
@@ -2027,9 +2193,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Check member access for .length (could be array or string)
-	    if (t$8.isMemberExpression(node)) {
+	    if (t$9.isMemberExpression(node)) {
 	      const objectName = extractPropName(node.object);
-	      const propertyName = t$8.isIdentifier(node.property) ? node.property.name : null;
+	      const propertyName = t$9.isIdentifier(node.property) ? node.property.name : null;
 
 	      if (objectName && propUsage[objectName]) {
 	        if (propertyName === 'length') {
@@ -2049,23 +2215,23 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Recurse into JSX elements
-	    if (t$8.isJSXElement(node)) {
+	    if (t$9.isJSXElement(node)) {
 	      for (const child of node.children) {
 	        analyzePropUsage(child);
 	      }
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$8.isJSXAttribute(attr) && t$8.isJSXExpressionContainer(attr.value)) {
+	        if (t$9.isJSXAttribute(attr) && t$9.isJSXExpressionContainer(attr.value)) {
 	          analyzePropUsage(attr.value.expression);
 	        }
 	      }
 	    }
 
-	    if (t$8.isJSXExpressionContainer(node)) {
+	    if (t$9.isJSXExpressionContainer(node)) {
 	      analyzePropUsage(node.expression);
 	    }
 
 	    // Recurse into arrow functions
-	    if (t$8.isArrowFunctionExpression(node)) {
+	    if (t$9.isArrowFunctionExpression(node)) {
 	      analyzePropUsage(node.body);
 	    }
 
@@ -2114,10 +2280,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Extract prop name from an expression
 	 */
 	function extractPropName(node) {
-	  if (t$8.isIdentifier(node)) {
+	  if (t$9.isIdentifier(node)) {
 	    return node.name;
 	  }
-	  if (t$8.isMemberExpression(node)) {
+	  if (t$9.isMemberExpression(node)) {
 	    return extractPropName(node.object);
 	  }
 	  return null;
@@ -2139,7 +2305,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * - Hot reload: Send template patches instead of re-rendering
 	 */
 
-	const t$7 = globalThis.__BABEL_TYPES__;
+	const t$8 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Extract all templates from JSX render body
@@ -2166,7 +2332,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Traverse JSX tree and extract text templates
 	   */
 	  function traverseJSX(node, parentPath = []) {
-	    if (t$7.isJSXElement(node)) {
+	    if (t$8.isJSXElement(node)) {
 	      const tagName = node.openingElement.name.name;
 	      const elementIndex = pathStack.filter(p => p.tag === tagName).length;
 	      const currentPath = [...parentPath, elementIndex];
@@ -2177,7 +2343,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      // Process children
 	      let textNodeIndex = 0;
 	      for (const child of node.children) {
-	        if (t$7.isJSXText(child)) {
+	        if (t$8.isJSXText(child)) {
 	          const text = child.value.trim();
 	          if (text) {
 	            // Static text - create template without bindings
@@ -2191,7 +2357,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	            };
 	            textNodeIndex++;
 	          }
-	        } else if (t$7.isJSXExpressionContainer(child)) {
+	        } else if (t$8.isJSXExpressionContainer(child)) {
 	          // Expression in text position: <h1>{count}</h1>
 	          const template = extractTextTemplate(node.children, currentPath, textNodeIndex);
 	          if (template) {
@@ -2199,16 +2365,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	            templates[textPath] = template;
 	            textNodeIndex++;
 	          }
-	        } else if (t$7.isJSXElement(child)) {
+	        } else if (t$8.isJSXElement(child)) {
 	          traverseJSX(child, currentPath);
 	        }
 	      }
 
 	      pathStack.pop();
-	    } else if (t$7.isJSXFragment(node)) {
+	    } else if (t$8.isJSXFragment(node)) {
 	      // Handle fragments
 	      for (const child of node.children) {
-	        if (t$7.isJSXElement(child)) {
+	        if (t$8.isJSXElement(child)) {
 	          traverseJSX(child, parentPath);
 	        }
 	      }
@@ -2227,10 +2393,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    let hasExpressions = false;
 
 	    for (const child of children) {
-	      if (t$7.isJSXText(child)) {
+	      if (t$8.isJSXText(child)) {
 	        const text = child.value;
 	        templateStr += text;
-	      } else if (t$7.isJSXExpressionContainer(child)) {
+	      } else if (t$8.isJSXExpressionContainer(child)) {
 	        hasExpressions = true;
 	        const binding = extractBinding(child.expression);
 
@@ -2271,11 +2437,11 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * - Simple operations: {count + 1}
 	   */
 	  function extractBinding(expr, component) {
-	    if (t$7.isIdentifier(expr)) {
+	    if (t$8.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$7.isMemberExpression(expr)) {
+	    } else if (t$8.isMemberExpression(expr)) {
 	      return buildMemberPath(expr);
-	    } else if (t$7.isBinaryExpression(expr) || t$7.isUnaryExpression(expr)) {
+	    } else if (t$8.isBinaryExpression(expr) || t$8.isUnaryExpression(expr)) {
 	      // Simple operations - extract all identifiers
 	      const identifiers = [];
 	      extractIdentifiers(expr, identifiers);
@@ -2293,14 +2459,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$7.isMemberExpression(current)) {
-	      if (t$7.isIdentifier(current.property)) {
+	    while (t$8.isMemberExpression(current)) {
+	      if (t$8.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      }
 	      current = current.object;
 	    }
 
-	    if (t$7.isIdentifier(current)) {
+	    if (t$8.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	    }
 
@@ -2311,14 +2477,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract all identifiers from expression
 	   */
 	  function extractIdentifiers(expr, result) {
-	    if (t$7.isIdentifier(expr)) {
+	    if (t$8.isIdentifier(expr)) {
 	      result.push(expr.name);
-	    } else if (t$7.isBinaryExpression(expr) || t$7.isLogicalExpression(expr)) {
+	    } else if (t$8.isBinaryExpression(expr) || t$8.isLogicalExpression(expr)) {
 	      extractIdentifiers(expr.left, result);
 	      extractIdentifiers(expr.right, result);
-	    } else if (t$7.isUnaryExpression(expr)) {
+	    } else if (t$8.isUnaryExpression(expr)) {
 	      extractIdentifiers(expr.argument, result);
-	    } else if (t$7.isMemberExpression(expr)) {
+	    } else if (t$8.isMemberExpression(expr)) {
 	      result.push(buildMemberPath(expr));
 	    }
 	  }
@@ -2354,17 +2520,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  const templates = {};
 
 	  function traverseJSX(node, parentPath = []) {
-	    if (t$7.isJSXElement(node)) {
+	    if (t$8.isJSXElement(node)) {
 	      const tagName = node.openingElement.name.name;
 	      const currentPath = [...parentPath, 0]; // Simplified
 
 	      // Check attributes for template expressions
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$7.isJSXAttribute(attr) && t$7.isJSXExpressionContainer(attr.value)) {
+	        if (t$8.isJSXAttribute(attr) && t$8.isJSXExpressionContainer(attr.value)) {
 	          const expr = attr.value.expression;
 
 	          // Template literal: className={`count-${count}`}
-	          if (t$7.isTemplateLiteral(expr)) {
+	          if (t$8.isTemplateLiteral(expr)) {
 	            const template = extractTemplateLiteral(expr);
 	            if (template) {
 	              const attrPath = `${tagName}[${currentPath.join(',')}].@${attr.name.name}`;
@@ -2380,7 +2546,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	      // Traverse children
 	      for (const child of node.children) {
-	        if (t$7.isJSXElement(child)) {
+	        if (t$8.isJSXElement(child)) {
 	          traverseJSX(child, currentPath);
 	        }
 	      }
@@ -2401,7 +2567,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        slots.push(templateStr.length);
 	        templateStr += `{${i}}`;
 
-	        if (t$7.isIdentifier(expr)) {
+	        if (t$8.isIdentifier(expr)) {
 	          bindings.push(expr.name);
 	        } else {
 	          bindings.push('__complex__');
@@ -2500,7 +2666,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * }
 	 */
 
-	const t$6 = globalThis.__BABEL_TYPES__;
+	const t$7 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Extract all loop templates from JSX render body
@@ -2526,31 +2692,31 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Traverse JSX tree looking for .map() call expressions
 	   */
 	  function traverseJSX(node) {
-	    if (t$6.isJSXElement(node)) {
+	    if (t$7.isJSXElement(node)) {
 	      // Check attributes for .map() expressions
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$6.isJSXAttribute(attr) && t$6.isJSXExpressionContainer(attr.value)) {
+	        if (t$7.isJSXAttribute(attr) && t$7.isJSXExpressionContainer(attr.value)) {
 	          findMapExpressions(attr.value.expression);
 	        }
 	      }
 
 	      // Check children for .map() expressions
 	      for (const child of node.children) {
-	        if (t$6.isJSXExpressionContainer(child)) {
+	        if (t$7.isJSXExpressionContainer(child)) {
 	          findMapExpressions(child.expression);
-	        } else if (t$6.isJSXElement(child)) {
+	        } else if (t$7.isJSXElement(child)) {
 	          traverseJSX(child);
-	        } else if (t$6.isJSXFragment(child)) {
+	        } else if (t$7.isJSXFragment(child)) {
 	          for (const fragmentChild of child.children) {
-	            if (t$6.isJSXElement(fragmentChild)) {
+	            if (t$7.isJSXElement(fragmentChild)) {
 	              traverseJSX(fragmentChild);
 	            }
 	          }
 	        }
 	      }
-	    } else if (t$6.isJSXFragment(node)) {
+	    } else if (t$7.isJSXFragment(node)) {
 	      for (const child of node.children) {
-	        if (t$6.isJSXElement(child)) {
+	        if (t$7.isJSXElement(child)) {
 	          traverseJSX(child);
 	        }
 	      }
@@ -2564,9 +2730,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    if (!expr) return;
 
 	    // Direct .map() call: items.map(...)
-	    if (t$6.isCallExpression(expr) &&
-	        t$6.isMemberExpression(expr.callee) &&
-	        t$6.isIdentifier(expr.callee.property) &&
+	    if (t$7.isCallExpression(expr) &&
+	        t$7.isMemberExpression(expr.callee) &&
+	        t$7.isIdentifier(expr.callee.property) &&
 	        expr.callee.property.name === 'map') {
 
 	      const loopTemplate = extractLoopTemplate(expr);
@@ -2576,13 +2742,13 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Chained operations: items.filter(...).map(...)
-	    if (t$6.isCallExpression(expr) &&
-	        t$6.isMemberExpression(expr.callee)) {
+	    if (t$7.isCallExpression(expr) &&
+	        t$7.isMemberExpression(expr.callee)) {
 	      findMapExpressions(expr.callee.object);
 	    }
 
 	    // Wrapped in other expressions
-	    if (t$6.isLogicalExpression(expr) || t$6.isConditionalExpression(expr)) {
+	    if (t$7.isLogicalExpression(expr) || t$7.isConditionalExpression(expr)) {
 	      findMapExpressions(expr.left || expr.test);
 	      findMapExpressions(expr.right || expr.consequent);
 	      if (expr.alternate) findMapExpressions(expr.alternate);
@@ -2605,7 +2771,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    // Get callback function (arrow function or function expression)
 	    const callback = mapCallExpr.arguments[0];
-	    if (!t$6.isArrowFunctionExpression(callback) && !t$6.isFunctionExpression(callback)) {
+	    if (!t$7.isArrowFunctionExpression(callback) && !t$7.isFunctionExpression(callback)) {
 	      console.warn('[Loop Template] .map() callback is not a function');
 	      return null;
 	    }
@@ -2650,21 +2816,21 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * - [...todos].map(...) → "todos"
 	   */
 	  function extractArrayBinding(expr) {
-	    if (t$6.isIdentifier(expr)) {
+	    if (t$7.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$6.isMemberExpression(expr)) {
+	    } else if (t$7.isMemberExpression(expr)) {
 	      // Get the last property name
-	      if (t$6.isIdentifier(expr.property)) {
+	      if (t$7.isIdentifier(expr.property)) {
 	        return expr.property.name;
 	      }
-	    } else if (t$6.isCallExpression(expr)) {
+	    } else if (t$7.isCallExpression(expr)) {
 	      // Handle array methods like .reverse(), .slice()
-	      if (t$6.isMemberExpression(expr.callee)) {
+	      if (t$7.isMemberExpression(expr.callee)) {
 	        return extractArrayBinding(expr.callee.object);
 	      }
-	    } else if (t$6.isArrayExpression(expr)) {
+	    } else if (t$7.isArrayExpression(expr)) {
 	      // Spread array: [...todos]
-	      if (expr.elements.length > 0 && t$6.isSpreadElement(expr.elements[0])) {
+	      if (expr.elements.length > 0 && t$7.isSpreadElement(expr.elements[0])) {
 	        return extractArrayBinding(expr.elements[0].argument);
 	      }
 	    }
@@ -2678,32 +2844,32 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const body = callback.body;
 
 	    // Arrow function with direct JSX return: (...) => <li>...</li>
-	    if (t$6.isJSXElement(body)) {
+	    if (t$7.isJSXElement(body)) {
 	      return body;
 	    }
 
 	    // Arrow function or function expression with block body
-	    if (t$6.isBlockStatement(body)) {
+	    if (t$7.isBlockStatement(body)) {
 	      // Find return statement
 	      for (const stmt of body.body) {
-	        if (t$6.isReturnStatement(stmt) && t$6.isJSXElement(stmt.argument)) {
+	        if (t$7.isReturnStatement(stmt) && t$7.isJSXElement(stmt.argument)) {
 	          return stmt.argument;
 	        }
 	      }
 	    }
 
 	    // Expression wrapped in parentheses or conditional
-	    if (t$6.isConditionalExpression(body)) {
+	    if (t$7.isConditionalExpression(body)) {
 	      // Handle ternary: condition ? <div/> : <span/>
 	      // For now, just take the consequent (true branch)
-	      if (t$6.isJSXElement(body.consequent)) {
+	      if (t$7.isJSXElement(body.consequent)) {
 	        return body.consequent;
 	      }
 	    }
 
-	    if (t$6.isLogicalExpression(body) && body.operator === '&&') {
+	    if (t$7.isLogicalExpression(body) && body.operator === '&&') {
 	      // Handle logical AND: condition && <div/>
-	      if (t$6.isJSXElement(body.right)) {
+	      if (t$7.isJSXElement(body.right)) {
 	        return body.right;
 	      }
 	    }
@@ -2718,17 +2884,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   */
 	  function extractKeyBinding(jsxElement, itemVar) {
 	    const keyAttr = jsxElement.openingElement.attributes.find(
-	      attr => t$6.isJSXAttribute(attr) &&
-	              t$6.isIdentifier(attr.name) &&
+	      attr => t$7.isJSXAttribute(attr) &&
+	              t$7.isIdentifier(attr.name) &&
 	              attr.name.name === 'key'
 	    );
 
 	    if (!keyAttr) return null;
 
 	    const keyValue = keyAttr.value;
-	    if (t$6.isJSXExpressionContainer(keyValue)) {
+	    if (t$7.isJSXExpressionContainer(keyValue)) {
 	      return buildBindingPath(keyValue.expression, itemVar);
-	    } else if (t$6.isStringLiteral(keyValue)) {
+	    } else if (t$7.isStringLiteral(keyValue)) {
 	      return null; // Static key (not based on item data)
 	    }
 
@@ -2781,7 +2947,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    for (const attr of attributes) {
 	      // Skip non-JSXAttribute (spreads, etc.)
-	      if (!t$6.isJSXAttribute(attr)) continue;
+	      if (!t$7.isJSXAttribute(attr)) continue;
 
 	      // Skip key attribute (handled separately)
 	      if (attr.name.name === 'key') continue;
@@ -2790,7 +2956,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      const propValue = attr.value;
 
 	      // Static string: className="static"
-	      if (t$6.isStringLiteral(propValue)) {
+	      if (t$7.isStringLiteral(propValue)) {
 	        templates[propName] = {
 	          template: propValue.value,
 	          bindings: [],
@@ -2801,11 +2967,11 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      }
 
 	      // Expression: {todo.done}, {todo.done ? 'yes' : 'no'}
-	      if (t$6.isJSXExpressionContainer(propValue)) {
+	      if (t$7.isJSXExpressionContainer(propValue)) {
 	        const expr = propValue.expression;
 
 	        // Conditional: {todo.done ? 'active' : 'inactive'}
-	        if (t$6.isConditionalExpression(expr)) {
+	        if (t$7.isConditionalExpression(expr)) {
 	          const conditionalTemplate = extractConditionalTemplate(expr, itemVar);
 	          if (conditionalTemplate) {
 	            templates[propName] = conditionalTemplate;
@@ -2814,7 +2980,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        }
 
 	        // Template literal: {`item-${todo.id}`}
-	        if (t$6.isTemplateLiteral(expr)) {
+	        if (t$7.isTemplateLiteral(expr)) {
 	          const template = extractTemplateFromTemplateLiteral(expr, itemVar);
 	          if (template) {
 	            templates[propName] = template;
@@ -2934,7 +3100,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    for (const child of children) {
 	      // Static text: <li>Static text</li>
-	      if (t$6.isJSXText(child)) {
+	      if (t$7.isJSXText(child)) {
 	        const text = child.value.trim();
 	        if (text) {
 	          templates.push({
@@ -2948,7 +3114,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      }
 
 	      // Expression: <li>{todo.text}</li>
-	      if (t$6.isJSXExpressionContainer(child)) {
+	      if (t$7.isJSXExpressionContainer(child)) {
 	        const template = extractTextTemplate(child.expression, itemVar);
 	        if (template) {
 	          templates.push(template);
@@ -2957,7 +3123,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      }
 
 	      // Nested element: <li><span>{todo.text}</span></li>
-	      if (t$6.isJSXElement(child)) {
+	      if (t$7.isJSXElement(child)) {
 	        const elementTemplate = extractElementTemplate(child, itemVar);
 	        if (elementTemplate) {
 	          templates.push(elementTemplate);
@@ -2979,7 +3145,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   */
 	  function extractTextTemplate(expr, itemVar, indexVar) {
 	    // Conditional expression: {todo.done ? '✓' : '○'}
-	    if (t$6.isConditionalExpression(expr)) {
+	    if (t$7.isConditionalExpression(expr)) {
 	      const conditionalTemplate = extractConditionalTemplate(expr, itemVar);
 	      if (conditionalTemplate) {
 	        return {
@@ -3014,7 +3180,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * - index → "index"
 	   */
 	  function buildBindingPath(expr, itemVar) {
-	    if (t$6.isIdentifier(expr)) {
+	    if (t$7.isIdentifier(expr)) {
 	      // Just the item variable itself
 	      if (expr.name === itemVar) {
 	        return null; // Can't template the entire item object
@@ -3027,7 +3193,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      return null;
 	    }
 
-	    if (t$6.isMemberExpression(expr)) {
+	    if (t$7.isMemberExpression(expr)) {
 	      const path = buildMemberExpressionPath(expr);
 	      if (path && path.startsWith(itemVar + '.')) {
 	        // Replace item variable with "item" prefix
@@ -3047,8 +3213,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$6.isMemberExpression(current)) {
-	      if (t$6.isIdentifier(current.property)) {
+	    while (t$7.isMemberExpression(current)) {
+	      if (t$7.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      } else {
 	        return null; // Computed property (not supported)
@@ -3056,7 +3222,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      current = current.object;
 	    }
 
-	    if (t$6.isIdentifier(current)) {
+	    if (t$7.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	      return parts.join('.');
 	    }
@@ -3068,13 +3234,13 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract literal value from expression
 	   */
 	  function extractLiteralValue(expr) {
-	    if (t$6.isStringLiteral(expr)) {
+	    if (t$7.isStringLiteral(expr)) {
 	      return expr.value;
-	    } else if (t$6.isNumericLiteral(expr)) {
+	    } else if (t$7.isNumericLiteral(expr)) {
 	      return expr.value;
-	    } else if (t$6.isBooleanLiteral(expr)) {
+	    } else if (t$7.isBooleanLiteral(expr)) {
 	      return expr.value;
-	    } else if (t$6.isNullLiteral(expr)) {
+	    } else if (t$7.isNullLiteral(expr)) {
 	      return null;
 	    }
 	    return null; // Complex expression
@@ -3107,7 +3273,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * - Prediction: Choose correct branch based on current state
 	 */
 
-	const t$5 = globalThis.__BABEL_TYPES__;
+	const t$6 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Extract structural templates from JSX render body
@@ -3134,16 +3300,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Traverse JSX tree looking for conditional expressions that affect structure
 	   */
 	  function traverseJSX(node, path = []) {
-	    if (t$5.isJSXElement(node)) {
+	    if (t$6.isJSXElement(node)) {
 	      // Check children for conditional expressions
 	      for (let i = 0; i < node.children.length; i++) {
 	        const child = node.children[i];
 
-	        if (t$5.isJSXExpressionContainer(child)) {
+	        if (t$6.isJSXExpressionContainer(child)) {
 	          const expr = child.expression;
 
 	          // Ternary: {condition ? <A /> : <B />}
-	          if (t$5.isConditionalExpression(expr)) {
+	          if (t$6.isConditionalExpression(expr)) {
 	            const template = extractConditionalStructuralTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
@@ -3151,32 +3317,32 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          }
 
 	          // Logical AND: {condition && <Component />}
-	          if (t$5.isLogicalExpression(expr) && expr.operator === '&&') {
+	          if (t$6.isLogicalExpression(expr) && expr.operator === '&&') {
 	            const template = extractLogicalAndTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
 	            }
 	          }
-	        } else if (t$5.isJSXElement(child)) {
+	        } else if (t$6.isJSXElement(child)) {
 	          traverseJSX(child, [...path, i]);
 	        }
 	      }
-	    } else if (t$5.isJSXFragment(node)) {
+	    } else if (t$6.isJSXFragment(node)) {
 	      for (let i = 0; i < node.children.length; i++) {
 	        const child = node.children[i];
-	        if (t$5.isJSXElement(child)) {
+	        if (t$6.isJSXElement(child)) {
 	          traverseJSX(child, [...path, i]);
-	        } else if (t$5.isJSXExpressionContainer(child)) {
+	        } else if (t$6.isJSXExpressionContainer(child)) {
 	          const expr = child.expression;
 
-	          if (t$5.isConditionalExpression(expr)) {
+	          if (t$6.isConditionalExpression(expr)) {
 	            const template = extractConditionalStructuralTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
 	            }
 	          }
 
-	          if (t$5.isLogicalExpression(expr) && expr.operator === '&&') {
+	          if (t$6.isLogicalExpression(expr) && expr.operator === '&&') {
 	            const template = extractLogicalAndTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
@@ -3214,8 +3380,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Check if both branches are JSX elements (structural change)
-	    const hasTrueBranch = t$5.isJSXElement(consequent) || t$5.isJSXFragment(consequent);
-	    const hasFalseBranch = t$5.isJSXElement(alternate) || t$5.isJSXFragment(alternate) || t$5.isNullLiteral(alternate);
+	    const hasTrueBranch = t$6.isJSXElement(consequent) || t$6.isJSXFragment(consequent);
+	    const hasFalseBranch = t$6.isJSXElement(alternate) || t$6.isJSXFragment(alternate) || t$6.isNullLiteral(alternate);
 
 	    if (!hasTrueBranch && !hasFalseBranch) {
 	      // Not a structural template (probably just conditional text)
@@ -3233,7 +3399,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    if (hasFalseBranch) {
-	      if (t$5.isNullLiteral(alternate)) {
+	      if (t$6.isNullLiteral(alternate)) {
 	        branches['false'] = { type: 'Null' };
 	      } else {
 	        const falseBranch = extractElementOrFragmentTemplate(alternate);
@@ -3280,7 +3446,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Check if right side is JSX element (structural change)
-	    if (!t$5.isJSXElement(right) && !t$5.isJSXFragment(right)) {
+	    if (!t$6.isJSXElement(right) && !t$6.isJSXFragment(right)) {
 	      return null;
 	    }
 
@@ -3308,17 +3474,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract element or fragment template
 	   */
 	  function extractElementOrFragmentTemplate(node, component) {
-	    if (t$5.isJSXElement(node)) {
+	    if (t$6.isJSXElement(node)) {
 	      return extractSimpleElementTemplate(node);
-	    } else if (t$5.isJSXFragment(node)) {
+	    } else if (t$6.isJSXFragment(node)) {
 	      return {
 	        type: 'Fragment',
 	        children: node.children
-	          .filter(child => t$5.isJSXElement(child) || t$5.isJSXText(child))
+	          .filter(child => t$6.isJSXElement(child) || t$6.isJSXText(child))
 	          .map(child => {
-	            if (t$5.isJSXElement(child)) {
+	            if (t$6.isJSXElement(child)) {
 	              return extractSimpleElementTemplate(child);
-	            } else if (t$5.isJSXText(child)) {
+	            } else if (t$6.isJSXText(child)) {
 	              const text = child.value.trim();
 	              return text ? { type: 'Text', content: text } : null;
 	            }
@@ -3344,16 +3510,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    // Extract static props only (complex props handled separately)
 	    const props = {};
 	    for (const attr of attributes) {
-	      if (t$5.isJSXAttribute(attr)) {
+	      if (t$6.isJSXAttribute(attr)) {
 	        const propName = attr.name.name;
 	        const propValue = attr.value;
 
-	        if (t$5.isStringLiteral(propValue)) {
+	        if (t$6.isStringLiteral(propValue)) {
 	          props[propName] = propValue.value;
-	        } else if (t$5.isJSXExpressionContainer(propValue)) {
+	        } else if (t$6.isJSXExpressionContainer(propValue)) {
 	          // Mark as dynamic (will be re-evaluated)
 	          const expr = propValue.expression;
-	          if (t$5.isIdentifier(expr)) {
+	          if (t$6.isIdentifier(expr)) {
 	            props[propName] = { binding: expr.name };
 	          } else {
 	            props[propName] = { expression: true };
@@ -3364,11 +3530,11 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    // Extract children (simplified)
 	    const children = jsxElement.children
-	      .filter(child => t$5.isJSXElement(child) || t$5.isJSXText(child))
+	      .filter(child => t$6.isJSXElement(child) || t$6.isJSXText(child))
 	      .map(child => {
-	        if (t$5.isJSXElement(child)) {
+	        if (t$6.isJSXElement(child)) {
 	          return extractSimpleElementTemplate(child);
-	        } else if (t$5.isJSXText(child)) {
+	        } else if (t$6.isJSXText(child)) {
 	          const text = child.value.trim();
 	          return text ? { type: 'Text', content: text } : null;
 	        }
@@ -3387,11 +3553,11 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract binding from expression
 	   */
 	  function extractBinding(expr, component) {
-	    if (t$5.isIdentifier(expr)) {
+	    if (t$6.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$5.isMemberExpression(expr)) {
+	    } else if (t$6.isMemberExpression(expr)) {
 	      return buildMemberPath(expr);
-	    } else if (t$5.isUnaryExpression(expr) && expr.operator === '!') {
+	    } else if (t$6.isUnaryExpression(expr) && expr.operator === '!') {
 	      // Handle !isLoading
 	      const binding = extractBinding(expr.argument);
 	      return binding ? `!${binding}` : null;
@@ -3403,18 +3569,18 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract state key (root variable name) from expression
 	   */
 	  function extractStateKey(expr, component) {
-	    if (t$5.isIdentifier(expr)) {
+	    if (t$6.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$5.isMemberExpression(expr)) {
+	    } else if (t$6.isMemberExpression(expr)) {
 	      // Get root object: user.isLoggedIn → "user"
 	      let current = expr;
-	      while (t$5.isMemberExpression(current)) {
+	      while (t$6.isMemberExpression(current)) {
 	        current = current.object;
 	      }
-	      if (t$5.isIdentifier(current)) {
+	      if (t$6.isIdentifier(current)) {
 	        return current.name;
 	      }
-	    } else if (t$5.isUnaryExpression(expr)) {
+	    } else if (t$6.isUnaryExpression(expr)) {
 	      return extractStateKey(expr.argument);
 	    }
 	    return null;
@@ -3427,14 +3593,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$5.isMemberExpression(current)) {
-	      if (t$5.isIdentifier(current.property)) {
+	    while (t$6.isMemberExpression(current)) {
+	      if (t$6.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      }
 	      current = current.object;
 	    }
 
-	    if (t$5.isIdentifier(current)) {
+	    if (t$6.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	    }
 
@@ -3472,7 +3638,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Only safe, whitelisted transformations are supported. No arbitrary JavaScript execution.
 	 */
 
-	const t$4 = globalThis.__BABEL_TYPES__;
+	const t$5 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Supported transformation types
@@ -3523,24 +3689,24 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Traverse JSX tree looking for expression containers
 	   */
 	  function traverseJSX(node, path = []) {
-	    if (t$4.isJSXElement(node)) {
+	    if (t$5.isJSXElement(node)) {
 	      // Check children for expressions
 	      for (let i = 0; i < node.children.length; i++) {
 	        const child = node.children[i];
 
-	        if (t$4.isJSXExpressionContainer(child)) {
+	        if (t$5.isJSXExpressionContainer(child)) {
 	          const template = extractExpressionTemplate(child.expression, component, [...path, i]);
 	          if (template) {
 	            expressionTemplates.push(template);
 	          }
-	        } else if (t$4.isJSXElement(child)) {
+	        } else if (t$5.isJSXElement(child)) {
 	          traverseJSX(child, [...path, i]);
 	        }
 	      }
 
 	      // Check attributes for expressions
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$4.isJSXAttribute(attr) && t$4.isJSXExpressionContainer(attr.value)) {
+	        if (t$5.isJSXAttribute(attr) && t$5.isJSXExpressionContainer(attr.value)) {
 	          const template = extractExpressionTemplate(attr.value.expression, component, path);
 	          if (template) {
 	            template.attribute = attr.name.name;
@@ -3556,32 +3722,32 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   */
 	  function extractExpressionTemplate(expr, component, path) {
 	    // Skip if it's a simple identifier (no transformation)
-	    if (t$4.isIdentifier(expr)) {
+	    if (t$5.isIdentifier(expr)) {
 	      return null;
 	    }
 
 	    // Skip conditionals (handled by structural templates)
-	    if (t$4.isConditionalExpression(expr) || t$4.isLogicalExpression(expr)) {
+	    if (t$5.isConditionalExpression(expr) || t$5.isLogicalExpression(expr)) {
 	      return null;
 	    }
 
 	    // Method call: price.toFixed(2)
-	    if (t$4.isCallExpression(expr) && t$4.isMemberExpression(expr.callee)) {
+	    if (t$5.isCallExpression(expr) && t$5.isMemberExpression(expr.callee)) {
 	      return extractMethodCallTemplate(expr, component, path);
 	    }
 
 	    // Binary expression: count * 2 + 1
-	    if (t$4.isBinaryExpression(expr)) {
+	    if (t$5.isBinaryExpression(expr)) {
 	      return extractBinaryExpressionTemplate(expr, component, path);
 	    }
 
 	    // Member expression: user.name, items.length
-	    if (t$4.isMemberExpression(expr)) {
+	    if (t$5.isMemberExpression(expr)) {
 	      return extractMemberExpressionTemplate(expr, component, path);
 	    }
 
 	    // Unary expression: -count, +value
-	    if (t$4.isUnaryExpression(expr)) {
+	    if (t$5.isUnaryExpression(expr)) {
 	      return extractUnaryExpressionTemplate(expr, component, path);
 	    }
 
@@ -3620,9 +3786,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    // Extract arguments
 	    const extractedArgs = args.map(arg => {
-	      if (t$4.isNumericLiteral(arg)) return arg.value;
-	      if (t$4.isStringLiteral(arg)) return arg.value;
-	      if (t$4.isBooleanLiteral(arg)) return arg.value;
+	      if (t$5.isNumericLiteral(arg)) return arg.value;
+	      if (t$5.isStringLiteral(arg)) return arg.value;
+	      if (t$5.isBooleanLiteral(arg)) return arg.value;
 	      return null;
 	    }).filter(a => a !== null);
 
@@ -3713,16 +3879,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const operations = [];
 
 	    function analyze(node) {
-	      if (t$4.isBinaryExpression(node)) {
+	      if (t$5.isBinaryExpression(node)) {
 	        const { left, operator, right } = node;
 
 	        // Check if one side is our target binding
 	        const leftIsTarget = isBindingExpression(left, targetBinding);
 	        const rightIsTarget = isBindingExpression(right, targetBinding);
 
-	        if (leftIsTarget && t$4.isNumericLiteral(right)) {
+	        if (leftIsTarget && t$5.isNumericLiteral(right)) {
 	          operations.push({ op: operator, value: right.value, side: 'right' });
-	        } else if (rightIsTarget && t$4.isNumericLiteral(left)) {
+	        } else if (rightIsTarget && t$5.isNumericLiteral(left)) {
 	          operations.push({ op: operator, value: left.value, side: 'left' });
 	        } else {
 	          // Recurse
@@ -3824,9 +3990,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract binding from expression
 	   */
 	  function extractBinding(expr) {
-	    if (t$4.isIdentifier(expr)) {
+	    if (t$5.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$4.isMemberExpression(expr)) {
+	    } else if (t$5.isMemberExpression(expr)) {
 	      return buildMemberPath(expr);
 	    }
 	    return null;
@@ -3836,14 +4002,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract state key (root variable)
 	   */
 	  function extractStateKey(expr, component) {
-	    if (t$4.isIdentifier(expr)) {
+	    if (t$5.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$4.isMemberExpression(expr)) {
+	    } else if (t$5.isMemberExpression(expr)) {
 	      let current = expr;
-	      while (t$4.isMemberExpression(current)) {
+	      while (t$5.isMemberExpression(current)) {
 	        current = current.object;
 	      }
-	      if (t$4.isIdentifier(current)) {
+	      if (t$5.isIdentifier(current)) {
 	        return current.name;
 	      }
 	    }
@@ -3857,14 +4023,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$4.isMemberExpression(current)) {
-	      if (t$4.isIdentifier(current.property)) {
+	    while (t$5.isMemberExpression(current)) {
+	      if (t$5.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      }
 	      current = current.object;
 	    }
 
-	    if (t$4.isIdentifier(current)) {
+	    if (t$5.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	    }
 
@@ -3875,14 +4041,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Extract all identifiers from expression
 	   */
 	  function extractIdentifiers(expr, result) {
-	    if (t$4.isIdentifier(expr)) {
+	    if (t$5.isIdentifier(expr)) {
 	      result.push(expr.name);
-	    } else if (t$4.isBinaryExpression(expr)) {
+	    } else if (t$5.isBinaryExpression(expr)) {
 	      extractIdentifiers(expr.left, result);
 	      extractIdentifiers(expr.right, result);
-	    } else if (t$4.isUnaryExpression(expr)) {
+	    } else if (t$5.isUnaryExpression(expr)) {
 	      extractIdentifiers(expr.argument, result);
-	    } else if (t$4.isMemberExpression(expr)) {
+	    } else if (t$5.isMemberExpression(expr)) {
 	      const path = buildMemberPath(expr);
 	      if (path) result.push(path);
 	    }
@@ -3892,18 +4058,18 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Generate expression string for complex expressions
 	   */
 	  function generateExpressionString(expr) {
-	    if (t$4.isIdentifier(expr)) {
+	    if (t$5.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$4.isNumericLiteral(expr)) {
+	    } else if (t$5.isNumericLiteral(expr)) {
 	      return String(expr.value);
-	    } else if (t$4.isBinaryExpression(expr)) {
+	    } else if (t$5.isBinaryExpression(expr)) {
 	      const left = generateExpressionString(expr.left);
 	      const right = generateExpressionString(expr.right);
 	      return `${left} ${expr.operator} ${right}`;
-	    } else if (t$4.isUnaryExpression(expr)) {
+	    } else if (t$5.isUnaryExpression(expr)) {
 	      const arg = generateExpressionString(expr.argument);
 	      return `${expr.operator}${arg}`;
-	    } else if (t$4.isMemberExpression(expr)) {
+	    } else if (t$5.isMemberExpression(expr)) {
 	      return buildMemberPath(expr);
 	    }
 	    return '?';
@@ -3918,6 +4084,324 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	var expressionTemplates = {
 	  extractExpressionTemplates: extractExpressionTemplates$1,
 	  SUPPORTED_TRANSFORMS
+	};
+
+	/**
+	 * Analyze <Plugin name="..." state={...} /> JSX elements in React components
+	 * Detects plugin usage and extracts metadata for C# code generation
+	 *
+	 * Phase 3: Babel Plugin Integration
+	 *
+	 * Transforms:
+	 *   <Plugin name="Clock" state={currentTime} />
+	 *
+	 * To C# code:
+	 *   new PluginNode("Clock", currentTime)
+	 */
+
+	const t$4 = globalThis.__BABEL_TYPES__;
+
+	/**
+	 * Analyze JSX tree for Plugin elements
+	 * @param {Object} path - Babel path to component function
+	 * @param {Object} componentState - Component metadata being built
+	 * @returns {Array} Array of plugin usage metadata
+	 */
+	function analyzePluginUsage$1(path, componentState) {
+	  const pluginUsages = [];
+
+	  path.traverse({
+	    JSXElement(jsxPath) {
+	      const openingElement = jsxPath.node.openingElement;
+
+	      // Check if this is a <Plugin> element
+	      if (!isPluginElement(openingElement)) {
+	        return;
+	      }
+
+	      try {
+	        const pluginMetadata = extractPluginMetadata(openingElement, componentState);
+	        pluginUsages.push(pluginMetadata);
+
+	        // Log for debugging
+	        console.log(`[analyzePluginUsage] Found plugin usage: ${pluginMetadata.pluginName}`);
+	      } catch (error) {
+	        console.error(`[analyzePluginUsage] Error analyzing plugin:`, error.message);
+	        throw error;
+	      }
+	    }
+	  });
+
+	  return pluginUsages;
+	}
+
+	/**
+	 * Check if JSX element is a <Plugin> component
+	 * @param {Object} openingElement - JSX opening element
+	 * @returns {boolean}
+	 */
+	function isPluginElement(openingElement) {
+	  // Check for <Plugin> or <Plugin.Something>
+	  const name = openingElement.name;
+
+	  if (t$4.isJSXIdentifier(name)) {
+	    return name.name === 'Plugin';
+	  }
+
+	  if (t$4.isJSXMemberExpression(name)) {
+	    return name.object.name === 'Plugin';
+	  }
+
+	  return false;
+	}
+
+	/**
+	 * Extract plugin metadata from JSX element
+	 * @param {Object} openingElement - JSX opening element
+	 * @param {Object} componentState - Component metadata
+	 * @returns {Object} Plugin metadata
+	 */
+	function extractPluginMetadata(openingElement, componentState) {
+	  const nameAttr = findAttribute(openingElement.attributes, 'name');
+	  const stateAttr = findAttribute(openingElement.attributes, 'state');
+	  const versionAttr = findAttribute(openingElement.attributes, 'version');
+
+	  // Validate required attributes
+	  if (!nameAttr) {
+	    throw new Error('Plugin element requires "name" attribute');
+	  }
+
+	  if (!stateAttr) {
+	    throw new Error('Plugin element requires "state" attribute');
+	  }
+
+	  // Extract plugin name (must be a string literal)
+	  const pluginName = extractPluginName(nameAttr);
+
+	  // Extract state binding (can be expression or identifier)
+	  const stateBinding = extractStateBinding(stateAttr, componentState);
+
+	  // Extract optional version
+	  const version = versionAttr ? extractVersion(versionAttr) : null;
+
+	  return {
+	    pluginName,
+	    stateBinding,
+	    version,
+	    // Store original JSX for reference
+	    jsxElement: openingElement
+	  };
+	}
+
+	/**
+	 * Find attribute by name in JSX attributes
+	 * @param {Array} attributes - JSX attributes
+	 * @param {string} name - Attribute name to find
+	 * @returns {Object|null}
+	 */
+	function findAttribute(attributes, name) {
+	  return attributes.find(attr =>
+	    t$4.isJSXAttribute(attr) && attr.name.name === name
+	  );
+	}
+
+	/**
+	 * Extract plugin name from name attribute
+	 * Must be a string literal (e.g., name="Clock")
+	 * @param {Object} nameAttr - JSX attribute node
+	 * @returns {string}
+	 */
+	function extractPluginName(nameAttr) {
+	  const value = nameAttr.value;
+
+	  // String literal: name="Clock"
+	  if (t$4.isStringLiteral(value)) {
+	    return value.value;
+	  }
+
+	  // JSX expression: name={"Clock"} (also a string literal)
+	  if (t$4.isJSXExpressionContainer(value) && t$4.isStringLiteral(value.expression)) {
+	    return value.expression.value;
+	  }
+
+	  throw new Error('Plugin "name" attribute must be a string literal (e.g., name="Clock")');
+	}
+
+	/**
+	 * Extract state binding from state attribute
+	 * Can be an identifier or expression
+	 * @param {Object} stateAttr - JSX attribute node
+	 * @param {Object} componentState - Component metadata
+	 * @returns {Object} State binding metadata
+	 */
+	function extractStateBinding(stateAttr, componentState) {
+	  const value = stateAttr.value;
+
+	  if (!t$4.isJSXExpressionContainer(value)) {
+	    throw new Error('Plugin "state" attribute must be a JSX expression (e.g., state={currentTime})');
+	  }
+
+	  const expression = value.expression;
+
+	  // Simple identifier: state={currentTime}
+	  if (t$4.isIdentifier(expression)) {
+	    return {
+	      type: 'identifier',
+	      name: expression.name,
+	      binding: expression.name,
+	      stateType: inferStateType(expression.name, componentState)
+	    };
+	  }
+
+	  // Member expression: state={this.state.time}
+	  if (t$4.isMemberExpression(expression)) {
+	    const binding = generateBindingPath(expression);
+	    return {
+	      type: 'memberExpression',
+	      binding,
+	      expression: expression,
+	      stateType: inferStateType(binding, componentState)
+	    };
+	  }
+
+	  // Object expression: state={{ hours: h, minutes: m }}
+	  if (t$4.isObjectExpression(expression)) {
+	    return {
+	      type: 'objectExpression',
+	      binding: '__inline_object__',
+	      properties: expression.properties,
+	      expression: expression
+	    };
+	  }
+
+	  // Any other expression (will be evaluated at runtime)
+	  return {
+	    type: 'complexExpression',
+	    binding: '__complex__',
+	    expression: expression
+	  };
+	}
+
+	/**
+	 * Extract version from version attribute
+	 * @param {Object} versionAttr - JSX attribute node
+	 * @returns {string|null}
+	 */
+	function extractVersion(versionAttr) {
+	  const value = versionAttr.value;
+
+	  if (t$4.isStringLiteral(value)) {
+	    return value.value;
+	  }
+
+	  if (t$4.isJSXExpressionContainer(value) && t$4.isStringLiteral(value.expression)) {
+	    return value.expression.value;
+	  }
+
+	  return null;
+	}
+
+	/**
+	 * Generate binding path from member expression
+	 * e.g., this.state.time -> "state.time"
+	 * @param {Object} expression - Member expression AST node
+	 * @returns {string}
+	 */
+	function generateBindingPath(expression) {
+	  const parts = [];
+
+	  function traverse(node) {
+	    if (t$4.isIdentifier(node)) {
+	      // Skip 'this' prefix
+	      if (node.name !== 'this') {
+	        parts.unshift(node.name);
+	      }
+	    } else if (t$4.isMemberExpression(node)) {
+	      if (t$4.isIdentifier(node.property)) {
+	        parts.unshift(node.property.name);
+	      }
+	      traverse(node.object);
+	    }
+	  }
+
+	  traverse(expression);
+	  return parts.join('.');
+	}
+
+	/**
+	 * Infer state type from binding name and component metadata
+	 * @param {string} bindingName - Name of the state binding
+	 * @param {Object} componentState - Component metadata
+	 * @returns {string|null}
+	 */
+	function inferStateType(bindingName, componentState) {
+	  // Check useState declarations
+	  if (componentState.useState) {
+	    const stateDecl = componentState.useState.find(s =>
+	      s.name === bindingName || s.setterName === bindingName
+	    );
+	    if (stateDecl) {
+	      return stateDecl.type || 'object';
+	    }
+	  }
+
+	  // Check props
+	  if (componentState.props) {
+	    const prop = componentState.props.find(p => p.name === bindingName);
+	    if (prop) {
+	      return prop.type || 'object';
+	    }
+	  }
+
+	  // Check local variables
+	  if (componentState.localVariables) {
+	    const localVar = componentState.localVariables.find(v => v.name === bindingName);
+	    if (localVar) {
+	      return localVar.type || 'object';
+	    }
+	  }
+
+	  // Default to object if we can't infer
+	  return 'object';
+	}
+
+	/**
+	 * Validate plugin usage (called after analysis)
+	 * @param {Array} pluginUsages - Array of plugin usage metadata
+	 * @throws {Error} If validation fails
+	 */
+	function validatePluginUsage$1(pluginUsages) {
+	  for (const plugin of pluginUsages) {
+	    // Validate plugin name format
+	    if (!/^[A-Za-z][A-Za-z0-9]*$/.test(plugin.pluginName)) {
+	      throw new Error(
+	        `Invalid plugin name "${plugin.pluginName}". ` +
+	        `Plugin names must start with a letter and contain only letters and numbers.`
+	      );
+	    }
+
+	    // Validate state binding
+	    if (plugin.stateBinding.binding === '__complex__') {
+	      console.warn(
+	        `[analyzePluginUsage] Complex expression used for plugin "${plugin.pluginName}" state. ` +
+	        `This will be evaluated at runtime.`
+	      );
+	    }
+
+	    // Validate version format if provided
+	    if (plugin.version && !/^\d+\.\d+\.\d+$/.test(plugin.version)) {
+	      console.warn(
+	        `[analyzePluginUsage] Invalid semver format for plugin "${plugin.pluginName}": ${plugin.version}`
+	      );
+	    }
+	  }
+	}
+
+	var analyzePluginUsage_1 = {
+	  analyzePluginUsage: analyzePluginUsage$1,
+	  validatePluginUsage: validatePluginUsage$1,
+	  isPluginElement,
+	  extractPluginMetadata
 	};
 
 	/**
@@ -3940,6 +4424,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	const { extractLoopTemplates } = loopTemplates;
 	const { extractStructuralTemplates } = structuralTemplates;
 	const { extractExpressionTemplates } = expressionTemplates;
+	const { analyzePluginUsage, validatePluginUsage } = analyzePluginUsage_1;
 
 	/**
 	 * Process a component function
@@ -3968,6 +4453,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    eventHandlers: [],
 	    localVariables: [], // Local variables (const/let/var) in function body
 	    renderBody: null,
+	    pluginUsages: [], // Plugin instances (<Plugin name="..." state={...} />)
 	    stateTypes: new Map(), // Track which hook each state came from
 	    dependencies: new Map(), // Track dependencies per JSX node
 	    externalImports: new Set(), // Track external library identifiers
@@ -4121,6 +4607,21 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        } else {
 	          console.log(`  - ${et.bindings.join(', ')}`);
 	        }
+	      });
+	    }
+
+	    // Analyze plugin usage (Phase 3: Plugin System)
+	    const pluginUsages = analyzePluginUsage(path, component);
+	    component.pluginUsages = pluginUsages;
+
+	    if (pluginUsages.length > 0) {
+	      // Validate plugin usage
+	      validatePluginUsage(pluginUsages);
+
+	      console.log(`[Minimact Plugins] Found ${pluginUsages.length} plugin usage(s) in ${componentName}:`);
+	      pluginUsages.forEach(plugin => {
+	        const versionInfo = plugin.version ? ` v${plugin.version}` : '';
+	        console.log(`  - <Plugin name="${plugin.pluginName}"${versionInfo} state={${plugin.stateBinding.binding}} />`);
 	      });
 	    }
 	  }
@@ -5177,12 +5678,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 */
 
 	const { generateComponent } = component;
+	const { usesPlugins } = requirePlugin();
 
 	/**
 	 * Generate C# file from components
 	 */
 	function generateCSharpFile$1(components, state) {
 	  const lines = [];
+
+	  // Check if any component uses plugins
+	  const hasPlugins = components.some(c => usesPlugins(c));
 
 	  // Usings
 	  lines.push('using Minimact.AspNetCore.Core;');
@@ -5191,6 +5696,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  lines.push('using System.Collections.Generic;');
 	  lines.push('using System.Linq;');
 	  lines.push('using System.Threading.Tasks;');
+
+	  // Add plugin using directives if any component uses plugins
+	  if (hasPlugins) {
+	    lines.push('using Minimact.AspNetCore.Plugins;');
+	  }
+
 	  lines.push('');
 
 	  // Namespace (extract from file path or use default)

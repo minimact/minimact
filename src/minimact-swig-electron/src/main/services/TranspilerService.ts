@@ -15,11 +15,11 @@ export class TranspilerService {
   private babelPluginPath: string;
 
   constructor(babelPluginPath?: string) {
-    // Default to babel-plugin-minimact
-    // From dist/main/services -> ../../../babel-plugin-minimact
+    // Default to synced babel-plugin from mact_modules
+    // From dist/main -> ../../mact_modules/@minimact/babel-plugin
     this.babelPluginPath = babelPluginPath || path.join(
       __dirname,
-      '../../../babel-plugin-minimact/index-full.cjs'
+      '../../mact_modules/@minimact/babel-plugin/index.cjs'
     );
   }
 
