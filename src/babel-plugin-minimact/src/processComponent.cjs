@@ -36,6 +36,7 @@ function processComponent(path, state) {
     props: [],
     useState: [],
     useClientState: [],
+    useStateX: [], // Declarative state projections
     useEffect: [],
     useRef: [],
     useMarkdown: [],

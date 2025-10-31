@@ -5,6 +5,7 @@
 const t = require('@babel/types');
 const { generateCSharpExpression } = require('../generators/expressions.cjs');
 const { inferType } = require('../types/typeConversion.cjs');
+const { extractUseStateX } = require('./useStateX.cjs');
 
 /**
  * Extract hook calls (useState, useClientState, etc.)
@@ -22,6 +23,9 @@ function extractHook(path, component) {
       break;
     case 'useClientState':
       extractUseState(path, component, 'useClientState');
+      break;
+    case 'useStateX':
+      extractUseStateX(path, component);
       break;
     case 'useEffect':
       extractUseEffect(path, component);
