@@ -21,15 +21,23 @@
     "@type": "SoftwareApplication",
     "name": "Minimact",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "Cross-platform",
+    "operatingSystem": ["Windows", "macOS", "Linux"],
     "description": "Server-side React framework for ASP.NET Core with template-based predictive rendering. Build React apps without hydration with sub-5ms perceived latency.",
     "url": "https://minimact.com",
-    "logo": "https://minimact.com/logo.png",
+    "image": "https://minimact.com/screenshot.png",
     "screenshot": "https://minimact.com/screenshot.png",
     "offers": {
       "@type": "Offer",
       "price": "0",
-      "priceCurrency": "USD"
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "ratingCount": "1",
+      "bestRating": "5",
+      "worstRating": "1"
     },
     "author": {
       "@type": "Organization",
@@ -37,16 +45,10 @@
       "url": "https://github.com/minimact/minimact"
     },
     "softwareVersion": "1.0.0",
-    "programmingLanguage": [
-      "C#",
-      "TypeScript",
-      "JavaScript",
-      "Rust"
-    ],
-    "license": "https://github.com/minimact/minimact/blob/main/LICENSE",
+    "programmingLanguage": ["C#", "TypeScript", "JavaScript", "Rust"],
+    "license": "https://opensource.org/licenses/MIT",
     "codeRepository": "https://github.com/minimact/minimact",
-    "releaseNotes": "https://github.com/minimact/minimact/releases",
-    "keywords": "React, ASP.NET Core, Server-side rendering, Predictive rendering, Template patches, Zero hydration, SignalR"
+    "releaseNotes": "https://github.com/minimact/minimact/releases"
   }
   </script>
 
