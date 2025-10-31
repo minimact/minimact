@@ -48,24 +48,27 @@ features:
 ## Quick Start
 
 ```bash
-# Install the .NET tool
-dotnet tool install -g minimact
-
-# Create new ASP.NET project with Minimact
-dotnet minimact new MyApp
-cd MyApp
-
-# Install client dependencies (13.33 KB gzipped by default)
-cd client
+# Clone and run Swig - the official Minimact IDE
+git clone https://github.com/minimact/swig
+cd swig
 npm install
-
-# Start dev mode (watches TSX, transpiles to C#, runs server)
-npm run dev
+npm start
 ```
 
-**Two versions available:**
-- `minimact` — 13.33 KB gzipped (WebSocket-based, modern browsers)
-- `minimact-r` — 25.03 KB gzipped (Full SignalR with fallbacks)
+### Create Your First App
+
+Once Swig launches:
+
+1. **Create Project** - Click "New Project" and choose a directory
+2. **Edit Components** - Write TSX in Monaco editor (auto-transpiles to C#)
+3. **Build** - Click "Build" to compile your app
+4. **Run** - Click "Run" and open in browser
+
+That's it! From zero to running app in under 2 minutes.
+
+**Two runtime versions available:**
+- `@minimact/core` — 13.33 KB gzipped (WebSocket-based, modern browsers)
+- `@minimact/core/r` — 25.03 KB gzipped (Full SignalR with fallbacks)
 
 ## Example
 
