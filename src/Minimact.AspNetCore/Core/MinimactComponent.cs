@@ -1,5 +1,6 @@
 using Minimact.AspNetCore.DynamicState;
 using Minimact.AspNetCore.Abstractions;
+using Minimact.AspNetCore.Models;
 using System.Reflection;
 
 namespace Minimact.AspNetCore.Core;
@@ -261,7 +262,7 @@ public abstract class MinimactComponent
     /// </summary>
     /// <param name="key">State key from useDomElementState hook</param>
     /// <param name="snapshot">DOM element state snapshot from client</param>
-    public void SetDomStateFromClient(string key, DomElementStateSnapshot snapshot)
+    public void SetDomStateFromClient(string key, Abstractions.DomElementStateSnapshot snapshot)
     {
         // Store DOM state in the State dictionary
         // This allows components to access DOM state in their Render() method
@@ -702,6 +703,9 @@ public abstract class MinimactComponent
             metadata.LoopTemplates[attr.StateKey] = attr.TemplateJson;
         }
 
+        // Extract StateX projections from [StateXTransform] attributes
+        metadata.StateXProjections = GetStateXProjections();
+
         return metadata;
     }
 
@@ -1029,6 +1033,256 @@ public abstract class MinimactComponent
         }
 
         return templates;
+    }
+
+    #endregion
+
+    #region StateX Transform Application
+
+    /// <summary>
+    /// Apply a useStateX transform to a state value
+    /// Used during rendering to project state onto DOM targets
+    /// </summary>
+    /// <param name="stateKey">State key from useStateX (e.g., "stateX_0")</param>
+    /// <param name="selector">CSS selector for target element</param>
+    /// <param name="value">Current state value</param>
+    /// <param name="context">Optional context for applyIf conditions</param>
+    /// <returns>Transformed string value, or null if applyIf returns false</returns>
+    public string? ApplyStateXTransform(string stateKey, string selector, object value, object? context = null)
+    {
+        // Find matching StateXTransform attribute
+        var attr = GetType()
+            .GetCustomAttributes<StateXTransformAttribute>()
+            .FirstOrDefault(a => a.StateKey == stateKey && a.Selector == selector);
+
+        if (attr == null)
+        {
+            // No transform defined, return value as string
+            return value?.ToString();
+        }
+
+        // Evaluate applyIf condition if provided
+        if (!string.IsNullOrEmpty(attr.ApplyIf))
+        {
+            var shouldApply = EvaluateApplyIfCondition(attr.ApplyIf, context ?? this);
+            if (!shouldApply)
+            {
+                return null; // Skip this target
+            }
+        }
+
+        // Apply transform
+        if (!string.IsNullOrEmpty(attr.TransformId))
+        {
+            // Use registered transform
+            return StateXTransformRegistry.ApplyTransform(attr.TransformId, value);
+        }
+        else if (!string.IsNullOrEmpty(attr.Transform))
+        {
+            // Use inline C# lambda expression
+            return EvaluateTransformExpression(attr.Transform, value);
+        }
+
+        // No transform specified, return as string
+        return value?.ToString();
+    }
+
+    /// <summary>
+    /// Get all StateX projections for this component
+    /// Used by Template Patch System for pre-computation
+    /// </summary>
+    /// <returns>List of state projection metadata</returns>
+    public List<StateXProjectionInfo> GetStateXProjections()
+    {
+        var projections = new List<StateXProjectionInfo>();
+
+        var attrs = GetType()
+            .GetCustomAttributes<StateXTransformAttribute>();
+
+        foreach (var attr in attrs)
+        {
+            projections.Add(new StateXProjectionInfo
+            {
+                StateKey = attr.StateKey,
+                Selector = attr.Selector,
+                Transform = attr.Transform,
+                TransformId = attr.TransformId,
+                ApplyAs = attr.ApplyAs,
+                Property = attr.Property,
+                ApplyIf = attr.ApplyIf,
+                Template = attr.Template,
+                Sync = attr.Sync
+            });
+        }
+
+        return projections;
+    }
+
+    /// <summary>
+    /// Apply all StateX transforms for the current state
+    /// Returns a dictionary of selector → transformed value
+    /// </summary>
+    /// <param name="stateKey">State key to project</param>
+    /// <param name="value">Current state value</param>
+    /// <param name="context">Optional context for applyIf conditions</param>
+    /// <returns>Dictionary of CSS selector → transformed value</returns>
+    public Dictionary<string, string> ApplyAllStateXTransforms(string stateKey, object value, object? context = null)
+    {
+        var results = new Dictionary<string, string>();
+
+        var attrs = GetType()
+            .GetCustomAttributes<StateXTransformAttribute>()
+            .Where(a => a.StateKey == stateKey);
+
+        foreach (var attr in attrs)
+        {
+            var transformed = ApplyStateXTransform(stateKey, attr.Selector, value, context);
+            if (transformed != null)
+            {
+                results[attr.Selector] = transformed;
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Evaluate an applyIf condition expression
+    /// </summary>
+    /// <param name="expression">C# lambda expression (e.g., "ctx => ctx.User.IsAdmin")</param>
+    /// <param name="context">Context object for evaluation</param>
+    /// <returns>True if condition passes, false otherwise</returns>
+    private bool EvaluateApplyIfCondition(string expression, object context)
+    {
+        try
+        {
+            // Simple property-based evaluation for common patterns
+            // More complex evaluation would use Roslyn or expression compilation
+
+            // Pattern: "ctx => ctx.Property"
+            if (expression.Contains("ctx => ctx."))
+            {
+                var property = expression.Split("ctx.")[1].Trim();
+
+                // Handle nested properties (e.g., "User.IsAdmin")
+                var parts = property.Split('.');
+                object current = context;
+
+                foreach (var part in parts)
+                {
+                    var propInfo = current?.GetType().GetProperty(part);
+                    if (propInfo == null) return false;
+
+                    current = propInfo.GetValue(current);
+                    if (current == null) return false;
+                }
+
+                // Final value should be boolean
+                return Convert.ToBoolean(current);
+            }
+
+            // Fallback: Always apply if we can't evaluate
+            return true;
+        }
+        catch
+        {
+            // If evaluation fails, default to applying the transform
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Evaluate a transform expression
+    /// </summary>
+    /// <param name="expression">C# lambda expression (e.g., "v => $\"{v.ToString(\"F2\")}\"")</param>
+    /// <param name="value">Value to transform</param>
+    /// <returns>Transformed string</returns>
+    private string EvaluateTransformExpression(string expression, object value)
+    {
+        try
+        {
+            // Simple pattern matching for common transforms
+            // More complex evaluation would use Roslyn or expression compilation
+
+            // Pattern: v => $"{v.ToString("F2")}"
+            if (expression.Contains("ToString(\"F"))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(expression, @"ToString\(\""F(\d+)\""");
+                if (match.Success)
+                {
+                    var decimals = int.Parse(match.Groups[1].Value);
+                    var formatString = $"F{decimals}";
+
+                    // Extract prefix/suffix from template
+                    var prefix = "";
+                    var suffix = "";
+
+                    if (expression.Contains("$\""))
+                    {
+                        var templateMatch = System.Text.RegularExpressions.Regex.Match(
+                            expression, @"\$\""([^{]*)\{[^}]+\}([^""]*)\""");
+
+                        if (templateMatch.Success)
+                        {
+                            prefix = templateMatch.Groups[1].Value;
+                            suffix = templateMatch.Groups[2].Value;
+                        }
+                    }
+
+                    return $"{prefix}{Convert.ToDouble(value).ToString(formatString)}{suffix}";
+                }
+            }
+
+            // Pattern: v => v.ToUpper()
+            if (expression.Contains("ToUpper()"))
+            {
+                return value.ToString()?.ToUpper() ?? "";
+            }
+
+            // Pattern: v => v.ToLower()
+            if (expression.Contains("ToLower()"))
+            {
+                return value.ToString()?.ToLower() ?? "";
+            }
+
+            // Pattern: v => condition ? "a" : "b"
+            if (expression.Contains("?") && expression.Contains(":"))
+            {
+                var ternaryMatch = System.Text.RegularExpressions.Regex.Match(
+                    expression, @"v\s*([><=!]+)\s*(\d+)\s*\?\s*\""([^""]*)\"".*:\s*\""([^""]*)""");
+
+                if (ternaryMatch.Success)
+                {
+                    var op = ternaryMatch.Groups[1].Value;
+                    var threshold = double.Parse(ternaryMatch.Groups[2].Value);
+                    var trueValue = ternaryMatch.Groups[3].Value;
+                    var falseValue = ternaryMatch.Groups[4].Value;
+
+                    var numValue = Convert.ToDouble(value);
+
+                    bool condition = op switch
+                    {
+                        ">" => numValue > threshold,
+                        "<" => numValue < threshold,
+                        ">=" => numValue >= threshold,
+                        "<=" => numValue <= threshold,
+                        "==" => Math.Abs(numValue - threshold) < 0.0001,
+                        "!=" => Math.Abs(numValue - threshold) >= 0.0001,
+                        _ => false
+                    };
+
+                    return condition ? trueValue : falseValue;
+                }
+            }
+
+            // Fallback: Return value as string
+            return value?.ToString() ?? "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Minimact] Transform expression evaluation failed: {ex.Message}");
+            return value?.ToString() ?? "";
+        }
     }
 
     #endregion

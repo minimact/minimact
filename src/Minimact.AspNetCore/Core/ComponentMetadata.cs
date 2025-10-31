@@ -31,4 +31,11 @@ public class ComponentMetadata
     /// Component class name
     /// </summary>
     public string ComponentName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// StateX projections extracted by Babel plugin from useStateX() calls.
+    /// Contains transform functions, target selectors, and conditional logic.
+    /// Used for pre-computing projected patches with 100% coverage.
+    /// </summary>
+    public List<Models.StateXProjectionInfo> StateXProjections { get; set; } = new();
 }

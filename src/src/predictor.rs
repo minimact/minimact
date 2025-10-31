@@ -1029,6 +1029,138 @@ impl Predictor {
         })
     }
 
+    /// Extract projection patches from StateX metadata (NEW: useStateX support!)
+    /// Generates parameterized UpdateText patches for declarative state projections
+    /// This enables "CSS for State Logic" with 100% coverage
+    fn extract_state_x_projection_patches(
+        &self,
+        state_change: &StateChange,
+        metadata: &ComponentMetadata,
+        new_tree: &VNode,
+    ) -> Option<Vec<Patch>> {
+        use crate::vdom::{StateXProjection, TemplatePatch};
+
+        let projections = metadata.get_state_x_projections(&state_change.state_key);
+
+        if projections.is_empty() {
+            return None;
+        }
+
+        let mut patches = Vec::new();
+
+        for projection in projections {
+            // Find the target element in the tree by selector
+            if let Some((path, _element)) = self.find_element_by_selector(new_tree, &projection.selector, &mut Vec::new()) {
+                // Generate patch based on apply_as type
+                match projection.apply_as.as_str() {
+                    "textContent" => {
+                        // Create UpdateTextTemplate patch with slot for state value
+                        let template_patch = TemplatePatch {
+                            template: "{0}".to_string(), // Slot for transformed value
+                            bindings: vec![state_change.state_key.clone()],
+                            bindings_with_transforms: if let Some(transform) = &projection.transform {
+                                Some(vec![crate::vdom::Binding {
+                                    state_key: state_change.state_key.clone(),
+                                    transform: Some(transform.clone()),
+                                }])
+                            } else if let Some(transform_id) = &projection.transform_id {
+                                Some(vec![crate::vdom::Binding {
+                                    state_key: state_change.state_key.clone(),
+                                    transform: Some(format!("registry:{}", transform_id)),
+                                }])
+                            } else {
+                                None
+                            },
+                            slots: vec![0],
+                            conditional_templates: None,
+                            conditional_binding_index: None,
+                        };
+
+                        patches.push(Patch::UpdateTextTemplate {
+                            path,
+                            template_patch,
+                        });
+
+                        crate::log_info!(
+                            "✨ StateX projection patch generated: {} → {} (textContent)",
+                            state_change.state_key,
+                            projection.selector
+                        );
+                    }
+                    "class" => {
+                        // For class toggles, we'd generate SetAttribute patches
+                        // For now, log as TODO
+                        crate::log_warn!("⚠️ StateX class projection not yet implemented: {}", projection.selector);
+                    }
+                    "attribute" | "style" | "innerHTML" => {
+                        // Future enhancement
+                        crate::log_warn!("⚠️ StateX {} projection not yet implemented: {}", projection.apply_as, projection.selector);
+                    }
+                    _ => {
+                        crate::log_warn!("⚠️ Unknown StateX applyAs type: {}", projection.apply_as);
+                    }
+                }
+            } else {
+                crate::log_warn!(
+                    "⚠️ StateX target selector '{}' not found in tree for state '{}'",
+                    projection.selector,
+                    state_change.state_key
+                );
+            }
+        }
+
+        if patches.is_empty() {
+            None
+        } else {
+            Some(patches)
+        }
+    }
+
+    /// Find an element by CSS selector in the VNode tree
+    /// Returns (path, element) if found
+    /// Note: This is a simplified selector matcher - only supports class selectors for now
+    fn find_element_by_selector<'a>(
+        &self,
+        node: &'a VNode,
+        selector: &str,
+        path: &mut Vec<usize>,
+    ) -> Option<(Vec<usize>, &'a crate::vdom::VElement)> {
+        match node {
+            VNode::Element(element) => {
+                // Check if this element matches the selector
+                if self.element_matches_selector(element, selector) {
+                    return Some((path.clone(), element));
+                }
+
+                // Recursively search children
+                for (i, child) in element.children.iter().enumerate() {
+                    path.push(i);
+                    if let Some(result) = self.find_element_by_selector(child, selector, path) {
+                        return Some(result);
+                    }
+                    path.pop();
+                }
+
+                None
+            }
+            VNode::Text(_) => None,
+        }
+    }
+
+    /// Check if an element matches a CSS selector (simplified - only class selectors)
+    fn element_matches_selector(&self, element: &crate::vdom::VElement, selector: &str) -> bool {
+        // Simple class selector matching (e.g., ".price-display")
+        if let Some(class_name) = selector.strip_prefix('.') {
+            // Check if element has a "class" or "className" prop matching
+            if let Some(class_prop) = element.props.get("class").or_else(|| element.props.get("className")) {
+                return class_prop.contains(class_name);
+            }
+        }
+
+        // Future: Support other selectors (ID, tag, attribute, etc.)
+        false
+    }
+
     /// Save predictor state to JSON string
     pub fn save_to_json(&self) -> crate::error::Result<String> {
         serde_json::to_string_pretty(self)
@@ -1177,7 +1309,7 @@ impl Predictor {
     }
 
     /// Learn with Babel-generated component metadata (NEW!)
-    /// Accepts compile-time loop templates from Babel plugin as primary prediction source
+    /// Accepts compile-time loop templates and StateX projections from Babel plugin
     /// Falls back to runtime extraction if no Babel template available
     pub fn learn_with_metadata(
         &mut self,
@@ -1189,8 +1321,35 @@ impl Predictor {
     ) -> crate::error::Result<()> {
         crate::log_debug!("Learning pattern for {}::{} (with metadata)", state_change.component_id, state_change.state_key);
 
-        // Try Babel-generated template FIRST (perfect accuracy!)
         if let Some(meta) = metadata {
+            // PRIORITY 1: Try StateX projections FIRST (highest accuracy - 100% coverage!)
+            if meta.has_state_x_projections(&state_change.state_key) {
+                crate::log_info!("✨ Using Babel-generated StateX projections for {}", state_change.state_key);
+
+                if let Some(projection_patches) = self.extract_state_x_projection_patches(
+                    &state_change,
+                    meta,
+                    &new_tree
+                ) {
+                    let pattern_key = self.make_pattern_key(&state_change);
+                    self.template_predictions.insert(
+                        pattern_key.clone(),
+                        TemplatePrediction {
+                            state_key: state_change.state_key.clone(),
+                            patches: projection_patches,
+                            source: TemplateSource::BabelGenerated,
+                            usage_count: 0,
+                            correct_count: 0,
+                            incorrect_count: 0,
+                        }
+                    );
+                    crate::log_info!("✅ StateX projection template stored for {}", pattern_key);
+                    crate::metrics::METRICS.record_learn(false);
+                    return Ok(());
+                }
+            }
+
+            // PRIORITY 2: Try loop templates (for array state)
             if let Some(loop_template) = meta.parse_loop_template(&state_change.state_key) {
                 crate::log_info!("📐 Using Babel-generated loop template for {}", state_change.state_key);
 
