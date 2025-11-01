@@ -8,6 +8,7 @@ export default function CreateProject() {
   const [targetDir, setTargetDir] = useState('')
   const [template, setTemplate] = useState('Counter')
   const [createSolution, setCreateSolution] = useState(true)
+  const [enableTailwind, setEnableTailwind] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -32,7 +33,8 @@ export default function CreateProject() {
     try {
       const projectPath = `${targetDir}\\${projectName}`
       const result = await window.api.project.create(projectPath, template, {
-        createSolution
+        createSolution,
+        enableTailwind
       })
 
       if (result.success) {
@@ -125,8 +127,9 @@ export default function CreateProject() {
             </p>
           </div>
 
-          {/* Visual Studio Solution */}
-          <div>
+          {/* Options */}
+          <div className="space-y-4">
+            {/* Visual Studio Solution */}
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -140,6 +143,24 @@ export default function CreateProject() {
                 </span>
                 <p className="text-xs text-gray-500">
                   Recommended for opening project in Visual Studio
+                </p>
+              </div>
+            </label>
+
+            {/* Tailwind CSS Integration */}
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableTailwind}
+                onChange={(e) => setEnableTailwind(e.target.checked)}
+                className="w-4 h-4 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-green-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-300">
+                  Enable Tailwind CSS integration
+                </span>
+                <p className="text-xs text-gray-500">
+                  Auto-generates utility-first CSS from your TSX components
                 </p>
               </div>
             </label>
@@ -180,6 +201,13 @@ export default function CreateProject() {
               <>
                 <li>• Pages and Components folders created</li>
                 <li>• Template files generated (.tsx)</li>
+              </>
+            )}
+            {enableTailwind && (
+              <>
+                <li>• Tailwind CSS configured (tailwind.config.js, package.json)</li>
+                <li>• CSS directives added (src/styles/tailwind.css)</li>
+                <li>• Auto-generation enabled on transpile</li>
               </>
             )}
             <li>• Project opens in Dashboard</li>

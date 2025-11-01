@@ -2,7 +2,11 @@ import * as babel from '@babel/core';
 import { parse } from '@babel/parser';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import type { TranspileResult, TranspileProjectResult } from '../types/project';
+
+const execAsync = promisify(exec);
 
 /**
  * Extended metadata interface that includes our custom minimactCSharp property
@@ -169,6 +173,9 @@ export class TranspilerService {
 
     await transpileDirectory(projectPath, this);
 
+    // Generate Tailwind CSS if configured
+    await this.generateTailwindCss(projectPath);
+
     const duration = Date.now() - startTime;
 
     return {
@@ -177,5 +184,78 @@ export class TranspilerService {
       errors,
       duration
     };
+  }
+
+  /**
+   * Generate Tailwind CSS for a project
+   * Scans TSX files for Tailwind classes and generates purged/minified CSS
+   */
+  async generateTailwindCss(projectPath: string): Promise<{ success: boolean; outputPath?: string; error?: string; duration: number }> {
+    const startTime = Date.now();
+
+    try {
+      const tailwindConfigPath = path.join(projectPath, 'tailwind.config.js');
+      const inputCssPath = path.join(projectPath, 'src/styles/tailwind.css');
+      const outputCssPath = path.join(projectPath, 'wwwroot/css/tailwind.css');
+
+      // Check if Tailwind is configured
+      const configExists = await fs.access(tailwindConfigPath).then(() => true).catch(() => false);
+      if (!configExists) {
+        console.log('[Tailwind] No tailwind.config.js found, skipping CSS generation');
+        return {
+          success: true,
+          duration: Date.now() - startTime
+        };
+      }
+
+      // Check if input CSS exists
+      const inputExists = await fs.access(inputCssPath).then(() => true).catch(() => false);
+      if (!inputExists) {
+        console.log('[Tailwind] No src/styles/tailwind.css found, skipping CSS generation');
+        return {
+          success: true,
+          duration: Date.now() - startTime
+        };
+      }
+
+      // Ensure output directory exists
+      await fs.mkdir(path.dirname(outputCssPath), { recursive: true });
+
+      console.log('[Tailwind] Generating CSS...');
+
+      // Run Tailwind CLI
+      const { stderr } = await execAsync(
+        `npx tailwindcss -i "${inputCssPath}" -o "${outputCssPath}" --minify`,
+        { cwd: projectPath }
+      );
+
+      if (stderr && !stderr.includes('Done in')) {
+        console.warn('[Tailwind] Warnings:', stderr);
+      }
+
+      // Get file size
+      const stats = await fs.stat(outputCssPath);
+      const fileSizeKB = (stats.size / 1024).toFixed(1);
+
+      console.log(`[Tailwind] ✓ Generated CSS: ${outputCssPath} (${fileSizeKB} KB)`);
+
+      const duration = Date.now() - startTime;
+
+      return {
+        success: true,
+        outputPath: outputCssPath,
+        duration
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+
+      console.error('[Tailwind] Error generating CSS:', error);
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        duration
+      };
+    }
   }
 }

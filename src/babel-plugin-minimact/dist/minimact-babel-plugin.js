@@ -742,6 +742,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      const name = attr.name.name;
 		      const value = attr.value;
 
+		      // Convert className to class for HTML compatibility
+		      const htmlAttrName = name === 'className' ? 'class' : name;
+
 		      if (name.startsWith('on')) {
 		        // Event handler
 		        const handlerName = extractEventHandler(value, component);
@@ -749,12 +752,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      } else if (name.startsWith('data-minimact-')) {
 		        // Keep minimact attributes as-is
 		        const val = t.isStringLiteral(value) ? value.value : _generateCSharpExpression(value.expression);
-		        dataMinimactAttrs.push(`["${name}"] = "${val}"`);
+		        dataMinimactAttrs.push(`["${htmlAttrName}"] = "${val}"`);
 		      } else {
 		        // Regular prop
 		        if (t.isStringLiteral(value)) {
 		          // String literal - use as-is with quotes
-		          props.push(`["${name}"] = "${escapeCSharpString(value.value)}"`);
+		          props.push(`["${htmlAttrName}"] = "${escapeCSharpString(value.value)}"`);
 		        } else if (t.isJSXExpressionContainer(value)) {
 		          // Special handling for style attribute with object expression
 		          if (name === 'style' && t.isObjectExpression(value.expression)) {
@@ -764,11 +767,11 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		          } else {
 		            // Expression - wrap in string interpolation
 		            const expr = _generateCSharpExpression(value.expression);
-		            props.push(`["${name}"] = $"{${expr}}"`);
+		            props.push(`["${htmlAttrName}"] = $"{${expr}}"`);
 		          }
 		        } else {
 		          // Fallback
-		          props.push(`["${name}"] = ""`);
+		          props.push(`["${htmlAttrName}"] = ""`);
 		        }
 		      }
 		    }

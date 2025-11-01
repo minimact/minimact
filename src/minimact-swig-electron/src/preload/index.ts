@@ -5,7 +5,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   // Project APIs
   project: {
-    create: (path: string, template: string, options?: { createSolution?: boolean }) =>
+    create: (path: string, template: string, options?: { createSolution?: boolean; enableTailwind?: boolean }) =>
       ipcRenderer.invoke('project:create', path, template, options),
     load: (path: string) =>
       ipcRenderer.invoke('project:load', path),
@@ -22,7 +22,9 @@ const api = {
     transpileFile: (filePath: string) =>
       ipcRenderer.invoke('transpiler:transpileFile', filePath),
     transpileProject: (projectPath: string) =>
-      ipcRenderer.invoke('transpiler:transpileProject', projectPath)
+      ipcRenderer.invoke('transpiler:transpileProject', projectPath),
+    generateTailwindCss: (projectPath: string) =>
+      ipcRenderer.invoke('transpiler:generateTailwindCss', projectPath)
   },
 
   // Process control APIs

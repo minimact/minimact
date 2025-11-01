@@ -10,7 +10,7 @@ interface APIResponse<T = any> {
 // Minimact API types
 interface MinimactAPI {
   project: {
-    create: (path: string, template: string, options?: { createSolution?: boolean }) => Promise<APIResponse>
+    create: (path: string, template: string, options?: { createSolution?: boolean; enableTailwind?: boolean }) => Promise<APIResponse>
     load: (path: string) => Promise<APIResponse>
     getRecent: () => Promise<APIResponse>
     scanFiles: (projectPath: string) => Promise<APIResponse>
@@ -20,6 +20,7 @@ interface MinimactAPI {
   transpiler: {
     transpileFile: (filePath: string) => Promise<APIResponse>
     transpileProject: (projectPath: string) => Promise<APIResponse>
+    generateTailwindCss: (projectPath: string) => Promise<APIResponse>
   }
 
   process: {

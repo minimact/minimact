@@ -28,4 +28,16 @@ export function registerTranspilerHandlers(transpilerService: TranspilerService)
       return { success: false, error: error.message };
     }
   });
+
+  /**
+   * Generate Tailwind CSS for a project
+   */
+  ipcMain.handle('transpiler:generateTailwindCss', async (_, projectPath: string) => {
+    try {
+      const result = await transpilerService.generateTailwindCss(projectPath);
+      return { success: result.success, data: result };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
 }
