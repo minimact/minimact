@@ -108,6 +108,26 @@ function generateComponent(component) {
     lines.push('');
   }
 
+  // MVC State fields (useMvcState)
+  if (component.useMvcState) {
+    for (const mvcState of component.useMvcState) {
+      lines.push(`    [State]`);
+      // Type will be inferred from ViewModel or use dynamic for now
+      const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
+      lines.push(`    private ${csharpType} ${mvcState.name} = default;`);
+      lines.push('');
+    }
+  }
+
+  // MVC ViewModel fields (useMvcViewModel)
+  if (component.useMvcViewModel) {
+    for (const viewModel of component.useMvcViewModel) {
+      lines.push(`    // useMvcViewModel - read-only access to entire ViewModel`);
+      lines.push(`    private dynamic ${viewModel.name} = null;`);
+      lines.push('');
+    }
+  }
+
   // State fields (useStateX)
   for (const stateX of component.useStateX) {
     lines.push(`    [State]`);
@@ -370,6 +390,22 @@ function generateComponent(component) {
     lines.push(`        ${toggle.name} = !${toggle.name};`);
     lines.push(`        SetState("${toggle.name}", ${toggle.name});`);
     lines.push('    }');
+  }
+
+  // MVC State setter methods (useMvcState)
+  if (component.useMvcState) {
+    for (const mvcState of component.useMvcState) {
+      // Only generate setter if there's a setter function (mutable property)
+      if (mvcState.setter) {
+        lines.push('');
+        const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
+        lines.push(`    private void ${mvcState.setter}(${csharpType} value)`);
+        lines.push('    {');
+        lines.push(`        ${mvcState.name} = value;`);
+        lines.push(`        SetState("${mvcState.name}", value);`);
+        lines.push('    }');
+      }
+    }
   }
 
   // Pub/Sub methods (usePub)

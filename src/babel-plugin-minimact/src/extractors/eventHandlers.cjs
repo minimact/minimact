@@ -18,7 +18,11 @@ function extractEventHandler(value, component) {
     if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) {
       // Inline arrow function - extract to named method
       const handlerName = `Handle${component.eventHandlers.length}`;
-      component.eventHandlers.push({ name: handlerName, body: expr.body });
+      component.eventHandlers.push({
+        name: handlerName,
+        body: expr.body,
+        params: expr.params  // ✅ FIX: Preserve function parameters
+      });
       return handlerName;
     }
 

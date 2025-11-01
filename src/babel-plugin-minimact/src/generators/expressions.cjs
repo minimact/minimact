@@ -210,6 +210,19 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `${object}.Count`;
     }
 
+    // Handle event object property access (e.target.value → e.Target.Value)
+    if (propertyName === 'target' && !node.computed) {
+      return `${object}.Target`;
+    }
+    if (propertyName === 'value' && !node.computed) {
+      // Capitalize for C# property convention
+      return `${object}.Value`;
+    }
+    if (propertyName === 'checked' && !node.computed) {
+      // Capitalize for C# property convention
+      return `${object}.Checked`;
+    }
+
     const property = node.computed
       ? `[${generateCSharpExpression(node.property)}]`
       : `.${propertyName}`;
@@ -219,6 +232,13 @@ function generateCSharpExpression(node, inInterpolation = false) {
   if (t.isArrayExpression(node)) {
     const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
     return `new List<object> { ${elements} }`;
+  }
+
+  if (t.isUnaryExpression(node)) {
+    // Handle unary expressions: !expr, -expr, +expr, etc.
+    const argument = generateCSharpExpression(node.argument, inInterpolation);
+    const operator = node.operator;
+    return `${operator}${argument}`;
   }
 
   if (t.isBinaryExpression(node)) {
