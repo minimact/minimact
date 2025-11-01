@@ -7,6 +7,7 @@ export default function CreateProject() {
   const [projectName, setProjectName] = useState('')
   const [targetDir, setTargetDir] = useState('')
   const [template, setTemplate] = useState('Counter')
+  const [createSolution, setCreateSolution] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,7 +31,9 @@ export default function CreateProject() {
 
     try {
       const projectPath = `${targetDir}\\${projectName}`
-      const result = await window.api.project.create(projectPath, template)
+      const result = await window.api.project.create(projectPath, template, {
+        createSolution
+      })
 
       if (result.success) {
         navigate(`/dashboard?path=${encodeURIComponent(projectPath)}`)
@@ -120,6 +123,26 @@ export default function CreateProject() {
             <p className="text-xs text-gray-500 mt-2">
               Choose a starting template for your project
             </p>
+          </div>
+
+          {/* Visual Studio Solution */}
+          <div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={createSolution}
+                onChange={(e) => setCreateSolution(e.target.checked)}
+                className="w-4 h-4 bg-gray-800 border border-gray-700 rounded focus:ring-2 focus:ring-green-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-300">
+                  Create Visual Studio solution file (.sln)
+                </span>
+                <p className="text-xs text-gray-500">
+                  Recommended for opening project in Visual Studio
+                </p>
+              </div>
+            </label>
           </div>
 
           {/* Error Message */}

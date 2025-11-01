@@ -105,7 +105,7 @@ function tsTypeToCSharpType$2(tsType) {
 /**
  * Infer C# type from initial value
  */
-function inferType$1(node) {
+function inferType$2(node) {
   if (!node) return 'dynamic';
 
   if (t$f.isStringLiteral(node)) return 'string';
@@ -120,7 +120,7 @@ function inferType$1(node) {
 
 
 var typeConversion = {
-  inferType: inferType$1,
+  inferType: inferType$2,
   tsTypeToCSharpType: tsTypeToCSharpType$2
 };
 
@@ -229,113 +229,121 @@ var classification = {
  * Pattern Detection
  */
 
-const t$d = globalThis.__BABEL_TYPES__;
+var detection;
+var hasRequiredDetection;
+
+function requireDetection () {
+	if (hasRequiredDetection) return detection;
+	hasRequiredDetection = 1;
+	const t = globalThis.__BABEL_TYPES__;
 
 
-/**
- * Detect if attributes contain spread operators
- */
-function hasSpreadProps(attributes) {
-  return attributes.some(attr => t$d.isJSXSpreadAttribute(attr));
+	/**
+	 * Detect if attributes contain spread operators
+	 */
+	function hasSpreadProps(attributes) {
+	  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
+	}
+
+	/**
+	 * Detect if children contain dynamic patterns (like .map())
+	 */
+	function hasDynamicChildren(children) {
+	  return children.some(child => {
+	    if (!t.isJSXExpressionContainer(child)) return false;
+	    const expr = child.expression;
+
+	    // Check for .map() calls
+	    if (t.isCallExpression(expr) &&
+	        t.isMemberExpression(expr.callee) &&
+	        t.isIdentifier(expr.callee.property, { name: 'map' })) {
+	      return true;
+	    }
+
+	    // Check for array expressions from LINQ/Select
+	    if (t.isCallExpression(expr) &&
+	        t.isMemberExpression(expr.callee) &&
+	        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	      return true;
+	    }
+
+	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+	    if (t.isConditionalExpression(expr)) {
+	      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
+	          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+	        return true;
+	      }
+	    }
+
+	    // Check for logical expressions with JSX: {condition && <Element/>}
+	    if (t.isLogicalExpression(expr)) {
+	      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
+	        return true;
+	      }
+	    }
+
+	    return false;
+	  });
+	}
+
+	/**
+	 * Detect if props contain complex expressions
+	 */
+	function hasComplexProps(attributes) {
+	  return attributes.some(attr => {
+	    if (!t.isJSXAttribute(attr)) return false;
+	    const value = attr.value;
+
+	    if (!t.isJSXExpressionContainer(value)) return false;
+	    const expr = value.expression;
+
+	    // Check for conditional spread: {...(condition && { prop: value })}
+	    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
+	      return true;
+	    }
+
+	    return false;
+	  });
+	}
+
+	detection = {
+	  hasSpreadProps,
+	  hasDynamicChildren,
+	  hasComplexProps
+	};
+	return detection;
 }
-
-/**
- * Detect if children contain dynamic patterns (like .map())
- */
-function hasDynamicChildren(children) {
-  return children.some(child => {
-    if (!t$d.isJSXExpressionContainer(child)) return false;
-    const expr = child.expression;
-
-    // Check for .map() calls
-    if (t$d.isCallExpression(expr) &&
-        t$d.isMemberExpression(expr.callee) &&
-        t$d.isIdentifier(expr.callee.property, { name: 'map' })) {
-      return true;
-    }
-
-    // Check for array expressions from LINQ/Select
-    if (t$d.isCallExpression(expr) &&
-        t$d.isMemberExpression(expr.callee) &&
-        (t$d.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-         t$d.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-      return true;
-    }
-
-    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-    if (t$d.isConditionalExpression(expr)) {
-      if (t$d.isJSXElement(expr.consequent) || t$d.isJSXFragment(expr.consequent) ||
-          t$d.isJSXElement(expr.alternate) || t$d.isJSXFragment(expr.alternate)) {
-        return true;
-      }
-    }
-
-    // Check for logical expressions with JSX: {condition && <Element/>}
-    if (t$d.isLogicalExpression(expr)) {
-      if (t$d.isJSXElement(expr.right) || t$d.isJSXFragment(expr.right)) {
-        return true;
-      }
-    }
-
-    return false;
-  });
-}
-
-/**
- * Detect if props contain complex expressions
- */
-function hasComplexProps(attributes) {
-  return attributes.some(attr => {
-    if (!t$d.isJSXAttribute(attr)) return false;
-    const value = attr.value;
-
-    if (!t$d.isJSXExpressionContainer(value)) return false;
-    const expr = value.expression;
-
-    // Check for conditional spread: {...(condition && { prop: value })}
-    if (t$d.isConditionalExpression(expr) || t$d.isLogicalExpression(expr)) {
-      return true;
-    }
-
-    return false;
-  });
-}
-
-var detection = {
-  hasSpreadProps,
-  hasDynamicChildren,
-  hasComplexProps
-};
 
 /**
  * Event Handlers Extractor
  */
 
-const t$c = globalThis.__BABEL_TYPES__;
+const t$d = globalThis.__BABEL_TYPES__;
 
 /**
  * Extract event handler name
  */
 function extractEventHandler(value, component) {
-  if (t$c.isStringLiteral(value)) {
+  if (t$d.isStringLiteral(value)) {
     return value.value;
   }
 
-  if (t$c.isJSXExpressionContainer(value)) {
+  if (t$d.isJSXExpressionContainer(value)) {
     const expr = value.expression;
 
-    if (t$c.isArrowFunctionExpression(expr) || t$c.isFunctionExpression(expr)) {
+    if (t$d.isArrowFunctionExpression(expr) || t$d.isFunctionExpression(expr)) {
       // Inline arrow function - extract to named method
       const handlerName = `Handle${component.eventHandlers.length}`;
       component.eventHandlers.push({ name: handlerName, body: expr.body });
       return handlerName;
     }
 
-    if (t$c.isIdentifier(expr)) {
+    if (t$d.isIdentifier(expr)) {
       return expr.name;
     }
 
-    if (t$c.isCallExpression(expr)) {
+    if (t$d.isCallExpression(expr)) {
       // () => someMethod() - extract
       const handlerName = `Handle${component.eventHandlers.length}`;
       component.eventHandlers.push({ name: handlerName, body: expr });
@@ -511,7 +519,7 @@ function requireJsx () {
 	hasRequiredJsx = 1;
 	const t = globalThis.__BABEL_TYPES__;
 	const { escapeCSharpString } = helpers;
-	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
+	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
 	const { extractEventHandler } = eventHandlers;
 	// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
@@ -1247,12 +1255,392 @@ function requireExpressions () {
 }
 
 /**
+ * useStateX Extractor
+ * Extracts useStateX hook calls and analyzes transform functions for C# generation
+ */
+
+const t$c = globalThis.__BABEL_TYPES__;
+const { generateCSharpExpression: generateCSharpExpression$3 } = requireExpressions();
+const { inferType: inferType$1 } = typeConversion;
+
+/**
+ * Extract useStateX hook and analyze projections
+ *
+ * @example
+ * const [price, setPrice] = useStateX(99, {
+ *   targets: {
+ *     '.price-display': {
+ *       transform: v => `$${v.toFixed(2)}`,
+ *       applyIf: ctx => ctx.user.canSeePrice
+ *     }
+ *   }
+ * });
+ */
+function extractUseStateX$1(path, component) {
+  const node = path.node;
+
+  // Get the variable declarator (const [price, setPrice] = ...)
+  const parent = path.parentPath.node;
+  if (!t$c.isVariableDeclarator(parent) || !t$c.isArrayPattern(parent.id)) {
+    console.warn('[useStateX] Expected array pattern destructuring');
+    return;
+  }
+
+  const [valueBinding, setterBinding] = parent.id.elements;
+  if (!t$c.isIdentifier(valueBinding)) {
+    console.warn('[useStateX] Expected identifier for value binding');
+    return;
+  }
+
+  const varName = valueBinding.name;
+  const setterName = setterBinding ? setterBinding.name : `set${varName[0].toUpperCase()}${varName.slice(1)}`;
+
+  // Get initial value and config
+  const [initialValueArg, configArg] = node.arguments;
+
+  if (!configArg || !t$c.isObjectExpression(configArg)) {
+    console.warn('[useStateX] Expected config object as second argument');
+    return;
+  }
+
+  // Extract initial value
+  let initialValue = null;
+  let initialValueType = 'dynamic';
+
+  if (initialValueArg) {
+    if (t$c.isLiteral(initialValueArg)) {
+      initialValue = initialValueArg.value;
+      initialValueType = inferType$1(initialValueArg);
+    } else {
+      initialValue = generateCSharpExpression$3(initialValueArg);
+      initialValueType = 'dynamic';
+    }
+  }
+
+  // Extract target projections
+  const targets = extractTargets(configArg);
+
+  // Extract sync strategy
+  const sync = extractSyncStrategy(configArg);
+
+  // Store useStateX metadata
+  component.useStateX = component.useStateX || [];
+  component.useStateX.push({
+    varName,
+    setterName,
+    initialValue,
+    initialValueType,
+    targets,
+    sync
+  });
+
+  // Track state type
+  component.stateTypes = component.stateTypes || new Map();
+  component.stateTypes.set(varName, 'useStateX');
+}
+
+/**
+ * Extract target projection configurations
+ */
+function extractTargets(configObject) {
+  const targets = [];
+
+  // Find targets property
+  const targetsProp = configObject.properties.find(
+    p => t$c.isIdentifier(p.key) && p.key.name === 'targets'
+  );
+
+  if (!targetsProp || !t$c.isObjectExpression(targetsProp.value)) {
+    return targets;
+  }
+
+  // Process each target selector
+  targetsProp.value.properties.forEach(target => {
+    const selector = target.key.value || target.key.name;
+    const targetConfig = target.value;
+
+    if (!t$c.isObjectExpression(targetConfig)) {
+      return;
+    }
+
+    const projection = {
+      selector,
+      transform: null,
+      transformId: null,
+      transformType: 'none',
+      applyIf: null,
+      applyAs: 'textContent',
+      property: null,
+      template: null
+    };
+
+    // Extract each property
+    targetConfig.properties.forEach(prop => {
+      const propName = prop.key.name;
+      const propValue = prop.value;
+
+      switch (propName) {
+        case 'transform':
+          if (t$c.isArrowFunctionExpression(propValue) || t$c.isFunctionExpression(propValue)) {
+            // Analyze transform function
+            const transformAnalysis = analyzeTransformFunction(propValue);
+            projection.transform = transformAnalysis.csharpCode;
+            projection.transformType = transformAnalysis.type;
+          }
+          break;
+
+        case 'transformId':
+          if (t$c.isStringLiteral(propValue)) {
+            projection.transformId = propValue.value;
+            projection.transformType = 'registry';
+          }
+          break;
+
+        case 'applyIf':
+          if (t$c.isArrowFunctionExpression(propValue) || t$c.isFunctionExpression(propValue)) {
+            // Analyze applyIf condition
+            projection.applyIf = analyzeApplyIfCondition(propValue);
+          }
+          break;
+
+        case 'applyAs':
+          if (t$c.isStringLiteral(propValue)) {
+            projection.applyAs = propValue.value;
+          }
+          break;
+
+        case 'property':
+          if (t$c.isStringLiteral(propValue)) {
+            projection.property = propValue.value;
+          }
+          break;
+
+        case 'template':
+          if (t$c.isStringLiteral(propValue)) {
+            projection.template = propValue.value;
+          }
+          break;
+      }
+    });
+
+    targets.push(projection);
+  });
+
+  return targets;
+}
+
+/**
+ * Analyze transform function and generate C# equivalent
+ *
+ * Supports:
+ * - Template literals with simple expressions
+ * - Method calls (toFixed, toUpperCase, etc.)
+ * - Ternary expressions
+ * - Property access
+ */
+function analyzeTransformFunction(arrowFn) {
+  const param = arrowFn.params[0]; // 'v'
+  const paramName = param ? param.name : 'v';
+  const body = arrowFn.body;
+
+  // Template literal: `$${v.toFixed(2)}`
+  if (t$c.isTemplateLiteral(body)) {
+    return {
+      type: 'template',
+      csharpCode: generateCSharpFromTemplate(body, paramName)
+    };
+  }
+
+  // Ternary: v > 10 ? 'High' : 'Low'
+  if (t$c.isConditionalExpression(body)) {
+    return {
+      type: 'ternary',
+      csharpCode: generateCSharpFromTernary(body, paramName)
+    };
+  }
+
+  // Method call: v.toUpperCase()
+  if (t$c.isCallExpression(body)) {
+    return {
+      type: 'method-call',
+      csharpCode: generateCSharpFromMethodCall(body, paramName)
+    };
+  }
+
+  // Member expression: v.firstName
+  if (t$c.isMemberExpression(body)) {
+    return {
+      type: 'property-access',
+      csharpCode: generateCSharpFromMemberExpression(body, paramName)
+    };
+  }
+
+  // Fallback: complex
+  return {
+    type: 'complex',
+    csharpCode: null
+  };
+}
+
+/**
+ * Generate C# code from template literal
+ * Example: `$${v.toFixed(2)}` → $"${v.ToString("F2")}"
+ */
+function generateCSharpFromTemplate(templateLiteral, paramName) {
+  let csharpCode = '$"';
+
+  for (let i = 0; i < templateLiteral.quasis.length; i++) {
+    const quasi = templateLiteral.quasis[i];
+    csharpCode += quasi.value.raw;
+
+    if (i < templateLiteral.expressions.length) {
+      const expr = templateLiteral.expressions[i];
+      csharpCode += '{' + generateCSharpFromExpression(expr, paramName) + '}';
+    }
+  }
+
+  csharpCode += '"';
+  return csharpCode;
+}
+
+/**
+ * Generate C# code from ternary expression
+ * Example: v > 10 ? 'High' : 'Low' → v > 10 ? "High" : "Low"
+ */
+function generateCSharpFromTernary(ternary, paramName) {
+  const test = generateCSharpFromExpression(ternary.test, paramName);
+  const consequent = generateCSharpFromExpression(ternary.consequent, paramName);
+  const alternate = generateCSharpFromExpression(ternary.alternate, paramName);
+
+  return `${test} ? ${consequent} : ${alternate}`;
+}
+
+/**
+ * Generate C# code from method call
+ * Example: v.toFixed(2) → v.ToString("F2")
+ */
+function generateCSharpFromMethodCall(callExpr, paramName) {
+  if (t$c.isMemberExpression(callExpr.callee)) {
+    const object = generateCSharpFromExpression(callExpr.callee.object, paramName);
+    const method = callExpr.callee.property.name;
+    const args = callExpr.arguments;
+
+    // Map JS methods to C# equivalents
+    const methodMap = {
+      'toFixed': (args) => {
+        const decimals = args[0] && t$c.isNumericLiteral(args[0]) ? args[0].value : 2;
+        return `ToString("F${decimals}")`;
+      },
+      'toUpperCase': () => 'ToUpper()',
+      'toLowerCase': () => 'ToLower()',
+      'toString': () => 'ToString()',
+      'trim': () => 'Trim()',
+      'length': () => 'Length'
+    };
+
+    const csharpMethod = methodMap[method] ? methodMap[method](args) : `${method}()`;
+    return `${object}.${csharpMethod}`;
+  }
+
+  return 'null';
+}
+
+/**
+ * Generate C# code from member expression
+ * Example: v.firstName → v.FirstName
+ */
+function generateCSharpFromMemberExpression(memberExpr, paramName) {
+  const object = generateCSharpFromExpression(memberExpr.object, paramName);
+  const property = memberExpr.property.name;
+
+  // Pascal case the property name for C#
+  const csharpProperty = property.charAt(0).toUpperCase() + property.slice(1);
+
+  return `${object}.${csharpProperty}`;
+}
+
+/**
+ * Generate C# code from any expression
+ */
+function generateCSharpFromExpression(expr, paramName) {
+  if (t$c.isIdentifier(expr)) {
+    return expr.name === paramName || expr.name === 'v' ? 'v' : expr.name;
+  }
+
+  if (t$c.isStringLiteral(expr)) {
+    return `"${expr.value}"`;
+  }
+
+  if (t$c.isNumericLiteral(expr)) {
+    return expr.value.toString();
+  }
+
+  if (t$c.isBooleanLiteral(expr)) {
+    return expr.value ? 'true' : 'false';
+  }
+
+  if (t$c.isMemberExpression(expr)) {
+    return generateCSharpFromMemberExpression(expr, paramName);
+  }
+
+  if (t$c.isCallExpression(expr)) {
+    return generateCSharpFromMethodCall(expr, paramName);
+  }
+
+  if (t$c.isBinaryExpression(expr)) {
+    const left = generateCSharpFromExpression(expr.left, paramName);
+    const right = generateCSharpFromExpression(expr.right, paramName);
+    const operator = expr.operator;
+    return `${left} ${operator} ${right}`;
+  }
+
+  return 'null';
+}
+
+/**
+ * Analyze applyIf condition
+ * Example: ctx => ctx.user.isAdmin → "ctx => ctx.User.IsAdmin"
+ */
+function analyzeApplyIfCondition(arrowFn) {
+  const param = arrowFn.params[0]; // 'ctx'
+  const paramName = param ? param.name : 'ctx';
+  const body = arrowFn.body;
+
+  const csharpCondition = generateCSharpFromExpression(body, paramName);
+
+  return {
+    csharpCode: `${paramName} => ${csharpCondition}`,
+    type: 'arrow'
+  };
+}
+
+/**
+ * Extract sync strategy
+ */
+function extractSyncStrategy(configObject) {
+  const syncProp = configObject.properties.find(
+    p => t$c.isIdentifier(p.key) && p.key.name === 'sync'
+  );
+
+  if (!syncProp || !t$c.isStringLiteral(syncProp.value)) {
+    return 'immediate';
+  }
+
+  return syncProp.value.value;
+}
+
+var useStateX = {
+  extractUseStateX: extractUseStateX$1
+};
+
+/**
  * Hook Extractors
  */
 
 const t$b = globalThis.__BABEL_TYPES__;
 const { generateCSharpExpression: generateCSharpExpression$2 } = requireExpressions();
 const { inferType } = typeConversion;
+const { extractUseStateX } = useStateX;
 
 /**
  * Extract hook calls (useState, useClientState, etc.)
@@ -1270,6 +1658,9 @@ function extractHook$1(path, component) {
       break;
     case 'useClientState':
       extractUseState(path, component, 'useClientState');
+      break;
+    case 'useStateX':
+      extractUseStateX(path, component);
       break;
     case 'useEffect':
       extractUseEffect(path, component);
@@ -1318,6 +1709,12 @@ function extractHook$1(path, component) {
       break;
     case 'usePaginatedServerTask':
       extractUsePaginatedServerTask(path, component);
+      break;
+    case 'useMvcState':
+      extractUseMvcState(path, component);
+      break;
+    case 'useMvcViewModel':
+      extractUseMvcViewModel(path, component);
       break;
   }
 }
@@ -1886,6 +2283,85 @@ function extractReturnType(asyncFunction) {
   return 'object';
 }
 
+/**
+ * Extract useMvcState hook
+ *
+ * Pattern: const [value, setValue] = useMvcState<T>('propertyName', options?)
+ *
+ * This hook accesses MVC ViewModel properties passed from the controller.
+ * The babel plugin treats these as special client-side state that maps
+ * to server ViewModel properties.
+ */
+function extractUseMvcState(path, component) {
+  const parent = path.parent;
+
+  if (!t$b.isVariableDeclarator(parent)) return;
+  if (!t$b.isArrayPattern(parent.id)) return;
+
+  const elements = parent.id.elements;
+  const propertyNameArg = path.node.arguments[0];
+
+  // Extract property name (must be string literal)
+  if (!t$b.isStringLiteral(propertyNameArg)) {
+    console.warn('[useMvcState] Property name must be a string literal');
+    return;
+  }
+
+  const propertyName = propertyNameArg.value;
+
+  // useMvcState can return either [value] or [value, setter]
+  // depending on mutability
+  const stateVar = elements[0];
+  const setterVar = elements.length > 1 ? elements[1] : null;
+
+  // Initialize useMvcState array if needed
+  component.useMvcState = component.useMvcState || [];
+
+  const mvcStateInfo = {
+    name: stateVar ? stateVar.name : null,
+    setter: setterVar ? setterVar.name : null,
+    propertyName: propertyName,
+    // Type will be inferred from ViewModel
+    type: 'object'
+  };
+
+  component.useMvcState.push(mvcStateInfo);
+
+  // Track as MVC state type
+  if (stateVar) {
+    component.stateTypes = component.stateTypes || new Map();
+    component.stateTypes.set(stateVar.name, 'mvc');
+  }
+}
+
+/**
+ * Extract useMvcViewModel hook
+ *
+ * Pattern: const viewModel = useMvcViewModel<TViewModel>()
+ *
+ * This hook provides read-only access to the entire MVC ViewModel.
+ * The babel plugin doesn't need to generate C# for this as it's
+ * purely client-side access to the embedded ViewModel JSON.
+ */
+function extractUseMvcViewModel(path, component) {
+  const parent = path.parent;
+
+  if (!t$b.isVariableDeclarator(parent)) return;
+  if (!t$b.isIdentifier(parent.id)) return;
+
+  const viewModelVarName = parent.id.name;
+
+  // Initialize useMvcViewModel array if needed
+  component.useMvcViewModel = component.useMvcViewModel || [];
+
+  component.useMvcViewModel.push({
+    name: viewModelVarName
+  });
+
+  // Note: This is primarily for documentation/tracking purposes.
+  // The actual ViewModel access happens client-side via window.__MINIMACT_VIEWMODEL__
+}
+
 var hooks = {
   extractHook: extractHook$1,
   extractUseState,
@@ -1903,7 +2379,9 @@ var hooks = {
   extractUseMacroTask,
   extractUseSignalR,
   extractUsePredictHint,
-  extractUseServerTask
+  extractUseServerTask,
+  extractUseMvcState,
+  extractUseMvcViewModel
 };
 
 /**
@@ -4434,6 +4912,7 @@ function processComponent$1(path, state) {
     props: [],
     useState: [],
     useClientState: [],
+    useStateX: [], // Declarative state projections
     useEffect: [],
     useRef: [],
     useMarkdown: [],
@@ -5239,6 +5718,54 @@ function generateComponent$1(component) {
     }
   }
 
+  // StateX projection attributes (for declarative state projections)
+  if (component.useStateX && component.useStateX.length > 0) {
+    for (let i = 0; i < component.useStateX.length; i++) {
+      const stateX = component.useStateX[i];
+      const stateKey = `stateX_${i}`;
+
+      for (const target of stateX.targets) {
+        const parts = [];
+
+        // Required: stateKey and selector
+        parts.push(`"${stateKey}"`);
+        parts.push(`"${target.selector}"`);
+
+        // Optional: Transform (C# lambda)
+        if (target.transform) {
+          parts.push(`Transform = @"${target.transform}"`);
+        }
+
+        // Optional: TransformId (registry reference)
+        if (target.transformId) {
+          parts.push(`TransformId = "${target.transformId}"`);
+        }
+
+        // Optional: ApplyAs mode
+        if (target.applyAs && target.applyAs !== 'textContent') {
+          parts.push(`ApplyAs = "${target.applyAs}"`);
+        }
+
+        // Optional: Property name
+        if (target.property) {
+          parts.push(`Property = "${target.property}"`);
+        }
+
+        // Optional: ApplyIf condition
+        if (target.applyIf && target.applyIf.csharpCode) {
+          parts.push(`ApplyIf = @"${target.applyIf.csharpCode}"`);
+        }
+
+        // Optional: Template hint
+        if (target.template) {
+          parts.push(`Template = "${target.template}"`);
+        }
+
+        lines.push(`[StateXTransform(${parts.join(', ')})]`);
+      }
+    }
+  }
+
   // Class declaration
   lines.push('[Component]');
 
@@ -5270,6 +5797,13 @@ function generateComponent$1(component) {
   for (const state of component.useState) {
     lines.push(`    [State]`);
     lines.push(`    private ${state.type} ${state.name} = ${state.initialValue};`);
+    lines.push('');
+  }
+
+  // State fields (useStateX)
+  for (const stateX of component.useStateX) {
+    lines.push(`    [State]`);
+    lines.push(`    private ${stateX.initialValueType} ${stateX.varName} = ${stateX.initialValue};`);
     lines.push('');
   }
 

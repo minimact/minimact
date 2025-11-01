@@ -75,6 +75,12 @@ function extractHook(path, component) {
     case 'usePaginatedServerTask':
       extractUsePaginatedServerTask(path, component);
       break;
+    case 'useMvcState':
+      extractUseMvcState(path, component);
+      break;
+    case 'useMvcViewModel':
+      extractUseMvcViewModel(path, component);
+      break;
   }
 }
 
@@ -642,6 +648,85 @@ function extractReturnType(asyncFunction) {
   return 'object';
 }
 
+/**
+ * Extract useMvcState hook
+ *
+ * Pattern: const [value, setValue] = useMvcState<T>('propertyName', options?)
+ *
+ * This hook accesses MVC ViewModel properties passed from the controller.
+ * The babel plugin treats these as special client-side state that maps
+ * to server ViewModel properties.
+ */
+function extractUseMvcState(path, component) {
+  const parent = path.parent;
+
+  if (!t.isVariableDeclarator(parent)) return;
+  if (!t.isArrayPattern(parent.id)) return;
+
+  const elements = parent.id.elements;
+  const propertyNameArg = path.node.arguments[0];
+
+  // Extract property name (must be string literal)
+  if (!t.isStringLiteral(propertyNameArg)) {
+    console.warn('[useMvcState] Property name must be a string literal');
+    return;
+  }
+
+  const propertyName = propertyNameArg.value;
+
+  // useMvcState can return either [value] or [value, setter]
+  // depending on mutability
+  const stateVar = elements[0];
+  const setterVar = elements.length > 1 ? elements[1] : null;
+
+  // Initialize useMvcState array if needed
+  component.useMvcState = component.useMvcState || [];
+
+  const mvcStateInfo = {
+    name: stateVar ? stateVar.name : null,
+    setter: setterVar ? setterVar.name : null,
+    propertyName: propertyName,
+    // Type will be inferred from ViewModel
+    type: 'object'
+  };
+
+  component.useMvcState.push(mvcStateInfo);
+
+  // Track as MVC state type
+  if (stateVar) {
+    component.stateTypes = component.stateTypes || new Map();
+    component.stateTypes.set(stateVar.name, 'mvc');
+  }
+}
+
+/**
+ * Extract useMvcViewModel hook
+ *
+ * Pattern: const viewModel = useMvcViewModel<TViewModel>()
+ *
+ * This hook provides read-only access to the entire MVC ViewModel.
+ * The babel plugin doesn't need to generate C# for this as it's
+ * purely client-side access to the embedded ViewModel JSON.
+ */
+function extractUseMvcViewModel(path, component) {
+  const parent = path.parent;
+
+  if (!t.isVariableDeclarator(parent)) return;
+  if (!t.isIdentifier(parent.id)) return;
+
+  const viewModelVarName = parent.id.name;
+
+  // Initialize useMvcViewModel array if needed
+  component.useMvcViewModel = component.useMvcViewModel || [];
+
+  component.useMvcViewModel.push({
+    name: viewModelVarName
+  });
+
+  // Note: This is primarily for documentation/tracking purposes.
+  // The actual ViewModel access happens client-side via window.__MINIMACT_VIEWMODEL__
+}
+
 module.exports = {
   extractHook,
   extractUseState,
@@ -659,5 +744,7 @@ module.exports = {
   extractUseMacroTask,
   extractUseSignalR,
   extractUsePredictHint,
-  extractUseServerTask
+  extractUseServerTask,
+  extractUseMvcState,
+  extractUseMvcViewModel
 };

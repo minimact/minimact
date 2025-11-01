@@ -22,7 +22,7 @@ export class ProjectManager {
   /**
    * Create a new Minimact project from template
    */
-  async createProject(projectPath: string, template: string): Promise<Project> {
+  async createProject(projectPath: string, template: string, options?: { createSolution?: boolean }): Promise<Project> {
     const projectName = path.basename(projectPath);
 
     // Ensure directory exists
@@ -30,6 +30,11 @@ export class ProjectManager {
 
     // Create project structure based on template
     await this.createProjectStructure(projectPath, projectName, template);
+
+    // Create Visual Studio solution file if requested (default: true)
+    if (options?.createSolution !== false) {
+      await this.createSolutionFile(projectPath, projectName);
+    }
 
     // Detect port from launchSettings.json
     const port = await this.detectPort(projectPath);
@@ -676,6 +681,31 @@ export function ProductDetailsPage() {
       productDetailsPageTsx,
       'utf-8'
     );
+  }
+
+  /**
+   * Create Visual Studio solution file (.sln)
+   */
+  private async createSolutionFile(projectPath: string, projectName: string): Promise<void> {
+    const { execa } = await import('execa');
+
+    try {
+      // Use dotnet CLI to create solution file
+      await execa('dotnet', ['new', 'sln', '-n', projectName], {
+        cwd: projectPath
+      });
+
+      // Add the project to the solution
+      const csprojFile = `${projectName}.csproj`;
+      await execa('dotnet', ['sln', 'add', csprojFile], {
+        cwd: projectPath
+      });
+
+      console.log(`[ProjectManager] Created solution file: ${projectName}.sln`);
+    } catch (error) {
+      console.warn('[ProjectManager] Failed to create solution file:', error);
+      // Don't throw - solution file is optional
+    }
   }
 }
 

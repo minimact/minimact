@@ -8,9 +8,9 @@ export function registerProjectHandlers(projectManager: ProjectManager): void {
   /**
    * Create a new Minimact project
    */
-  ipcMain.handle('project:create', async (_, projectPath: string, template: string) => {
+  ipcMain.handle('project:create', async (_, projectPath: string, template: string, options?: { createSolution?: boolean }) => {
     try {
-      const project = await projectManager.createProject(projectPath, template);
+      const project = await projectManager.createProject(projectPath, template, options);
       return { success: true, data: project };
     } catch (error: any) {
       return { success: false, error: error.message };
