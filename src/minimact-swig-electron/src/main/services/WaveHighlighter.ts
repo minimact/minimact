@@ -9,8 +9,11 @@
 import { ReactiveWave, WaveHighlightOptions, WaveColorSchemes, DOMPatchInfo } from '../types/cascade';
 
 export class WaveHighlighter {
-  private overlayWindow: Electron.BrowserWindow | null = null;
-  private highlightElements: HTMLElement[] = [];
+  // These fields are reserved for future overlay window implementation
+  // @ts-expect-error - Reserved for future use
+  private _overlayWindow: Electron.BrowserWindow | null = null;
+  // @ts-expect-error - Reserved for future use
+  private _highlightElements: HTMLElement[] = [];
 
   /**
    * Highlight cascading changes with wave animation
@@ -239,7 +242,7 @@ export class WaveHighlighter {
    */
   async clearHighlights(targetWindow?: Electron.BrowserWindow): Promise<void> {
     if (!targetWindow) {
-      this.highlightElements = [];
+      this._highlightElements = [];
       return;
     }
 
@@ -268,7 +271,7 @@ export class WaveHighlighter {
    */
   private getWaveColor(
     waveIndex: number,
-    totalWaves: number,
+    _totalWaves: number,
     scheme: 'rainbow' | 'heat' | 'ocean'
   ): string {
     const colors = WaveColorSchemes[scheme];

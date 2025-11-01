@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import type { ReactiveWave, PreviewCascadeResult, DOMPatchInfo } from '../../../../main/types/cascade';
+import type { ReactiveWave, PreviewCascadeResult } from '../../../../main/types/cascade';
 
 interface CascadeModalProps {
   cascadeData: PreviewCascadeResult;
@@ -27,20 +27,20 @@ export function CascadeModal({ cascadeData, onClose, onApply }: CascadeModalProp
         <div className="cascade-stats">
           <div className="stat">
             <label>Total Waves:</label>
-            <value className="stat-value">{cascadeData.totalWaves}</value>
+            <span className="stat-value">{cascadeData.totalWaves}</span>
           </div>
           <div className="stat">
             <label>Affected Elements:</label>
-            <value className="stat-value">{cascadeData.totalAffectedElements}</value>
+            <span className="stat-value">{cascadeData.totalAffectedElements}</span>
           </div>
           <div className="stat">
             <label>Computation Time:</label>
-            <value className="stat-value">{cascadeData.computationTime.toFixed(2)}ms</value>
+            <span className="stat-value">{cascadeData.computationTime.toFixed(2)}ms</span>
           </div>
           {cascadeData.hasCycle && (
             <div className="stat warning">
               <label>⚠️ Cycle Detected:</label>
-              <value className="stat-value">Infinite loop possible!</value>
+              <span className="stat-value">Infinite loop possible!</span>
             </div>
           )}
         </div>
@@ -277,7 +277,7 @@ function WaveCard({ wave, isSelected, onClick }: WaveCardProps) {
         {!wave.isCycle && (
           <div className="wave-elements">
             <label>DOM Changes:</label>
-            <value>{wave.domElements.length} elements</value>
+            <span>{wave.domElements.length} elements</span>
           </div>
         )}
       </div>
@@ -370,7 +370,7 @@ function WaveCard({ wave, isSelected, onClick }: WaveCardProps) {
           font-family: 'Courier New', monospace;
         }
 
-        .wave-elements value {
+        .wave-elements span {
           color: #e0e0e0;
         }
       `}</style>

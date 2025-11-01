@@ -4,6 +4,13 @@ import * as path from 'path';
 import type { TranspileResult, TranspileProjectResult } from '../types/project';
 
 /**
+ * Extended metadata interface that includes our custom minimactCSharp property
+ */
+interface MinimactBabelFileMetadata extends babel.BabelFileMetadata {
+  minimactCSharp?: string;
+}
+
+/**
  * TranspilerService - Transpiles TSX to C# using babel-plugin-minimact
  *
  * Responsibilities:
@@ -60,7 +67,7 @@ export class TranspilerService {
       }
 
       // Extract C# code from metadata (babel plugin stores it there)
-      const csharpCode = result.metadata?.minimactCSharp;
+      const csharpCode = (result.metadata as MinimactBabelFileMetadata | undefined)?.minimactCSharp;
 
       if (!csharpCode) {
         throw new Error('Transpilation did not generate C# code. Check if the file contains valid Minimact components.');
