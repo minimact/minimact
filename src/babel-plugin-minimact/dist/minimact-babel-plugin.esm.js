@@ -66,7 +66,7 @@ var helpers = {
  * Type Conversion
  */
 
-const t$e = globalThis.__BABEL_TYPES__;
+const t$g = globalThis.__BABEL_TYPES__;
 
 /**
  * Convert TypeScript type annotation to C# type
@@ -75,30 +75,30 @@ function tsTypeToCSharpType$3(tsType) {
   if (!tsType) return 'dynamic';
 
   // TSStringKeyword -> string
-  if (t$e.isTSStringKeyword(tsType)) return 'string';
+  if (t$g.isTSStringKeyword(tsType)) return 'string';
 
   // TSNumberKeyword -> double
-  if (t$e.isTSNumberKeyword(tsType)) return 'double';
+  if (t$g.isTSNumberKeyword(tsType)) return 'double';
 
   // TSBooleanKeyword -> bool
-  if (t$e.isTSBooleanKeyword(tsType)) return 'bool';
+  if (t$g.isTSBooleanKeyword(tsType)) return 'bool';
 
   // TSAnyKeyword -> dynamic
-  if (t$e.isTSAnyKeyword(tsType)) return 'dynamic';
+  if (t$g.isTSAnyKeyword(tsType)) return 'dynamic';
 
   // TSArrayType -> List<T>
-  if (t$e.isTSArrayType(tsType)) {
+  if (t$g.isTSArrayType(tsType)) {
     const elementType = tsTypeToCSharpType$3(tsType.elementType);
     return `List<${elementType}>`;
   }
 
   // TSTypeLiteral (object type) -> dynamic
-  if (t$e.isTSTypeLiteral(tsType)) return 'dynamic';
+  if (t$g.isTSTypeLiteral(tsType)) return 'dynamic';
 
   // TSTypeReference (custom types, interfaces)
-  if (t$e.isTSTypeReference(tsType)) {
+  if (t$g.isTSTypeReference(tsType)) {
     // Handle @minimact/mvc type mappings
-    if (t$e.isIdentifier(tsType.typeName)) {
+    if (t$g.isIdentifier(tsType.typeName)) {
       const typeName = tsType.typeName.name;
 
       // Map @minimact/mvc types to C# types
@@ -140,12 +140,12 @@ function tsTypeToCSharpType$3(tsType) {
 function inferType$2(node) {
   if (!node) return 'dynamic';
 
-  if (t$e.isStringLiteral(node)) return 'string';
-  if (t$e.isNumericLiteral(node)) return 'int';
-  if (t$e.isBooleanLiteral(node)) return 'bool';
-  if (t$e.isNullLiteral(node)) return 'dynamic';
-  if (t$e.isArrayExpression(node)) return 'List<dynamic>';
-  if (t$e.isObjectExpression(node)) return 'dynamic';
+  if (t$g.isStringLiteral(node)) return 'string';
+  if (t$g.isNumericLiteral(node)) return 'int';
+  if (t$g.isBooleanLiteral(node)) return 'bool';
+  if (t$g.isNullLiteral(node)) return 'dynamic';
+  if (t$g.isArrayExpression(node)) return 'List<dynamic>';
+  if (t$g.isObjectExpression(node)) return 'dynamic';
 
   return 'dynamic';
 }
@@ -160,7 +160,7 @@ var typeConversion = {
  * Dependency Analyzer
  */
 
-const t$d = globalThis.__BABEL_TYPES__;
+const t$f = globalThis.__BABEL_TYPES__;
 
 /**
  * Analyze dependencies in JSX expressions
@@ -173,7 +173,7 @@ function analyzeDependencies(jsxExpr, component) {
     if (!node) return;
 
     // Check if this is an identifier that's a state variable
-    if (t$d.isIdentifier(node)) {
+    if (t$f.isIdentifier(node)) {
       const name = node.name;
       if (component.stateTypes.has(name)) {
         deps.add({
@@ -184,25 +184,25 @@ function analyzeDependencies(jsxExpr, component) {
     }
 
     // Recursively walk the tree
-    if (t$d.isConditionalExpression(node)) {
+    if (t$f.isConditionalExpression(node)) {
       walk(node.test);
       walk(node.consequent);
       walk(node.alternate);
-    } else if (t$d.isLogicalExpression(node)) {
+    } else if (t$f.isLogicalExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$d.isMemberExpression(node)) {
+    } else if (t$f.isMemberExpression(node)) {
       walk(node.object);
       walk(node.property);
-    } else if (t$d.isCallExpression(node)) {
+    } else if (t$f.isCallExpression(node)) {
       walk(node.callee);
       node.arguments.forEach(walk);
-    } else if (t$d.isBinaryExpression(node)) {
+    } else if (t$f.isBinaryExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$d.isUnaryExpression(node)) {
+    } else if (t$f.isUnaryExpression(node)) {
       walk(node.argument);
-    } else if (t$d.isArrowFunctionExpression(node) || t$d.isFunctionExpression(node)) {
+    } else if (t$f.isArrowFunctionExpression(node) || t$f.isFunctionExpression(node)) {
       walk(node.body);
     }
   }
@@ -261,148 +261,162 @@ var classification = {
  * Pattern Detection
  */
 
-var detection;
-var hasRequiredDetection;
-
-function requireDetection () {
-	if (hasRequiredDetection) return detection;
-	hasRequiredDetection = 1;
-	const t = globalThis.__BABEL_TYPES__;
+const t$e = globalThis.__BABEL_TYPES__;
 
 
-	/**
-	 * Detect if attributes contain spread operators
-	 */
-	function hasSpreadProps(attributes) {
-	  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
-	}
-
-	/**
-	 * Detect if children contain dynamic patterns (like .map())
-	 */
-	function hasDynamicChildren(children) {
-	  return children.some(child => {
-	    if (!t.isJSXExpressionContainer(child)) return false;
-	    const expr = child.expression;
-
-	    // Check for .map() calls
-	    if (t.isCallExpression(expr) &&
-	        t.isMemberExpression(expr.callee) &&
-	        t.isIdentifier(expr.callee.property, { name: 'map' })) {
-	      return true;
-	    }
-
-	    // Check for array expressions from LINQ/Select
-	    if (t.isCallExpression(expr) &&
-	        t.isMemberExpression(expr.callee) &&
-	        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-	         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-	      return true;
-	    }
-
-	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-	    if (t.isConditionalExpression(expr)) {
-	      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
-	          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
-	        return true;
-	      }
-	    }
-
-	    // Check for logical expressions with JSX: {condition && <Element/>}
-	    if (t.isLogicalExpression(expr)) {
-	      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
-	        return true;
-	      }
-	    }
-
-	    return false;
-	  });
-	}
-
-	/**
-	 * Detect if props contain complex expressions
-	 */
-	function hasComplexProps(attributes) {
-	  return attributes.some(attr => {
-	    if (!t.isJSXAttribute(attr)) return false;
-	    const value = attr.value;
-
-	    if (!t.isJSXExpressionContainer(value)) return false;
-	    const expr = value.expression;
-
-	    // Check for conditional spread: {...(condition && { prop: value })}
-	    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
-	      return true;
-	    }
-
-	    return false;
-	  });
-	}
-
-	detection = {
-	  hasSpreadProps,
-	  hasDynamicChildren,
-	  hasComplexProps
-	};
-	return detection;
+/**
+ * Detect if attributes contain spread operators
+ */
+function hasSpreadProps(attributes) {
+  return attributes.some(attr => t$e.isJSXSpreadAttribute(attr));
 }
+
+/**
+ * Detect if children contain dynamic patterns (like .map())
+ */
+function hasDynamicChildren(children) {
+  return children.some(child => {
+    if (!t$e.isJSXExpressionContainer(child)) return false;
+    const expr = child.expression;
+
+    // Check for .map() calls
+    if (t$e.isCallExpression(expr) &&
+        t$e.isMemberExpression(expr.callee) &&
+        t$e.isIdentifier(expr.callee.property, { name: 'map' })) {
+      return true;
+    }
+
+    // Check for array expressions from LINQ/Select
+    if (t$e.isCallExpression(expr) &&
+        t$e.isMemberExpression(expr.callee) &&
+        (t$e.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+         t$e.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+      return true;
+    }
+
+    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+    if (t$e.isConditionalExpression(expr)) {
+      if (t$e.isJSXElement(expr.consequent) || t$e.isJSXFragment(expr.consequent) ||
+          t$e.isJSXElement(expr.alternate) || t$e.isJSXFragment(expr.alternate)) {
+        return true;
+      }
+    }
+
+    // Check for logical expressions with JSX: {condition && <Element/>}
+    if (t$e.isLogicalExpression(expr)) {
+      if (t$e.isJSXElement(expr.right) || t$e.isJSXFragment(expr.right)) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+}
+
+/**
+ * Detect if props contain complex expressions
+ */
+function hasComplexProps(attributes) {
+  return attributes.some(attr => {
+    if (!t$e.isJSXAttribute(attr)) return false;
+    const value = attr.value;
+
+    if (!t$e.isJSXExpressionContainer(value)) return false;
+    const expr = value.expression;
+
+    // Check for conditional spread: {...(condition && { prop: value })}
+    if (t$e.isConditionalExpression(expr) || t$e.isLogicalExpression(expr)) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+var detection = {
+  hasSpreadProps,
+  hasDynamicChildren,
+  hasComplexProps
+};
 
 /**
  * Event Handlers Extractor
  */
 
-var eventHandlers;
-var hasRequiredEventHandlers;
+const t$d = globalThis.__BABEL_TYPES__;
 
-function requireEventHandlers () {
-	if (hasRequiredEventHandlers) return eventHandlers;
-	hasRequiredEventHandlers = 1;
-	const t = globalThis.__BABEL_TYPES__;
+/**
+ * Extract event handler name
+ */
+function extractEventHandler(value, component) {
+  if (t$d.isStringLiteral(value)) {
+    return value.value;
+  }
 
-	/**
-	 * Extract event handler name
-	 */
-	function extractEventHandler(value, component) {
-	  if (t.isStringLiteral(value)) {
-	    return value.value;
-	  }
+  if (t$d.isJSXExpressionContainer(value)) {
+    const expr = value.expression;
 
-	  if (t.isJSXExpressionContainer(value)) {
-	    const expr = value.expression;
+    if (t$d.isArrowFunctionExpression(expr) || t$d.isFunctionExpression(expr)) {
+      // Inline arrow function - extract to named method
+      const handlerName = `Handle${component.eventHandlers.length}`;
 
-	    if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) {
-	      // Inline arrow function - extract to named method
-	      const handlerName = `Handle${component.eventHandlers.length}`;
-	      component.eventHandlers.push({
-	        name: handlerName,
-	        body: expr.body,
-	        params: expr.params  // ✅ FIX: Preserve function parameters
-	      });
-	      return handlerName;
-	    }
+      // Simplify common pattern: (e) => func(e.target.value)
+      // Transform to: (value) => func(value)
+      let body = expr.body;
+      let params = expr.params;
 
-	    if (t.isIdentifier(expr)) {
-	      return expr.name;
-	    }
+      if (t$d.isCallExpression(body) && params.length === 1 && t$d.isIdentifier(params[0])) {
+        const eventParam = params[0].name; // e.g., "e"
+        const args = body.arguments;
 
-	    if (t.isCallExpression(expr)) {
-	      // () => someMethod() - extract
-	      const handlerName = `Handle${component.eventHandlers.length}`;
-	      component.eventHandlers.push({ name: handlerName, body: expr });
-	      return handlerName;
-	    }
-	  }
+        // Check if any argument is e.target.value
+        const transformedArgs = args.map(arg => {
+          if (t$d.isMemberExpression(arg) &&
+              t$d.isMemberExpression(arg.object) &&
+              t$d.isIdentifier(arg.object.object, { name: eventParam }) &&
+              t$d.isIdentifier(arg.object.property, { name: 'target' }) &&
+              t$d.isIdentifier(arg.property, { name: 'value' })) {
+            // Replace e.target.value with direct value parameter
+            return t$d.identifier('value');
+          }
+          return arg;
+        });
 
-	  return 'UnknownHandler';
-	}
+        // If we transformed any args, update the body and param name
+        if (transformedArgs.some((arg, i) => arg !== args[i])) {
+          body = t$d.callExpression(body.callee, transformedArgs);
+          params = [t$d.identifier('value')];
+        }
+      }
 
+      component.eventHandlers.push({
+        name: handlerName,
+        body: body,
+        params: params
+      });
+      return handlerName;
+    }
 
+    if (t$d.isIdentifier(expr)) {
+      return expr.name;
+    }
 
-	eventHandlers = {
-	  extractEventHandler
-	};
-	return eventHandlers;
+    if (t$d.isCallExpression(expr)) {
+      // () => someMethod() - extract
+      const handlerName = `Handle${component.eventHandlers.length}`;
+      component.eventHandlers.push({ name: handlerName, body: expr });
+      return handlerName;
+    }
+  }
+
+  return 'UnknownHandler';
 }
+
+
+
+var eventHandlers = {
+  extractEventHandler
+};
 
 /**
  * Generate C# code for Plugin elements
@@ -552,6 +566,72 @@ function requirePlugin () {
 }
 
 /**
+ * Style Converter
+ * Converts JavaScript style objects to CSS strings
+ */
+
+var styleConverter;
+var hasRequiredStyleConverter;
+
+function requireStyleConverter () {
+	if (hasRequiredStyleConverter) return styleConverter;
+	hasRequiredStyleConverter = 1;
+	const t = globalThis.__BABEL_TYPES__;
+
+	/**
+	 * Convert camelCase to kebab-case
+	 * Example: marginTop -> margin-top
+	 */
+	function camelToKebab(str) {
+	  return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+	}
+
+	/**
+	 * Convert a style value to CSS string
+	 */
+	function convertStyleValue(value) {
+	  if (t.isStringLiteral(value)) {
+	    return value.value;
+	  } else if (t.isNumericLiteral(value)) {
+	    // Add 'px' for numeric values (except certain properties)
+	    return `${value.value}px`;
+	  } else if (t.isIdentifier(value)) {
+	    return value.name;
+	  }
+	  return String(value);
+	}
+
+	/**
+	 * Convert a JavaScript style object expression to CSS string
+	 * Example: { marginTop: '12px', color: 'red' } -> "margin-top: 12px; color: red;"
+	 */
+	function convertStyleObjectToCss(objectExpression) {
+	  if (!t.isObjectExpression(objectExpression)) {
+	    throw new Error('Expected ObjectExpression for style');
+	  }
+
+	  const cssProperties = [];
+
+	  for (const prop of objectExpression.properties) {
+	    if (t.isObjectProperty(prop) && !prop.computed) {
+	      const key = t.isIdentifier(prop.key) ? prop.key.name : String(prop.key.value);
+	      const cssKey = camelToKebab(key);
+	      const cssValue = convertStyleValue(prop.value);
+	      cssProperties.push(`${cssKey}: ${cssValue}`);
+	    }
+	  }
+
+	  return cssProperties.join('; ');
+	}
+
+	styleConverter = {
+	  convertStyleObjectToCss,
+	  camelToKebab
+	};
+	return styleConverter;
+}
+
+/**
  * JSX Generators
  */
 
@@ -563,8 +643,8 @@ function requireJsx () {
 	hasRequiredJsx = 1;
 	const t = globalThis.__BABEL_TYPES__;
 	const { escapeCSharpString } = helpers;
-	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
-	const { extractEventHandler } = requireEventHandlers();
+	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
+	const { extractEventHandler } = eventHandlers;
 	// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
 	/**
@@ -668,9 +748,16 @@ function requireJsx () {
 	          // String literal - use as-is with quotes
 	          props.push(`["${name}"] = "${escapeCSharpString(value.value)}"`);
 	        } else if (t.isJSXExpressionContainer(value)) {
-	          // Expression - wrap in string interpolation
-	          const expr = _generateCSharpExpression(value.expression);
-	          props.push(`["${name}"] = $"{${expr}}"`);
+	          // Special handling for style attribute with object expression
+	          if (name === 'style' && t.isObjectExpression(value.expression)) {
+	            const { convertStyleObjectToCss } = requireStyleConverter();
+	            const cssString = convertStyleObjectToCss(value.expression);
+	            props.push(`["style"] = "${cssString}"`);
+	          } else {
+	            // Expression - wrap in string interpolation
+	            const expr = _generateCSharpExpression(value.expression);
+	            props.push(`["${name}"] = $"{${expr}}"`);
+	          }
 	        } else {
 	          // Fallback
 	          props.push(`["${name}"] = ""`);
@@ -785,7 +872,14 @@ function requireRuntimeHelpers () {
 	      if (t.isStringLiteral(value)) {
 	        propValue = `"${escapeCSharpString(value.value)}"`;
 	      } else if (t.isJSXExpressionContainer(value)) {
-	        propValue = generateCSharpExpression(value.expression);
+	        // Special handling for style attribute with object expression
+	        if (name === 'style' && t.isObjectExpression(value.expression)) {
+	          const { convertStyleObjectToCss } = requireStyleConverter();
+	          const cssString = convertStyleObjectToCss(value.expression);
+	          propValue = `"${cssString}"`;
+	        } else {
+	          propValue = generateCSharpExpression(value.expression);
+	        }
 	      } else if (value === null) {
 	        propValue = '"true"'; // Boolean attribute like <input disabled />
 	      } else {

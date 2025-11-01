@@ -35,7 +35,14 @@ function generateRuntimeHelperCall(tagName, attributes, children, component, ind
       if (t.isStringLiteral(value)) {
         propValue = `"${escapeCSharpString(value.value)}"`;
       } else if (t.isJSXExpressionContainer(value)) {
-        propValue = generateCSharpExpression(value.expression);
+        // Special handling for style attribute with object expression
+        if (name === 'style' && t.isObjectExpression(value.expression)) {
+          const { convertStyleObjectToCss } = require('../utils/styleConverter.cjs');
+          const cssString = convertStyleObjectToCss(value.expression);
+          propValue = `"${cssString}"`;
+        } else {
+          propValue = generateCSharpExpression(value.expression);
+        }
       } else if (value === null) {
         propValue = '"true"'; // Boolean attribute like <input disabled />
       } else {

@@ -213,6 +213,20 @@ export class EventDelegation {
         argsObj.value = target.value;
       }
 
+      // Convert argsObj to array format expected by server
+      // Server expects: object[] args, so we pass the actual argument values as an array
+      const argsArray: any[] = [];
+
+      // For input/change events, pass the value as the first argument
+      if (argsObj.value !== undefined) {
+        argsArray.push(argsObj.value);
+      }
+
+      // For handlers with explicit args, add those
+      if (argsObj.args && Array.isArray(argsObj.args)) {
+        argsArray.push(...argsObj.args);
+      }
+
       // Check hint queue for cached prediction (CACHE HIT!)
       if (this.hintQueue && this.domPatcher) {
         // Build hint ID based on method name (simplified - in production would be more sophisticated)
@@ -247,7 +261,7 @@ export class EventDelegation {
             });
 
             // Still notify server in background for verification
-            this.componentMethodInvoker(handler.componentId, handler.methodName, argsObj).catch(err => {
+            this.componentMethodInvoker(handler.componentId, handler.methodName, argsArray).catch(err => {
               console.error('[Minimact] Background server notification failed:', err);
             });
 
@@ -257,7 +271,7 @@ export class EventDelegation {
       }
 
       // 🔴 CACHE MISS - No prediction found, send to server
-      await this.componentMethodInvoker(handler.componentId, handler.methodName, argsObj);
+      await this.componentMethodInvoker(handler.componentId, handler.methodName, argsArray);
 
       const latency = performance.now() - startTime;
 

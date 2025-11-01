@@ -109,9 +109,16 @@ function generateJSXElement(node, component, indent) {
           // String literal - use as-is with quotes
           props.push(`["${name}"] = "${escapeCSharpString(value.value)}"`);
         } else if (t.isJSXExpressionContainer(value)) {
-          // Expression - wrap in string interpolation
-          const expr = _generateCSharpExpression(value.expression);
-          props.push(`["${name}"] = $"{${expr}}"`);
+          // Special handling for style attribute with object expression
+          if (name === 'style' && t.isObjectExpression(value.expression)) {
+            const { convertStyleObjectToCss } = require('../utils/styleConverter.cjs');
+            const cssString = convertStyleObjectToCss(value.expression);
+            props.push(`["style"] = "${cssString}"`);
+          } else {
+            // Expression - wrap in string interpolation
+            const expr = _generateCSharpExpression(value.expression);
+            props.push(`["${name}"] = $"{${expr}}"`);
+          }
         } else {
           // Fallback
           props.push(`["${name}"] = ""`);

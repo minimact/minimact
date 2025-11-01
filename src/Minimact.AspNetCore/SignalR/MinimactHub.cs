@@ -529,6 +529,22 @@ public class MinimactHub : Hub
             return ConvertJsonElementToType(element, underlyingType);
         }
 
+        // Handle dynamic (object type) - infer type from JsonElement
+        if (targetType == typeof(object))
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.String => element.GetString(),
+                JsonValueKind.Number => element.TryGetInt32(out var i) ? i : element.GetDouble(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                JsonValueKind.Array => element.EnumerateArray().Select(e => ConvertJsonElementToType(e, typeof(object))).ToArray(),
+                JsonValueKind.Object => JsonSerializer.Deserialize<Dictionary<string, object>>(element.GetRawText()),
+                _ => element.GetRawText()
+            };
+        }
+
         // Handle primitives
         if (targetType == typeof(string))
             return element.GetString();

@@ -287,14 +287,81 @@ public class VNodeConverter : JsonConverter
         var obj = Newtonsoft.Json.Linq.JObject.Load(reader);
         var type = obj["type"]?.ToString();
 
-        return type switch
+        // Manually deserialize to avoid infinite recursion
+        // Don't use the converter for nested VNodes - they'll use this converter automatically
+        switch (type)
         {
-            "Element" => obj.ToObject<VElement>(serializer),
-            "Text" => obj.ToObject<VText>(serializer),
-            "Fragment" => obj.ToObject<Fragment>(serializer),
-            "RawHtml" => obj.ToObject<DivRawHtml>(serializer),
-            _ => throw new JsonException($"Unknown VNode type: {type}")
-        };
+            case "Element":
+                var tag = obj["tag"]?.ToString() ?? "";
+                var propsObj = obj["props"] as Newtonsoft.Json.Linq.JObject;
+                var props = propsObj?.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+                var childrenArray = obj["children"] as Newtonsoft.Json.Linq.JArray;
+                var children = new List<VNode>();
+
+                if (childrenArray != null)
+                {
+                    foreach (var childToken in childrenArray)
+                    {
+                        var childObj = childToken as Newtonsoft.Json.Linq.JObject;
+                        if (childObj != null)
+                        {
+                            // Recursively deserialize child VNodes - they'll use this converter
+                            using (var childReader = childObj.CreateReader())
+                            {
+                                var child = serializer.Deserialize<VNode>(childReader);
+                                if (child != null)
+                                {
+                                    children.Add(child);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var element = new VElement(tag, props, children.ToArray());
+                var key = obj["key"]?.ToString();
+                if (key != null)
+                {
+                    element.Key = key;
+                }
+                return element;
+
+            case "Text":
+                var content = obj["content"]?.ToString() ?? "";
+                return new VText(content);
+
+            case "Fragment":
+                var fragChildrenArray = obj["children"] as Newtonsoft.Json.Linq.JArray;
+                var fragChildren = new List<VNode>();
+
+                if (fragChildrenArray != null)
+                {
+                    foreach (var childToken in fragChildrenArray)
+                    {
+                        var childObj = childToken as Newtonsoft.Json.Linq.JObject;
+                        if (childObj != null)
+                        {
+                            using (var childReader = childObj.CreateReader())
+                            {
+                                var child = serializer.Deserialize<VNode>(childReader);
+                                if (child != null)
+                                {
+                                    fragChildren.Add(child);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return new Fragment(fragChildren.ToArray());
+
+            case "RawHtml":
+                var html = obj["html"]?.ToString() ?? "";
+                return new DivRawHtml(html);
+
+            default:
+                throw new JsonException($"Unknown VNode type: {type}");
+        }
     }
 
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
@@ -342,6 +409,17 @@ public class VNodeConverter : JsonConverter
             writer.WriteValue("RawHtml");
             writer.WritePropertyName("html");
             writer.WriteValue(rawHtml.Html);
+            writer.WriteEndObject();
+        }
+        else
+        {
+            // Unknown VNode type - write minimal valid structure
+            Console.WriteLine($"[VNodeConverter] Warning: Unknown VNode type: {value?.GetType().Name ?? "null"}");
+            writer.WriteStartObject();
+            writer.WritePropertyName("type");
+            writer.WriteValue("Text");
+            writer.WritePropertyName("content");
+            writer.WriteValue($"[Error: Unknown VNode type: {value?.GetType().Name ?? "null"}]");
             writer.WriteEndObject();
         }
     }
