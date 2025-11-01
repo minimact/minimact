@@ -4,7 +4,7 @@
 
 const t = require('@babel/types');
 const { generateCSharpExpression } = require('../generators/expressions.cjs');
-const { inferType } = require('../types/typeConversion.cjs');
+const { inferType, tsTypeToCSharpType } = require('../types/typeConversion.cjs');
 const { extractUseStateX } = require('./useStateX.cjs');
 
 /**
@@ -679,6 +679,10 @@ function extractUseMvcState(path, component) {
   const stateVar = elements[0];
   const setterVar = elements.length > 1 ? elements[1] : null;
 
+  // Extract TypeScript generic type: useMvcState<string>('name')
+  const typeParam = path.node.typeParameters?.params[0];
+  const csharpType = typeParam ? tsTypeToCSharpType(typeParam) : 'dynamic';
+
   // Initialize useMvcState array if needed
   component.useMvcState = component.useMvcState || [];
 
@@ -686,8 +690,7 @@ function extractUseMvcState(path, component) {
     name: stateVar ? stateVar.name : null,
     setter: setterVar ? setterVar.name : null,
     propertyName: propertyName,
-    // Type will be inferred from ViewModel
-    type: 'object'
+    type: csharpType  // ✅ Use extracted TypeScript type
   };
 
   component.useMvcState.push(mvcStateInfo);

@@ -200,6 +200,22 @@ function generateCSharpExpression(node, inInterpolation = false) {
     return node.name;
   }
 
+  // Handle optional chaining: viewModel?.userEmail → viewModel?.UserEmail
+  if (t.isOptionalMemberExpression(node)) {
+    const object = generateCSharpExpression(node.object, inInterpolation);
+    const propertyName = t.isIdentifier(node.property) ? node.property.name : null;
+
+    // Capitalize first letter for C# property convention (userEmail → UserEmail)
+    const csharpProperty = propertyName
+      ? propertyName.charAt(0).toUpperCase() + propertyName.slice(1)
+      : propertyName;
+
+    const property = node.computed
+      ? `?[${generateCSharpExpression(node.property, inInterpolation)}]`
+      : `?.${csharpProperty}`;
+    return `${object}${property}`;
+  }
+
   if (t.isMemberExpression(node)) {
     const object = generateCSharpExpression(node.object);
     const propertyName = t.isIdentifier(node.property) ? node.property.name : null;
