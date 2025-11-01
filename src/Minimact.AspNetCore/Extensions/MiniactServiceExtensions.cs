@@ -39,7 +39,13 @@ public static class MinimactServiceExtensions
         });
 
         // Add SignalR for real-time updates
-        services.AddSignalR();
+        // IMPORTANT: Use Newtonsoft.Json because VNodeConverter uses Newtonsoft attributes
+        services.AddSignalR()
+            .AddNewtonsoftJsonProtocol(options =>
+            {
+                options.PayloadSerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                options.PayloadSerializerSettings.Converters.Add(new VNodeConverter());
+            });
 
         // Register hot reload services (development only)
         services.AddSingleton<HotReloadFileWatcher>();
