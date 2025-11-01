@@ -680,8 +680,18 @@ function extractUseMvcState(path, component) {
   const setterVar = elements.length > 1 ? elements[1] : null;
 
   // Extract TypeScript generic type: useMvcState<string>('name')
+  // But prefer the type from the ViewModel interface if available (more reliable)
   const typeParam = path.node.typeParameters?.params[0];
-  const csharpType = typeParam ? tsTypeToCSharpType(typeParam) : 'dynamic';
+  let csharpType = typeParam ? tsTypeToCSharpType(typeParam) : 'dynamic';
+
+  // Try to find the actual type from the ViewModel interface
+  const interfaceType = findViewModelPropertyType(path, propertyName, component);
+  if (interfaceType) {
+    csharpType = interfaceType;
+    console.log(`[useMvcState] Found type for '${propertyName}' from interface: ${interfaceType}`);
+  } else {
+    console.log(`[useMvcState] Using generic type for '${propertyName}': ${csharpType}`);
+  }
 
   // Initialize useMvcState array if needed
   component.useMvcState = component.useMvcState || [];
@@ -690,7 +700,7 @@ function extractUseMvcState(path, component) {
     name: stateVar ? stateVar.name : null,
     setter: setterVar ? setterVar.name : null,
     propertyName: propertyName,
-    type: csharpType  // ✅ Use extracted TypeScript type
+    type: csharpType  // ✅ Use type from interface (preferred) or generic fallback
   };
 
   component.useMvcState.push(mvcStateInfo);
@@ -728,6 +738,70 @@ function extractUseMvcViewModel(path, component) {
 
   // Note: This is primarily for documentation/tracking purposes.
   // The actual ViewModel access happens client-side via window.__MINIMACT_VIEWMODEL__
+}
+
+/**
+ * Find the type of a property from the ViewModel interface
+ *
+ * Searches the AST for an interface named *ViewModel and extracts the property type
+ */
+function findViewModelPropertyType(path, propertyName, component) {
+  // Find the program (top-level) node
+  let programPath = path;
+  while (programPath && !t.isProgram(programPath.node)) {
+    programPath = programPath.parentPath;
+  }
+
+  if (!programPath) {
+    console.log(`[findViewModelPropertyType] No program path found for ${propertyName}`);
+    return null;
+  }
+
+  // Search for interface declarations
+  let viewModelInterface = null;
+  let interfaceCount = 0;
+
+  programPath.traverse({
+    TSInterfaceDeclaration(interfacePath) {
+      interfaceCount++;
+      const interfaceName = interfacePath.node.id.name;
+      console.log(`[findViewModelPropertyType] Found interface #${interfaceCount}: ${interfaceName}`);
+
+      // Look for interfaces ending with "ViewModel"
+      if (interfaceName.endsWith('ViewModel')) {
+        viewModelInterface = interfacePath.node;
+        console.log(`[findViewModelPropertyType] ✅ Using interface: ${interfaceName}`);
+      }
+    }
+  });
+
+  console.log(`[findViewModelPropertyType] Total interfaces found: ${interfaceCount}`);
+
+  if (!viewModelInterface) {
+    console.log(`[findViewModelPropertyType] ❌ No ViewModel interface found`);
+    return null;
+  }
+
+  // Find the property in the interface
+  for (const member of viewModelInterface.body.body) {
+    if (t.isTSPropertySignature(member)) {
+      const key = member.key;
+
+      if (t.isIdentifier(key) && key.name === propertyName) {
+        // Found the property! Extract its type
+        const typeAnnotation = member.typeAnnotation?.typeAnnotation;
+        console.log(`[findViewModelPropertyType] Found property ${propertyName}, typeAnnotation:`, typeAnnotation);
+        if (typeAnnotation) {
+          const csharpType = tsTypeToCSharpType(typeAnnotation);
+          console.log(`[findViewModelPropertyType] Mapped ${propertyName} type to: ${csharpType}`);
+          return csharpType;
+        }
+      }
+    }
+  }
+
+  console.log(`[findViewModelPropertyType] Property ${propertyName} not found in interface`);
+  return null;
 }
 
 module.exports = {

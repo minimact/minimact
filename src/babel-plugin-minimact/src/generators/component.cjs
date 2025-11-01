@@ -111,12 +111,12 @@ function generateComponent(component) {
   // MVC State fields (useMvcState)
   // ❌ DO NOT GENERATE [State] FIELDS FOR useMvcState!
   // MVC ViewModel already populates these values in the State dictionary.
-  // Instead, generate readonly properties that access State dictionary.
-  // Use dynamic to avoid type mismatch (ViewModel has correct types).
+  // Instead, generate readonly properties that access State dictionary with typed GetState<T>.
   if (component.useMvcState) {
     for (const mvcState of component.useMvcState) {
+      const csharpType = mvcState.type || 'dynamic';
       lines.push(`    // MVC State property: ${mvcState.propertyName}`);
-      lines.push(`    private dynamic ${mvcState.name} => State["${mvcState.propertyName}"];`);
+      lines.push(`    private ${csharpType} ${mvcState.name} => GetState<${csharpType}>("${mvcState.propertyName}");`);
       lines.push('');
     }
   }

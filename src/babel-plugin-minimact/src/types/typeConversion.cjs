@@ -31,8 +31,40 @@ function tsTypeToCSharpType(tsType) {
   // TSTypeLiteral (object type) -> dynamic
   if (t.isTSTypeLiteral(tsType)) return 'dynamic';
 
-  // TSTypeReference (custom types, interfaces) -> dynamic
-  if (t.isTSTypeReference(tsType)) return 'dynamic';
+  // TSTypeReference (custom types, interfaces)
+  if (t.isTSTypeReference(tsType)) {
+    // Handle @minimact/mvc type mappings
+    if (t.isIdentifier(tsType.typeName)) {
+      const typeName = tsType.typeName.name;
+
+      // Map @minimact/mvc types to C# types
+      const typeMap = {
+        'decimal': 'decimal',
+        'int': 'int',
+        'int32': 'int',
+        'int64': 'long',
+        'long': 'long',
+        'float': 'float',
+        'float32': 'float',
+        'float64': 'double',
+        'double': 'double',
+        'short': 'short',
+        'int16': 'short',
+        'byte': 'byte',
+        'Guid': 'Guid',
+        'DateTime': 'DateTime',
+        'DateOnly': 'DateOnly',
+        'TimeOnly': 'TimeOnly'
+      };
+
+      if (typeMap[typeName]) {
+        return typeMap[typeName];
+      }
+    }
+
+    // Other type references default to dynamic
+    return 'dynamic';
+  }
 
   // Default to dynamic for full JSX semantics
   return 'dynamic';
