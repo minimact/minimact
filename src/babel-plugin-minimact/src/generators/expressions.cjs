@@ -63,10 +63,10 @@ function generateJSXExpression(expr, component, indent) {
     const condition = generateBooleanExpression(expr.test);
     const consequent = t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)
       ? generateRuntimeHelperForJSXNode(expr.consequent, component, indent)
-      : generateCSharpExpression(expr.consequent, true); // inInterpolation=true
+      : generateCSharpExpression(expr.consequent, false); // Normal C# expression context
     const alternate = t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)
       ? generateRuntimeHelperForJSXNode(expr.alternate, component, indent)
-      : generateCSharpExpression(expr.alternate, true); // inInterpolation=true
+      : generateCSharpExpression(expr.alternate, false); // Normal C# expression context
     return `(${condition}) ? ${consequent} : ${alternate}`;
   }
 
@@ -269,13 +269,36 @@ function generateCSharpExpression(node, inInterpolation = false) {
 
   if (t.isConditionalExpression(node)) {
     // Handle ternary operator: test ? consequent : alternate
-    const test = generateCSharpExpression(node.test, inInterpolation);
-    const consequent = generateCSharpExpression(node.consequent, inInterpolation);
-    const alternate = generateCSharpExpression(node.alternate, inInterpolation);
+    // Children are always in normal C# expression context, not interpolation context
+    const test = generateCSharpExpression(node.test, false);
+    const consequent = generateCSharpExpression(node.consequent, false);
+    const alternate = generateCSharpExpression(node.alternate, false);
     return `(${test}) ? ${consequent} : ${alternate}`;
   }
 
   if (t.isCallExpression(node)) {
+    // Handle Math.max() → Math.Max()
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Math' }) &&
+        t.isIdentifier(node.callee.property, { name: 'max' })) {
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `Math.Max(${args})`;
+    }
+
+    // Handle Math.min() → Math.Min()
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Math' }) &&
+        t.isIdentifier(node.callee.property, { name: 'min' })) {
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `Math.Min(${args})`;
+    }
+
+    // Handle alert() → Console.WriteLine() (or custom alert implementation)
+    if (t.isIdentifier(node.callee, { name: 'alert' })) {
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
+      return `Console.WriteLine(${args})`;
+    }
+
     // Handle console.log → Console.WriteLine
     if (t.isMemberExpression(node.callee) &&
         t.isIdentifier(node.callee.object, { name: 'console' }) &&

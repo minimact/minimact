@@ -141,8 +141,8 @@ function generateJSXElement(node, component, indent) {
         // Text already has quotes, wrap in VText
         return `new VText(${c.code})`;
       } else if (c.type === 'expression') {
-        // Expression needs string interpolation wrapper
-        return `new VText($"{${c.code}}")`;
+        // Expression needs string interpolation wrapper with extra parentheses for complex expressions
+        return `new VText($"{(${c.code})}")`;
       } else {
         // Element is already a VNode
         return c.code;

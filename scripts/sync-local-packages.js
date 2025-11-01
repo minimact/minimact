@@ -165,7 +165,12 @@ function syncPackage(pkg, target) {
   log.success(`Synced ${fileCount} files from ${pkg.name} → ${target.name}`);
 
   // Install dependencies if needed
-  if ((config.options.autoInstallDeps || pkg.installDependencies)) {
+  // Package-specific setting takes precedence over global option
+  const shouldInstall = pkg.installDependencies !== undefined
+    ? pkg.installDependencies
+    : config.options.autoInstallDeps;
+
+  if (shouldInstall) {
     installDependencies(targetPath, pkg.name);
   }
 
