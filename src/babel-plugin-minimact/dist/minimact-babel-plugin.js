@@ -6132,16 +6132,15 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  // MVC State fields (useMvcState)
 	  // ❌ DO NOT GENERATE [State] FIELDS FOR useMvcState!
 	  // MVC ViewModel already populates these values in the State dictionary.
-	  // Generating fields here causes SyncMembersToState to overwrite with default values.
-	  //
-	  // if (component.useMvcState) {
-	  //   for (const mvcState of component.useMvcState) {
-	  //     lines.push(`    [State]`);
-	  //     const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
-	  //     lines.push(`    private ${csharpType} ${mvcState.name} = default;`);
-	  //     lines.push('');
-	  //   }
-	  // }
+	  // Instead, generate readonly properties that access State dictionary.
+	  if (component.useMvcState) {
+	    for (const mvcState of component.useMvcState) {
+	      const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
+	      lines.push(`    // MVC State property: ${mvcState.propertyName}`);
+	      lines.push(`    private ${csharpType} ${mvcState.name} => GetState<${csharpType}>("${mvcState.propertyName}");`);
+	      lines.push('');
+	    }
+	  }
 
 	  // MVC ViewModel fields (useMvcViewModel)
 	  if (component.useMvcViewModel) {
