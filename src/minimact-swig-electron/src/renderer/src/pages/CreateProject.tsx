@@ -115,6 +115,7 @@ export default function CreateProject() {
               <option value="Counter">Counter (Basic)</option>
               <option value="TodoList">Todo List (CRUD)</option>
               <option value="Dashboard">Dashboard (Charts)</option>
+              <option value="MVC">MVC Bridge (ASP.NET MVC + Minimact)</option>
             </select>
             <p className="text-xs text-gray-500 mt-2">
               Choose a starting template for your project
@@ -144,8 +145,20 @@ export default function CreateProject() {
           <ul className="text-sm text-gray-400 space-y-1">
             <li>• ASP.NET Core project created with <code>dotnet new webapi</code></li>
             <li>• Minimact.AspNetCore package added</li>
-            <li>• Pages and Components folders created</li>
-            <li>• Template files generated (.tsx)</li>
+            {template === 'MVC' && (
+              <>
+                <li>• @minimact/mvc package added for MVC Bridge support</li>
+                <li>• Controllers and ViewModels folders created</li>
+                <li>• Sample ProductController with [Mutable] ViewModel created</li>
+                <li>• MinimactPageRenderer configured</li>
+              </>
+            )}
+            {template !== 'MVC' && (
+              <>
+                <li>• Pages and Components folders created</li>
+                <li>• Template files generated (.tsx)</li>
+              </>
+            )}
             <li>• Project opens in Dashboard</li>
           </ul>
         </div>
