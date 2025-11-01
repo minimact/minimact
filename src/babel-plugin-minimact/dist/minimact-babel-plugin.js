@@ -6130,15 +6130,18 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  }
 
 	  // MVC State fields (useMvcState)
-	  if (component.useMvcState) {
-	    for (const mvcState of component.useMvcState) {
-	      lines.push(`    [State]`);
-	      // Type will be inferred from ViewModel or use dynamic for now
-	      const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
-	      lines.push(`    private ${csharpType} ${mvcState.name} = default;`);
-	      lines.push('');
-	    }
-	  }
+	  // ❌ DO NOT GENERATE [State] FIELDS FOR useMvcState!
+	  // MVC ViewModel already populates these values in the State dictionary.
+	  // Generating fields here causes SyncMembersToState to overwrite with default values.
+	  //
+	  // if (component.useMvcState) {
+	  //   for (const mvcState of component.useMvcState) {
+	  //     lines.push(`    [State]`);
+	  //     const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
+	  //     lines.push(`    private ${csharpType} ${mvcState.name} = default;`);
+	  //     lines.push('');
+	  //   }
+	  // }
 
 	  // MVC ViewModel fields (useMvcViewModel)
 	  if (component.useMvcViewModel) {
@@ -6311,6 +6314,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    lines.push('');
 	  }
 
+	  // MVC State local variables - read from State dictionary
+	  if (component.useMvcState && component.useMvcState.length > 0) {
+	    lines.push('        // MVC State - read from State dictionary');
+	    for (const mvcState of component.useMvcState) {
+	      const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
+	      // Use propertyName (e.g., 'initialQuantity') not variable name (e.g., 'quantity')
+	      lines.push(`        var ${mvcState.name} = GetState<${csharpType}>("${mvcState.propertyName}");`);
+	    }
+	    lines.push('');
+	  }
+
 	  // Local variables (exclude client-computed ones, they're properties now)
 	  const regularLocalVars = component.localVariables.filter(v => !v.isClientComputed);
 	  for (const localVar of regularLocalVars) {
@@ -6414,20 +6428,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  }
 
 	  // MVC State setter methods (useMvcState)
-	  if (component.useMvcState) {
-	    for (const mvcState of component.useMvcState) {
-	      // Only generate setter if there's a setter function (mutable property)
-	      if (mvcState.setter) {
-	        lines.push('');
-	        const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
-	        lines.push(`    private void ${mvcState.setter}(${csharpType} value)`);
-	        lines.push('    {');
-	        lines.push(`        ${mvcState.name} = value;`);
-	        lines.push(`        SetState("${mvcState.name}", value);`);
-	        lines.push('    }');
-	      }
-	    }
-	  }
+	  // MVC State setter methods - REMOVED
+	  // These are now generated at the end of the class (after event handlers)
+	  // with the correct property names from the ViewModel (not variable names)
 
 	  // Pub/Sub methods (usePub)
 	  if (component.usePub) {
@@ -6474,6 +6477,20 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      lines.push(`            await HubContext.Clients.Client(ConnectionId).SendAsync(methodName, args);`);
 	      lines.push(`        }`);
 	      lines.push('    }');
+	    }
+	  }
+
+	  // MVC State setter methods
+	  if (component.useMvcState) {
+	    for (const mvcState of component.useMvcState) {
+	      if (mvcState.setter) {
+	        const csharpType = mvcState.type !== 'object' ? mvcState.type : 'dynamic';
+	        lines.push('');
+	        lines.push(`    private void ${mvcState.setter}(${csharpType} value)`);
+	        lines.push('    {');
+	        lines.push(`        SetState("${mvcState.propertyName}", value);`);
+	        lines.push('    }');
+	      }
 	    }
 	  }
 

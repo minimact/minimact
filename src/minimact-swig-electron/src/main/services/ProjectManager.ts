@@ -249,15 +249,28 @@ export class ProjectManager {
 
     await fs.writeFile(path.join(projectPath, 'Program.cs'), programCs, 'utf-8');
 
-    // 5. Update launchSettings.json to use port 5000
+    // 5. Update launchSettings.json to use port 5000 and configure browser launching
     const launchSettingsPath = path.join(projectPath, 'Properties', 'launchSettings.json');
     const launchSettings = JSON.parse(
       stripBom(await fs.readFile(launchSettingsPath, 'utf-8'))
     );
 
-    // Update first profile
-    const profileName = Object.keys(launchSettings.profiles)[0];
-    launchSettings.profiles[profileName].applicationUrl = 'http://localhost:5000';
+    // Update all profiles
+    for (const profileName of Object.keys(launchSettings.profiles)) {
+      const profile = launchSettings.profiles[profileName];
+
+      // Enable browser launching
+      profile.launchBrowser = true;
+
+      // Set launch URL based on template
+      if (template === 'MVC') {
+        profile.launchUrl = 'Products/1';
+        // Keep default ports for MVC (HTTPS: 7038, HTTP: 5035)
+      } else {
+        // Standard Minimact templates use port 5000
+        profile.applicationUrl = 'http://localhost:5000';
+      }
+    }
 
     await fs.writeFile(launchSettingsPath, JSON.stringify(launchSettings, null, 2), 'utf-8');
 
@@ -302,19 +315,16 @@ builder.Services.AddMinimactMvcBridge(); // Enable MVC Bridge
 // Add MVC services
 builder.Services.AddControllersWithViews();
 
+// Add SignalR (required for Minimact real-time communication)
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseEndpoints(endpoints =>
-{
-    // MVC routes
-    endpoints.MapControllers();
-
-    // SignalR hub for Minimact
-    endpoints.MapHub<Minimact.AspNetCore.SignalR.MinimactHub>("/minimact");
-});
+app.MapControllers();
+app.MapHub<Minimact.AspNetCore.SignalR.MinimactHub>("/minimact");
 
 app.Run();
 `;
@@ -352,6 +362,7 @@ export function Index() {
     // Create directory structure
     await fs.mkdir(path.join(projectPath, 'Controllers'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'ViewModels'), { recursive: true });
+    await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
 
     // Create ProductViewModel.cs
     const productViewModelCs = `using Minimact.AspNetCore.Attributes;
@@ -429,7 +440,7 @@ public class ProductsController : ControllerBase
         };
 
         // 3. Render Minimact component with ViewModel
-        return await _renderer.RenderPage<Pages.ProductDetailsPage>(
+        return await _renderer.RenderPage<Minimact.Components.ProductDetailsPage>(
             viewModel: viewModel,
             pageTitle: $"{product.Name} - Product Details"
         );
@@ -681,6 +692,29 @@ export function ProductDetailsPage() {
       productDetailsPageTsx,
       'utf-8'
     );
+
+    // Copy Minimact client runtime to wwwroot/js
+    await this.copyClientRuntimeToProject(projectPath);
+  }
+
+  /**
+   * Copy Minimact client runtime to project's wwwroot/js folder
+   */
+  private async copyClientRuntimeToProject(projectPath: string): Promise<void> {
+    const jsDir = path.join(projectPath, 'wwwroot', 'js');
+    await fs.mkdir(jsDir, { recursive: true });
+
+    // Source: Electron app's resources folder (populated by npm run sync)
+    const clientRuntimeSource = path.join(__dirname, '..', '..', 'resources', 'minimact.js');
+    const clientRuntimeDest = path.join(jsDir, 'minimact.js');
+
+    try {
+      await fs.copyFile(clientRuntimeSource, clientRuntimeDest);
+    } catch (error) {
+      console.error('Failed to copy client runtime:', error);
+      console.error('Make sure to run `npm run sync` in the monorepo root first');
+      // Not fatal - user can copy manually
+    }
   }
 
   /**

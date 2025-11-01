@@ -177,6 +177,32 @@ function syncPackage(pkg, target) {
   return true;
 }
 
+// Special: Copy client runtime to Electron app resources
+function syncClientRuntimeToElectron() {
+  const clientRuntimeSource = path.resolve(__dirname, '../src/client-runtime/dist/core.min.js');
+  const electronResourceDest = path.resolve(__dirname, '../src/minimact-swig-electron/resources/minimact.js');
+
+  // Create resources directory if it doesn't exist
+  const resourcesDir = path.dirname(electronResourceDest);
+  if (!fs.existsSync(resourcesDir)) {
+    fs.mkdirSync(resourcesDir, { recursive: true });
+  }
+
+  if (!fs.existsSync(clientRuntimeSource)) {
+    log.warn('Client runtime not built yet, skipping Electron resource copy');
+    return false;
+  }
+
+  try {
+    fs.copyFileSync(clientRuntimeSource, electronResourceDest);
+    log.success('Copied client runtime to Electron resources');
+    return true;
+  } catch (error) {
+    log.error(`Failed to copy client runtime to Electron: ${error.message}`);
+    return false;
+  }
+}
+
 // Sync all configured packages
 function syncAll() {
   log.header('🔄 Syncing Local Packages');
@@ -202,6 +228,11 @@ function syncAll() {
         failCount++;
       }
     }
+  }
+
+  // Special: Copy client runtime to Electron app resources
+  if (syncClientRuntimeToElectron()) {
+    successCount++;
   }
 
   log.header(`📊 Summary: ${successCount} synced, ${failCount} failed`);

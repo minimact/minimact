@@ -76,7 +76,7 @@ public abstract class MinimactComponent
     /// <summary>
     /// MVC ViewModel instance (if provided by controller via MVC Bridge)
     /// </summary>
-    protected object? MvcViewModel { get; private set; }
+    internal object? MvcViewModel { get; private set; }
 
     /// <summary>
     /// Mutability metadata for MVC ViewModel properties
@@ -332,6 +332,28 @@ public abstract class MinimactComponent
     {
         MvcViewModel = viewModel;
         _mvcMutability = mutability;
+
+        // Populate State dictionary from ViewModel properties
+        var viewModelType = viewModel.GetType();
+        foreach (var property in viewModelType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+        {
+            var camelCaseName = ToCamelCase(property.Name);
+            var value = property.GetValue(viewModel);
+            State[camelCaseName] = value;
+
+            Console.WriteLine($"[MVC Bridge] Populated state: {camelCaseName} = {value}");
+        }
+    }
+
+    /// <summary>
+    /// Convert PascalCase to camelCase
+    /// </summary>
+    private string ToCamelCase(string str)
+    {
+        if (string.IsNullOrEmpty(str) || char.IsLower(str[0]))
+            return str;
+
+        return char.ToLower(str[0]) + str.Substring(1);
     }
 
     /// <summary>

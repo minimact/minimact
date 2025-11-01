@@ -20,10 +20,19 @@ public static class StateManager
         foreach (var (memberInfo, attribute) in members)
         {
             var key = attribute.Key ?? memberInfo.Name;
+
+            // If MVC ViewModel already populated this state, don't overwrite with default field value
+            if (component.MvcViewModel != null && component.State.ContainsKey(key))
+            {
+                Console.WriteLine($"[StateManager.InitializeState] Skipping {key} - already populated from MVC ViewModel (value: {component.State[key]})");
+                continue;
+            }
+
             var value = GetMemberValue(component, memberInfo);
 
             if (value != null)
             {
+                Console.WriteLine($"[StateManager.InitializeState] Initializing {key} from field (value: {value})");
                 component.State[key] = value;
             }
         }
@@ -61,10 +70,19 @@ public static class StateManager
         foreach (var (memberInfo, attribute) in members)
         {
             var key = attribute.Key ?? memberInfo.Name;
+
+            // If MVC ViewModel already populated this state, don't overwrite with default field value
+            if (component.MvcViewModel != null && component.State.ContainsKey(key))
+            {
+                Console.WriteLine($"[StateManager] Skipping {key} - already populated from MVC ViewModel (value: {component.State[key]})");
+                continue;
+            }
+
             var value = GetMemberValue(component, memberInfo);
 
             if (value != null)
             {
+                Console.WriteLine($"[StateManager] Syncing {key} from field to state (value: {value})");
                 component.State[key] = value;
             }
         }

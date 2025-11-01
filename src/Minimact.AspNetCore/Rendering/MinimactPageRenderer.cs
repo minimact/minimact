@@ -48,11 +48,8 @@ public class MinimactPageRenderer
         // 1. Extract mutability metadata from ViewModel
         var mutability = ExtractMutabilityMetadata(viewModel);
 
-        // 2. Create component instance with ViewModel
-        var component = ActivatorUtilities.CreateInstance<TComponent>(
-            _serviceProvider,
-            viewModel
-        );
+        // 2. Create component instance (parameterless constructor)
+        var component = ActivatorUtilities.CreateInstance<TComponent>(_serviceProvider);
 
         // 3. Set ViewModel and mutability on component
         component.SetMvcViewModel(viewModel, mutability);

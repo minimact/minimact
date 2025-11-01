@@ -31,11 +31,19 @@ public class MinimactHub : Hub
     /// </summary>
     public async Task RegisterComponent(string componentId)
     {
+        Console.WriteLine($"[MinimactHub] RegisterComponent called: {componentId}, Connection: {Context.ConnectionId}");
+
         var component = _registry.GetComponent(componentId);
         if (component != null)
         {
+            Console.WriteLine($"[MinimactHub] Component found! Assigning connection ID: {Context.ConnectionId}");
             component.ConnectionId = Context.ConnectionId;
             component.PatchSender = _patchSender;
+        }
+        else
+        {
+            Console.WriteLine($"[MinimactHub] ERROR: Component {componentId} not found in registry!");
+            Console.WriteLine($"[MinimactHub] Registered component IDs: {string.Join(", ", _registry.GetAllComponentIds())}");
         }
 
         await Task.CompletedTask;
