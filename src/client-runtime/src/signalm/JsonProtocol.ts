@@ -28,6 +28,38 @@ export class JsonProtocol {
   static readonly protocolVersion = 1;
 
   /**
+   * SignalR message record separator (ASCII 30)
+   * Every SignalR message must be terminated with this character
+   */
+  private static readonly RECORD_SEPARATOR = '\x1E';
+
+  /**
+   * Write handshake request message
+   * Must be sent immediately after WebSocket connection is established
+   */
+  static writeHandshake(): string {
+    const handshake = {
+      protocol: this.protocolName,
+      version: this.protocolVersion
+    };
+    return JSON.stringify(handshake) + this.RECORD_SEPARATOR;
+  }
+
+  /**
+   * Parse handshake response message
+   */
+  static parseHandshake(data: string): { error?: string } {
+    try {
+      const cleanData = data.endsWith(this.RECORD_SEPARATOR)
+        ? data.slice(0, -1)
+        : data;
+      return JSON.parse(cleanData) as { error?: string };
+    } catch (error) {
+      throw new Error(`Failed to parse handshake: ${error}`);
+    }
+  }
+
+  /**
    * Write invocation message (client → server RPC call)
    */
   static writeInvocation(
@@ -75,20 +107,26 @@ export class JsonProtocol {
 
   /**
    * Parse incoming message
+   * Removes record separator if present
    */
   static parseMessage(data: string): Message {
     try {
-      return JSON.parse(data) as Message;
+      // Remove record separator if present
+      const cleanData = data.endsWith(this.RECORD_SEPARATOR)
+        ? data.slice(0, -1)
+        : data;
+      return JSON.parse(cleanData) as Message;
     } catch (error) {
       throw new Error(`Failed to parse message: ${error}`);
     }
   }
 
   /**
-   * Serialize message to JSON string
+   * Serialize message to JSON string with SignalR record separator
+   * SignalR requires all messages to end with \x1E
    */
   static serializeMessage(message: Message): string {
-    return JSON.stringify(message);
+    return JSON.stringify(message) + this.RECORD_SEPARATOR;
   }
 
   /**

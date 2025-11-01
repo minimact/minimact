@@ -136,17 +136,56 @@ public static class StateManager
     /// </summary>
     private static void SetMemberValue(object obj, MemberInfo member, object? value)
     {
+        Type targetType;
+
         switch (member)
         {
             case FieldInfo field:
-                field.SetValue(obj, value);
+                targetType = field.FieldType;
+                // Convert value to target type if needed
+                var convertedFieldValue = ConvertValue(value, targetType);
+                field.SetValue(obj, convertedFieldValue);
                 break;
             case PropertyInfo property:
                 if (property.CanWrite)
                 {
-                    property.SetValue(obj, value);
+                    targetType = property.PropertyType;
+                    // Convert value to target type if needed
+                    var convertedPropValue = ConvertValue(value, targetType);
+                    property.SetValue(obj, convertedPropValue);
                 }
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Convert a value to the target type, handling common conversions
+    /// </summary>
+    private static object? ConvertValue(object? value, Type targetType)
+    {
+        if (value == null)
+            return null;
+
+        var valueType = value.GetType();
+
+        // If types already match, no conversion needed
+        if (targetType.IsAssignableFrom(valueType))
+            return value;
+
+        // Handle nullable types
+        var underlyingType = Nullable.GetUnderlyingType(targetType);
+        if (underlyingType != null)
+            targetType = underlyingType;
+
+        try
+        {
+            // Use Convert.ChangeType for common conversions (decimal → int, double → int, etc.)
+            return Convert.ChangeType(value, targetType);
+        }
+        catch
+        {
+            // If conversion fails, try direct assignment (may throw if incompatible)
+            return value;
         }
     }
 

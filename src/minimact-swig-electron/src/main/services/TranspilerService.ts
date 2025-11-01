@@ -1,4 +1,5 @@
 import * as babel from '@babel/core';
+import { parse } from '@babel/parser';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { TranspileResult, TranspileProjectResult } from '../types/project';
@@ -47,18 +48,52 @@ export class TranspilerService {
       console.log('[Transpiler] Transpiling:', tsxPath);
       console.log('[Transpiler] Plugin path:', this.babelPluginPath);
 
-      // Use raw path - Test proved Windows paths work correctly
-      const result = await babel.transformAsync(tsxContent, {
+      // ⚠️ CRITICAL: Parse file first to preserve TypeScript AST
+      // @babel/preset-typescript strips interface declarations, but our plugin needs them.
+      // Solution: Use @babel/parser directly to get full TS AST, then transform.
+      const ast = parse(tsxContent, {
+        sourceType: 'module',
+        plugins: ['typescript', 'jsx'],
+        sourceFilename: tsxPath
+      });
+
+      // Debug: Log what's in the AST
+      console.log('[Transpiler] AST has', ast.program.body.length, 'statements');
+      ast.program.body.forEach((stmt, idx) => {
+        console.log(`[Transpiler] AST Statement ${idx}:`, stmt.type);
+        if (stmt.type === 'TSInterfaceDeclaration') {
+          console.log(`[Transpiler]   → Interface name: ${stmt.id.name}`);
+        }
+      });
+
+      //⚠️ SOLUTION: Store interface info in AST metadata BEFORE transformation
+      // The @babel/preset-typescript will strip interfaces during transformation,
+      // but our plugin can access this metadata!
+      const program = ast.program as any;
+      if (!program.metadata) {
+        program.metadata = {};
+      }
+
+      const interfaces = program.body.filter((stmt: any) => stmt.type === 'TSInterfaceDeclaration');
+      program.metadata.viewModelInterfaces = interfaces;
+
+      console.log('[Transpiler] Stored', interfaces.length, 'interfaces in AST metadata');
+
+      // Now transform with the parsed AST
+      const result = await babel.transformFromAstAsync(ast, tsxContent, {
         filename: tsxPath,
-        presets: [
-          ['@babel/preset-react', { runtime: 'automatic' }],
-          '@babel/preset-typescript'
-        ],
+        // Plugins run in order, BEFORE presets
         plugins: [
+          // Our plugin runs FIRST - can read metadata!
           [this.babelPluginPath, {
             target: 'csharp',
             framework: 'minimact'
           }]
+        ],
+        // Presets run AFTER plugins (and in reverse order)
+        presets: [
+          ['@babel/preset-react', { runtime: 'automatic' }],
+          '@babel/preset-typescript'
         ]
       });
 

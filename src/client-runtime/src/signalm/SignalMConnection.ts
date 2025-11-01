@@ -194,17 +194,48 @@ export class SignalMConnection {
         }
       }, this.connectionTimeout);
 
+      // Track handshake completion
+      let handshakeComplete = false;
+
       this.ws.onopen = () => {
-        clearTimeout(connectionTimeout);
-        this.state = ConnectionState.Connected;
-        this.reconnectAttempts = 0;
-        this.log('Connected ✓');
-        this.eventEmitter.emit('connected');
-        resolve();
+        // Send handshake immediately after connection
+        const handshake = JsonProtocol.writeHandshake();
+        this.log('Sending handshake', handshake);
+        this.ws!.send(handshake);
       };
 
       this.ws.onmessage = (event) => {
-        this.handleMessage(event.data);
+        // First message should be handshake response
+        if (!handshakeComplete) {
+          try {
+            const response = JsonProtocol.parseHandshake(event.data);
+            if (response.error) {
+              clearTimeout(connectionTimeout);
+              this.log('Handshake failed', response.error);
+              this.ws?.close();
+              reject(new Error(`Handshake failed: ${response.error}`));
+              return;
+            }
+
+            // Handshake successful
+            handshakeComplete = true;
+            clearTimeout(connectionTimeout);
+            this.state = ConnectionState.Connected;
+            this.reconnectAttempts = 0;
+            this.log('Handshake complete ✓');
+            this.log('Connected ✓');
+            this.eventEmitter.emit('connected');
+            resolve();
+          } catch (error) {
+            clearTimeout(connectionTimeout);
+            this.log('Handshake parse error', error);
+            this.ws?.close();
+            reject(new Error(`Handshake error: ${error}`));
+          }
+        } else {
+          // Handle normal messages
+          this.handleMessage(event.data);
+        }
       };
 
       this.ws.onerror = (error) => {
@@ -221,29 +252,35 @@ export class SignalMConnection {
 
   /**
    * Internal: Handle incoming messages
+   * SignalR can send multiple messages in one WebSocket frame, separated by \x1E
    */
   private handleMessage(data: string): void {
-    try {
-      const message = JsonProtocol.parseMessage(data);
-      this.log(`Received message (type: ${message.type})`, message);
+    // Split on record separator - server can send multiple messages at once
+    const messages = data.split('\x1E').filter(msg => msg.length > 0);
 
-      if (JsonProtocol.isInvocation(message)) {
-        // Server calling client method
-        this.handleInvocation(message);
-      } else if (JsonProtocol.isCompletion(message)) {
-        // Response to client invoke()
-        this.handleCompletion(message);
-      } else if (JsonProtocol.isPing(message)) {
-        // Server ping (respond with pong)
-        this.handlePing();
-      } else if (JsonProtocol.isClose(message)) {
-        // Server requested close
-        this.log('Server requested close', message.error);
-        this.ws?.close(1000, 'Server closed connection');
+    for (const messageData of messages) {
+      try {
+        const message = JSON.parse(messageData);
+        this.log(`Received message (type: ${message.type})`, message);
+
+        if (JsonProtocol.isInvocation(message)) {
+          // Server calling client method
+          this.handleInvocation(message);
+        } else if (JsonProtocol.isCompletion(message)) {
+          // Response to client invoke()
+          this.handleCompletion(message);
+        } else if (JsonProtocol.isPing(message)) {
+          // Server ping (respond with pong)
+          this.handlePing();
+        } else if (JsonProtocol.isClose(message)) {
+          // Server requested close
+          this.log('Server requested close', message.error);
+          this.ws?.close(1000, 'Server closed connection');
+        }
+      } catch (error) {
+        this.log('Error parsing message', error);
+        console.error('[SignalM] Error parsing message:', error);
       }
-    } catch (error) {
-      this.log('Error parsing message', error);
-      console.error('[SignalM] Error parsing message:', error);
     }
   }
 

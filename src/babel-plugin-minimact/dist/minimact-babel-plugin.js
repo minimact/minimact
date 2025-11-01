@@ -2494,25 +2494,57 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    return null;
 	  }
 
-	  // Search for interface declarations
+	  // ⚠️ CRITICAL: Check metadata first (interfaces stored before transformation)
+	  // The TranspilerService stores interfaces in metadata before @babel/preset-typescript strips them
 	  let viewModelInterface = null;
-	  let interfaceCount = 0;
+	  const programNode = programPath.node;
 
-	  programPath.traverse({
-	    TSInterfaceDeclaration(interfacePath) {
-	      interfaceCount++;
-	      const interfaceName = interfacePath.node.id.name;
-	      console.log(`[findViewModelPropertyType] Found interface #${interfaceCount}: ${interfaceName}`);
+	  if (programNode.metadata && programNode.metadata.viewModelInterfaces) {
+	    const interfaces = programNode.metadata.viewModelInterfaces;
+	    console.log(`[findViewModelPropertyType] Found ${interfaces.length} interfaces in metadata`);
 
-	      // Look for interfaces ending with "ViewModel"
-	      if (interfaceName.endsWith('ViewModel')) {
-	        viewModelInterface = interfacePath.node;
-	        console.log(`[findViewModelPropertyType] ✅ Using interface: ${interfaceName}`);
+	    for (const iface of interfaces) {
+	      if (iface.id && iface.id.name && iface.id.name.endsWith('ViewModel')) {
+	        viewModelInterface = iface;
+	        console.log(`[findViewModelPropertyType] ✅ Using interface from metadata: ${iface.id.name}`);
+	        break;
 	      }
 	    }
-	  });
+	  } else {
+	    // Fallback: Search program body (won't work if TypeScript preset already ran)
+	    console.log(`[findViewModelPropertyType] No metadata found, searching program body`);
 
-	  console.log(`[findViewModelPropertyType] Total interfaces found: ${interfaceCount}`);
+	    if (!programNode || !programNode.body) {
+	      console.log(`[findViewModelPropertyType] No program body found`);
+	      return null;
+	    }
+
+	    console.log(`[findViewModelPropertyType] Program body has ${programNode.body.length} statements`);
+
+	    // Debug: Log all statement types
+	    programNode.body.forEach((stmt, idx) => {
+	      console.log(`[findViewModelPropertyType] Statement ${idx}: ${stmt.type}`);
+	    });
+
+	    // Iterate through top-level statements to find interface declarations
+	    let interfaceCount = 0;
+	    for (const statement of programNode.body) {
+	      if (t$b.isTSInterfaceDeclaration(statement)) {
+	        interfaceCount++;
+	        const interfaceName = statement.id.name;
+	        console.log(`[findViewModelPropertyType] Found interface #${interfaceCount}: ${interfaceName}`);
+
+	        // Look for interfaces ending with "ViewModel"
+	        if (interfaceName.endsWith('ViewModel')) {
+	          viewModelInterface = statement;
+	          console.log(`[findViewModelPropertyType] ✅ Using interface: ${interfaceName}`);
+	          break; // Use the first matching interface
+	        }
+	      }
+	    }
+
+	    console.log(`[findViewModelPropertyType] Total interfaces found: ${interfaceCount}`);
+	  }
 
 	  if (!viewModelInterface) {
 	    console.log(`[findViewModelPropertyType] ❌ No ViewModel interface found`);

@@ -23,8 +23,8 @@ const sharedPlugins = [
 
 const terserConfig = {
   compress: {
-    pure_funcs: ['console.log'],
-    drop_console: false, // Keep console.error/warn
+    pure_funcs: [], // Don't strip console.log - needed for debug logging
+    drop_console: false, // Keep all console methods
     passes: 2
   }
 };

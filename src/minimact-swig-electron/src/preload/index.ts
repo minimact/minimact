@@ -5,8 +5,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   // Project APIs
   project: {
-    create: (path: string, template: string) =>
-      ipcRenderer.invoke('project:create', path, template),
+    create: (path: string, template: string, options?: { createSolution?: boolean }) =>
+      ipcRenderer.invoke('project:create', path, template, options),
     load: (path: string) =>
       ipcRenderer.invoke('project:load', path),
     getRecent: () =>

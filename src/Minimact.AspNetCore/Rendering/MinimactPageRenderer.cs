@@ -123,6 +123,14 @@ public class MinimactPageRenderer
         MinimactPageRenderOptions options)
     {
         var scriptSrc = options.ClientScriptPath ?? "/js/minimact.js";
+
+        // Add cache busting for development
+        if (options.EnableCacheBusting)
+        {
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            scriptSrc += $"?v={timestamp}";
+        }
+
         var enableDebugLogging = options.EnableDebugLogging ? "true" : "false";
 
         return $@"<!DOCTYPE html>
@@ -220,6 +228,12 @@ public class MinimactPageRenderOptions
     /// Enable debug logging in client runtime (default: false)
     /// </summary>
     public bool EnableDebugLogging { get; set; } = false;
+
+    /// <summary>
+    /// Enable cache busting by appending timestamp to script URL (default: false)
+    /// Recommended for development to ensure latest script is loaded
+    /// </summary>
+    public bool EnableCacheBusting { get; set; } = false;
 
     /// <summary>
     /// Additional HTML to inject in &lt;head&gt;

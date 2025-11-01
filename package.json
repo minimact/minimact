@@ -19,6 +19,7 @@
     "sync:watch": "node scripts/sync-local-packages.js --watch",
     "sync:verbose": "node scripts/sync-local-packages.js --verbose",
     "sync:build": "node scripts/sync-local-packages.js --build",
+    "sync:examples": "node scripts/sync-examples.js",
     "dev": "npm run sync:watch",
     "build:dist": "node scripts/build-distribution.js",
     "serve:test": "node tests/test-server.js",
