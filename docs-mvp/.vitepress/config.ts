@@ -208,9 +208,15 @@ export default defineConfig({
       ],
       '/v1.0/extensions/': [
         {
-          text: 'Quantum Stack',
+          text: 'Official Extensions',
           items: [
             { text: 'Overview', link: '/v1.0/extensions/' },
+            { text: 'MVC Bridge 🎤', link: '/v1.0/extensions/mvc-bridge' }
+          ]
+        },
+        {
+          text: 'Quantum Stack',
+          items: [
             { text: 'minimact-punch 🥊', link: '/v1.0/extensions/punch' },
             { text: 'minimact-query 🗃️', link: '/v1.0/extensions/query' },
             { text: 'minimact-quantum 🌌', link: '/v1.0/extensions/quantum' },
