@@ -66,7 +66,7 @@ var helpers = {
  * Type Conversion
  */
 
-const t$g = globalThis.__BABEL_TYPES__;
+const t$e = globalThis.__BABEL_TYPES__;
 
 /**
  * Convert TypeScript type annotation to C# type
@@ -75,30 +75,30 @@ function tsTypeToCSharpType$3(tsType) {
   if (!tsType) return 'dynamic';
 
   // TSStringKeyword -> string
-  if (t$g.isTSStringKeyword(tsType)) return 'string';
+  if (t$e.isTSStringKeyword(tsType)) return 'string';
 
   // TSNumberKeyword -> double
-  if (t$g.isTSNumberKeyword(tsType)) return 'double';
+  if (t$e.isTSNumberKeyword(tsType)) return 'double';
 
   // TSBooleanKeyword -> bool
-  if (t$g.isTSBooleanKeyword(tsType)) return 'bool';
+  if (t$e.isTSBooleanKeyword(tsType)) return 'bool';
 
   // TSAnyKeyword -> dynamic
-  if (t$g.isTSAnyKeyword(tsType)) return 'dynamic';
+  if (t$e.isTSAnyKeyword(tsType)) return 'dynamic';
 
   // TSArrayType -> List<T>
-  if (t$g.isTSArrayType(tsType)) {
+  if (t$e.isTSArrayType(tsType)) {
     const elementType = tsTypeToCSharpType$3(tsType.elementType);
     return `List<${elementType}>`;
   }
 
   // TSTypeLiteral (object type) -> dynamic
-  if (t$g.isTSTypeLiteral(tsType)) return 'dynamic';
+  if (t$e.isTSTypeLiteral(tsType)) return 'dynamic';
 
   // TSTypeReference (custom types, interfaces)
-  if (t$g.isTSTypeReference(tsType)) {
+  if (t$e.isTSTypeReference(tsType)) {
     // Handle @minimact/mvc type mappings
-    if (t$g.isIdentifier(tsType.typeName)) {
+    if (t$e.isIdentifier(tsType.typeName)) {
       const typeName = tsType.typeName.name;
 
       // Map @minimact/mvc types to C# types
@@ -140,12 +140,12 @@ function tsTypeToCSharpType$3(tsType) {
 function inferType$2(node) {
   if (!node) return 'dynamic';
 
-  if (t$g.isStringLiteral(node)) return 'string';
-  if (t$g.isNumericLiteral(node)) return 'int';
-  if (t$g.isBooleanLiteral(node)) return 'bool';
-  if (t$g.isNullLiteral(node)) return 'dynamic';
-  if (t$g.isArrayExpression(node)) return 'List<dynamic>';
-  if (t$g.isObjectExpression(node)) return 'dynamic';
+  if (t$e.isStringLiteral(node)) return 'string';
+  if (t$e.isNumericLiteral(node)) return 'int';
+  if (t$e.isBooleanLiteral(node)) return 'bool';
+  if (t$e.isNullLiteral(node)) return 'dynamic';
+  if (t$e.isArrayExpression(node)) return 'List<dynamic>';
+  if (t$e.isObjectExpression(node)) return 'dynamic';
 
   return 'dynamic';
 }
@@ -160,7 +160,7 @@ var typeConversion = {
  * Dependency Analyzer
  */
 
-const t$f = globalThis.__BABEL_TYPES__;
+const t$d = globalThis.__BABEL_TYPES__;
 
 /**
  * Analyze dependencies in JSX expressions
@@ -173,7 +173,7 @@ function analyzeDependencies(jsxExpr, component) {
     if (!node) return;
 
     // Check if this is an identifier that's a state variable
-    if (t$f.isIdentifier(node)) {
+    if (t$d.isIdentifier(node)) {
       const name = node.name;
       if (component.stateTypes.has(name)) {
         deps.add({
@@ -184,25 +184,25 @@ function analyzeDependencies(jsxExpr, component) {
     }
 
     // Recursively walk the tree
-    if (t$f.isConditionalExpression(node)) {
+    if (t$d.isConditionalExpression(node)) {
       walk(node.test);
       walk(node.consequent);
       walk(node.alternate);
-    } else if (t$f.isLogicalExpression(node)) {
+    } else if (t$d.isLogicalExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$f.isMemberExpression(node)) {
+    } else if (t$d.isMemberExpression(node)) {
       walk(node.object);
       walk(node.property);
-    } else if (t$f.isCallExpression(node)) {
+    } else if (t$d.isCallExpression(node)) {
       walk(node.callee);
       node.arguments.forEach(walk);
-    } else if (t$f.isBinaryExpression(node)) {
+    } else if (t$d.isBinaryExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$f.isUnaryExpression(node)) {
+    } else if (t$d.isUnaryExpression(node)) {
       walk(node.argument);
-    } else if (t$f.isArrowFunctionExpression(node) || t$f.isFunctionExpression(node)) {
+    } else if (t$d.isArrowFunctionExpression(node) || t$d.isFunctionExpression(node)) {
       walk(node.body);
     }
   }
@@ -261,132 +261,148 @@ var classification = {
  * Pattern Detection
  */
 
-const t$e = globalThis.__BABEL_TYPES__;
+var detection;
+var hasRequiredDetection;
+
+function requireDetection () {
+	if (hasRequiredDetection) return detection;
+	hasRequiredDetection = 1;
+	const t = globalThis.__BABEL_TYPES__;
 
 
-/**
- * Detect if attributes contain spread operators
- */
-function hasSpreadProps(attributes) {
-  return attributes.some(attr => t$e.isJSXSpreadAttribute(attr));
+	/**
+	 * Detect if attributes contain spread operators
+	 */
+	function hasSpreadProps(attributes) {
+	  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
+	}
+
+	/**
+	 * Detect if children contain dynamic patterns (like .map())
+	 */
+	function hasDynamicChildren(children) {
+	  return children.some(child => {
+	    if (!t.isJSXExpressionContainer(child)) return false;
+	    const expr = child.expression;
+
+	    // Check for .map() calls
+	    if (t.isCallExpression(expr) &&
+	        t.isMemberExpression(expr.callee) &&
+	        t.isIdentifier(expr.callee.property, { name: 'map' })) {
+	      return true;
+	    }
+
+	    // Check for array expressions from LINQ/Select
+	    if (t.isCallExpression(expr) &&
+	        t.isMemberExpression(expr.callee) &&
+	        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	      return true;
+	    }
+
+	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+	    if (t.isConditionalExpression(expr)) {
+	      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
+	          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+	        return true;
+	      }
+	    }
+
+	    // Check for logical expressions with JSX: {condition && <Element/>}
+	    if (t.isLogicalExpression(expr)) {
+	      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
+	        return true;
+	      }
+	    }
+
+	    return false;
+	  });
+	}
+
+	/**
+	 * Detect if props contain complex expressions
+	 */
+	function hasComplexProps(attributes) {
+	  return attributes.some(attr => {
+	    if (!t.isJSXAttribute(attr)) return false;
+	    const value = attr.value;
+
+	    if (!t.isJSXExpressionContainer(value)) return false;
+	    const expr = value.expression;
+
+	    // Check for conditional spread: {...(condition && { prop: value })}
+	    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
+	      return true;
+	    }
+
+	    return false;
+	  });
+	}
+
+	detection = {
+	  hasSpreadProps,
+	  hasDynamicChildren,
+	  hasComplexProps
+	};
+	return detection;
 }
-
-/**
- * Detect if children contain dynamic patterns (like .map())
- */
-function hasDynamicChildren(children) {
-  return children.some(child => {
-    if (!t$e.isJSXExpressionContainer(child)) return false;
-    const expr = child.expression;
-
-    // Check for .map() calls
-    if (t$e.isCallExpression(expr) &&
-        t$e.isMemberExpression(expr.callee) &&
-        t$e.isIdentifier(expr.callee.property, { name: 'map' })) {
-      return true;
-    }
-
-    // Check for array expressions from LINQ/Select
-    if (t$e.isCallExpression(expr) &&
-        t$e.isMemberExpression(expr.callee) &&
-        (t$e.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-         t$e.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-      return true;
-    }
-
-    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-    if (t$e.isConditionalExpression(expr)) {
-      if (t$e.isJSXElement(expr.consequent) || t$e.isJSXFragment(expr.consequent) ||
-          t$e.isJSXElement(expr.alternate) || t$e.isJSXFragment(expr.alternate)) {
-        return true;
-      }
-    }
-
-    // Check for logical expressions with JSX: {condition && <Element/>}
-    if (t$e.isLogicalExpression(expr)) {
-      if (t$e.isJSXElement(expr.right) || t$e.isJSXFragment(expr.right)) {
-        return true;
-      }
-    }
-
-    return false;
-  });
-}
-
-/**
- * Detect if props contain complex expressions
- */
-function hasComplexProps(attributes) {
-  return attributes.some(attr => {
-    if (!t$e.isJSXAttribute(attr)) return false;
-    const value = attr.value;
-
-    if (!t$e.isJSXExpressionContainer(value)) return false;
-    const expr = value.expression;
-
-    // Check for conditional spread: {...(condition && { prop: value })}
-    if (t$e.isConditionalExpression(expr) || t$e.isLogicalExpression(expr)) {
-      return true;
-    }
-
-    return false;
-  });
-}
-
-var detection = {
-  hasSpreadProps,
-  hasDynamicChildren,
-  hasComplexProps
-};
 
 /**
  * Event Handlers Extractor
  */
 
-const t$d = globalThis.__BABEL_TYPES__;
+var eventHandlers;
+var hasRequiredEventHandlers;
 
-/**
- * Extract event handler name
- */
-function extractEventHandler(value, component) {
-  if (t$d.isStringLiteral(value)) {
-    return value.value;
-  }
+function requireEventHandlers () {
+	if (hasRequiredEventHandlers) return eventHandlers;
+	hasRequiredEventHandlers = 1;
+	const t = globalThis.__BABEL_TYPES__;
 
-  if (t$d.isJSXExpressionContainer(value)) {
-    const expr = value.expression;
+	/**
+	 * Extract event handler name
+	 */
+	function extractEventHandler(value, component) {
+	  if (t.isStringLiteral(value)) {
+	    return value.value;
+	  }
 
-    if (t$d.isArrowFunctionExpression(expr) || t$d.isFunctionExpression(expr)) {
-      // Inline arrow function - extract to named method
-      const handlerName = `Handle${component.eventHandlers.length}`;
-      component.eventHandlers.push({
-        name: handlerName,
-        body: expr.body,
-        params: expr.params  // ✅ FIX: Preserve function parameters
-      });
-      return handlerName;
-    }
+	  if (t.isJSXExpressionContainer(value)) {
+	    const expr = value.expression;
 
-    if (t$d.isIdentifier(expr)) {
-      return expr.name;
-    }
+	    if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) {
+	      // Inline arrow function - extract to named method
+	      const handlerName = `Handle${component.eventHandlers.length}`;
+	      component.eventHandlers.push({
+	        name: handlerName,
+	        body: expr.body,
+	        params: expr.params  // ✅ FIX: Preserve function parameters
+	      });
+	      return handlerName;
+	    }
 
-    if (t$d.isCallExpression(expr)) {
-      // () => someMethod() - extract
-      const handlerName = `Handle${component.eventHandlers.length}`;
-      component.eventHandlers.push({ name: handlerName, body: expr });
-      return handlerName;
-    }
-  }
+	    if (t.isIdentifier(expr)) {
+	      return expr.name;
+	    }
 
-  return 'UnknownHandler';
+	    if (t.isCallExpression(expr)) {
+	      // () => someMethod() - extract
+	      const handlerName = `Handle${component.eventHandlers.length}`;
+	      component.eventHandlers.push({ name: handlerName, body: expr });
+	      return handlerName;
+	    }
+	  }
+
+	  return 'UnknownHandler';
+	}
+
+
+
+	eventHandlers = {
+	  extractEventHandler
+	};
+	return eventHandlers;
 }
-
-
-
-var eventHandlers = {
-  extractEventHandler
-};
 
 /**
  * Generate C# code for Plugin elements
@@ -547,8 +563,8 @@ function requireJsx () {
 	hasRequiredJsx = 1;
 	const t = globalThis.__BABEL_TYPES__;
 	const { escapeCSharpString } = helpers;
-	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
-	const { extractEventHandler } = eventHandlers;
+	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
+	const { extractEventHandler } = requireEventHandlers();
 	// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
 	/**
@@ -1825,11 +1841,19 @@ function extractUseState(path, component, hookType) {
   const [stateVar, setterVar] = parent.id.elements;
   const initialValue = path.node.arguments[0];
 
+  // Check if there's a generic type parameter (e.g., useState<decimal>(0))
+  let explicitType = null;
+  if (path.node.typeParameters && path.node.typeParameters.params.length > 0) {
+    const typeParam = path.node.typeParameters.params[0];
+    explicitType = tsTypeToCSharpType$2(typeParam);
+    console.log(`[useState] Found explicit type parameter for '${stateVar.name}': ${explicitType}`);
+  }
+
   const stateInfo = {
     name: stateVar.name,
     setter: setterVar.name,
     initialValue: generateCSharpExpression$2(initialValue),
-    type: inferType(initialValue)
+    type: explicitType || inferType(initialValue) // Prefer explicit type over inferred
   };
 
   if (hookType === 'useState') {
@@ -6523,7 +6547,8 @@ function generateComponent$1(component) {
       ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg').join(', ')
       : '';
 
-    lines.push(`    private void ${handler.name}(${paramStr})`);
+    // Event handlers must be public so SignalR hub can call them
+    lines.push(`    public void ${handler.name}(${paramStr})`);
     lines.push('    {');
 
     // Generate method body

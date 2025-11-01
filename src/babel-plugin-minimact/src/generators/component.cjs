@@ -372,7 +372,8 @@ function generateComponent(component) {
       ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg').join(', ')
       : '';
 
-    lines.push(`    private void ${handler.name}(${paramStr})`);
+    // Event handlers must be public so SignalR hub can call them
+    lines.push(`    public void ${handler.name}(${paramStr})`);
     lines.push('    {');
 
     // Generate method body

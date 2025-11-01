@@ -96,11 +96,19 @@ function extractUseState(path, component, hookType) {
   const [stateVar, setterVar] = parent.id.elements;
   const initialValue = path.node.arguments[0];
 
+  // Check if there's a generic type parameter (e.g., useState<decimal>(0))
+  let explicitType = null;
+  if (path.node.typeParameters && path.node.typeParameters.params.length > 0) {
+    const typeParam = path.node.typeParameters.params[0];
+    explicitType = tsTypeToCSharpType(typeParam);
+    console.log(`[useState] Found explicit type parameter for '${stateVar.name}': ${explicitType}`);
+  }
+
   const stateInfo = {
     name: stateVar.name,
     setter: setterVar.name,
     initialValue: generateCSharpExpression(initialValue),
-    type: inferType(initialValue)
+    type: explicitType || inferType(initialValue) // Prefer explicit type over inferred
   };
 
   if (hookType === 'useState') {
