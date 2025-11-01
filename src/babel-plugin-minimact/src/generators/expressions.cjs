@@ -63,10 +63,10 @@ function generateJSXExpression(expr, component, indent) {
     const condition = generateBooleanExpression(expr.test);
     const consequent = t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)
       ? generateRuntimeHelperForJSXNode(expr.consequent, component, indent)
-      : generateCSharpExpression(expr.consequent);
+      : generateCSharpExpression(expr.consequent, true); // inInterpolation=true
     const alternate = t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)
       ? generateRuntimeHelperForJSXNode(expr.alternate, component, indent)
-      : generateCSharpExpression(expr.alternate);
+      : generateCSharpExpression(expr.alternate, true); // inInterpolation=true
     return `(${condition}) ? ${consequent} : ${alternate}`;
   }
 
@@ -169,12 +169,19 @@ function generateCSharpStatement(node) {
 
 /**
  * Generate C# expression from JS expression
+ * @param {boolean} inInterpolation - True if this expression will be inside $"{...}"
  */
-function generateCSharpExpression(node) {
+function generateCSharpExpression(node, inInterpolation = false) {
   if (!node) return 'null';
 
   if (t.isStringLiteral(node)) {
-    return `"${escapeCSharpString(node.value)}"`;
+    // In string interpolation context, escape the quotes: \"text\"
+    // Otherwise use normal quotes: "text"
+    if (inInterpolation) {
+      return `\\"${escapeCSharpString(node.value)}\\"`;
+    } else {
+      return `"${escapeCSharpString(node.value)}"`;
+    }
   }
 
   if (t.isNumericLiteral(node)) {
@@ -226,9 +233,9 @@ function generateCSharpExpression(node) {
 
   if (t.isConditionalExpression(node)) {
     // Handle ternary operator: test ? consequent : alternate
-    const test = generateCSharpExpression(node.test);
-    const consequent = generateCSharpExpression(node.consequent);
-    const alternate = generateCSharpExpression(node.alternate);
+    const test = generateCSharpExpression(node.test, inInterpolation);
+    const consequent = generateCSharpExpression(node.consequent, inInterpolation);
+    const alternate = generateCSharpExpression(node.alternate, inInterpolation);
     return `(${test}) ? ${consequent} : ${alternate}`;
   }
 

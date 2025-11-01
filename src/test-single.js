@@ -28,15 +28,42 @@ async function transpileComponent(jsxPath) {
     const nodeScript = `
       const babel = require('@babel/core');
       const fs = require('fs');
+      const path = require('path');
+
       const code = fs.readFileSync('${jsxPath.replace(/\\/g, '\\\\')}', 'utf-8');
+      const filename = '${path.basename(jsxPath)}';
+
+      // Suppress console logs from Babel plugin
+      const originalLog = console.log;
+      console.log = () => {};
+
       const result = babel.transformSync(code, {
         presets: ['@babel/preset-typescript', '@babel/preset-react'],
         plugins: ['./index-full.cjs'],
-        filename: '${path.basename(jsxPath)}'
+        filename: filename
       });
-      // The C# code is in metadata, not in result.code
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // The C# code is in metadata
       const csharpCode = result.metadata?.minimactCSharp || result.code;
-      console.log(csharpCode);
+
+      // Templates are written to file - read them
+      const componentName = filename.replace(/\\.(jsx|tsx)$/, '');
+      const templatesPath = path.join(__dirname, componentName + '.templates.json');
+      let templatesJson = null;
+
+      try {
+        if (fs.existsSync(templatesPath)) {
+          templatesJson = JSON.parse(fs.readFileSync(templatesPath, 'utf-8'));
+        }
+      } catch (err) {
+        // Templates file not found or invalid
+      }
+
+      // Output both as JSON so we can parse them
+      console.log(JSON.stringify({ csharpCode, templatesJson }));
     `;
 
     const proc = spawn('node', ['-e', nodeScript], {
@@ -57,7 +84,12 @@ async function transpileComponent(jsxPath) {
 
     proc.on('close', (code) => {
       if (code === 0) {
-        resolve(stdout);
+        try {
+          const output = JSON.parse(stdout);
+          resolve(output);
+        } catch (err) {
+          reject(new Error(`Failed to parse output: ${err.message}`));
+        }
       } else {
         reject(new Error(`Babel failed: ${stderr}`));
       }
@@ -89,11 +121,14 @@ async function main() {
 
   try {
     log(`Transpiling ${filename}...`, colors.yellow);
-    const csharpCode = await transpileComponent(jsxPath);
+    const result = await transpileComponent(jsxPath);
+    const { csharpCode, templatesJson } = result;
 
     log(`\n✓ Transpiled successfully\n`, colors.green);
+
+    // Display C# code
     log(`Generated C# code:\n`, colors.cyan);
-    log(`${'='.repeat(60)}`, colors.cyan);
+    log(`${'='.repeat(80)}`, colors.cyan);
 
     // Add line numbers
     const lines = csharpCode.split('\n');
@@ -102,8 +137,40 @@ async function main() {
       console.log(`${colors.yellow}${lineNum}${colors.reset} ${line}`);
     });
 
-    log(`${'='.repeat(60)}\n`, colors.cyan);
+    log(`${'='.repeat(80)}\n`, colors.cyan);
     log(`✓ Total lines: ${lines.length}`, colors.green);
+
+    // Display Templates JSON
+    if (templatesJson) {
+      log(`\n${'━'.repeat(80)}`, colors.cyan);
+      log(`\nGenerated Templates JSON:\n`, colors.cyan);
+      log(`${'='.repeat(80)}`, colors.cyan);
+
+      // Pretty print JSON with syntax highlighting
+      const formattedJson = JSON.stringify(templatesJson, null, 2);
+      const jsonLines = formattedJson.split('\n');
+      jsonLines.forEach((line, idx) => {
+        const lineNum = String(idx + 1).padStart(4, ' ');
+        console.log(`${colors.yellow}${lineNum}${colors.reset} ${line}`);
+      });
+
+      log(`${'='.repeat(80)}\n`, colors.cyan);
+      log(`✓ Template count: ${Object.keys(templatesJson.templates || {}).length}`, colors.green);
+
+      // Show template types breakdown
+      if (templatesJson.templates) {
+        const types = {};
+        for (const template of Object.values(templatesJson.templates)) {
+          types[template.type] = (types[template.type] || 0) + 1;
+        }
+        log(`✓ Template types:`, colors.green);
+        for (const [type, count] of Object.entries(types)) {
+          log(`  - ${type}: ${count}`, colors.green);
+        }
+      }
+    } else {
+      log(`\n⚠ No templates JSON generated`, colors.yellow);
+    }
 
   } catch (err) {
     log(`\n✗ Failed: ${err.message}`, colors.red);

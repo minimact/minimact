@@ -1,0 +1,311 @@
+{
+  "component": "ProductDetailsPage",
+  "version": "1.0",
+  "generatedAt": 1762013422313,
+  "templates": {
+    "[0].h1[0].text[0]": {
+      "template": "{0}",
+      "bindings": [
+        "productName"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        0,
+        0,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].div[2].text[0]": {
+      "template": "Logged in as:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        2,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].div[2].text[1]": {
+      "template": "Logged in as: {0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "type": "dynamic"
+    },
+    "div[0].text[0]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].label[0].text[0]": {
+      "template": "Color:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].[2].button[0].text[0]": {
+      "template": "+",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        2,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].[2].span[0].text[0]": {
+      "template": "{0}",
+      "bindings": [
+        "quantity"
+      ],
+      "slots": [
+        13
+      ],
+      "path": [
+        0,
+        1,
+        2,
+        0,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "div[0].text[1]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        1
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].[0].option[0].text[0]": {
+      "template": "Blue",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "div[0].text[2]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        2
+      ],
+      "type": "dynamic"
+    },
+    "div[0].text[3]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        3
+      ],
+      "type": "dynamic"
+    },
+    "div[0].text[4]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        4
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].button[0].text[0]": {
+      "template": "{0} Details",
+      "bindings": [
+        "isExpanded"
+      ],
+      "slots": [
+        11
+      ],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "conditional",
+      "conditionalTemplates": {
+        "true": "Hide",
+        "false": "Show"
+      }
+    },
+    "[0].[1].button[0].text[1]": {
+      "template": "Details",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "type": "static"
+    },
+    "[0].div[1].text[0]": {
+      "template": "{0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "div[0].text[5]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        5
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].strong[0].text[0]": {
+      "template": "Total: $",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].strong[0].text[1]": {
+      "template": "Total: ${0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "type": "dynamic"
+    },
+    "div[0].text[6]": {
+      "template": "{0}\n      \n\n      {1}\n      \n\n      {2}\n      {3}\n\n      {4}\n      \n\n      {5}\n      \n\n      {6}",
+      "bindings": [
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__",
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        6
+      ],
+      "type": "dynamic"
+    },
+    "[0].button[0].text[0]": {
+      "template": "Add to Cart",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0,
+        0
+      ],
+      "type": "static"
+    }
+  }
+}

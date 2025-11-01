@@ -74,7 +74,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Type Conversion
 	 */
 
-	const t$f = globalThis.__BABEL_TYPES__;
+	const t$g = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Convert TypeScript type annotation to C# type
@@ -83,28 +83,28 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  if (!tsType) return 'dynamic';
 
 	  // TSStringKeyword -> string
-	  if (t$f.isTSStringKeyword(tsType)) return 'string';
+	  if (t$g.isTSStringKeyword(tsType)) return 'string';
 
 	  // TSNumberKeyword -> double
-	  if (t$f.isTSNumberKeyword(tsType)) return 'double';
+	  if (t$g.isTSNumberKeyword(tsType)) return 'double';
 
 	  // TSBooleanKeyword -> bool
-	  if (t$f.isTSBooleanKeyword(tsType)) return 'bool';
+	  if (t$g.isTSBooleanKeyword(tsType)) return 'bool';
 
 	  // TSAnyKeyword -> dynamic
-	  if (t$f.isTSAnyKeyword(tsType)) return 'dynamic';
+	  if (t$g.isTSAnyKeyword(tsType)) return 'dynamic';
 
 	  // TSArrayType -> List<T>
-	  if (t$f.isTSArrayType(tsType)) {
+	  if (t$g.isTSArrayType(tsType)) {
 	    const elementType = tsTypeToCSharpType$2(tsType.elementType);
 	    return `List<${elementType}>`;
 	  }
 
 	  // TSTypeLiteral (object type) -> dynamic
-	  if (t$f.isTSTypeLiteral(tsType)) return 'dynamic';
+	  if (t$g.isTSTypeLiteral(tsType)) return 'dynamic';
 
 	  // TSTypeReference (custom types, interfaces) -> dynamic
-	  if (t$f.isTSTypeReference(tsType)) return 'dynamic';
+	  if (t$g.isTSTypeReference(tsType)) return 'dynamic';
 
 	  // Default to dynamic for full JSX semantics
 	  return 'dynamic';
@@ -116,12 +116,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function inferType$2(node) {
 	  if (!node) return 'dynamic';
 
-	  if (t$f.isStringLiteral(node)) return 'string';
-	  if (t$f.isNumericLiteral(node)) return 'int';
-	  if (t$f.isBooleanLiteral(node)) return 'bool';
-	  if (t$f.isNullLiteral(node)) return 'dynamic';
-	  if (t$f.isArrayExpression(node)) return 'List<dynamic>';
-	  if (t$f.isObjectExpression(node)) return 'dynamic';
+	  if (t$g.isStringLiteral(node)) return 'string';
+	  if (t$g.isNumericLiteral(node)) return 'int';
+	  if (t$g.isBooleanLiteral(node)) return 'bool';
+	  if (t$g.isNullLiteral(node)) return 'dynamic';
+	  if (t$g.isArrayExpression(node)) return 'List<dynamic>';
+	  if (t$g.isObjectExpression(node)) return 'dynamic';
 
 	  return 'dynamic';
 	}
@@ -136,7 +136,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Dependency Analyzer
 	 */
 
-	const t$e = globalThis.__BABEL_TYPES__;
+	const t$f = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Analyze dependencies in JSX expressions
@@ -149,7 +149,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    if (!node) return;
 
 	    // Check if this is an identifier that's a state variable
-	    if (t$e.isIdentifier(node)) {
+	    if (t$f.isIdentifier(node)) {
 	      const name = node.name;
 	      if (component.stateTypes.has(name)) {
 	        deps.add({
@@ -160,25 +160,25 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Recursively walk the tree
-	    if (t$e.isConditionalExpression(node)) {
+	    if (t$f.isConditionalExpression(node)) {
 	      walk(node.test);
 	      walk(node.consequent);
 	      walk(node.alternate);
-	    } else if (t$e.isLogicalExpression(node)) {
+	    } else if (t$f.isLogicalExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$e.isMemberExpression(node)) {
+	    } else if (t$f.isMemberExpression(node)) {
 	      walk(node.object);
 	      walk(node.property);
-	    } else if (t$e.isCallExpression(node)) {
+	    } else if (t$f.isCallExpression(node)) {
 	      walk(node.callee);
 	      node.arguments.forEach(walk);
-	    } else if (t$e.isBinaryExpression(node)) {
+	    } else if (t$f.isBinaryExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$e.isUnaryExpression(node)) {
+	    } else if (t$f.isUnaryExpression(node)) {
 	      walk(node.argument);
-	    } else if (t$e.isArrowFunctionExpression(node) || t$e.isFunctionExpression(node)) {
+	    } else if (t$f.isArrowFunctionExpression(node) || t$f.isFunctionExpression(node)) {
 	      walk(node.body);
 	    }
 	  }
@@ -237,91 +237,83 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	 * Pattern Detection
 	 */
 
-	var detection;
-	var hasRequiredDetection;
-
-	function requireDetection () {
-		if (hasRequiredDetection) return detection;
-		hasRequiredDetection = 1;
-		const t = globalThis.__BABEL_TYPES__;
+	const t$e = globalThis.__BABEL_TYPES__;
 
 
-		/**
-		 * Detect if attributes contain spread operators
-		 */
-		function hasSpreadProps(attributes) {
-		  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
-		}
-
-		/**
-		 * Detect if children contain dynamic patterns (like .map())
-		 */
-		function hasDynamicChildren(children) {
-		  return children.some(child => {
-		    if (!t.isJSXExpressionContainer(child)) return false;
-		    const expr = child.expression;
-
-		    // Check for .map() calls
-		    if (t.isCallExpression(expr) &&
-		        t.isMemberExpression(expr.callee) &&
-		        t.isIdentifier(expr.callee.property, { name: 'map' })) {
-		      return true;
-		    }
-
-		    // Check for array expressions from LINQ/Select
-		    if (t.isCallExpression(expr) &&
-		        t.isMemberExpression(expr.callee) &&
-		        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-		         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-		      return true;
-		    }
-
-		    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-		    if (t.isConditionalExpression(expr)) {
-		      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
-		          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
-		        return true;
-		      }
-		    }
-
-		    // Check for logical expressions with JSX: {condition && <Element/>}
-		    if (t.isLogicalExpression(expr)) {
-		      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
-		        return true;
-		      }
-		    }
-
-		    return false;
-		  });
-		}
-
-		/**
-		 * Detect if props contain complex expressions
-		 */
-		function hasComplexProps(attributes) {
-		  return attributes.some(attr => {
-		    if (!t.isJSXAttribute(attr)) return false;
-		    const value = attr.value;
-
-		    if (!t.isJSXExpressionContainer(value)) return false;
-		    const expr = value.expression;
-
-		    // Check for conditional spread: {...(condition && { prop: value })}
-		    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
-		      return true;
-		    }
-
-		    return false;
-		  });
-		}
-
-		detection = {
-		  hasSpreadProps,
-		  hasDynamicChildren,
-		  hasComplexProps
-		};
-		return detection;
+	/**
+	 * Detect if attributes contain spread operators
+	 */
+	function hasSpreadProps(attributes) {
+	  return attributes.some(attr => t$e.isJSXSpreadAttribute(attr));
 	}
+
+	/**
+	 * Detect if children contain dynamic patterns (like .map())
+	 */
+	function hasDynamicChildren(children) {
+	  return children.some(child => {
+	    if (!t$e.isJSXExpressionContainer(child)) return false;
+	    const expr = child.expression;
+
+	    // Check for .map() calls
+	    if (t$e.isCallExpression(expr) &&
+	        t$e.isMemberExpression(expr.callee) &&
+	        t$e.isIdentifier(expr.callee.property, { name: 'map' })) {
+	      return true;
+	    }
+
+	    // Check for array expressions from LINQ/Select
+	    if (t$e.isCallExpression(expr) &&
+	        t$e.isMemberExpression(expr.callee) &&
+	        (t$e.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t$e.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	      return true;
+	    }
+
+	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+	    if (t$e.isConditionalExpression(expr)) {
+	      if (t$e.isJSXElement(expr.consequent) || t$e.isJSXFragment(expr.consequent) ||
+	          t$e.isJSXElement(expr.alternate) || t$e.isJSXFragment(expr.alternate)) {
+	        return true;
+	      }
+	    }
+
+	    // Check for logical expressions with JSX: {condition && <Element/>}
+	    if (t$e.isLogicalExpression(expr)) {
+	      if (t$e.isJSXElement(expr.right) || t$e.isJSXFragment(expr.right)) {
+	        return true;
+	      }
+	    }
+
+	    return false;
+	  });
+	}
+
+	/**
+	 * Detect if props contain complex expressions
+	 */
+	function hasComplexProps(attributes) {
+	  return attributes.some(attr => {
+	    if (!t$e.isJSXAttribute(attr)) return false;
+	    const value = attr.value;
+
+	    if (!t$e.isJSXExpressionContainer(value)) return false;
+	    const expr = value.expression;
+
+	    // Check for conditional spread: {...(condition && { prop: value })}
+	    if (t$e.isConditionalExpression(expr) || t$e.isLogicalExpression(expr)) {
+	      return true;
+	    }
+
+	    return false;
+	  });
+	}
+
+	var detection = {
+	  hasSpreadProps,
+	  hasDynamicChildren,
+	  hasComplexProps
+	};
 
 	/**
 	 * Event Handlers Extractor
@@ -527,7 +519,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		hasRequiredJsx = 1;
 		const t = globalThis.__BABEL_TYPES__;
 		const { escapeCSharpString } = helpers;
-		const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
+		const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
 		const { extractEventHandler } = eventHandlers;
 		// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
@@ -953,10 +945,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    const condition = generateBooleanExpression(expr.test);
 		    const consequent = t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)
 		      ? generateRuntimeHelperForJSXNode(expr.consequent, component, indent)
-		      : generateCSharpExpression(expr.consequent);
+		      : generateCSharpExpression(expr.consequent, true); // inInterpolation=true
 		    const alternate = t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)
 		      ? generateRuntimeHelperForJSXNode(expr.alternate, component, indent)
-		      : generateCSharpExpression(expr.alternate);
+		      : generateCSharpExpression(expr.alternate, true); // inInterpolation=true
 		    return `(${condition}) ? ${consequent} : ${alternate}`;
 		  }
 
@@ -1058,12 +1050,19 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		/**
 		 * Generate C# expression from JS expression
+		 * @param {boolean} inInterpolation - True if this expression will be inside $"{...}"
 		 */
-		function generateCSharpExpression(node) {
+		function generateCSharpExpression(node, inInterpolation = false) {
 		  if (!node) return 'null';
 
 		  if (t.isStringLiteral(node)) {
-		    return `"${escapeCSharpString(node.value)}"`;
+		    // In string interpolation context, escape the quotes: \"text\"
+		    // Otherwise use normal quotes: "text"
+		    if (inInterpolation) {
+		      return `\\"${escapeCSharpString(node.value)}\\"`;
+		    } else {
+		      return `"${escapeCSharpString(node.value)}"`;
+		    }
 		  }
 
 		  if (t.isNumericLiteral(node)) {
@@ -1115,9 +1114,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		  if (t.isConditionalExpression(node)) {
 		    // Handle ternary operator: test ? consequent : alternate
-		    const test = generateCSharpExpression(node.test);
-		    const consequent = generateCSharpExpression(node.consequent);
-		    const alternate = generateCSharpExpression(node.alternate);
+		    const test = generateCSharpExpression(node.test, inInterpolation);
+		    const consequent = generateCSharpExpression(node.consequent, inInterpolation);
+		    const alternate = generateCSharpExpression(node.alternate, inInterpolation);
 		    return `(${test}) ? ${consequent} : ${alternate}`;
 		  }
 
@@ -2869,6 +2868,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const slots = [];
 	    let paramIndex = 0;
 	    let hasExpressions = false;
+	    let conditionalTemplates = null;
 
 	    for (const child of children) {
 	      if (t$8.isJSXText(child)) {
@@ -2878,8 +2878,21 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        hasExpressions = true;
 	        const binding = extractBinding(child.expression);
 
-	        if (binding) {
-	          // Record placeholder position
+	        if (binding && typeof binding === 'object' && binding.conditional) {
+	          // Conditional binding (ternary)
+	          slots.push(templateStr.length);
+	          templateStr += `{${paramIndex}}`;
+	          bindings.push(binding.conditional);
+
+	          // Store conditional template values
+	          conditionalTemplates = {
+	            true: binding.trueValue,
+	            false: binding.falseValue
+	          };
+
+	          paramIndex++;
+	        } else if (binding) {
+	          // Simple binding (string)
 	          slots.push(templateStr.length);
 	          templateStr += `{${paramIndex}}`;
 	          bindings.push(binding);
@@ -2898,13 +2911,20 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    if (!hasExpressions) return null;
 
-	    return {
+	    const result = {
 	      template: templateStr,
 	      bindings,
 	      slots,
 	      path: [...currentPath, textIndex],
-	      type: 'dynamic'
+	      type: conditionalTemplates ? 'conditional' : 'dynamic'
 	    };
+
+	    // Add conditional template values if present
+	    if (conditionalTemplates) {
+	      result.conditionalTemplates = conditionalTemplates;
+	    }
+
+	    return result;
 	  }
 
 	  /**
@@ -2913,6 +2933,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * - Identifiers: {count}
 	   * - Member expressions: {user.name}
 	   * - Simple operations: {count + 1}
+	   * - Conditionals: {isExpanded ? 'Hide' : 'Show'}
 	   */
 	  function extractBinding(expr, component) {
 	    if (t$8.isIdentifier(expr)) {
@@ -2924,8 +2945,57 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      const identifiers = [];
 	      extractIdentifiers(expr, identifiers);
 	      return identifiers.join('.');
+	    } else if (t$8.isConditionalExpression(expr)) {
+	      // Ternary expression: {isExpanded ? 'Hide' : 'Show'}
+	      // Return special marker that will be processed into conditional template
+	      return extractConditionalBinding(expr);
 	    } else {
 	      // Complex expression
+	      return null;
+	    }
+	  }
+
+	  /**
+	   * Extract conditional binding from ternary expression
+	   * Returns object with test identifier and consequent/alternate values
+	   * Example: isExpanded ? 'Hide' : 'Show'
+	   * Returns: { conditional: 'isExpanded', trueValue: 'Hide', falseValue: 'Show' }
+	   */
+	  function extractConditionalBinding(expr) {
+	    // Check if test is a simple identifier
+	    if (!t$8.isIdentifier(expr.test)) {
+	      // Complex test condition - mark as complex
+	      return null;
+	    }
+
+	    // Check if consequent and alternate are literals
+	    const trueValue = extractLiteralValue(expr.consequent);
+	    const falseValue = extractLiteralValue(expr.alternate);
+
+	    if (trueValue === null || falseValue === null) {
+	      // Not simple literals - mark as complex
+	      return null;
+	    }
+
+	    // Return conditional template metadata
+	    return {
+	      conditional: expr.test.name,
+	      trueValue,
+	      falseValue
+	    };
+	  }
+
+	  /**
+	   * Extract literal value from node (string, number, boolean)
+	   */
+	  function extractLiteralValue(node) {
+	    if (t$8.isStringLiteral(node)) {
+	      return node.value;
+	    } else if (t$8.isNumericLiteral(node)) {
+	      return node.value.toString();
+	    } else if (t$8.isBooleanLiteral(node)) {
+	      return node.value.toString();
+	    } else {
 	      return null;
 	    }
 	  }
@@ -3089,6 +3159,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        path: template.path,
 	        type: template.type
 	      };
+
+	      // Include conditionalTemplates if present (for ternary expressions)
+	      if (template.conditionalTemplates) {
+	        acc[path].conditionalTemplates = template.conditionalTemplates;
+	      }
+
 	      return acc;
 	    }, {})
 	  };

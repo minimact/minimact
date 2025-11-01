@@ -97,6 +97,7 @@ function extractTemplates(renderBody, component) {
     const slots = [];
     let paramIndex = 0;
     let hasExpressions = false;
+    let conditionalTemplates = null;
 
     for (const child of children) {
       if (t.isJSXText(child)) {
@@ -106,8 +107,21 @@ function extractTemplates(renderBody, component) {
         hasExpressions = true;
         const binding = extractBinding(child.expression, component);
 
-        if (binding) {
-          // Record placeholder position
+        if (binding && typeof binding === 'object' && binding.conditional) {
+          // Conditional binding (ternary)
+          slots.push(templateStr.length);
+          templateStr += `{${paramIndex}}`;
+          bindings.push(binding.conditional);
+
+          // Store conditional template values
+          conditionalTemplates = {
+            true: binding.trueValue,
+            false: binding.falseValue
+          };
+
+          paramIndex++;
+        } else if (binding) {
+          // Simple binding (string)
           slots.push(templateStr.length);
           templateStr += `{${paramIndex}}`;
           bindings.push(binding);
@@ -126,13 +140,20 @@ function extractTemplates(renderBody, component) {
 
     if (!hasExpressions) return null;
 
-    return {
+    const result = {
       template: templateStr,
       bindings,
       slots,
       path: [...currentPath, textIndex],
-      type: 'dynamic'
+      type: conditionalTemplates ? 'conditional' : 'dynamic'
     };
+
+    // Add conditional template values if present
+    if (conditionalTemplates) {
+      result.conditionalTemplates = conditionalTemplates;
+    }
+
+    return result;
   }
 
   /**
@@ -141,6 +162,7 @@ function extractTemplates(renderBody, component) {
    * - Identifiers: {count}
    * - Member expressions: {user.name}
    * - Simple operations: {count + 1}
+   * - Conditionals: {isExpanded ? 'Hide' : 'Show'}
    */
   function extractBinding(expr, component) {
     if (t.isIdentifier(expr)) {
@@ -152,8 +174,57 @@ function extractTemplates(renderBody, component) {
       const identifiers = [];
       extractIdentifiers(expr, identifiers);
       return identifiers.join('.');
+    } else if (t.isConditionalExpression(expr)) {
+      // Ternary expression: {isExpanded ? 'Hide' : 'Show'}
+      // Return special marker that will be processed into conditional template
+      return extractConditionalBinding(expr);
     } else {
       // Complex expression
+      return null;
+    }
+  }
+
+  /**
+   * Extract conditional binding from ternary expression
+   * Returns object with test identifier and consequent/alternate values
+   * Example: isExpanded ? 'Hide' : 'Show'
+   * Returns: { conditional: 'isExpanded', trueValue: 'Hide', falseValue: 'Show' }
+   */
+  function extractConditionalBinding(expr) {
+    // Check if test is a simple identifier
+    if (!t.isIdentifier(expr.test)) {
+      // Complex test condition - mark as complex
+      return null;
+    }
+
+    // Check if consequent and alternate are literals
+    const trueValue = extractLiteralValue(expr.consequent);
+    const falseValue = extractLiteralValue(expr.alternate);
+
+    if (trueValue === null || falseValue === null) {
+      // Not simple literals - mark as complex
+      return null;
+    }
+
+    // Return conditional template metadata
+    return {
+      conditional: expr.test.name,
+      trueValue,
+      falseValue
+    };
+  }
+
+  /**
+   * Extract literal value from node (string, number, boolean)
+   */
+  function extractLiteralValue(node) {
+    if (t.isStringLiteral(node)) {
+      return node.value;
+    } else if (t.isNumericLiteral(node)) {
+      return node.value.toString();
+    } else if (t.isBooleanLiteral(node)) {
+      return node.value.toString();
+    } else {
       return null;
     }
   }
@@ -317,6 +388,12 @@ function generateTemplateMapJSON(componentName, templates, attributeTemplates) {
         path: template.path,
         type: template.type
       };
+
+      // Include conditionalTemplates if present (for ternary expressions)
+      if (template.conditionalTemplates) {
+        acc[path].conditionalTemplates = template.conditionalTemplates;
+      }
+
       return acc;
     }, {})
   };
