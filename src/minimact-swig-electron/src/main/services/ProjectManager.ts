@@ -476,16 +476,17 @@ public class ProductData
     );
 
     // Create ProductDetailsPage.tsx
-    const productDetailsPageTsx = `import { useMvcState, useMvcViewModel } from '@minimact/mvc';
+    const productDetailsPageTsx = `import { useMvcState, useMvcViewModel, decimal, int } from '@minimact/mvc';
 import { useState } from 'minimact';
 
 // TypeScript interface matching C# ViewModel
+// IMPORTANT: Use C# type mappings (decimal, int, etc.) to ensure correct code generation
 interface ProductViewModel {
   productName: string;
-  price: number;
+  price: decimal;  // C# decimal (for currency)
   isAdminRole: boolean;
   userEmail: string;
-  initialQuantity: number;
+  initialQuantity: int;  // C# int
   initialSelectedColor: string;
   initialIsExpanded: boolean;
 }

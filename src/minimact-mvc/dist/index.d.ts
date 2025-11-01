@@ -18,7 +18,7 @@ export { setMvcContext, clearMvcContext, resetMvcStateIndex } from './hooks';
 /**
  * Type definitions
  */
-export type { MvcViewModelWrapper, MutableMvcState, ImmutableMvcState, UseMvcStateOptions, MvcStateMetadata } from './types';
+export type { MvcViewModelWrapper, MutableMvcState, ImmutableMvcState, UseMvcStateOptions, MvcStateMetadata, decimal, int32, int64, float32, float64, int16, byte, Guid, DateTime, DateOnly, TimeOnly, int, long, double, float, short } from './types';
 export declare const VERSION = "0.1.0";
 /**
  * Package metadata for debugging

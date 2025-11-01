@@ -44,7 +44,25 @@ export type {
     MutableMvcState,
     ImmutableMvcState,
     UseMvcStateOptions,
-    MvcStateMetadata
+    MvcStateMetadata,
+    // C# Type Mappings
+    decimal,
+    int32,
+    int64,
+    float32,
+    float64,
+    int16,
+    byte,
+    Guid,
+    DateTime,
+    DateOnly,
+    TimeOnly,
+    // Aliases
+    int,
+    long,
+    double,
+    float,
+    short
 } from './types';
 
 // ============================================================
