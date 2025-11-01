@@ -1,4 +1,4 @@
-# 🎤🔥 CAN YOU SMELLLLLLL... WHAT THE MINIMACT... IS RENDERING!! 🔥🎤
+# 🎤🔥 CAN YOU SMELLLLLLL... WHAT THE MINIMAC'T... IS RENDERING!! 🔥🎤
 
 ---
 
@@ -10,7 +10,7 @@
 
 **IT DOESN'T MATTER** if your controllers are older than your junior devs!
 
-Because **FINALLY**... *FINALLY*... The Minimact MVC Bridge has come back... to **ASP.NET**!
+Because **FINALLY**... *FINALLY*... The Minimac't MVC Bridge has come back... to **ASP.NET**!
 
 ---
 
@@ -21,6 +21,21 @@ Because **FINALLY**... *FINALLY*... The Minimact MVC Bridge has come back... to 
 - 📦 **13.33 KB** runtime (stripped down, lean, and MEAN)
 - 🔒 **100%** server-authoritative security (locked down tighter than a figure-four leglock)
 - 💰 **5x** memory reduction vs. the candy-ass competition
+- 🏆 **The Rock's Rating**: CHAMPION (vs. all the jabronis)
+
+---
+
+## 🥊 LAYING THE SMAC'T DOWN - THE FOUR ROUNDS
+
+**Round 1** - MVC Developer: *"But my controllers..."* → Minimac't: "KEEP 'EM!"
+
+**Round 2** - React Fan: *"But hydration..."* → Minimac't: "0ms PATCHES!"
+
+**Round 3** - Angular Dev: *"500KB bundle..."* → Minimac't: "13.33 KB. BOOM!"
+
+**Round 4** - Next.js: *"Server components..."* → Minimac't: "RUST RECONCILIATION! 🪨💥"
+
+### **THE SMAC'T DOWN IS COMPLETE!** 💥
 
 ---
 
@@ -291,7 +306,7 @@ You wanted a bridge?
 
 **THE PEOPLE** wanted a bridge?
 
-Well, **MINIMACT** just built the **GOLDEN GATE OF MVC BRIDGES**!
+Well, **MINIMAC'T** just built the **GOLDEN GATE OF MVC BRIDGES**!
 
 And now...
 
@@ -313,7 +328,7 @@ To Vue with your reactivity overhead...
 
 To Angular with your... *everything*...
 
-The Minimact MVC Bridge has **ONE THING** to say:
+The Minimac't MVC Bridge has **ONE THING** to say:
 
 ### **KNOW YOUR ROLE... AND SHUT YOUR MOUTH!** 🎤💥
 
@@ -341,7 +356,7 @@ The Minimact MVC Bridge has **ONE THING** to say:
 
 **IF YA SMELL...**
 
-**WHAT THE MINIMACT...**
+**WHAT THE MINIMAC'T...**
 
 **MVC BRIDGE...**
 
@@ -355,16 +370,18 @@ The Minimact MVC Bridge has **ONE THING** to say:
 
 *\*ships to production\**
 
+*\*mic breaks anyway\**
+
 ---
 
 **THE PEOPLE'S FRAMEWORK IS HERE.**
 
 **AND THAT'S THE BOTTOM LINE.**
 
-**BECAUSE MINIMACT SAID SO.** ✊💥
+**BECAUSE MINIMAC'T SAID SO.** ✊💥
 
 🚀🚀🚀 **LET'S GOOOOOOOO!!!** 🚀🚀🚀
 
 ---
 
-*© 2025 Minimact. The Most Electrifying Framework in Web Development Entertainment.*
+*© 2025 Minimac't. The Most Electrifying Framework in Web Development Entertainment.*
