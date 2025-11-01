@@ -73,6 +73,17 @@ public abstract class MinimactComponent
     /// </summary>
     internal ArrayOperation? LastArrayOperation { get; set; }
 
+    /// <summary>
+    /// MVC ViewModel instance (if provided by controller via MVC Bridge)
+    /// </summary>
+    protected object? MvcViewModel { get; private set; }
+
+    /// <summary>
+    /// Mutability metadata for MVC ViewModel properties
+    /// Tracks which properties are marked with [Mutable] attribute
+    /// </summary>
+    private Dictionary<string, bool>? _mvcMutability;
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
@@ -308,6 +319,58 @@ public abstract class MinimactComponent
         // applied cached patches. We just need to keep state in sync so the
         // next render (from other causes) has correct data.
     }
+
+    #region MVC Bridge Methods
+
+    /// <summary>
+    /// Set MVC ViewModel and mutability metadata.
+    /// Called by MinimactPageRenderer when rendering from MVC controller.
+    /// </summary>
+    /// <param name="viewModel">The ViewModel instance from controller</param>
+    /// <param name="mutability">Dictionary of property mutability flags</param>
+    internal void SetMvcViewModel(object viewModel, Dictionary<string, bool> mutability)
+    {
+        MvcViewModel = viewModel;
+        _mvcMutability = mutability;
+    }
+
+    /// <summary>
+    /// Check if an MVC ViewModel property is mutable.
+    /// Used by server to validate client state updates.
+    /// </summary>
+    /// <param name="stateKey">The state key (e.g., "mvc_initialCount_0")</param>
+    /// <returns>True if the property is marked [Mutable], false otherwise</returns>
+    public bool IsMvcStateMutable(string stateKey)
+    {
+        if (_mvcMutability == null)
+            return false;
+
+        // Extract property name from state key
+        // Pattern: "mvc_{propertyName}_{index}"
+        var propertyName = ExtractPropertyNameFromStateKey(stateKey);
+
+        return _mvcMutability.TryGetValue(propertyName, out var isMutable) && isMutable;
+    }
+
+    /// <summary>
+    /// Extract property name from MVC state key.
+    /// </summary>
+    /// <param name="stateKey">State key like "mvc_initialCount_0"</param>
+    /// <returns>Property name like "initialCount"</returns>
+    private string ExtractPropertyNameFromStateKey(string stateKey)
+    {
+        // Pattern: "mvc_{propertyName}_{index}"
+        var parts = stateKey.Split('_');
+
+        if (parts.Length >= 2 && parts[0] == "mvc")
+        {
+            return parts[1];
+        }
+
+        return stateKey;
+    }
+
+    #endregion
 
     #region Context Methods (useContext hook support)
 
