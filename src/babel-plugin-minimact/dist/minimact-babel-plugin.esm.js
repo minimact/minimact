@@ -2868,11 +2868,27 @@ function extractTemplates$1(renderBody, component) {
           }
         } else if (t$8.isJSXExpressionContainer(child)) {
           // Expression in text position: <h1>{count}</h1>
-          const template = extractTextTemplate(node.children, currentPath, textNodeIndex);
-          if (template) {
-            const textPath = `${pathKey}.text[${textNodeIndex}]`;
-            templates[textPath] = template;
-            textNodeIndex++;
+          // Only create text template if this is actual text content, not structural JSX
+          const expr = child.expression;
+
+          // Skip structural JSX (elements, fragments, conditionals with JSX, comments)
+          const isStructural = t$8.isJSXElement(expr) ||
+                               t$8.isJSXFragment(expr) ||
+                               t$8.isJSXEmptyExpression(expr) || // Comments: {/* ... */}
+                               (t$8.isLogicalExpression(expr) &&
+                                (t$8.isJSXElement(expr.right) || t$8.isJSXFragment(expr.right))) ||
+                               (t$8.isConditionalExpression(expr) &&
+                                (t$8.isJSXElement(expr.consequent) || t$8.isJSXElement(expr.alternate) ||
+                                 t$8.isJSXFragment(expr.consequent) || t$8.isJSXFragment(expr.alternate)));
+
+          if (!isStructural) {
+            // This is a text expression, extract template
+            const template = extractTextTemplate(node.children, currentPath, textNodeIndex);
+            if (template) {
+              const textPath = `${pathKey}.text[${textNodeIndex}]`;
+              templates[textPath] = template;
+              textNodeIndex++;
+            }
           }
         } else if (t$8.isJSXElement(child)) {
           traverseJSX(child, currentPath);
@@ -2901,6 +2917,8 @@ function extractTemplates$1(renderBody, component) {
     let paramIndex = 0;
     let hasExpressions = false;
     let conditionalTemplates = null;
+    let transformMetadata = null;
+    let nullableMetadata = null;
 
     for (const child of children) {
       if (t$8.isJSXText(child)) {
@@ -2923,6 +2941,29 @@ function extractTemplates$1(renderBody, component) {
           };
 
           paramIndex++;
+        } else if (binding && typeof binding === 'object' && binding.transform) {
+          // Phase 1: Transform binding (method call)
+          slots.push(templateStr.length);
+          templateStr += `{${paramIndex}}`;
+          bindings.push(binding.binding);
+
+          // Store transform metadata
+          transformMetadata = {
+            method: binding.transform,
+            args: binding.args
+          };
+
+          paramIndex++;
+        } else if (binding && typeof binding === 'object' && binding.nullable) {
+          // Phase 2: Nullable binding (optional chaining)
+          slots.push(templateStr.length);
+          templateStr += `{${paramIndex}}`;
+          bindings.push(binding.binding);
+
+          // Mark as nullable
+          nullableMetadata = true;
+
+          paramIndex++;
         } else if (binding) {
           // Simple binding (string)
           slots.push(templateStr.length);
@@ -2943,17 +2984,37 @@ function extractTemplates$1(renderBody, component) {
 
     if (!hasExpressions) return null;
 
+    // Determine template type
+    let templateType = 'dynamic';
+    if (conditionalTemplates) {
+      templateType = 'conditional';
+    } else if (transformMetadata) {
+      templateType = 'transform';
+    } else if (nullableMetadata) {
+      templateType = 'nullable';
+    }
+
     const result = {
       template: templateStr,
       bindings,
       slots,
       path: [...currentPath, textIndex],
-      type: conditionalTemplates ? 'conditional' : 'dynamic'
+      type: templateType
     };
 
     // Add conditional template values if present
     if (conditionalTemplates) {
       result.conditionalTemplates = conditionalTemplates;
+    }
+
+    // Add transform metadata if present
+    if (transformMetadata) {
+      result.transform = transformMetadata;
+    }
+
+    // Add nullable flag if present
+    if (nullableMetadata) {
+      result.nullable = true;
     }
 
     return result;
@@ -2966,12 +3027,20 @@ function extractTemplates$1(renderBody, component) {
    * - Member expressions: {user.name}
    * - Simple operations: {count + 1}
    * - Conditionals: {isExpanded ? 'Hide' : 'Show'}
+   * - Method calls: {price.toFixed(2)}
+   * - Optional chaining: {viewModel?.userEmail}
    */
   function extractBinding(expr, component) {
     if (t$8.isIdentifier(expr)) {
       return expr.name;
     } else if (t$8.isMemberExpression(expr)) {
       return buildMemberPath(expr);
+    } else if (t$8.isOptionalMemberExpression(expr)) {
+      // Phase 2: Optional chaining (viewModel?.userEmail)
+      return extractOptionalChainBinding(expr);
+    } else if (t$8.isCallExpression(expr)) {
+      // Phase 1: Method calls (price.toFixed(2))
+      return extractMethodCallBinding(expr);
     } else if (t$8.isBinaryExpression(expr) || t$8.isUnaryExpression(expr)) {
       // Simple operations - extract all identifiers
       const identifiers = [];
@@ -3030,6 +3099,106 @@ function extractTemplates$1(renderBody, component) {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Extract method call binding (Phase 1)
+   * Handles: price.toFixed(2), text.toLowerCase(), etc.
+   * Returns: { transform: 'toFixed', binding: 'price', args: [2] }
+   */
+  function extractMethodCallBinding(expr) {
+    const callee = expr.callee;
+
+    // Only handle method calls (obj.method()), not function calls (func())
+    if (!t$8.isMemberExpression(callee) && !t$8.isOptionalMemberExpression(callee)) {
+      return null;
+    }
+
+    const methodName = t$8.isIdentifier(callee.property) ? callee.property.name : null;
+    if (!methodName) {
+      return null;
+    }
+
+    // Supported transformation methods
+    const transformMethods = [
+      'toFixed', 'toString', 'toLowerCase', 'toUpperCase',
+      'trim', 'trimStart', 'trimEnd'
+    ];
+
+    if (!transformMethods.includes(methodName)) {
+      return null; // Unsupported method - mark as complex
+    }
+
+    // Extract the object being called (price from price.toFixed(2))
+    let binding = null;
+    if (t$8.isMemberExpression(callee.object)) {
+      binding = buildMemberPath(callee.object);
+    } else if (t$8.isOptionalMemberExpression(callee.object)) {
+      binding = buildOptionalMemberPath(callee.object);
+    } else if (t$8.isIdentifier(callee.object)) {
+      binding = callee.object.name;
+    }
+
+    if (!binding) {
+      return null; // Can't extract binding
+    }
+
+    // Extract method arguments (e.g., 2 from toFixed(2))
+    const args = expr.arguments.map(arg => {
+      if (t$8.isNumericLiteral(arg)) return arg.value;
+      if (t$8.isStringLiteral(arg)) return arg.value;
+      if (t$8.isBooleanLiteral(arg)) return arg.value;
+      return null;
+    }).filter(v => v !== null);
+
+    // Return transform binding metadata
+    return {
+      transform: methodName,
+      binding: binding,
+      args: args
+    };
+  }
+
+  /**
+   * Extract optional chaining binding (Phase 2)
+   * Handles: viewModel?.userEmail, obj?.prop1?.prop2
+   * Returns: { nullable: true, binding: 'viewModel.userEmail' }
+   */
+  function extractOptionalChainBinding(expr) {
+    const path = buildOptionalMemberPath(expr);
+
+    if (!path) {
+      return null; // Can't build path
+    }
+
+    return {
+      nullable: true,
+      binding: path
+    };
+  }
+
+  /**
+   * Build optional member expression path: viewModel?.userEmail → "viewModel.userEmail"
+   */
+  function buildOptionalMemberPath(expr) {
+    const parts = [];
+    let current = expr;
+
+    while (t$8.isOptionalMemberExpression(current) || t$8.isMemberExpression(current)) {
+      if (t$8.isIdentifier(current.property)) {
+        parts.unshift(current.property.name);
+      } else {
+        return null; // Computed property
+      }
+      current = current.object;
+    }
+
+    if (t$8.isIdentifier(current)) {
+      parts.unshift(current.name);
+      return parts.join('.');
+    }
+
+    return null;
   }
 
   /**
@@ -3195,6 +3364,16 @@ function generateTemplateMapJSON$1(componentName, templates, attributeTemplates)
       // Include conditionalTemplates if present (for ternary expressions)
       if (template.conditionalTemplates) {
         acc[path].conditionalTemplates = template.conditionalTemplates;
+      }
+
+      // Include transform metadata if present (for method calls like toFixed)
+      if (template.transform) {
+        acc[path].transform = template.transform;
+      }
+
+      // Include nullable flag if present (for optional chaining)
+      if (template.nullable) {
+        acc[path].nullable = template.nullable;
       }
 
       return acc;
