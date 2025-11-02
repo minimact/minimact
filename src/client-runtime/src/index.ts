@@ -359,9 +359,9 @@ export type { PubSubMessage } from './pub-sub';
 // Task scheduling hooks
 export { useMicroTask, useMacroTask, useAnimationFrame, useIdleCallback } from './task-scheduling';
 
-// NOTE: useSignalR hook is NOT available in the SignalM version
-// It requires the full SignalR client library
-// If you need useSignalR, use 'minimact/signalr' instead
+// SignalR hook (lightweight SignalM implementation)
+export { useSignalR } from './signalr-hook-m';
+export type { SignalRHookState } from './signalr-hook-m';
 
 // Types
 export * from './types';
