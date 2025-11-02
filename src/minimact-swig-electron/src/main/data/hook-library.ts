@@ -7,6 +7,7 @@
  * - Punch Hooks (@minimact/punch package - DOM element state)
  * - Query Hooks (@minimact/query package - SQL for the DOM)
  * - Trees Hooks (@minimact/trees package - Decision trees & state machines)
+ * - Quantum Hooks (@minimact/quantum package - Quantum DOM entanglement)
  * - Advanced Hooks (server tasks, context, computed)
  *
  * Each hook includes:
@@ -20,7 +21,7 @@ export interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'advanced';
+  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum' | 'advanced';
   packageName?: string; // NPM package if not core
   imports: string[]; // Import statements
   example: string; // Code example template (client-side TSX)
@@ -505,6 +506,193 @@ public class ShoppingCartComponent : MinimactComponent
 }`,
     isDefault: false,
     dependencies: ['useServerTask', 'useState']
+  },
+
+  {
+    id: 'usePub',
+    name: 'usePub',
+    description: 'Publish messages to a channel - component-to-component communication without prop drilling',
+    category: 'core',
+    imports: ["import { usePub } from 'minimact';"],
+    example: `export function CartButton() {
+  const publishCartUpdate = usePub<{ itemCount: number }>('cart:updated');
+
+  const addToCart = (product: Product) => {
+    // Add item to cart...
+    const newItemCount = getCartItemCount();
+
+    // Publish cart update to all subscribers
+    publishCartUpdate({ itemCount: newItemCount }, {
+      source: 'cart-button',
+      timestamp: Date.now()
+    });
+  };
+
+  return <button onClick={() => addToCart(product)}>Add to Cart</button>;
+}`,
+    isDefault: false,
+    dependencies: []
+  },
+
+  {
+    id: 'useSub',
+    name: 'useSub',
+    description: 'Subscribe to messages from a channel - listen to events from other components',
+    category: 'core',
+    imports: ["import { useSub } from 'minimact';"],
+    example: `export function CartBadge() {
+  const [itemCount, setItemCount] = useState(0);
+
+  // Subscribe to cart updates from any component
+  useSub<{ itemCount: number }>('cart:updated', (message) => {
+    console.log('Cart updated by:', message.source);
+    setItemCount(message.value.itemCount);
+  });
+
+  return (
+    <div className="cart-badge">
+      🛒 {itemCount}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState']
+  },
+
+  {
+    id: 'useMicroTask',
+    name: 'useMicroTask',
+    description: 'Schedule callback in microtask queue (before paint) - perfect for DOM measurements and critical updates',
+    category: 'core',
+    imports: ["import { useMicroTask } from 'minimact';"],
+    example: `export function AutoExpandTextarea() {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInput = (e: Event) => {
+    // Schedule height adjustment in microtask (before paint)
+    useMicroTask(() => {
+      if (textareaRef.current) {
+        // Measure scrollHeight and adjust
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+      }
+    });
+  };
+
+  return (
+    <textarea
+      ref={textareaRef}
+      onInput={handleInput}
+      placeholder="Type something..."
+    />
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useRef']
+  },
+
+  {
+    id: 'useMacroTask',
+    name: 'useMacroTask',
+    description: 'Schedule callback in task queue (after paint) - perfect for analytics, logging, deferred work',
+    category: 'core',
+    imports: ["import { useMacroTask } from 'minimact';"],
+    example: `export function SearchInput() {
+  const [query, setQuery] = useState('');
+
+  const handleSearch = (value: string) => {
+    setQuery(value);
+
+    // Schedule analytics tracking after paint (non-blocking)
+    useMacroTask(() => {
+      analytics.track('search_query', {
+        query: value,
+        timestamp: Date.now()
+      });
+    }, 100); // Optional delay in ms
+  };
+
+  return (
+    <input
+      type="search"
+      value={query}
+      onChange={(e) => handleSearch(e.target.value)}
+      placeholder="Search..."
+    />
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState']
+  },
+
+  {
+    id: 'useSignalR',
+    name: 'useSignalR',
+    description: 'Access SignalR connection state and methods - invoke server methods and listen for server events',
+    category: 'core',
+    imports: ["import { useSignalR } from 'minimact';"],
+    example: `export function ConnectionStatus() {
+  const { state, connectionId, invoke, on, off } = useSignalR();
+
+  useEffect(() => {
+    // Listen for custom server events
+    const handleNotification = (message: string) => {
+      console.log('Server says:', message);
+    };
+
+    on('serverNotification', handleNotification);
+
+    return () => off('serverNotification', handleNotification);
+  }, [on, off]);
+
+  const pingServer = async () => {
+    try {
+      const response = await invoke('Ping', 'Hello from client!');
+      console.log('Server response:', response);
+    } catch (error) {
+      console.error('Ping failed:', error);
+    }
+  };
+
+  const broadcastMessage = async () => {
+    await invoke('BroadcastMessage', {
+      text: 'Hello everyone!',
+      timestamp: Date.now()
+    });
+  };
+
+  return (
+    <div className="connection-status">
+      <div className="status-badge">
+        Connection: <span className={state}>{state}</span>
+      </div>
+      <div className="connection-id">
+        ID: {connectionId || 'Not connected'}
+      </div>
+
+      <div className="actions">
+        <button onClick={pingServer} disabled={state !== 'Connected'}>
+          Ping Server
+        </button>
+        <button onClick={broadcastMessage} disabled={state !== 'Connected'}>
+          Broadcast Message
+        </button>
+      </div>
+
+      <div className="connection-states">
+        <h4>Connection States:</h4>
+        <ul>
+          <li><code>'Disconnected'</code> - Not connected</li>
+          <li><code>'Connecting'</code> - Connection in progress</li>
+          <li><code>'Connected'</code> - Active connection</li>
+          <li><code>'Reconnecting'</code> - Attempting to reconnect</li>
+        </ul>
+      </div>
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useEffect']
   },
 
   // ===== MVC HOOKS =====
@@ -1444,6 +1632,301 @@ export function ProductDetailsPage() {
 }`,
     isDefault: false,
     dependencies: ['useState']
+  },
+
+  // ===== QUANTUM HOOKS (Quantum DOM Entanglement) =====
+  {
+    id: 'useQuantumEntanglement',
+    name: 'useQuantumEntanglement',
+    description: 'Quantum DOM entanglement - share DOM identity across clients with mutation vectors',
+    category: 'quantum',
+    packageName: '@minimact/quantum',
+    imports: ["import { createQuantumManager } from '@minimact/quantum';"],
+    example: `export function CollaborativeSlider() {
+  const [volume, setVolume] = useState(50);
+  const sliderRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!sliderRef.current) return;
+
+    // Create quantum manager
+    const quantum = createQuantumManager({
+      clientId: 'user-' + Math.random().toString(36).substr(2, 9),
+      signalR: window.signalRManager,
+      debugLogging: true
+    });
+
+    // Entangle slider with remote client
+    const entangle = async () => {
+      const link = await quantum.entangle(
+        sliderRef.current!,
+        {
+          clientId: 'collaborator-id', // Target client
+          selector: '#volume-slider'
+        },
+        'bidirectional' // Both users can control
+      );
+
+      // Listen for remote changes
+      sliderRef.current!.addEventListener('quantum-awareness', (event: any) => {
+        console.log(\`\${event.detail.sourceClient} changed the slider!\`);
+        // Show indicator that remote user made change
+      });
+    };
+
+    entangle();
+  }, []);
+
+  return (
+    <div className="collaborative-slider">
+      <h3>Volume Control (Shared)</h3>
+      <input
+        ref={sliderRef}
+        id="volume-slider"
+        type="range"
+        min="0"
+        max="100"
+        value={volume}
+        onChange={(e) => setVolume(Number(e.target.value))}
+      />
+      <span>{volume}%</span>
+      <p className="hint">
+        🌌 Changes are instantly synced with your collaborator
+      </p>
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState', 'useEffect', 'useRef']
+  },
+
+  {
+    id: 'useQuantumEntanglement-broadcast',
+    name: 'useQuantumEntanglement (Broadcast)',
+    description: 'Entangle element with ALL clients - perfect for shared toggles and classroom presentations',
+    category: 'quantum',
+    packageName: '@minimact/quantum',
+    imports: ["import { createQuantumManager } from '@minimact/quantum';"],
+    example: `export function SharedThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!toggleRef.current) return;
+
+    const quantum = createQuantumManager({
+      clientId: 'user-' + Math.random().toString(36).substr(2, 9),
+      signalR: window.signalRManager
+    });
+
+    // Entangle with ALL clients on this page
+    quantum.entangleWithAll(toggleRef.current, 'mirror');
+
+    return () => {
+      // Cleanup on unmount
+    };
+  }, []);
+
+  const handleToggle = () => {
+    setIsDark(!isDark);
+    document.body.classList.toggle('dark-mode');
+  };
+
+  return (
+    <div className="theme-toggle">
+      <button
+        ref={toggleRef}
+        onClick={handleToggle}
+        className={\`toggle \${isDark ? 'dark' : 'light'}\`}
+      >
+        {isDark ? '🌙 Dark Mode' : '☀️ Light Mode'}
+      </button>
+      <p className="hint">
+        🌌 Toggle affects all connected users instantly
+      </p>
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState', 'useEffect', 'useRef']
+  },
+
+  {
+    id: 'useQuantumEntanglement-presentation',
+    name: 'useQuantumEntanglement (Presentation)',
+    description: 'Teacher/presenter controls - sync slides or controls to all viewers with mirror mode',
+    category: 'quantum',
+    packageName: '@minimact/quantum',
+    imports: ["import { createQuantumManager } from '@minimact/quantum';"],
+    example: `export function PresentationController() {
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [isPresenter, setIsPresenter] = useState(false);
+  const slidesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!slidesRef.current || !isPresenter) return;
+
+    const quantum = createQuantumManager({
+      clientId: 'presenter-' + sessionStorage.getItem('userId'),
+      signalR: window.signalRManager,
+      debugLogging: true
+    });
+
+    // Mirror mode: Presenter controls, students follow
+    quantum.entangle(slidesRef.current, {
+      clientId: 'student-*', // Wildcard: all students
+      selector: '#presentation-slides'
+    }, 'mirror');
+  }, [isPresenter]);
+
+  const nextSlide = () => {
+    setSlideIndex(prev => Math.min(prev + 1, slides.length - 1));
+  };
+
+  const prevSlide = () => {
+    setSlideIndex(prev => Math.max(prev - 1, 0));
+  };
+
+  const slides = ['Intro', 'Concepts', 'Demo', 'Q&A'];
+
+  return (
+    <div className="presentation">
+      <div ref={slidesRef} id="presentation-slides" className="slides">
+        <h1>{slides[slideIndex]}</h1>
+        <p>Slide {slideIndex + 1} of {slides.length}</p>
+      </div>
+
+      {isPresenter && (
+        <div className="controls">
+          <button onClick={prevSlide} disabled={slideIndex === 0}>
+            ← Previous
+          </button>
+          <button onClick={nextSlide} disabled={slideIndex === slides.length - 1}>
+            Next →
+          </button>
+          <p className="hint">
+            🌌 All students see your current slide instantly
+          </p>
+        </div>
+      )}
+
+      {!isPresenter && (
+        <p className="viewer-mode">
+          👁️ Viewing mode - Following presenter
+        </p>
+      )}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState', 'useEffect', 'useRef']
+  },
+
+  {
+    id: 'useQuantumEntanglement-support',
+    name: 'useQuantumEntanglement (Remote Support)',
+    description: 'Bidirectional form control - support agents can see and help fill customer forms in real-time',
+    category: 'quantum',
+    packageName: '@minimact/quantum',
+    imports: ["import { createQuantumManager } from '@minimact/quantum';"],
+    example: `export function SupportForm() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    issue: ''
+  });
+  const [supportConnected, setSupportConnected] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!formRef.current) return;
+
+    const quantum = createQuantumManager({
+      clientId: 'customer-' + sessionStorage.getItem('sessionId'),
+      signalR: window.signalRManager
+    });
+
+    // Connect to support agent (if available)
+    const connectSupport = async () => {
+      try {
+        const link = await quantum.entangle(formRef.current!, {
+          clientId: 'support-agent',
+          selector: '#customer-form-view'
+        }, 'bidirectional'); // Agent can type to help
+
+        setSupportConnected(true);
+
+        // Listen for agent assistance
+        formRef.current!.addEventListener('quantum-awareness', (event: any) => {
+          if (event.detail.sourceClient.startsWith('support-')) {
+            // Show "Agent is helping..." indicator
+            showAgentIndicator();
+          }
+        });
+      } catch (err) {
+        console.log('No support agent available');
+      }
+    };
+
+    connectSupport();
+  }, []);
+
+  const showAgentIndicator = () => {
+    // Show visual indicator that agent is typing
+    const indicator = document.createElement('div');
+    indicator.textContent = '👤 Support agent is helping...';
+    indicator.className = 'agent-indicator';
+    document.body.appendChild(indicator);
+    setTimeout(() => indicator.remove(), 3000);
+  };
+
+  return (
+    <form ref={formRef} className="support-form">
+      <h2>Help & Support</h2>
+
+      {supportConnected && (
+        <div className="status connected">
+          ✅ Support agent connected - they can see your form
+        </div>
+      )}
+
+      <label>
+        Name:
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+        />
+      </label>
+
+      <label>
+        Email:
+        <input
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        />
+      </label>
+
+      <label>
+        Issue Description:
+        <textarea
+          value={formData.issue}
+          onChange={(e) => setFormData({ ...formData, issue: e.target.value })}
+          rows={4}
+        />
+      </label>
+
+      <button type="submit">Submit</button>
+
+      <p className="hint">
+        🌌 Support agent sees your typing in real-time and can help fill fields
+      </p>
+    </form>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState', 'useEffect', 'useRef']
   }
 ];
 

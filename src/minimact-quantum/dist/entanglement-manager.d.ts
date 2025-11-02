@@ -204,3 +204,4 @@ export declare class EntanglementManager {
      */
     private log;
 }
+//# sourceMappingURL=entanglement-manager.d.ts.map

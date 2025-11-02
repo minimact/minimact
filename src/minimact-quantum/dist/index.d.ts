@@ -38,3 +38,4 @@ export declare const CODENAME = "WebWormhole";
  * ```
  */
 export declare function createQuantumManager(config: EntanglementConfig): EntanglementManager;
+//# sourceMappingURL=index.d.ts.map

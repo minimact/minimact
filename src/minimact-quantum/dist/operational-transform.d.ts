@@ -45,3 +45,4 @@ export declare function compose(opA: Operation, opB: Operation): Operation;
  * Invert an operation (for undo/redo)
  */
 export declare function invert(op: Operation): Operation;
+//# sourceMappingURL=operational-transform.d.ts.map

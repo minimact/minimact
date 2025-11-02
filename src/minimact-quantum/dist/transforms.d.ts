@@ -163,3 +163,4 @@ export declare function createDebounced(transform: TransformFunction, delayMs: n
  * Useful as a default or placeholder
  */
 export declare const identity: BidirectionalTransform;
+//# sourceMappingURL=transforms.d.ts.map

@@ -44,3 +44,4 @@ export declare function applyMutationVector(vector: MutationVector): void;
  * Tries ID first, then falls back to class or tag
  */
 export declare function getElementSelector(element: Element): string;
+//# sourceMappingURL=mutation-serializer.d.ts.map

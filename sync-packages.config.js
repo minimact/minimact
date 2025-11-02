@@ -110,6 +110,23 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/quantum',
+      source: 'src/minimact-quantum',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
     }
   ],
 
@@ -131,7 +148,8 @@ module.exports = {
         '@minimact/punch',
         '@minimact/core',
         '@minimact/query',
-        '@minimact/trees'
+        '@minimact/trees',
+        '@minimact/quantum'
       ]
     }
     // Add more targets as needed:

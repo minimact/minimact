@@ -5,7 +5,7 @@ interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'advanced';
+  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum' | 'advanced';
   packageName?: string;
   example: string;
   isDefault: boolean;
@@ -57,6 +57,8 @@ export function HookLibrarySelector({
         return 'Query Hooks (SQL for DOM)';
       case 'trees':
         return 'Trees Hooks (State Machines)';
+      case 'quantum':
+        return 'Quantum Hooks (DOM Entanglement)';
       case 'advanced':
         return 'Advanced Hooks';
       default:
@@ -76,6 +78,8 @@ export function HookLibrarySelector({
         return 'Query the DOM with SQL syntax (SELECT, WHERE, JOIN, GROUP BY)';
       case 'trees':
         return 'Decision trees and state machines for complex flows';
+      case 'quantum':
+        return 'Share DOM identity across clients with mutation vectors';
       case 'advanced':
         return 'Server tasks, context, client-computed values';
       default:
