@@ -253,8 +253,8 @@ export class ProjectManager {
       cwd: projectPath
     });
 
-    // 2b. Add chart and powered packages for Dashboard template
-    if (template === 'Dashboard') {
+    // 2b. Add chart and powered packages for Dashboard templates
+    if (template === 'Dashboard' || template === 'MVC-Dashboard') {
       await execa('dotnet', ['add', 'package', 'Minimact.Charts'], {
         cwd: projectPath
       });
@@ -269,7 +269,7 @@ export class ProjectManager {
     await fs.mkdir(path.join(projectPath, 'Components'), { recursive: true });
 
     // 4. Replace Program.cs with Minimact setup (template-specific)
-    const programCs = template === 'MVC'
+    const programCs = (template === 'MVC' || template === 'MVC-Dashboard')
       ? this.getMvcProgramCs()
       : this.getStandardProgramCs();
 
@@ -292,6 +292,9 @@ export class ProjectManager {
       if (template === 'MVC') {
         profile.launchUrl = 'Products/1';
         // Keep default ports for MVC (HTTPS: 7038, HTTP: 5035)
+      } else if (template === 'MVC-Dashboard') {
+        profile.launchUrl = 'Dashboard';
+        // Keep default ports for MVC (HTTPS: 7038, HTTP: 5035)
       } else {
         // Standard Minimact templates use port 5000
         profile.applicationUrl = 'http://localhost:5000';
@@ -309,6 +312,8 @@ export class ProjectManager {
       await this.createDashboardTemplate(projectPath);
     } else if (template === 'MVC') {
       await this.createMvcTemplate(projectPath, enableTailwind);
+    } else if (template === 'MVC-Dashboard') {
+      await this.createMvcDashboardTemplate(projectPath);
     }
   }
 
@@ -796,6 +801,429 @@ export function Index() {
     await this.copyClientRuntimeToProject(projectPath);
     await this.copyChartPackagesToProject(projectPath);
     await this.copyPoweredPackageToProject(projectPath);
+  }
+
+  /**
+   * Create MVC Dashboard template files (combines MVC Bridge + Charts)
+   */
+  private async createMvcDashboardTemplate(projectPath: string): Promise<void> {
+    // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'Controllers'), { recursive: true });
+    await fs.mkdir(path.join(projectPath, 'ViewModels'), { recursive: true });
+    await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
+
+    // Create DashboardViewModel.cs with [Mutable] filters
+    const dashboardViewModelCs = `using Minimact.AspNetCore.Attributes;
+
+namespace ${path.basename(projectPath)}.ViewModels;
+
+public class DashboardViewModel
+{
+    // ✅ MUTABLE - User can change filters (instant updates via template patches!)
+    [Mutable]
+    public string TimeRange { get; set; } = "month"; // "week", "month", "year"
+
+    [Mutable]
+    public string Region { get; set; } = "all"; // "all", "north", "south", "east", "west"
+
+    // ❌ IMMUTABLE - Server authority (fetched from database)
+    public List<DataPoint> SalesData { get; set; } = new();
+    public List<DataPoint> RevenueData { get; set; } = new();
+    public List<DataPoint> ProductMixData { get; set; } = new();
+    public List<DataPoint> GrowthData { get; set; } = new();
+    public MetricData[] Metrics { get; set; } = Array.Empty<MetricData>();
+}
+
+public class DataPoint
+{
+    public string Category { get; set; } = string.Empty;
+    public double Value { get; set; }
+    public string? Fill { get; set; }
+}
+
+public class MetricData
+{
+    public string Label { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Change { get; set; } = string.Empty;
+    public bool Positive { get; set; }
+}
+`;
+
+    await fs.writeFile(
+      path.join(projectPath, 'ViewModels', 'DashboardViewModel.cs'),
+      dashboardViewModelCs,
+      'utf-8'
+    );
+
+    // Create DashboardController.cs
+    const dashboardControllerCs = `using Microsoft.AspNetCore.Mvc;
+using Minimact.AspNetCore.Rendering;
+using ${path.basename(projectPath)}.ViewModels;
+
+namespace ${path.basename(projectPath)}.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class DashboardController : ControllerBase
+{
+    private readonly MinimactPageRenderer _renderer;
+
+    public DashboardController(MinimactPageRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        // 1. Fetch data from database/service (simulated)
+        var viewModel = GetDashboardData("month", "all");
+
+        // 2. Render Minimact component with ViewModel
+        return await _renderer.RenderPage<Minimact.Components.DashboardPage>(
+            viewModel: viewModel,
+            pageTitle: "Sales Dashboard",
+            options: new MinimactPageRenderOptions
+            {
+                IncludeMvcExtension = true  // Enable @minimact/mvc
+            }
+        );
+    }
+
+    // Simulated data service - replace with Entity Framework
+    private DashboardViewModel GetDashboardData(string timeRange, string region)
+    {
+        return new DashboardViewModel
+        {
+            TimeRange = timeRange,
+            Region = region,
+            SalesData = new List<DataPoint>
+            {
+                new() { Category = "Jan", Value = 4500 },
+                new() { Category = "Feb", Value = 6200 },
+                new() { Category = "Mar", Value = 5800 },
+                new() { Category = "Apr", Value = 7100 },
+                new() { Category = "May", Value = 8900 },
+                new() { Category = "Jun", Value = 9400 }
+            },
+            RevenueData = new List<DataPoint>
+            {
+                new() { Category = "Week 1", Value = 12500 },
+                new() { Category = "Week 2", Value = 15200 },
+                new() { Category = "Week 3", Value = 14800 },
+                new() { Category = "Week 4", Value = 18300 }
+            },
+            ProductMixData = new List<DataPoint>
+            {
+                new() { Category = "Electronics", Value = 45, Fill = "#4CAF50" },
+                new() { Category = "Clothing", Value = 25, Fill = "#2196F3" },
+                new() { Category = "Food", Value = 20, Fill = "#FF9800" },
+                new() { Category = "Other", Value = 10, Fill = "#9C27B0" }
+            },
+            GrowthData = new List<DataPoint>
+            {
+                new() { Category = "Q1", Value = 45000 },
+                new() { Category = "Q2", Value = 52000 },
+                new() { Category = "Q3", Value = 48000 },
+                new() { Category = "Q4", Value = 61000 }
+            },
+            Metrics = new[]
+            {
+                new MetricData { Label = "Total Sales", Value = "$124,532", Change = "+12.5%", Positive = true },
+                new MetricData { Label = "Active Users", Value = "8,429", Change = "+8.2%", Positive = true },
+                new MetricData { Label = "Conversion Rate", Value = "3.24%", Change = "-0.5%", Positive = false },
+                new MetricData { Label = "Avg. Order Value", Value = "$89.50", Change = "+5.1%", Positive = true }
+            }
+        };
+    }
+}
+`;
+
+    await fs.writeFile(
+      path.join(projectPath, 'Controllers', 'DashboardController.cs'),
+      dashboardControllerCs,
+      'utf-8'
+    );
+
+    // Create DashboardPage.tsx with useMvcState
+    const dashboardPageTsx = `import { useMvcState, useMvcViewModel } from '@minimact/mvc';
+import type { DataPoint } from '@minimact/charts';
+
+interface MetricData {
+  label: string;
+  value: string;
+  change: string;
+  positive: boolean;
+}
+
+interface DashboardViewModel {
+  timeRange: string;
+  region: string;
+  salesData: DataPoint[];
+  revenueData: DataPoint[];
+  productMixData: DataPoint[];
+  growthData: DataPoint[];
+  metrics: MetricData[];
+}
+
+export function DashboardPage() {
+  // Get full ViewModel (immutable data from server)
+  const viewModel = useMvcViewModel<DashboardViewModel>();
+
+  // Get mutable filters (user can change, syncs to server instantly!)
+  const [timeRange, setTimeRange] = useMvcState<string>('timeRange', { sync: 'immediate' });
+  const [region, setRegion] = useMvcState<string>('region', { sync: 'immediate' });
+
+  return (
+    <div style={{
+      padding: '20px',
+      fontFamily: 'system-ui, sans-serif',
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh'
+    }}>
+      {/* Header with Filters */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '30px'
+      }}>
+        <h1 style={{ fontSize: '32px', margin: 0 }}>📊 Sales Dashboard</h1>
+
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          {/* Time Range Filter */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => setTimeRange('week')}
+              style={{
+                padding: '8px 16px',
+                border: timeRange === 'week' ? '2px solid #4CAF50' : '1px solid #ddd',
+                borderRadius: '6px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                fontWeight: timeRange === 'week' ? '600' : '400'
+              }}
+            >
+              This Week
+            </button>
+            <button
+              onClick={() => setTimeRange('month')}
+              style={{
+                padding: '8px 16px',
+                border: timeRange === 'month' ? '2px solid #4CAF50' : '1px solid #ddd',
+                borderRadius: '6px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                fontWeight: timeRange === 'month' ? '600' : '400'
+              }}
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => setTimeRange('year')}
+              style={{
+                padding: '8px 16px',
+                border: timeRange === 'year' ? '2px solid #4CAF50' : '1px solid #ddd',
+                borderRadius: '6px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                fontWeight: timeRange === 'year' ? '600' : '400'
+              }}
+            >
+              This Year
+            </button>
+          </div>
+
+          {/* Region Filter */}
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            style={{
+              padding: '8px 16px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            <option value="all">All Regions</option>
+            <option value="north">North</option>
+            <option value="south">South</option>
+            <option value="east">East</option>
+            <option value="west">West</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Metrics Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px',
+        marginBottom: '40px'
+      }}>
+        {viewModel.metrics.map(metric => (
+          <div
+            key={metric.label}
+            style={{
+              padding: '24px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '12px',
+              backgroundColor: 'white',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          >
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+              {metric.label}
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
+              {metric.value}
+            </div>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: '600',
+              color: metric.positive ? '#4CAF50' : '#F44336'
+            }}>
+              {metric.change}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bar Chart - Monthly Sales */}
+      <div style={{
+        padding: '24px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        backgroundColor: 'white',
+        marginBottom: '30px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}>
+        <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+          📈 Monthly Sales Trend
+        </h2>
+
+        <Plugin name="BarChart" state={{
+          data: viewModel.salesData,
+          width: 800,
+          height: 400,
+          margin: { top: 20, right: 30, bottom: 50, left: 60 },
+          barFill: '#4CAF50',
+          showGrid: true,
+          xAxis: { dataKey: 'category', label: 'Month' },
+          yAxis: { label: 'Sales ($K)', tickCount: 5 }
+        }} />
+      </div>
+
+      {/* Two Column Layout: Line Chart + Pie Chart */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: '30px',
+        marginBottom: '30px'
+      }}>
+        {/* Line Chart - Revenue Trend */}
+        <div style={{
+          padding: '24px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '12px',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+            📊 Weekly Revenue
+          </h2>
+
+          <Plugin name="LineChart" state={{
+            data: viewModel.revenueData,
+            width: 450,
+            height: 300,
+            margin: { top: 20, right: 30, bottom: 50, left: 60 },
+            strokeColor: '#2196F3',
+            strokeWidth: 3,
+            showGrid: true,
+            xAxis: { dataKey: 'category' },
+            yAxis: { label: 'Revenue ($)', tickCount: 5 }
+          }} />
+        </div>
+
+        {/* Pie Chart - Product Mix */}
+        <div style={{
+          padding: '24px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '12px',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+            💰 Sales by Category
+          </h2>
+
+          <Plugin name="PieChart" state={{
+            data: viewModel.productMixData,
+            width: 450,
+            height: 300,
+            innerRadius: 0,
+            outerRadius: 100,
+            cx: '50%',
+            cy: '50%'
+          }} />
+        </div>
+      </div>
+
+      {/* Area Chart - Quarterly Growth */}
+      <div style={{
+        padding: '24px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        backgroundColor: 'white',
+        marginBottom: '30px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}>
+        <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+          📈 Quarterly Growth Trend
+        </h2>
+
+        <Plugin name="AreaChart" state={{
+          data: viewModel.growthData,
+          width: 800,
+          height: 300,
+          margin: { top: 20, right: 30, bottom: 50, left: 60 },
+          fill: 'rgba(76, 175, 80, 0.3)',
+          stroke: '#4CAF50',
+          strokeWidth: 2,
+          showGrid: true,
+          xAxis: { dataKey: 'category', label: 'Quarter' },
+          yAxis: { label: 'Revenue ($)', tickCount: 5 }
+        }} />
+      </div>
+
+      {/* Powered Badge */}
+      <Plugin name="PoweredBadge" state={{
+        position: 'bottom-right',
+        expanded: false,
+        theme: 'dark',
+        linkUrl: 'https://minimact.dev',
+        openInNewTab: true
+      }} />
+    </div>
+  );
+}
+`;
+
+    await fs.writeFile(
+      path.join(projectPath, 'Pages', 'DashboardPage.tsx'),
+      dashboardPageTsx,
+      'utf-8'
+    );
+
+    // Copy Minimact client runtime and all plugin packages
+    await this.copyClientRuntimeToProject(projectPath);
+    await this.copyChartPackagesToProject(projectPath);
+    await this.copyPoweredPackageToProject(projectPath);
+    // Note: MVC package is already copied by HookExampleGenerator if @minimact/mvc hooks are selected
   }
 
   /**
