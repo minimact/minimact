@@ -105,6 +105,49 @@ export const HOOK_LIBRARY: Hook[] = [
     isDefault: true
   },
 
+  {
+    id: 'useMarkdown',
+    name: 'useMarkdown',
+    description: 'Markdown content parsed to HTML on server (supports GFM, tables, syntax highlighting)',
+    category: 'core',
+    imports: ["import { useMarkdown } from 'minimact';"],
+    example: `export function BlogPost() {
+  const [content, setContent] = useMarkdown(\`
+# Welcome to My Blog
+
+This is **markdown** content that gets parsed to HTML on the server!
+
+## Features
+- GitHub Flavored Markdown
+- Tables
+- Syntax highlighting
+- And more!
+
+[Read more](https://example.com)
+  \`);
+
+  const handleUpdate = () => {
+    setContent(\`
+# Updated Post
+
+The content has been **updated** dynamically!
+
+\`\`\`javascript
+console.log('Code blocks work too!');
+\`\`\`
+    \`);
+  };
+
+  return (
+    <div className="blog-post">
+      {content}  {/* Server renders markdown → HTML automatically */}
+      <button onClick={handleUpdate}>Update Content</button>
+    </div>
+  );
+}`,
+    isDefault: true
+  },
+
   // ===== ADVANCED HOOKS =====
   {
     id: 'useContext',

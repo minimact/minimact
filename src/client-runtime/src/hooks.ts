@@ -573,3 +573,42 @@ export function useServerReducer<TState, TAction>(
 
   return context.serverReducers.get(reducerKey)!;
 }
+
+/**
+ * useMarkdown hook - for markdown content that gets parsed to HTML on server
+ *
+ * Pattern: const [content, setContent] = useMarkdown('# Hello World');
+ *
+ * Server-side behavior:
+ * - Babel transpiles this to [Markdown][State] string field
+ * - Server renders markdown → HTML via MarkdownHelper.ToHtml()
+ * - JSX references get wrapped in DivRawHtml(MarkdownHelper.ToHtml(content))
+ *
+ * Client-side behavior:
+ * - Behaves exactly like useState<string>
+ * - Receives pre-rendered HTML in patches from server
+ * - State changes sync to server (which re-renders markdown to HTML)
+ *
+ * Example:
+ * ```tsx
+ * const [content, setContent] = useMarkdown('# Title\n\n**Bold text**');
+ *
+ * return (
+ *   <div>
+ *     {content}  // Server renders as: <h1>Title</h1><p><strong>Bold text</strong></p>
+ *   </div>
+ * );
+ * ```
+ *
+ * @param initialValue - Initial markdown string
+ * @returns Tuple of [content, setContent] where content is markdown string
+ */
+export function useMarkdown(initialValue: string): [string, (newValue: string | ((prev: string) => string)) => void] {
+  // useMarkdown is just useState<string> on the client
+  // The magic happens on the server:
+  // 1. Babel recognizes useMarkdown and marks field as [Markdown]
+  // 2. JSX transpiler wraps references in MarkdownHelper.ToHtml()
+  // 3. Server sends pre-rendered HTML to client
+
+  return useState<string>(initialValue);
+}

@@ -332,7 +332,7 @@ export type { Template, TemplateMap } from './template-state';
 export { TemplateRenderer } from './template-renderer';
 
 // Core hooks
-export { useState, useEffect, useRef, useServerTask, useServerReducer, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
+export { useState, useEffect, useRef, useServerTask, useServerReducer, useMarkdown, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
 
 // useComputed hook (for client-side computation with browser APIs/libraries)
 export { useComputed } from './useComputed';
