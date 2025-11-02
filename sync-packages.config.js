@@ -76,6 +76,23 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/query',
+      source: 'src/minimact-query',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
     }
   ],
 
@@ -95,7 +112,8 @@ module.exports = {
       packages: [
         '@minimact/babel-plugin',
         '@minimact/punch',
-        '@minimact/core'
+        '@minimact/core',
+        '@minimact/query'
       ]
     }
     // Add more targets as needed:

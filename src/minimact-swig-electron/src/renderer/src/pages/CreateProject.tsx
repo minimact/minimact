@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, FolderOpen } from 'lucide-react'
-import { HookLibrarySelector } from '../components/create-project/HookLibrarySelector'
+import { ArrowLeft, FolderOpen, BookOpen } from 'lucide-react'
+import { HookLibrarySlideout } from '../components/create-project/HookLibrarySlideout'
 import { HOOK_LIBRARY, getDefaultHooks } from '../../../main/data/hook-library'
 
 export default function CreateProject() {
@@ -14,6 +14,7 @@ export default function CreateProject() {
   const [selectedHooks, setSelectedHooks] = useState<string[]>(
     getDefaultHooks().map(h => h.id) // Pre-select default hooks
   )
+  const [hookLibraryOpen, setHookLibraryOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -172,12 +173,49 @@ export default function CreateProject() {
             </label>
           </div>
 
-          {/* Hook Library Selector */}
-          <HookLibrarySelector
-            selectedHooks={selectedHooks}
-            onSelectionChange={setSelectedHooks}
-            hooks={HOOK_LIBRARY}
-          />
+          {/* Hook Library Button */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Hook Examples
+            </label>
+            <button
+              type="button"
+              onClick={() => setHookLibraryOpen(true)}
+              className="w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg transition-colors flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-5 h-5 text-green-400" />
+                <div className="text-left">
+                  <span className="block text-sm font-medium text-gray-200">
+                    {selectedHooks.length > 0
+                      ? `${selectedHooks.length} hook${selectedHooks.length !== 1 ? 's' : ''} selected`
+                      : 'Select hooks to include examples'}
+                  </span>
+                  <span className="block text-xs text-gray-500 mt-0.5">
+                    Click to browse hook library
+                  </span>
+                </div>
+              </div>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+            {selectedHooks.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                Example code will be generated in <code>Pages/Examples/</code>
+              </p>
+            )}
+          </div>
 
           {/* Error Message */}
           {error && (
@@ -227,6 +265,15 @@ export default function CreateProject() {
           </ul>
         </div>
       </div>
+
+      {/* Hook Library Slideout */}
+      <HookLibrarySlideout
+        selectedHooks={selectedHooks}
+        onSelectionChange={setSelectedHooks}
+        hooks={HOOK_LIBRARY}
+        isOpen={hookLibraryOpen}
+        onClose={() => setHookLibraryOpen(false)}
+      />
     </div>
   )
 }

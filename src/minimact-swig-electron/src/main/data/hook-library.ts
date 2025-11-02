@@ -5,6 +5,7 @@
  * - Core Hooks (built-in React-like hooks)
  * - MVC Hooks (@minimact/mvc package)
  * - Punch Hooks (@minimact/punch package - DOM element state)
+ * - Query Hooks (@minimact/query package - SQL for the DOM)
  * - Advanced Hooks (server tasks, context, computed)
  *
  * Each hook includes:
@@ -18,7 +19,7 @@ export interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'mvc' | 'punch' | 'advanced';
+  category: 'core' | 'mvc' | 'punch' | 'query' | 'advanced';
   packageName?: string; // NPM package if not core
   imports: string[]; // Import statements
   example: string; // Code example template
@@ -482,6 +483,316 @@ export function ProductDetailsPage() {
 }`,
     isDefault: false,
     dependencies: ['useDomElementState']
+  },
+
+  // ===== QUERY HOOKS (SQL for the DOM) =====
+  {
+    id: 'useDomQuery',
+    name: 'useDomQuery',
+    description: 'Query the DOM with SQL-like syntax (SELECT, WHERE, ORDER BY, JOIN, GROUP BY)',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQuery } from '@minimact/query';"],
+    example: `export function DashboardStats() {
+  // Query DOM like a SQL database
+  const query = useDomQuery()
+    .from('.metric-card')
+    .where(card => card.isIntersecting && card.state.hover)
+    .orderBy(card => card.history.changeCount, 'DESC')
+    .limit(10);
+
+  return (
+    <div>
+      <h2>Top 10 Most Active Cards</h2>
+      {query.select(card => ({
+        id: card.attributes.id,
+        title: card.textContent,
+        changes: card.history.changeCount,
+        isHovered: card.state.hover
+      })).map(row => (
+        <div key={row.id} className={row.isHovered ? 'highlight' : ''}>
+          {row.title} - {row.changes} changes
+        </div>
+      ))}
+    </div>
+  );
+}`,
+    isDefault: false
+  },
+
+  {
+    id: 'useDomQuery-groupby',
+    name: 'useDomQuery (GROUP BY)',
+    description: 'Aggregate and group DOM elements like SQL GROUP BY with HAVING',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQuery } from '@minimact/query';"],
+    example: `export function ComponentStats() {
+  const stats = useDomQuery()
+    .from('.component')
+    .groupBy(c => c.lifecycle.lifecycleState)
+    .having(group => group.count > 5); // Only states with 5+ components
+
+  return (
+    <div>
+      <h2>Component Lifecycle Summary</h2>
+      {stats.select(group => ({
+        state: group.key,
+        count: group.count,
+        avgChanges: group.items.reduce((sum, c) =>
+          sum + c.history.changeCount, 0) / group.count
+      })).map(row => (
+        <div key={row.state}>
+          <strong>{row.state}</strong>: {row.count} components
+          (avg {row.avgChanges.toFixed(1)} changes)
+        </div>
+      ))}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useDomQuery']
+  },
+
+  {
+    id: 'useDomQuery-join',
+    name: 'useDomQuery (JOIN)',
+    description: 'Relate DOM elements to each other with SQL JOIN operations',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQuery } from '@minimact/query';"],
+    example: `export function ProductReviews() {
+  const products = useDomQuery()
+    .from('.product')
+    .leftJoin(
+      useDomQuery().from('.review'),
+      (product, review) =>
+        product.attributes['data-id'] === review.attributes['data-product-id']
+    )
+    .where(result => result.right !== null); // Has reviews
+
+  return (
+    <div>
+      <h2>Products with Reviews</h2>
+      {products.select(result => ({
+        productId: result.left.attributes['data-id'],
+        productName: result.left.textContent,
+        reviewCount: result.right?.childrenCount || 0
+      })).map(row => (
+        <div key={row.productId}>
+          {row.productName} - {row.reviewCount} reviews
+        </div>
+      ))}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useDomQuery']
+  },
+
+  {
+    id: 'useDomQuery-aggregates',
+    name: 'useDomQuery (Aggregates)',
+    description: 'Use SQL aggregate functions (COUNT, SUM, AVG, MIN, MAX, STDDEV)',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQuery } from '@minimact/query';"],
+    example: `export function PerformanceMonitor() {
+  const components = useDomQuery().from('.component');
+
+  const unstable = components
+    .where(c => c.history.changesPerSecond > 10);
+
+  return (
+    <div>
+      <h2>Performance Metrics</h2>
+
+      <div className="metrics">
+        <div>Total Components: {components.count()}</div>
+        <div>Unstable Components: {unstable.count()}</div>
+        <div>Avg Changes: {components.avg(c => c.history.changeCount).toFixed(1)}</div>
+        <div>Max Changes: {components.max(c => c.history.changeCount)}</div>
+        <div>Min Changes: {components.min(c => c.history.changeCount)}</div>
+      </div>
+
+      {unstable.any() && (
+        <div className="alert">
+          ⚠️ {unstable.count()} components are unstable!
+        </div>
+      )}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useDomQuery']
+  },
+
+  {
+    id: 'useDomQuery-setops',
+    name: 'useDomQuery (Set Operations)',
+    description: 'Combine queries with SQL set operations (UNION, INTERSECT, EXCEPT)',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQuery } from '@minimact/query';"],
+    example: `export function InteractiveElements() {
+  const buttons = useDomQuery().from('button');
+  const links = useDomQuery().from('a');
+  const inputs = useDomQuery().from('input');
+
+  // UNION - all interactive elements
+  const allInteractive = buttons.union(links).union(inputs);
+
+  // INTERSECT - elements that are both hovered AND focused
+  const hovered = useDomQuery().from('.interactive').where(el => el.state.hover);
+  const focused = useDomQuery().from('.interactive').where(el => el.state.focus);
+  const both = hovered.intersect(focused);
+
+  // EXCEPT - visible but not in viewport
+  const allCards = useDomQuery().from('.card');
+  const visible = allCards.where(c => c.isIntersecting);
+  const offscreen = allCards.except(visible);
+
+  return (
+    <div>
+      <div>Interactive elements: {allInteractive.count()}</div>
+      <div>Hovered + Focused: {both.count()}</div>
+      <div>Offscreen cards: {offscreen.count()}</div>
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useDomQuery']
+  },
+
+  {
+    id: 'useDomQueryThrottled',
+    name: 'useDomQueryThrottled',
+    description: 'Throttled queries - limit updates to once every N milliseconds for performance',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQueryThrottled } from '@minimact/query';"],
+    example: `export function LiveDataFeed() {
+  // Only update max 4 times per second (every 250ms)
+  const liveData = useDomQueryThrottled(250)
+    .from('.data-point')
+    .where(d => d.isIntersecting)
+    .orderBy(d => d.attributes['data-timestamp'], 'DESC')
+    .limit(100);
+
+  return (
+    <div>
+      <h2>Live Data Feed</h2>
+      <p className="info">Updates throttled to 250ms for performance</p>
+
+      {liveData.select(d => ({
+        id: d.attributes['data-id'],
+        value: d.textContent,
+        timestamp: d.attributes['data-timestamp']
+      })).map(row => (
+        <div key={row.id} className="data-row">
+          {row.timestamp}: {row.value}
+        </div>
+      ))}
+    </div>
+  );
+}`,
+    isDefault: false
+  },
+
+  {
+    id: 'useDomQueryDebounced',
+    name: 'useDomQueryDebounced',
+    description: 'Debounced queries - only update after N milliseconds of DOM inactivity',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQueryDebounced } from '@minimact/query';"],
+    example: `export function SearchResults() {
+  // Only update after 500ms of no DOM changes (user stopped typing/scrolling)
+  const results = useDomQueryDebounced(500)
+    .from('.search-result')
+    .where(result => result.isIntersecting)
+    .orderBy(result => result.attributes['data-relevance'], 'DESC');
+
+  return (
+    <div>
+      <h2>Search Results</h2>
+      <p className="info">Updates debounced to 500ms after activity stops</p>
+
+      <div className="stats">
+        Total: {results.count()} results
+      </div>
+
+      {results.select(r => ({
+        id: r.attributes['data-id'],
+        title: r.textContent,
+        relevance: r.attributes['data-relevance']
+      })).map(row => (
+        <div key={row.id}>
+          {row.title} (relevance: {row.relevance})
+        </div>
+      ))}
+    </div>
+  );
+}`,
+    isDefault: false
+  },
+
+  {
+    id: 'useDomQuery-accessibility',
+    name: 'useDomQuery (Accessibility Audit)',
+    description: 'Query the DOM to audit accessibility issues and violations',
+    category: 'query',
+    packageName: '@minimact/query',
+    imports: ["import { useDomQuery } from '@minimact/query';"],
+    example: `export function AccessibilityAudit() {
+  // Find buttons without labels
+  const unlabeled = useDomQuery()
+    .from('button')
+    .where(btn =>
+      !btn.attributes['aria-label'] &&
+      !btn.textContent?.trim()
+    );
+
+  // Find disabled elements without aria-disabled
+  const improperDisabled = useDomQuery()
+    .from('input, button')
+    .where(el =>
+      el.state.disabled &&
+      !el.attributes['aria-disabled']
+    );
+
+  // Find images without alt text
+  const missingAlt = useDomQuery()
+    .from('img')
+    .where(img => !img.attributes['alt']);
+
+  const hasIssues = unlabeled.any() || improperDisabled.any() || missingAlt.any();
+
+  return (
+    <div className={hasIssues ? 'audit-fail' : 'audit-pass'}>
+      <h2>Accessibility Audit</h2>
+
+      <div className="issues">
+        <div className={unlabeled.count() > 0 ? 'error' : 'pass'}>
+          Unlabeled buttons: {unlabeled.count()}
+        </div>
+        <div className={improperDisabled.count() > 0 ? 'error' : 'pass'}>
+          Improperly disabled: {improperDisabled.count()}
+        </div>
+        <div className={missingAlt.count() > 0 ? 'error' : 'pass'}>
+          Images without alt: {missingAlt.count()}
+        </div>
+      </div>
+
+      {hasIssues ? (
+        <div className="alert">⚠️ Accessibility issues detected!</div>
+      ) : (
+        <div className="success">✓ All accessibility checks passed!</div>
+      )}
+    </div>
+  );
+}`,
+    isDefault: false
   }
 ];
 
