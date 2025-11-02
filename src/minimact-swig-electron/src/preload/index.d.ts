@@ -10,7 +10,7 @@ interface APIResponse<T = any> {
 // Minimact API types
 interface MinimactAPI {
   project: {
-    create: (path: string, template: string, options?: { createSolution?: boolean; enableTailwind?: boolean }) => Promise<APIResponse>
+    create: (path: string, template: string, options?: { createSolution?: boolean; enableTailwind?: boolean; selectedHooks?: string[] }) => Promise<APIResponse>
     load: (path: string) => Promise<APIResponse>
     getRecent: () => Promise<APIResponse>
     scanFiles: (projectPath: string) => Promise<APIResponse>

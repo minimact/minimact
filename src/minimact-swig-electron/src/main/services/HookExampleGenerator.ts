@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { HOOK_LIBRARY, getHookById, getHookDependencies, type Hook } from '../data/hook-library';
+import { getHookById, getHookDependencies, getRequiredPackages, type Hook } from '../data/hook-library';
 
 /**
  * HookExampleGenerator - Generates example files for selected hooks
@@ -8,7 +8,7 @@ import { HOOK_LIBRARY, getHookById, getHookDependencies, type Hook } from '../da
  * Responsibilities:
  * - Generate TSX files with hook examples
  * - Auto-include dependencies
- * - Copy required packages from mact_modules
+ * - Copy required JS files from mact_modules to wwwroot/js
  * - Create organized folder structure
  */
 export class HookExampleGenerator {
@@ -34,6 +34,9 @@ export class HookExampleGenerator {
 
     // Generate index page listing all examples
     await this.generateExamplesIndex(examplesDir, hooks);
+
+    // Copy required JS files to wwwroot/js
+    await this.copyRequiredJsFiles(projectPath, allHookIds);
 
     console.log(`[HookExampleGenerator] Generated ${hooks.length} hook examples`);
   }
@@ -291,6 +294,61 @@ ${hookElements.join('\n\n')}
         return 'Advanced Hooks';
       default:
         return category;
+    }
+  }
+
+  /**
+   * Copy required JS files from mact_modules to wwwroot/js
+   * This ensures extension packages (@minimact/mvc, @minimact/punch) are available
+   */
+  private async copyRequiredJsFiles(projectPath: string, selectedHookIds: string[]): Promise<void> {
+    const requiredPackages = getRequiredPackages(selectedHookIds);
+
+    if (requiredPackages.length === 0) {
+      console.log('[HookExampleGenerator] No extension packages required (core hooks only)');
+      return;
+    }
+
+    // Ensure wwwroot/js directory exists
+    const jsDir = path.join(projectPath, 'wwwroot', 'js');
+    await fs.mkdir(jsDir, { recursive: true });
+
+    // Source: Swig's mact_modules folder (synced via sync-local-packages.js)
+    const mactModulesDir = path.join(__dirname, '..', '..', 'mact_modules', '@minimact');
+
+    for (const packageName of requiredPackages) {
+      const shortName = packageName.replace('@minimact/', ''); // "mvc" or "punch"
+
+      try {
+        // Source path (from mact_modules)
+        const sourcePath = path.join(mactModulesDir, shortName, 'dist', `${shortName}.min.js`);
+
+        // Check if file exists
+        const exists = await fs.access(sourcePath).then(() => true).catch(() => false);
+
+        if (!exists) {
+          console.warn(`[HookExampleGenerator] Warning: ${sourcePath} not found`);
+          console.warn(`[HookExampleGenerator] Run 'npm run sync' in monorepo root to sync packages`);
+          continue;
+        }
+
+        // Destination path (wwwroot/js)
+        const destPath = path.join(jsDir, `minimact-${shortName}.min.js`);
+
+        // Copy file
+        await fs.copyFile(sourcePath, destPath);
+
+        console.log(`[HookExampleGenerator] ✓ Copied ${packageName} → wwwroot/js/minimact-${shortName}.min.js`);
+      } catch (error) {
+        console.error(`[HookExampleGenerator] Failed to copy ${packageName}:`, error);
+        console.error(`[HookExampleGenerator] Make sure to run 'npm run sync' in the monorepo root first`);
+      }
+    }
+
+    // Log summary
+    if (requiredPackages.length > 0) {
+      console.log(`[HookExampleGenerator] Copied ${requiredPackages.length} extension package(s) to wwwroot/js/`);
+      console.log(`[HookExampleGenerator] Packages: ${requiredPackages.join(', ')}`);
     }
   }
 }

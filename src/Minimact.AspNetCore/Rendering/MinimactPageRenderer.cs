@@ -131,6 +131,29 @@ public class MinimactPageRenderer
             scriptSrc += $"?v={timestamp}";
         }
 
+        // Auto-detect required extension scripts based on options
+        var extensionScripts = new System.Text.StringBuilder();
+        if (options.IncludeMvcExtension)
+        {
+            var mvcScriptSrc = "/js/minimact-mvc.min.js";
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                mvcScriptSrc += $"?v={timestamp}";
+            }
+            extensionScripts.AppendLine($"    <script src=\"{mvcScriptSrc}\"></script>");
+        }
+        if (options.IncludePunchExtension)
+        {
+            var punchScriptSrc = "/js/minimact-punch.min.js";
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                punchScriptSrc += $"?v={timestamp}";
+            }
+            extensionScripts.AppendLine($"    <script src=\"{punchScriptSrc}\"></script>");
+        }
+
         var enableDebugLogging = options.EnableDebugLogging ? "true" : "false";
 
         return $@"<!DOCTYPE html>
@@ -140,7 +163,7 @@ public class MinimactPageRenderer
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>{EscapeHtml(title)}</title>
     <script src=""{EscapeHtml(scriptSrc)}""></script>
-    {(options.AdditionalHeadContent != null ? options.AdditionalHeadContent : "")}
+{extensionScripts}    {(options.AdditionalHeadContent != null ? options.AdditionalHeadContent : "")}
     <style>
         body {{
             font-family: system-ui, -apple-system, sans-serif;
@@ -234,6 +257,20 @@ public class MinimactPageRenderOptions
     /// Recommended for development to ensure latest script is loaded
     /// </summary>
     public bool EnableCacheBusting { get; set; } = false;
+
+    /// <summary>
+    /// Include @minimact/mvc extension script (default: true for MVC Bridge)
+    /// Set to true when using useMvcState or useMvcViewModel hooks
+    /// Adds: &lt;script src="/js/minimact-mvc.min.js"&gt;&lt;/script&gt;
+    /// </summary>
+    public bool IncludeMvcExtension { get; set; } = true;
+
+    /// <summary>
+    /// Include @minimact/punch extension script (default: false)
+    /// Set to true when using useDomElementState hook
+    /// Adds: &lt;script src="/js/minimact-punch.min.js"&gt;&lt;/script&gt;
+    /// </summary>
+    public bool IncludePunchExtension { get; set; } = false;
 
     /// <summary>
     /// Additional HTML to inject in &lt;head&gt;
