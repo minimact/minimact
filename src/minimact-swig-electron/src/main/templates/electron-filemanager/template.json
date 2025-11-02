@@ -1,0 +1,55 @@
+{
+  "name": "Electron File Manager",
+  "id": "Electron-FileManager",
+  "description": "Desktop file manager application built with Electron + Minimact + Charts",
+  "version": "1.0.0",
+  "packages": [
+    "Minimact.AspNetCore",
+    "Minimact.Charts"
+  ],
+  "files": [
+    {
+      "source": "Controllers/DesktopController.cs",
+      "destination": "Controllers/DesktopController.cs",
+      "replacements": {
+        "MinimactElectronFileManager": "{{ProjectName}}"
+      }
+    },
+    {
+      "source": "Pages/FileManagerPage.tsx",
+      "destination": "Pages/FileManagerPage.tsx"
+    },
+    {
+      "source": "electron/main.js",
+      "destination": "electron/main.js",
+      "replacements": {
+        "MinimactElectronFileManager": "{{ProjectName}}"
+      }
+    },
+    {
+      "source": "electron/preload.js",
+      "destination": "electron/preload.js"
+    },
+    {
+      "source": "electron/package.json",
+      "destination": "electron/package.json",
+      "replacements": {
+        "minimact-electron-filemanager": "{{ProjectName}}",
+        "MinimactElectronFileManager": "{{ProjectName}}"
+      }
+    }
+  ],
+  "postInstall": [
+    {
+      "command": "npm",
+      "args": ["install"],
+      "cwd": "electron",
+      "description": "Install Electron dependencies"
+    }
+  ],
+  "scripts": {
+    "build": "dotnet build",
+    "start": "cd electron && npm start",
+    "publish": "dotnet publish -c Release && cd electron && npm run package"
+  }
+}

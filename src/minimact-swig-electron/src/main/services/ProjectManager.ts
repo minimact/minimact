@@ -264,6 +264,14 @@ export class ProjectManager {
       console.log('[ProjectManager] Added Minimact.Charts and Minimact.Powered packages');
     }
 
+    // 2c. Add charts package for Electron File Manager
+    if (template === 'Electron-FileManager') {
+      await execa('dotnet', ['add', 'package', 'Minimact.Charts'], {
+        cwd: projectPath
+      });
+      console.log('[ProjectManager] Added Minimact.Charts package for Electron File Manager');
+    }
+
     // 3. Create Minimact directories
     await fs.mkdir(path.join(projectPath, 'Pages'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'Components'), { recursive: true });
@@ -314,6 +322,8 @@ export class ProjectManager {
       await this.createMvcTemplate(projectPath, enableTailwind);
     } else if (template === 'MVC-Dashboard') {
       await this.createMvcDashboardTemplate(projectPath);
+    } else if (template === 'Electron-FileManager') {
+      await this.createElectronFileManagerTemplate(projectPath, projectName);
     }
   }
 
@@ -1805,6 +1815,77 @@ export function ProductDetailsPage() {
   );
 }
 `;
+  }
+
+  /**
+   * Create Electron File Manager template from modular template files
+   * Desktop file manager application using Electron + Minimact
+   */
+  private async createElectronFileManagerTemplate(projectPath: string, projectName: string): Promise<void> {
+    const { execa } = await import('execa');
+
+    // Load template metadata
+    const templateDir = path.join(__dirname, '..', 'templates', 'electron-filemanager');
+    const templateMetadata = JSON.parse(
+      await fs.readFile(path.join(templateDir, 'template.json'), 'utf-8')
+    );
+
+    console.log(`[ProjectManager] Creating ${templateMetadata.name} template...`);
+
+    // Process each file from template
+    for (const fileConfig of templateMetadata.files) {
+      const sourcePath = path.join(templateDir, fileConfig.source);
+      const destPath = path.join(projectPath, fileConfig.destination);
+
+      // Ensure destination directory exists
+      await fs.mkdir(path.dirname(destPath), { recursive: true });
+
+      // Read file content
+      let content = await fs.readFile(sourcePath, 'utf-8');
+
+      // Apply replacements
+      if (fileConfig.replacements) {
+        for (const [find, replaceTemplate] of Object.entries(fileConfig.replacements)) {
+          const replaceValue = (replaceTemplate as string).replace('{{ProjectName}}', projectName);
+          content = content.replace(new RegExp(find, 'g'), replaceValue);
+        }
+      }
+
+      // Write file
+      await fs.writeFile(destPath, content, 'utf-8');
+      console.log(`[ProjectManager]   ✓ Created ${fileConfig.destination}`);
+    }
+
+    // Run post-install commands
+    if (templateMetadata.postInstall) {
+      for (const command of templateMetadata.postInstall) {
+        console.log(`[ProjectManager] ${command.description}...`);
+        await execa(command.command, command.args, {
+          cwd: path.join(projectPath, command.cwd || '.')
+        });
+      }
+    }
+
+    // Create root package.json with scripts
+    if (templateMetadata.scripts) {
+      const rootPackageJson = {
+        "name": projectName.toLowerCase(),
+        "version": "1.0.0",
+        "scripts": templateMetadata.scripts
+      };
+
+      await fs.writeFile(
+        path.join(projectPath, 'package.json'),
+        JSON.stringify(rootPackageJson, null, 2),
+        'utf-8'
+      );
+      console.log('[ProjectManager]   ✓ Created package.json with scripts');
+    }
+
+    console.log('[ProjectManager] ✅ Electron File Manager template created successfully!');
+    console.log('[ProjectManager] Next steps:');
+    console.log('[ProjectManager]   1. Run "dotnet build"');
+    console.log('[ProjectManager]   2. Run "npm start" in the electron folder');
   }
 }
 

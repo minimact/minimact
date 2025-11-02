@@ -129,6 +129,7 @@ export default function CreateProject() {
               <option value="Dashboard">Dashboard (Charts + Powered Badge)</option>
               <option value="MVC">MVC Bridge (ASP.NET MVC + Minimact)</option>
               <option value="MVC-Dashboard">MVC Dashboard (MVC Bridge + Charts)</option>
+              <option value="Electron-FileManager">Electron File Manager (Desktop App)</option>
             </select>
             <p className="text-xs text-gray-500 mt-2">
               Choose a starting template for your project
