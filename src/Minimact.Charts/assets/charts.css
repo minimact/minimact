@@ -1,0 +1,105 @@
+/**
+ * @minimact/charts - Default Styles
+ * Lightweight, elegant chart styling
+ */
+
+/* Bar Chart */
+.minimact-bar-chart {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.minimact-bar-chart .chart-bar {
+    transition: opacity 0.2s ease;
+}
+
+.minimact-bar-chart .chart-bar:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+/* Line Chart */
+.minimact-line-chart {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.minimact-line-chart .chart-line {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+/* Pie Chart */
+.minimact-pie-chart {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.minimact-pie-chart .pie-slice {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform-origin: center;
+}
+
+.minimact-pie-chart .pie-slice:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+/* Area Chart */
+.minimact-area-chart {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.minimact-area-chart .chart-area-fill {
+    opacity: 0.6;
+}
+
+.minimact-area-chart .chart-area-line {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+/* Axes */
+.x-axis text,
+.y-axis text {
+    user-select: none;
+}
+
+.grid-line {
+    stroke-dasharray: 2, 2;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .minimact-bar-chart,
+    .minimact-line-chart,
+    .minimact-pie-chart,
+    .minimact-area-chart {
+        font-size: 10px;
+    }
+
+    .x-axis text,
+    .y-axis text {
+        font-size: 10px;
+    }
+}
+
+/* Accessibility */
+.minimact-bar-chart:focus,
+.minimact-line-chart:focus,
+.minimact-pie-chart:focus,
+.minimact-area-chart:focus {
+    outline: 2px solid #4A90E2;
+    outline-offset: 2px;
+}
+
+/* Print */
+@media print {
+    .minimact-bar-chart,
+    .minimact-line-chart,
+    .minimact-pie-chart,
+    .minimact-area-chart {
+        break-inside: avoid;
+    }
+}

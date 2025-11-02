@@ -1,0 +1,49 @@
+{
+  "name": "@minimact/charts",
+  "version": "1.0.0",
+  "description": "Server-side charting library for Minimact with zero client bundle overhead - the cactus that charts the data 🌵📊",
+  "type": "module",
+  "main": "dist/charts.js",
+  "module": "dist/charts.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "minimact",
+    "charts",
+    "recharts",
+    "bar-chart",
+    "line-chart",
+    "pie-chart",
+    "area-chart",
+    "svg",
+    "visualization",
+    "plotting",
+    "server-side",
+    "ssr"
+  ],
+  "author": "Minimact Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@minimact/core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@minimact/core": "file:../client-runtime",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}
