@@ -33,7 +33,7 @@ public partial class FileManagerPage : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        var chartData = (fileStats?.ExtensionStats?.Map(stat => new { name = stat.extension, count = stat.count, size = stat.totalSize })) ?? (new List<object> {  });
+        var chartData = (((IEnumerable<dynamic>)fileStats?.ExtensionStats)?.Select(stat => new { name = stat.extension, count = stat.count, size = stat.totalSize })?.Cast<dynamic>().ToList()) ?? (new List<dynamic> {  });
 
         return new VElement("div", new Dictionary<string, string> { ["class"] = "file-manager" }, new VNode[]
         {
@@ -290,9 +290,9 @@ public partial class FileManagerPage : MinimactComponent
                     {
                         new VText("Error:"),
                         new VText($"{(error)}")
-                    }) : null, (((!loading) != null ? (!error) : null) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : directoryData.items.Select(item, index => null).ToList()) : null),
+                    }) : null, (((!loading) && (!error)) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : ((IEnumerable<dynamic>)directoryData.items).Select((item, index) => null).ToList()) : null),
                 new VText($"{(null)}"),
-                MinimactHelpers.createElement("div", new { className = "sidebar" }, null, ((fileStats) != null ? (chartData.Count > 0) : null) ? new VElement("div", new Dictionary<string, string> { ["class"] = "panel" }, new VNode[]
+                MinimactHelpers.createElement("div", new { className = "sidebar" }, null, ((fileStats) && (chartData.Count > 0)) ? new VElement("div", new Dictionary<string, string> { ["class"] = "panel" }, new VNode[]
                     {
                         new VElement("h2", new Dictionary<string, string>(), "📊 File Types"),
                         new VElement("div", new Dictionary<string, string> { ["class"] = "chart-container" }, new VNode[]
@@ -372,8 +372,8 @@ if (bytes == 0) {
 }
 var k = 1024;
 var sizes = new List<object> { "Bytes", "KB", "MB", "GB" };
-var i = Math.Floor(Math.Log(bytes) / Math.Log(k));
-return Math.Round(bytes / Math.Pow(k, i) * 100) / 100 + " " + sizes[i];
+var i = (int)Math.Floor(Math.Log(bytes) / Math.Log(k));
+return (int)Math.Round(bytes / Math.Pow(k, i) * 100) / 100 + " " + sizes[i];
     }
 
     private string formatDate(string dateString)

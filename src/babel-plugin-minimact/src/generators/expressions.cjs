@@ -281,7 +281,9 @@ function generateCSharpExpression(node, inInterpolation = false) {
 
   if (t.isArrayExpression(node)) {
     const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
-    return `new List<object> { ${elements} }`;
+    // Use List<dynamic> for empty arrays to be compatible with dynamic LINQ results
+    const listType = elements.length === 0 ? 'dynamic' : 'object';
+    return `new List<${listType}> { ${elements} }`;
   }
 
   if (t.isUnaryExpression(node)) {
@@ -310,9 +312,20 @@ function generateCSharpExpression(node, inInterpolation = false) {
       // C#: a ?? b (null coalescing)
       return `(${left}) ?? (${right})`;
     } else if (node.operator === '&&') {
-      // JavaScript: a && b
-      // C#: a != null ? b : null (for objects) or (a && b) for bools
-      return `(${left}) != null ? (${right}) : null`;
+      // Check if right side is a boolean expression (comparison, logical, etc.)
+      const rightIsBooleanExpr = t.isBinaryExpression(node.right) ||
+                                  t.isLogicalExpression(node.right) ||
+                                  t.isUnaryExpression(node.right);
+
+      if (rightIsBooleanExpr) {
+        // JavaScript: a && (b > 0)
+        // C#: (a) && (b > 0) - boolean AND
+        return `(${left}) && (${right})`;
+      } else {
+        // JavaScript: a && <jsx> or a && someValue
+        // C#: a != null ? value : null (for objects)
+        return `(${left}) != null ? (${right}) : null`;
+      }
     }
 
     return `${left} ${node.operator} ${right}`;
@@ -350,6 +363,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
       const methodName = node.callee.property.name;
       const pascalMethodName = methodName.charAt(0).toUpperCase() + methodName.slice(1);
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+
+      // Cast floor/ceil/round to int for array indexing compatibility
+      if (methodName === 'floor' || methodName === 'ceil' || methodName === 'round') {
+        return `(int)Math.${pascalMethodName}(${args})`;
+      }
+
       return `Math.${pascalMethodName}(${args})`;
     }
 
@@ -414,11 +433,21 @@ function generateCSharpExpression(node, inInterpolation = false) {
       if (node.arguments.length > 0) {
         const callback = node.arguments[0];
         if (t.isArrowFunctionExpression(callback)) {
-          const params = callback.params.map(p => p.name).join(', ');
+          const paramNames = callback.params.map(p => p.name);
+          // C# requires parentheses for 0 or 2+ parameters
+          const params = paramNames.length === 1
+            ? paramNames[0]
+            : `(${paramNames.join(', ')})`;
           const body = t.isBlockStatement(callback.body)
             ? `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`
             : generateCSharpExpression(callback.body);
-          return `${object}.Select(${params} => ${body}).ToList()`;
+
+          // Cast to IEnumerable<dynamic> if we detect dynamic access
+          // Check for optional chaining or property access (likely dynamic)
+          const needsCast = object.includes('?.') || object.includes('?') || object.includes('.');
+          const castedObject = needsCast ? `((IEnumerable<dynamic>)${object})` : object;
+
+          return `${castedObject}.Select(${params} => ${body}).ToList()`;
         }
       }
     }
@@ -438,11 +467,21 @@ function generateCSharpExpression(node, inInterpolation = false) {
       if (node.arguments.length > 0) {
         const callback = node.arguments[0];
         if (t.isArrowFunctionExpression(callback)) {
-          const params = callback.params.map(p => p.name).join(', ');
+          const paramNames = callback.params.map(p => p.name);
+          // C# requires parentheses for 0 or 2+ parameters
+          const params = paramNames.length === 1
+            ? paramNames[0]
+            : `(${paramNames.join(', ')})`;
           const body = t.isBlockStatement(callback.body)
             ? `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`
             : generateCSharpExpression(callback.body);
-          return `${object}?.Select(${params} => ${body})`;
+
+          // Cast to IEnumerable<dynamic> for optional chaining (likely dynamic)
+          const castedObject = `((IEnumerable<dynamic>)${object})`;
+
+          // Cast result to List<dynamic> for ?? operator compatibility
+          // Anonymous types from Select need explicit Cast<dynamic>() before ToList()
+          return `${castedObject}?.Select(${params} => ${body})?.Cast<dynamic>().ToList()`;
         }
       }
     }
