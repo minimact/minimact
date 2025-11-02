@@ -47,6 +47,7 @@ function processComponent(path, state) {
     useDropdown: [],
     eventHandlers: [],
     localVariables: [], // Local variables (const/let/var) in function body
+    helperFunctions: [], // Helper functions declared in function body
     renderBody: null,
     pluginUsages: [], // Plugin instances (<Plugin name="..." state={...} />)
     stateTypes: new Map(), // Track which hook each state came from
@@ -140,6 +141,38 @@ function processComponent(path, state) {
       // Only extract local variables at the top level of the function body
       if (varPath.getFunctionParent() === path && varPath.parent.type === 'BlockStatement') {
         extractLocalVariables(varPath, component, t);
+      }
+    },
+
+    FunctionDeclaration(funcPath) {
+      // Only extract helper functions at the top level of the component body
+      // (not nested functions inside other functions)
+      if (funcPath.getFunctionParent() === path && funcPath.parent.type === 'BlockStatement') {
+        const funcName = funcPath.node.id.name;
+        const params = funcPath.node.params.map(param => {
+          if (t.isIdentifier(param)) {
+            // Simple parameter: (name)
+            const paramType = param.typeAnnotation?.typeAnnotation
+              ? tsTypeToCSharpType(param.typeAnnotation.typeAnnotation)
+              : 'dynamic';
+            return { name: param.name, type: paramType };
+          }
+          return { name: 'param', type: 'dynamic' };
+        });
+
+        const returnType = funcPath.node.returnType?.typeAnnotation
+          ? tsTypeToCSharpType(funcPath.node.returnType.typeAnnotation)
+          : 'void';
+
+        const isAsync = funcPath.node.async;
+
+        component.helperFunctions.push({
+          name: funcName,
+          params,
+          returnType,
+          isAsync,
+          body: funcPath.node.body // Store the function body AST
+        });
       }
     },
 

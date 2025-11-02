@@ -163,6 +163,40 @@ function generateCSharpStatement(node) {
     return declarations;
   }
 
+  if (t.isIfStatement(node)) {
+    const test = generateCSharpExpression(node.test);
+    let result = `if (${test}) {\n`;
+
+    // Handle consequent (then branch)
+    if (t.isBlockStatement(node.consequent)) {
+      for (const stmt of node.consequent.body) {
+        result += '    ' + generateCSharpStatement(stmt) + '\n';
+      }
+    } else {
+      result += '    ' + generateCSharpStatement(node.consequent) + '\n';
+    }
+
+    result += '}';
+
+    // Handle alternate (else branch) if it exists
+    if (node.alternate) {
+      result += ' else {\n';
+      if (t.isBlockStatement(node.alternate)) {
+        for (const stmt of node.alternate.body) {
+          result += '    ' + generateCSharpStatement(stmt) + '\n';
+        }
+      } else if (t.isIfStatement(node.alternate)) {
+        // else if
+        result += '    ' + generateCSharpStatement(node.alternate) + '\n';
+      } else {
+        result += '    ' + generateCSharpStatement(node.alternate) + '\n';
+      }
+      result += '}';
+    }
+
+    return result;
+  }
+
   // Fallback: try to convert as expression
   return generateCSharpExpression(node) + ';';
 }
@@ -293,6 +327,15 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `Math.Min(${args})`;
     }
 
+    // Handle other Math methods (floor, ceil, round, pow, log, etc.) → Pascal case
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Math' })) {
+      const methodName = node.callee.property.name;
+      const pascalMethodName = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `Math.${pascalMethodName}(${args})`;
+    }
+
     // Handle alert() → Console.WriteLine() (or custom alert implementation)
     if (t.isIdentifier(node.callee, { name: 'alert' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
@@ -316,6 +359,24 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `${object}.ToString("F${decimals}")`;
     }
 
+    // Handle .toLocaleString() → .ToString("g") (DateTime)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLocaleString' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.ToString("g")`;
+    }
+
+    // Handle .toLowerCase() → .ToLower()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLowerCase' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.ToLower()`;
+    }
+
+    // Handle .toUpperCase() → .ToUpper()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toUpperCase' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.ToUpper()`;
+    }
+
     // Handle useState/useClientState setters → SetState calls
     if (t.isIdentifier(node.callee) && currentComponent) {
       const setterName = node.callee.name;
@@ -337,16 +398,51 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isTemplateLiteral(node)) {
-    // Convert template literal to C# string interpolation
+    // Convert template literal to C# string
+
+    // If no expressions, use verbatim string literal (@"...") to avoid escaping issues
+    if (node.expressions.length === 0) {
+      const text = node.quasis[0].value.raw;
+      // Use verbatim string literal (@"...") for multiline or strings with special chars
+      // Escape " as "" in verbatim strings
+      const escaped = text.replace(/"/g, '""');
+      return `@"${escaped}"`;
+    }
+
+    // Has expressions - use C# string interpolation
     let result = '$"';
     for (let i = 0; i < node.quasis.length; i++) {
-      result += node.quasis[i].value.raw;
+      // Escape special chars in C# interpolated strings
+      let text = node.quasis[i].value.raw;
+      // Escape { and } by doubling them
+      text = text.replace(/{/g, '{{').replace(/}/g, '}}');
+      // Escape " as \"
+      text = text.replace(/"/g, '\\"');
+      result += text;
+
       if (i < node.expressions.length) {
         result += '{' + generateCSharpExpression(node.expressions[i]) + '}';
       }
     }
     result += '"';
     return result;
+  }
+
+  if (t.isNewExpression(node)) {
+    // Handle new Date() → DateTime.Parse()
+    if (t.isIdentifier(node.callee, { name: 'Date' })) {
+      if (node.arguments.length === 0) {
+        return 'DateTime.Now';
+      } else if (node.arguments.length === 1) {
+        const arg = generateCSharpExpression(node.arguments[0]);
+        return `DateTime.Parse(${arg})`;
+      }
+    }
+
+    // Handle other new expressions: new Foo() → new Foo()
+    const callee = generateCSharpExpression(node.callee);
+    const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+    return `new ${callee}(${args})`;
   }
 
   if (t.isObjectExpression(node)) {

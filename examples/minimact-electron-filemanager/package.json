@@ -1,0 +1,27 @@
+{
+  "name": "minimact-electron-filemanager",
+  "version": "0.1.0",
+  "description": "Desktop file manager built with Minimact and Electron",
+  "private": true,
+  "scripts": {
+    "install:electron": "cd electron && npm install",
+    "build:dotnet": "cd src && dotnet build",
+    "publish:dotnet": "cd src && dotnet publish -c Release -r win-x64 --self-contained",
+    "dev": "cd electron && npm run dev",
+    "start": "cd electron && npm start",
+    "build": "npm run publish:dotnet && cd electron && npm run build",
+    "build:win": "npm run publish:dotnet && cd electron && npm run build:win",
+    "build:mac": "npm run publish:dotnet && cd electron && npm run build:mac",
+    "build:linux": "npm run publish:dotnet && cd electron && npm run build:linux"
+  },
+  "keywords": [
+    "minimact",
+    "electron",
+    "file-manager",
+    "desktop",
+    "csharp",
+    "server-side-react"
+  ],
+  "author": "Minimact Contributors",
+  "license": "MIT"
+}

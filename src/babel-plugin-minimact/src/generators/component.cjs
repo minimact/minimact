@@ -503,6 +503,32 @@ function generateComponent(component) {
     lines.push('    }');
   }
 
+  // Helper functions (function declarations in component body)
+  if (component.helperFunctions && component.helperFunctions.length > 0) {
+    for (const func of component.helperFunctions) {
+      lines.push('');
+
+      const returnType = func.isAsync
+        ? (func.returnType === 'void' ? 'async Task' : `async Task<${func.returnType}>`)
+        : func.returnType;
+
+      const params = func.params.map(p => `${p.type} ${p.name}`).join(', ');
+
+      lines.push(`    private ${returnType} ${func.name}(${params})`);
+      lines.push('    {');
+
+      // Generate function body
+      if (func.body && t.isBlockStatement(func.body)) {
+        for (const statement of func.body.body) {
+          const stmtCode = generateCSharpStatement(statement, 2);
+          lines.push(stmtCode);
+        }
+      }
+
+      lines.push('    }');
+    }
+  }
+
   lines.push('}');
 
   return lines;

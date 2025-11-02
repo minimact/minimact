@@ -5,7 +5,7 @@
  * Phase 3: Babel Plugin Integration
  */
 
-const { generateExpression } = require('./expressions.cjs');
+const { generateCSharpExpression } = require('./expressions.cjs');
 
 /**
  * Generate C# code for a plugin usage
@@ -51,7 +51,7 @@ function generateStateExpression(stateBinding, componentState) {
 
     case 'complexExpression':
       // Complex expression: evaluate using expression generator
-      return generateExpression(stateBinding.expression);
+      return generateCSharpExpression(stateBinding.expression);
 
     default:
       throw new Error(`Unknown state binding type: ${stateBinding.type}`);
@@ -73,7 +73,7 @@ function generateInlineObject(stateBinding, componentState) {
 
   const propStrings = properties.map(prop => {
     const key = prop.key.name || prop.key.value;
-    const value = generateExpression(prop.value);
+    const value = generateCSharpExpression(prop.value);
     return `${key} = ${value}`;
   });
 
