@@ -253,6 +253,17 @@ export class ProjectManager {
       cwd: projectPath
     });
 
+    // 2b. Add chart and powered packages for Dashboard template
+    if (template === 'Dashboard') {
+      await execa('dotnet', ['add', 'package', 'Minimact.Charts'], {
+        cwd: projectPath
+      });
+      await execa('dotnet', ['add', 'package', 'Minimact.Powered'], {
+        cwd: projectPath
+      });
+      console.log('[ProjectManager] Added Minimact.Charts and Minimact.Powered packages');
+    }
+
     // 3. Create Minimact directories
     await fs.mkdir(path.join(projectPath, 'Pages'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'Components'), { recursive: true });
@@ -507,42 +518,126 @@ export function Index() {
     // Create directory structure
     await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
 
-    // Create Pages/Index.tsx
-    const indexTsx = `import { useState, useEffect } from 'minimact';
+    // Create Pages/Index.tsx with enhanced charts
+    const indexTsx = `import { useState } from 'minimact';
+import type { DataPoint } from '@minimact/charts';
 
-interface ChartData {
+interface MetricData {
   label: string;
-  value: number;
-  color: string;
+  value: string;
+  change: string;
+  positive: boolean;
 }
 
 export function Index() {
-  const [salesData] = useState<ChartData[]>([
-    { label: 'Jan', value: 45, color: '#4CAF50' },
-    { label: 'Feb', value: 62, color: '#2196F3' },
-    { label: 'Mar', value: 58, color: '#FF9800' },
-    { label: 'Apr', value: 71, color: '#9C27B0' },
-    { label: 'May', value: 89, color: '#F44336' },
-    { label: 'Jun', value: 94, color: '#00BCD4' }
+  // Time range selector
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
+
+  // Sales data for bar chart (changes based on time range)
+  const [salesData] = useState<DataPoint[]>([
+    { category: 'Jan', value: 4500 },
+    { category: 'Feb', value: 6200 },
+    { category: 'Mar', value: 5800 },
+    { category: 'Apr', value: 7100 },
+    { category: 'May', value: 8900 },
+    { category: 'Jun', value: 9400 }
   ]);
 
-  const [metrics] = useState([
+  // Revenue trend data (for line chart)
+  const [revenueData] = useState<DataPoint[]>([
+    { category: 'Week 1', value: 12500 },
+    { category: 'Week 2', value: 15200 },
+    { category: 'Week 3', value: 14800 },
+    { category: 'Week 4', value: 18300 }
+  ]);
+
+  // Product mix data (for pie chart)
+  const [productMixData] = useState<DataPoint[]>([
+    { category: 'Electronics', value: 45, fill: '#4CAF50' },
+    { category: 'Clothing', value: 25, fill: '#2196F3' },
+    { category: 'Food', value: 20, fill: '#FF9800' },
+    { category: 'Other', value: 10, fill: '#9C27B0' }
+  ]);
+
+  // Quarterly growth data (for area chart)
+  const [growthData] = useState<DataPoint[]>([
+    { category: 'Q1', value: 45000 },
+    { category: 'Q2', value: 52000 },
+    { category: 'Q3', value: 48000 },
+    { category: 'Q4', value: 61000 }
+  ]);
+
+  // Metrics cards
+  const [metrics] = useState<MetricData[]>([
     { label: 'Total Sales', value: '$124,532', change: '+12.5%', positive: true },
     { label: 'Active Users', value: '8,429', change: '+8.2%', positive: true },
     { label: 'Conversion Rate', value: '3.24%', change: '-0.5%', positive: false },
     { label: 'Avg. Order Value', value: '$89.50', change: '+5.1%', positive: true }
   ]);
 
-  const maxValue = Math.max(...salesData.map(d => d.value));
-
   return (
-    <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ marginBottom: '30px' }}>Sales Dashboard</h1>
+    <div style={{
+      padding: '20px',
+      fontFamily: 'system-ui, sans-serif',
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh'
+    }}>
+      {/* Header with Time Range Selector */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '30px'
+      }}>
+        <h1 style={{ fontSize: '32px', margin: 0 }}>📊 Sales Dashboard</h1>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => setTimeRange('week')}
+            style={{
+              padding: '8px 16px',
+              border: timeRange === 'week' ? '2px solid #4CAF50' : '1px solid #ddd',
+              borderRadius: '6px',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              fontWeight: timeRange === 'week' ? '600' : '400'
+            }}
+          >
+            This Week
+          </button>
+          <button
+            onClick={() => setTimeRange('month')}
+            style={{
+              padding: '8px 16px',
+              border: timeRange === 'month' ? '2px solid #4CAF50' : '1px solid #ddd',
+              borderRadius: '6px',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              fontWeight: timeRange === 'month' ? '600' : '400'
+            }}
+          >
+            This Month
+          </button>
+          <button
+            onClick={() => setTimeRange('year')}
+            style={{
+              padding: '8px 16px',
+              border: timeRange === 'year' ? '2px solid #4CAF50' : '1px solid #ddd',
+              borderRadius: '6px',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              fontWeight: timeRange === 'year' ? '600' : '400'
+            }}
+          >
+            This Year
+          </button>
+        </div>
+      </div>
 
       {/* Metrics Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
         gap: '20px',
         marginBottom: '40px'
       }}>
@@ -550,64 +645,146 @@ export function Index() {
           <div
             key={metric.label}
             style={{
-              padding: '20px',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              backgroundColor: 'white'
+              padding: '24px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '12px',
+              backgroundColor: 'white',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
             }}
           >
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
               {metric.label}
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
+            <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
               {metric.value}
             </div>
-            <div style={{ fontSize: '14px', color: metric.positive ? '#4CAF50' : '#F44336' }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: '600',
+              color: metric.positive ? '#4CAF50' : '#F44336'
+            }}>
               {metric.change}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Bar Chart */}
+      {/* Bar Chart - Monthly Sales */}
       <div style={{
-        padding: '20px',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        backgroundColor: 'white'
+        padding: '24px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        backgroundColor: 'white',
+        marginBottom: '30px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
       }}>
-        <h2 style={{ marginBottom: '20px', fontSize: '18px' }}>Monthly Sales</h2>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '200px' }}>
-          {salesData.map(data => (
-            <div
-              key={data.label}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                \${data.value}k
-              </div>
-              <div
-                style={{
-                  width: '100%',
-                  height: \`\${(data.value / maxValue) * 100}%\`,
-                  backgroundColor: data.color,
-                  borderRadius: '4px 4px 0 0',
-                  transition: 'height 0.3s ease'
-                }}
-              />
-              <div style={{ fontSize: '12px', color: '#666' }}>
-                {data.label}
-              </div>
-            </div>
-          ))}
+        <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+          📈 Monthly Sales Trend
+        </h2>
+
+        <Plugin name="BarChart" state={{
+          data: salesData,
+          width: 800,
+          height: 400,
+          margin: { top: 20, right: 30, bottom: 50, left: 60 },
+          barFill: '#4CAF50',
+          showGrid: true,
+          xAxis: { dataKey: 'category', label: 'Month' },
+          yAxis: { label: 'Sales ($K)', tickCount: 5 }
+        }} />
+      </div>
+
+      {/* Two Column Layout: Line Chart + Pie Chart */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: '30px',
+        marginBottom: '30px'
+      }}>
+        {/* Line Chart - Revenue Trend */}
+        <div style={{
+          padding: '24px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '12px',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+            📊 Weekly Revenue
+          </h2>
+
+          <Plugin name="LineChart" state={{
+            data: revenueData,
+            width: 450,
+            height: 300,
+            margin: { top: 20, right: 30, bottom: 50, left: 60 },
+            strokeColor: '#2196F3',
+            strokeWidth: 3,
+            showGrid: true,
+            xAxis: { dataKey: 'category' },
+            yAxis: { label: 'Revenue ($)', tickCount: 5 }
+          }} />
+        </div>
+
+        {/* Pie Chart - Product Mix */}
+        <div style={{
+          padding: '24px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '12px',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+            💰 Sales by Category
+          </h2>
+
+          <Plugin name="PieChart" state={{
+            data: productMixData,
+            width: 450,
+            height: 300,
+            innerRadius: 0,
+            outerRadius: 100,
+            cx: '50%',
+            cy: '50%'
+          }} />
         </div>
       </div>
+
+      {/* Area Chart - Quarterly Growth */}
+      <div style={{
+        padding: '24px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        backgroundColor: 'white',
+        marginBottom: '30px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}>
+        <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
+          📈 Quarterly Growth Trend
+        </h2>
+
+        <Plugin name="AreaChart" state={{
+          data: growthData,
+          width: 800,
+          height: 300,
+          margin: { top: 20, right: 30, bottom: 50, left: 60 },
+          fill: 'rgba(76, 175, 80, 0.3)',
+          stroke: '#4CAF50',
+          strokeWidth: 2,
+          showGrid: true,
+          xAxis: { dataKey: 'category', label: 'Quarter' },
+          yAxis: { label: 'Revenue ($)', tickCount: 5 }
+        }} />
+      </div>
+
+      {/* Powered Badge */}
+      <Plugin name="PoweredBadge" state={{
+        position: 'bottom-right',
+        expanded: false,
+        theme: 'dark',
+        linkUrl: 'https://minimact.dev',
+        openInNewTab: true
+      }} />
     </div>
   );
 }
@@ -615,8 +792,10 @@ export function Index() {
 
     await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
 
-    // Copy Minimact client runtime to wwwroot/js
+    // Copy Minimact client runtime and plugin packages to wwwroot/js
     await this.copyClientRuntimeToProject(projectPath);
+    await this.copyChartPackagesToProject(projectPath);
+    await this.copyPoweredPackageToProject(projectPath);
   }
 
   /**
@@ -774,6 +953,48 @@ public class ProductData
     } catch (error) {
       console.error('Failed to copy client runtime:', error);
       console.error('Make sure to run `npm run sync` in the monorepo root first');
+      // Not fatal - user can copy manually
+    }
+  }
+
+  /**
+   * Copy @minimact/charts package to project's wwwroot/js folder
+   */
+  private async copyChartPackagesToProject(projectPath: string): Promise<void> {
+    const jsDir = path.join(projectPath, 'wwwroot', 'js');
+    await fs.mkdir(jsDir, { recursive: true });
+
+    // Source: Electron app's mact_modules folder
+    const chartsSource = path.join(__dirname, '..', '..', 'mact_modules', '@minimact', 'charts', 'dist', 'charts.js');
+    const chartsDest = path.join(jsDir, 'minimact-charts.min.js');
+
+    try {
+      await fs.copyFile(chartsSource, chartsDest);
+      console.log('[ProjectManager] Copied @minimact/charts to project');
+    } catch (error) {
+      console.error('Failed to copy @minimact/charts:', error);
+      console.error('Make sure @minimact/charts is built and synced');
+      // Not fatal - user can copy manually
+    }
+  }
+
+  /**
+   * Copy @minimact/powered package to project's wwwroot/js folder
+   */
+  private async copyPoweredPackageToProject(projectPath: string): Promise<void> {
+    const jsDir = path.join(projectPath, 'wwwroot', 'js');
+    await fs.mkdir(jsDir, { recursive: true });
+
+    // Source: Electron app's mact_modules folder
+    const poweredSource = path.join(__dirname, '..', '..', 'mact_modules', '@minimact', 'powered', 'dist', 'powered.js');
+    const poweredDest = path.join(jsDir, 'minimact-powered.min.js');
+
+    try {
+      await fs.copyFile(poweredSource, poweredDest);
+      console.log('[ProjectManager] Copied @minimact/powered to project');
+    } catch (error) {
+      console.error('Failed to copy @minimact/powered:', error);
+      console.error('Make sure @minimact/powered is built and synced');
       // Not fatal - user can copy manually
     }
   }

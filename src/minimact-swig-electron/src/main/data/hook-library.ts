@@ -23,7 +23,7 @@ export interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'communication' | 'tasks' | 'advanced' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum';
+  category: 'core' | 'communication' | 'tasks' | 'advanced' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum' | 'charts';
   packageName?: string; // NPM package if not core
   imports: string[]; // Import statements
   example: string; // Code example template (client-side TSX)
@@ -2123,6 +2123,147 @@ export function ProductDetailsPage() {
 }`,
     isDefault: false,
     dependencies: ['useState', 'useEffect', 'useRef']
+  },
+
+  // ===== CHART HOOKS (@minimact/charts) =====
+  {
+    id: 'barChart',
+    name: 'BarChart (Plugin)',
+    description: 'Server-rendered bar chart with instant template patch updates and axes',
+    category: 'charts',
+    packageName: '@minimact/charts',
+    imports: ["import type { DataPoint } from '@minimact/charts';"],
+    example: `export function SalesDashboard() {
+  const [salesData] = useState<DataPoint[]>([
+    { category: 'Jan', value: 4000 },
+    { category: 'Feb', value: 3000 },
+    { category: 'Mar', value: 2000 },
+    { category: 'Apr', value: 2780 },
+    { category: 'May', value: 1890 },
+    { category: 'Jun', value: 2390 }
+  ]);
+
+  return (
+    <div>
+      <h2>Monthly Sales</h2>
+      <Plugin name="BarChart" state={{
+        data: salesData,
+        width: 600,
+        height: 400,
+        margin: { top: 20, right: 30, bottom: 50, left: 60 },
+        barFill: '#4CAF50',
+        showGrid: true,
+        xAxis: { dataKey: 'category', label: 'Month' },
+        yAxis: { label: 'Sales ($)', tickCount: 5 }
+      }} />
+    </div>
+  );
+}`,
+    isDefault: false
+  },
+
+  {
+    id: 'lineChart',
+    name: 'LineChart (Plugin)',
+    description: 'Server-rendered line chart with smooth curves and real-time updates',
+    category: 'charts',
+    packageName: '@minimact/charts',
+    imports: ["import type { DataPoint } from '@minimact/charts';"],
+    example: `export function TrendAnalysis() {
+  const [trendData] = useState<DataPoint[]>([
+    { category: 'Week 1', value: 12500 },
+    { category: 'Week 2', value: 15200 },
+    { category: 'Week 3', value: 14800 },
+    { category: 'Week 4', value: 18300 }
+  ]);
+
+  return (
+    <div>
+      <h2>Revenue Trend</h2>
+      <Plugin name="LineChart" state={{
+        data: trendData,
+        width: 600,
+        height: 400,
+        margin: { top: 20, right: 30, bottom: 50, left: 60 },
+        strokeColor: '#2196F3',
+        strokeWidth: 3,
+        showGrid: true,
+        xAxis: { dataKey: 'category' },
+        yAxis: { label: 'Revenue ($)', tickCount: 5 }
+      }} />
+    </div>
+  );
+}`,
+    isDefault: false
+  },
+
+  {
+    id: 'pieChart',
+    name: 'PieChart (Plugin)',
+    description: 'Server-rendered pie/donut chart with custom colors and labels',
+    category: 'charts',
+    packageName: '@minimact/charts',
+    imports: ["import type { DataPoint } from '@minimact/charts';"],
+    example: `export function CategoryBreakdown() {
+  const [categoryData] = useState<DataPoint[]>([
+    { category: 'Electronics', value: 45, fill: '#4CAF50' },
+    { category: 'Clothing', value: 25, fill: '#2196F3' },
+    { category: 'Food', value: 20, fill: '#FF9800' },
+    { category: 'Other', value: 10, fill: '#9C27B0' }
+  ]);
+
+  return (
+    <div>
+      <h2>Sales by Category</h2>
+      <Plugin name="PieChart" state={{
+        data: categoryData,
+        width: 400,
+        height: 400,
+        innerRadius: 0,
+        outerRadius: 100,
+        cx: '50%',
+        cy: '50%'
+      }} />
+    </div>
+  );
+}`,
+    isDefault: false
+  },
+
+  {
+    id: 'areaChart',
+    name: 'AreaChart (Plugin)',
+    description: 'Server-rendered area chart with gradient fill for growth trends',
+    category: 'charts',
+    packageName: '@minimact/charts',
+    imports: ["import type { DataPoint } from '@minimact/charts';"],
+    example: `export function GrowthTrend() {
+  const [growthData] = useState<DataPoint[]>([
+    { category: 'Q1', value: 45000 },
+    { category: 'Q2', value: 52000 },
+    { category: 'Q3', value: 48000 },
+    { category: 'Q4', value: 61000 }
+  ]);
+
+  return (
+    <div>
+      <h2>Quarterly Growth</h2>
+      <Plugin name="AreaChart" state={{
+        data: growthData,
+        width: 600,
+        height: 400,
+        margin: { top: 20, right: 30, bottom: 50, left: 60 },
+        fill: 'rgba(76, 175, 80, 0.3)',
+        stroke: '#4CAF50',
+        strokeWidth: 2,
+        showGrid: true,
+        xAxis: { dataKey: 'category', label: 'Quarter' },
+        yAxis: { label: 'Revenue ($)', tickCount: 5 }
+      }} />
+    </div>
+  );
+}`,
+    isDefault: false
   }
 ];
 

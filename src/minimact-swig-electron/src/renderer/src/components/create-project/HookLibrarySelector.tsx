@@ -5,7 +5,7 @@ interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'communication' | 'tasks' | 'advanced' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum';
+  category: 'core' | 'communication' | 'tasks' | 'advanced' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum' | 'charts';
   packageName?: string;
   example: string;
   isDefault: boolean;
