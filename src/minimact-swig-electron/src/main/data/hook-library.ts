@@ -22,7 +22,12 @@ export interface Hook {
   category: 'core' | 'mvc' | 'punch' | 'query' | 'advanced';
   packageName?: string; // NPM package if not core
   imports: string[]; // Import statements
-  example: string; // Code example template
+  example: string; // Code example template (client-side TSX)
+  serverCode?: {
+    language: 'csharp' | 'rust';
+    fileName: string; // e.g., "CartReducer.cs" or "CartReducer.rs"
+    code: string; // Server-side code template
+  }; // Optional server-side code
   isDefault: boolean; // Show by default or require expansion
   dependencies?: string[]; // Other hook IDs this depends on
 }
@@ -189,6 +194,265 @@ export function LocationMap() {
     </div>
   );
 }`,
+    isDefault: false
+  },
+
+  {
+    id: 'useServerReducer',
+    name: 'useServerReducer',
+    description: 'Redux-style state management with reducer logic running on server (validation, side effects, DB access)',
+    category: 'advanced',
+    imports: ["import { useServerReducer } from 'minimact';"],
+    example: `type CartState = {
+  items: Array<{ id: string; name: string; price: number; qty: number }>;
+  total: number;
+  tax: number;
+  shipping: number;
+};
+
+type CartAction =
+  | { type: 'addItem'; item: { id: string; name: string; price: number } }
+  | { type: 'removeItem'; itemId: string }
+  | { type: 'updateQuantity'; itemId: string; quantity: number }
+  | { type: 'applyDiscount'; code: string }
+  | { type: 'clear' };
+
+export function ShoppingCart() {
+  const cart = useServerReducer<CartState, CartAction>({
+    items: [],
+    total: 0,
+    tax: 0,
+    shipping: 0
+  });
+
+  const handleAddToCart = async (product: Product) => {
+    try {
+      const newState = await cart.dispatchAsync({
+        type: 'addItem',
+        item: { id: product.id, name: product.name, price: product.price }
+      });
+      toast.success(\`Added \${product.name} to cart\`);
+    } catch (error) {
+      toast.error('Failed to add item');
+    }
+  };
+
+  return (
+    <div>
+      <h2>Shopping Cart ({cart.state.items.length} items)</h2>
+
+      {cart.state.items.map(item => (
+        <div key={item.id} className="cart-item">
+          <span>{item.name}</span>
+          <input
+            type="number"
+            value={item.qty}
+            onChange={(e) => cart.dispatch({
+              type: 'updateQuantity',
+              itemId: item.id,
+              quantity: parseInt(e.target.value)
+            })}
+            disabled={cart.dispatching}
+          />
+          <button
+            onClick={() => cart.dispatch({ type: 'removeItem', itemId: item.id })}
+            disabled={cart.dispatching}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+
+      {cart.dispatching && <Spinner />}
+
+      {cart.error && (
+        <div className="error">
+          Error: {cart.error.message}
+        </div>
+      )}
+
+      <div className="cart-summary">
+        <p>Subtotal: \${cart.state.total.toFixed(2)}</p>
+        <p>Tax: \${cart.state.tax.toFixed(2)}</p>
+        <p>Shipping: \${cart.state.shipping.toFixed(2)}</p>
+        <h3>Total: \${(cart.state.total + cart.state.tax + cart.state.shipping).toFixed(2)}</h3>
+      </div>
+
+      <button
+        onClick={() => cart.dispatch({ type: 'clear' })}
+        disabled={cart.dispatching || cart.state.items.length === 0}
+      >
+        Clear Cart
+      </button>
+    </div>
+  );
+}
+
+}`,
+    serverCode: {
+      language: 'csharp',
+      fileName: 'ShoppingCartReducer.cs',
+      code: `using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Attributes;
+
+namespace YourProjectName.ServerReducers;
+
+/// <summary>
+/// Shopping Cart Reducer - Server-side state management
+/// Handles cart operations with validation, side effects, and business logic
+/// </summary>
+public class ShoppingCartComponent : MinimactComponent
+{
+    // State types
+    public class CartState
+    {
+        public List<CartItem> Items { get; set; } = new();
+        public decimal Total { get; set; }
+        public decimal Tax { get; set; }
+        public decimal Shipping { get; set; }
+    }
+
+    public class CartItem
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int Qty { get; set; }
+    }
+
+    public class CartAction
+    {
+        public string Type { get; set; } = string.Empty;
+        public CartItem? Item { get; set; }
+        public string? ItemId { get; set; }
+        public int? Quantity { get; set; }
+        public string? Code { get; set; }
+    }
+
+    /// <summary>
+    /// Cart reducer with validation and side effects
+    /// </summary>
+    [ServerReducer]
+    public async Task<CartState> CartReducer(CartState state, CartAction action)
+    {
+        switch (action.Type)
+        {
+            case "addItem":
+                // Validation
+                if (state.Items.Count >= 50)
+                {
+                    throw new InvalidOperationException("Cart is full (max 50 items)");
+                }
+
+                if (action.Item == null)
+                {
+                    throw new ArgumentException("Item is required");
+                }
+
+                var existingItem = state.Items.FirstOrDefault(i => i.Id == action.Item.Id);
+                if (existingItem != null)
+                {
+                    // Update quantity of existing item
+                    existingItem.Qty += 1;
+                }
+                else
+                {
+                    // Add new item
+                    state.Items.Add(new CartItem
+                    {
+                        Id = action.Item.Id,
+                        Name = action.Item.Name,
+                        Price = action.Item.Price,
+                        Qty = 1
+                    });
+                }
+
+                // Side effect: Log to analytics (example - replace with your analytics service)
+                // await _analytics.TrackEvent("cart_item_added", new { itemId = action.Item.Id });
+                Console.WriteLine($"[Cart] Added item: {action.Item.Name}");
+                break;
+
+            case "removeItem":
+                if (action.ItemId == null)
+                {
+                    throw new ArgumentException("ItemId is required");
+                }
+
+                var itemToRemove = state.Items.FirstOrDefault(i => i.Id == action.ItemId);
+                if (itemToRemove != null)
+                {
+                    state.Items.Remove(itemToRemove);
+                    Console.WriteLine($"[Cart] Removed item: {action.ItemId}");
+                }
+                break;
+
+            case "updateQuantity":
+                if (action.ItemId == null || action.Quantity == null)
+                {
+                    throw new ArgumentException("ItemId and Quantity are required");
+                }
+
+                // Server-side validation
+                if (action.Quantity <= 0)
+                {
+                    throw new ArgumentException("Quantity must be greater than 0");
+                }
+                if (action.Quantity > 99)
+                {
+                    throw new ArgumentException("Maximum quantity is 99");
+                }
+
+                var itemToUpdate = state.Items.FirstOrDefault(i => i.Id == action.ItemId);
+                if (itemToUpdate != null)
+                {
+                    itemToUpdate.Qty = action.Quantity.Value;
+                    Console.WriteLine($"[Cart] Updated quantity for {action.ItemId}: {action.Quantity}");
+                }
+                break;
+
+            case "applyDiscount":
+                if (action.Code == null)
+                {
+                    throw new ArgumentException("Discount code is required");
+                }
+
+                // Validation: Check discount code (example - replace with your discount service)
+                // var discount = await _discountService.ValidateCode(action.Code);
+                // if (discount == null)
+                // {
+                //     throw new InvalidOperationException("Invalid discount code");
+                // }
+
+                Console.WriteLine($"[Cart] Applied discount code: {action.Code}");
+                // Apply discount logic here
+                break;
+
+            case "clear":
+                state.Items.Clear();
+                Console.WriteLine("[Cart] Cleared cart");
+                break;
+
+            default:
+                throw new ArgumentException($"Unknown action type: {action.Type}");
+        }
+
+        // Recalculate totals
+        state.Total = state.Items.Sum(i => i.Price * i.Qty);
+        state.Tax = state.Total * 0.08m; // 8% tax
+        state.Shipping = state.Total > 50 ? 0 : 9.99m; // Free shipping over $50
+
+        return state;
+    }
+
+    protected override VNode Render()
+    {
+        // This component is used for the reducer only
+        // The actual UI is rendered by the client-side ShoppingCart component
+        return new VText("Server Reducer Component");
+    }
+}
+`
+    },
     isDefault: false
   },
 

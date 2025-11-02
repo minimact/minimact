@@ -30,6 +30,11 @@ export class HookExampleGenerator {
     // Generate example file for each hook
     for (const hook of hooks) {
       await this.generateHookExample(examplesDir, hook);
+
+      // Generate server-side code if present
+      if (hook.serverCode) {
+        await this.generateServerCode(projectPath, hook);
+      }
     }
 
     // Generate index page listing all examples
@@ -350,5 +355,33 @@ ${hookElements.join('\n\n')}
       console.log(`[HookExampleGenerator] Copied ${requiredPackages.length} extension package(s) to wwwroot/js/`);
       console.log(`[HookExampleGenerator] Packages: ${requiredPackages.join(', ')}`);
     }
+  }
+
+  /**
+   * Generate server-side code file (C# or Rust)
+   */
+  private async generateServerCode(projectPath: string, hook: Hook): Promise<void> {
+    if (!hook.serverCode) return;
+
+    // Determine target directory based on language
+    const targetDir = hook.serverCode.language === 'csharp'
+      ? path.join(projectPath, 'ServerReducers')
+      : path.join(projectPath, 'ServerReducers'); // Rust would go to same dir for now
+
+    // Create directory if it doesn't exist
+    await fs.mkdir(targetDir, { recursive: true });
+
+    // Get project name from path to replace namespace placeholder
+    const projectName = path.basename(projectPath);
+    let code = hook.serverCode.code;
+
+    // Replace namespace placeholder with actual project name
+    code = code.replace(/YourProjectName/g, projectName);
+
+    // Write server code file
+    const filePath = path.join(targetDir, hook.serverCode.fileName);
+    await fs.writeFile(filePath, code, 'utf-8');
+
+    console.log(`[HookExampleGenerator] ✓ Generated server code: ${hook.serverCode.fileName} (${hook.serverCode.language})`);
   }
 }
