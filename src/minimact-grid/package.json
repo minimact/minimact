@@ -1,0 +1,47 @@
+{
+  "name": "@minimact/grid",
+  "version": "0.1.0",
+  "description": "Server-side JSX templates with surgical client-side patching for data grids - the cactus that grows in rows 🌵📊",
+  "type": "module",
+  "main": "dist/grid.js",
+  "module": "dist/grid.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "minimact",
+    "datagrid",
+    "grid",
+    "table",
+    "jsx",
+    "template",
+    "server-side",
+    "surgical-patching",
+    "reactive",
+    "ssr"
+  ],
+  "author": "Minimact Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@minimact/core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@minimact/core": "file:../client-runtime",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}

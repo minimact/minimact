@@ -1,871 +1,1144 @@
-# Minimact Charts Implementation Plan
+# @minimact/charts - Implementation Plan
 
-**Package:** `@minimact/charts`
-**Goal:** Recharts-compatible API with multiple rendering backends
-**Status:** 📋 Planning Phase
+**Version:** 1.0
+**Date:** November 2, 2025
+**Status:** Design Phase
 
 ---
 
 ## 🎯 Vision
 
-Create a charting library for Minimact that:
+Create a **charting library for Minimact** that:
 
-1. **Borrows Recharts' elegant JSX API** - Familiar to React developers
-2. **Works with server-side rendering** - Minimact's C#/Rust architecture
-3. **Supports multiple renderers** - ApexCharts, Chart.js, SVG, Plotly
-4. **Provides fallback rendering** - Server-side SVG when JS disabled
-5. **Integrates with Minimact Swig** - Available in hook library for easy project setup
+1. ✅ **Borrows Recharts' elegant JSX API** - Familiar to React developers
+2. ✅ **Uses minimact-plugin** - Leverages existing plugin infrastructure
+3. ✅ **Uses parameterized template patches** - Zero-latency updates
+4. ✅ **Pure server-side rendering** - Zero client bundle overhead
+5. ✅ **Supports Bar, Line, Pie, Area charts** - Essential chart types
+
+**Key Principle:** Developer writes familiar JSX → Server renders SVG VNodes → Client applies template patches instantly.
 
 ---
 
-## 📦 Package Structure
+## 🏗️ Architecture Overview
 
 ```
-src/minimact-charts/
-├── package.json
-├── tsconfig.json
+┌─────────────────────────────────────────────────────────┐
+│  Developer Writes TSX (Recharts-style API)              │
+│                                                          │
+│  <Plugin name="BarChart" state={{                       │
+│    data: salesData,                                     │
+│    width: 600,                                          │
+│    height: 400                                          │
+│  }}>                                                    │
+│    <XAxis dataKey="month" />                            │
+│    <YAxis />                                            │
+│    <Bar dataKey="sales" fill="#8884d8" />              │
+│  </Plugin>                                              │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         │ Babel transpile
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  Generated C# Code                                       │
+│                                                          │
+│  new PluginNode("BarChart", new BarChartState {         │
+│    Data = salesData,                                    │
+│    Width = 600,                                         │
+│    Height = 400,                                        │
+│    XAxis = new XAxisConfig { DataKey = "month" },      │
+│    YAxis = new YAxisConfig(),                           │
+│    Bars = new[] {                                       │
+│      new BarConfig { DataKey = "sales", Fill = "#..." }│
+│    }                                                    │
+│  })                                                     │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         │ Server renders
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  BarChartPlugin.Render(state)                           │
+│  ┌───────────────────────────────────────────┐         │
+│  │ 1. ChartCalculator creates scales         │         │
+│  │    - xScale = BandScale(categories)       │         │
+│  │    - yScale = LinearScale(0, maxValue)    │         │
+│  │                                             │         │
+│  │ 2. Calculate bar positions                 │         │
+│  │    - x = xScale.Scale(category)            │         │
+│  │    - y = yScale.Scale(value)               │         │
+│  │    - height = chartHeight - y              │         │
+│  │                                             │         │
+│  │ 3. Build VNode tree with [LoopTemplate]   │         │
+│  │    - <svg> → <g> → <rect>[] bars          │         │
+│  │    - <g class="x-axis"> → <text>[] labels │         │
+│  │    - <g class="y-axis"> → <text>[] ticks  │         │
+│  └───────────────────────────────────────────┘         │
+│                                                          │
+│  Returns: VNode with parameterized template metadata   │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         │ First render
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  SignalR Sends to Client:                               │
+│  {                                                       │
+│    pluginName: "BarChart",                              │
+│    version: "1.0.0",                                    │
+│    templates: [{                                        │
+│      stateKey: "data",                                  │
+│      itemTemplate: {                                    │
+│        type: "Element",                                 │
+│        tag: "rect",                                     │
+│        propsTemplates: {                                │
+│          x: { template: "{0}", bindings: ["item.x"] }, │
+│          y: { template: "{0}", bindings: ["item.y"] }, │
+│          width: { template: "{0}", bindings: [...] },  │
+│          height: { template: "{0}", bindings: [...] }, │
+│          fill: { template: "{0}", bindings: [...] }    │
+│        }                                                │
+│      }                                                  │
+│    }],                                                  │
+│    html: "<svg>...</svg>"                               │
+│  }                                                      │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         │ Client registers templates
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  minimact-plugin:                                        │
+│  - Registers bar template with parameterized slots     │
+│  - Stores template: <rect x="{0}" y="{1}" ... />       │
+│  - Stores bindings: ["item.x", "item.y", ...]          │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         │ Data updates (e.g., setSalesData)
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  Client Applies Template Patch Instantly:               │
+│  1. Match template by stateKey ("data")                │
+│  2. For each data item:                                 │
+│     - Calculate x = xScale(item.month)                 │
+│     - Calculate y = yScale(item.sales)                 │
+│     - Fill slots: {0}=x, {1}=y, {2}=width, {3}=height │
+│  3. Update DOM directly (no server round-trip)         │
+│  4. Result: 0ms latency! ⚡                            │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📦 Project Structure
+
+```
+minimact/
 ├── src/
-│   ├── index.ts                      # Main exports
-│   ├── types.ts                      # Recharts-compatible types
-│   ├── core/
-│   │   ├── ChartContext.tsx          # Renderer selection context
-│   │   ├── useChart.ts               # Core chart hook
-│   │   └── configBuilder.ts          # Transform Recharts → renderer config
-│   ├── renderers/
-│   │   ├── ApexRenderer.ts           # ApexCharts backend
-│   │   ├── ChartJsRenderer.ts        # Chart.js backend
-│   │   ├── SvgRenderer.ts            # Server-side SVG
-│   │   └── PlotlyRenderer.ts         # Plotly (future)
-│   ├── charts/
-│   │   ├── BarChart.tsx              # <BarChart> component
-│   │   ├── LineChart.tsx             # <LineChart> component
-│   │   ├── PieChart.tsx              # <PieChart> component
-│   │   ├── AreaChart.tsx             # <AreaChart> component
-│   │   └── ComposedChart.tsx         # Mixed charts (future)
-│   ├── components/
-│   │   ├── Bar.tsx                   # <Bar> config component
-│   │   ├── Line.tsx                  # <Line> config component
-│   │   ├── Pie.tsx                   # <Pie> config component
-│   │   ├── Area.tsx                  # <Area> config component
-│   │   ├── XAxis.tsx                 # <XAxis> config component
-│   │   ├── YAxis.tsx                 # <YAxis> config component
-│   │   ├── Tooltip.tsx               # <Tooltip> config component
-│   │   ├── Legend.tsx                # <Legend> config component
-│   │   ├── CartesianGrid.tsx         # <CartesianGrid> styling
-│   │   └── ResponsiveContainer.tsx   # <ResponsiveContainer> wrapper
-│   └── utils/
-│       ├── idGenerator.ts            # Unique chart IDs
-│       ├── dataTransformer.ts        # Data normalization
-│       └── colorPalette.ts           # Default color schemes
-├── dist/
-│   ├── charts.js                     # UMD bundle
-│   ├── charts.min.js                 # Minified
-│   └── charts.d.ts                   # TypeScript declarations
-└── README.md
+│   ├── Minimact.Charts/                    # C# NuGet Package
+│   │   ├── Plugins/
+│   │   │   ├── BarChartPlugin.cs          # Bar chart renderer
+│   │   │   ├── LineChartPlugin.cs         # Line chart renderer
+│   │   │   ├── PieChartPlugin.cs          # Pie chart renderer
+│   │   │   └── AreaChartPlugin.cs         # Area chart renderer
+│   │   │
+│   │   ├── Models/
+│   │   │   ├── ChartStateBase.cs          # Base class (Width, Height, Margin)
+│   │   │   ├── BarChartState.cs           # Bar chart state
+│   │   │   ├── LineChartState.cs          # Line chart state
+│   │   │   ├── PieChartState.cs           # Pie chart state
+│   │   │   ├── AreaChartState.cs          # Area chart state
+│   │   │   ├── DataPoint.cs               # Generic data point
+│   │   │   └── ChartMargin.cs             # Margin configuration
+│   │   │
+│   │   ├── Components/
+│   │   │   ├── XAxisConfig.cs             # X-axis configuration
+│   │   │   ├── YAxisConfig.cs             # Y-axis configuration
+│   │   │   ├── TooltipConfig.cs           # Tooltip configuration
+│   │   │   ├── LegendConfig.cs            # Legend configuration
+│   │   │   ├── BarConfig.cs               # Bar series configuration
+│   │   │   ├── LineConfig.cs              # Line series configuration
+│   │   │   ├── PieConfig.cs               # Pie slice configuration
+│   │   │   └── AreaConfig.cs              # Area series configuration
+│   │   │
+│   │   ├── Utils/
+│   │   │   ├── ChartCalculator.cs         # Main entry point for calculations
+│   │   │   ├── LinearScale.cs             # Linear scale (numbers)
+│   │   │   ├── BandScale.cs               # Band scale (categories)
+│   │   │   ├── TimeScale.cs               # Time scale (dates) - Future
+│   │   │   ├── PathGenerator.cs           # SVG path generation
+│   │   │   ├── ColorPalette.cs            # Color schemes
+│   │   │   └── LayoutHelper.cs            # Margin/legend calculations
+│   │   │
+│   │   ├── Renderers/
+│   │   │   ├── SvgRenderer.cs             # Base SVG rendering utilities
+│   │   │   ├── BarRenderer.cs             # Bar-specific rendering
+│   │   │   ├── LineRenderer.cs            # Line-specific rendering
+│   │   │   ├── PieRenderer.cs             # Pie-specific rendering
+│   │   │   └── AreaRenderer.cs            # Area-specific rendering
+│   │   │
+│   │   ├── assets/
+│   │   │   └── charts.css                 # Default chart styles
+│   │   │
+│   │   └── Minimact.Charts.csproj
+│   │
+│   └── minimact-charts/                    # Client NPM Package
+│       ├── src/
+│       │   ├── index.ts                   # Main entry point
+│       │   ├── types.ts                   # TypeScript type definitions
+│       │   ├── components.ts              # Component type exports
+│       │   └── scales.ts                  # Client-side scale utilities
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── README.md
 ```
 
 ---
 
-## 🏗️ Architecture
+## 🔧 Core Components
 
-### **1. Component Layer (Recharts-Compatible API)**
+### 1. Scale Calculators (C#)
 
-Users write familiar Recharts code:
+**Purpose:** Convert data domain → visual range
+
+#### LinearScale.cs
+```csharp
+public class LinearScale
+{
+    private readonly double _domainMin;
+    private readonly double _domainMax;
+    private readonly int _rangeStart;
+    private readonly int _rangeEnd;
+
+    public LinearScale(double domainMin, double domainMax, int rangeStart, int rangeEnd)
+    {
+        _domainMin = domainMin;
+        _domainMax = domainMax;
+        _rangeStart = rangeStart;
+        _rangeEnd = rangeEnd;
+    }
+
+    /// <summary>
+    /// Scale a value from domain to range
+    /// </summary>
+    public int Scale(double value)
+    {
+        // Linear interpolation
+        var ratio = (value - _domainMin) / (_domainMax - _domainMin);
+        return (int)(_rangeStart + ratio * (_rangeEnd - _rangeStart));
+    }
+
+    /// <summary>
+    /// Generate tick values
+    /// </summary>
+    public double[] GetTicks(int count = 5)
+    {
+        var step = (_domainMax - _domainMin) / (count - 1);
+        return Enumerable.Range(0, count)
+            .Select(i => _domainMin + (i * step))
+            .ToArray();
+    }
+}
+```
+
+#### BandScale.cs
+```csharp
+public class BandScale
+{
+    private readonly string[] _categories;
+    private readonly int _rangeStart;
+    private readonly int _rangeEnd;
+    private readonly int _bandwidth;
+    private readonly int _padding;
+
+    public BandScale(string[] categories, int rangeStart, int rangeEnd, double paddingInner = 0.1)
+    {
+        _categories = categories;
+        _rangeStart = rangeStart;
+        _rangeEnd = rangeEnd;
+
+        var totalWidth = rangeEnd - rangeStart;
+        var paddingWidth = (int)(totalWidth * paddingInner / categories.Length);
+        _bandwidth = (totalWidth - (paddingWidth * (categories.Length - 1))) / categories.Length;
+        _padding = paddingWidth;
+    }
+
+    /// <summary>
+    /// Scale a category to its position
+    /// </summary>
+    public int Scale(string category)
+    {
+        var index = Array.IndexOf(_categories, category);
+        if (index == -1) throw new ArgumentException($"Category '{category}' not found in scale");
+
+        return _rangeStart + (index * (_bandwidth + _padding));
+    }
+
+    /// <summary>
+    /// Width of each band
+    /// </summary>
+    public int Bandwidth => _bandwidth;
+}
+```
+
+#### PathGenerator.cs
+```csharp
+public static class PathGenerator
+{
+    /// <summary>
+    /// Generate SVG path for line chart
+    /// Example: "M 0 100 L 50 80 L 100 90 L 150 70"
+    /// </summary>
+    public static string LinePath(IEnumerable<(int x, int y)> points)
+    {
+        var sb = new StringBuilder();
+        var first = true;
+
+        foreach (var (x, y) in points)
+        {
+            sb.Append(first ? $"M {x} {y}" : $" L {x} {y}");
+            first = false;
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Generate SVG path for area chart
+    /// Example: "M 0 100 L 50 80 L 100 90 L 100 200 L 50 200 L 0 200 Z"
+    /// </summary>
+    public static string AreaPath(IEnumerable<(int x, int y)> points, int baselineY)
+    {
+        var pointsList = points.ToList();
+        var sb = new StringBuilder();
+
+        // Top line (left to right)
+        for (int i = 0; i < pointsList.Count; i++)
+        {
+            var (x, y) = pointsList[i];
+            sb.Append(i == 0 ? $"M {x} {y}" : $" L {x} {y}");
+        }
+
+        // Bottom line (right to left)
+        for (int i = pointsList.Count - 1; i >= 0; i--)
+        {
+            var (x, _) = pointsList[i];
+            sb.Append($" L {x} {baselineY}");
+        }
+
+        sb.Append(" Z"); // Close path
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Generate SVG path for pie slice
+    /// </summary>
+    public static string PieSlicePath(int cx, int cy, int radius, double startAngle, double endAngle)
+    {
+        var x1 = cx + (int)(radius * Math.Cos(startAngle));
+        var y1 = cy + (int)(radius * Math.Sin(startAngle));
+        var x2 = cx + (int)(radius * Math.Cos(endAngle));
+        var y2 = cy + (int)(radius * Math.Sin(endAngle));
+
+        var largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
+
+        return $"M {cx} {cy} L {x1} {y1} A {radius} {radius} 0 {largeArc} 1 {x2} {y2} Z";
+    }
+}
+```
+
+---
+
+### 2. Chart Plugins
+
+#### BarChartPlugin.cs
+
+```csharp
+using Minimact.AspNetCore.Plugins;
+using Minimact.AspNetCore.Core;
+
+namespace Minimact.Charts.Plugins;
+
+[MinimactPlugin("BarChart")]
+public class BarChartPlugin : MinimactPlugin<BarChartState>
+{
+    public override string Name => "BarChart";
+    public override string Version => "1.0.0";
+    public override string Description => "Bar chart with customizable bars and axes";
+    public override string Author => "Minimact Team";
+
+    [LoopTemplate("data", @"{
+        ""stateKey"": ""data"",
+        ""itemTemplate"": {
+            ""type"": ""Element"",
+            ""tag"": ""rect"",
+            ""propsTemplates"": {
+                ""x"": {
+                    ""template"": ""{0}"",
+                    ""bindings"": [""item.x""],
+                    ""slots"": [0],
+                    ""type"": ""dynamic""
+                },
+                ""y"": {
+                    ""template"": ""{0}"",
+                    ""bindings"": [""item.y""],
+                    ""slots"": [0],
+                    ""type"": ""dynamic""
+                },
+                ""width"": {
+                    ""template"": ""{0}"",
+                    ""bindings"": [""item.width""],
+                    ""slots"": [0],
+                    ""type"": ""dynamic""
+                },
+                ""height"": {
+                    ""template"": ""{0}"",
+                    ""bindings"": [""item.height""],
+                    ""slots"": [0],
+                    ""type"": ""dynamic""
+                },
+                ""fill"": {
+                    ""template"": ""{0}"",
+                    ""bindings"": [""item.fill""],
+                    ""slots"": [0],
+                    ""type"": ""dynamic""
+                },
+                ""className"": {
+                    ""template"": ""chart-bar"",
+                    ""type"": ""static""
+                }
+            }
+        }
+    }")]
+    protected override VNode RenderTyped(BarChartState state)
+    {
+        // 1. Create calculator with chart dimensions
+        var calculator = new ChartCalculator(state.Width, state.Height, state.Margin);
+
+        // 2. Create scales
+        var categories = state.Data.Select(d => d.Category).ToArray();
+        var xScale = calculator.CreateBandScale(
+            categories,
+            state.Margin.Left,
+            state.Width - state.Margin.Right
+        );
+
+        var maxValue = state.Data.Max(d => d.Value);
+        var yScale = calculator.CreateLinearScale(
+            0,
+            maxValue,
+            state.Height - state.Margin.Bottom,
+            state.Margin.Top
+        );
+
+        // 3. Calculate bar positions (for template binding)
+        var barData = state.Data.Select(dataPoint => new
+        {
+            x = xScale.Scale(dataPoint.Category),
+            y = yScale.Scale(dataPoint.Value),
+            width = (int)(xScale.Bandwidth * 0.8), // 80% for spacing
+            height = (state.Height - state.Margin.Bottom) - yScale.Scale(dataPoint.Value),
+            fill = state.BarFill ?? "#8884d8",
+            label = dataPoint.Category,
+            value = dataPoint.Value
+        }).ToArray();
+
+        // 4. Build bar VNodes
+        var bars = barData.Select(bar =>
+            new VNode("rect", new
+            {
+                x = bar.x,
+                y = bar.y,
+                width = bar.width,
+                height = bar.height,
+                fill = bar.fill,
+                className = "chart-bar"
+            })
+        ).ToArray();
+
+        // 5. Build complete SVG
+        return new VNode("svg", new
+        {
+            width = state.Width,
+            height = state.Height,
+            viewBox = $"0 0 {state.Width} {state.Height}",
+            className = "minimact-bar-chart"
+        },
+            // Background
+            new VNode("rect", new
+            {
+                width = state.Width,
+                height = state.Height,
+                fill = state.BackgroundFill ?? "transparent"
+            }),
+
+            // Chart area group
+            new VNode("g", new { className = "chart-area" }, bars),
+
+            // X Axis
+            RenderXAxis(state, xScale),
+
+            // Y Axis
+            RenderYAxis(state, yScale)
+        );
+    }
+
+    private VNode? RenderXAxis(BarChartState state, BandScale xScale)
+    {
+        if (state.XAxis == null) return null;
+
+        var labels = state.Data.Select(d =>
+            new VNode("text", new
+            {
+                x = xScale.Scale(d.Category) + (xScale.Bandwidth / 2),
+                y = state.Height - state.Margin.Bottom + 20,
+                textAnchor = "middle",
+                fontSize = 12,
+                fill = "#666"
+            }, d.Category)
+        ).ToArray();
+
+        // Axis line
+        var axisLine = new VNode("line", new
+        {
+            x1 = state.Margin.Left,
+            y1 = state.Height - state.Margin.Bottom,
+            x2 = state.Width - state.Margin.Right,
+            y2 = state.Height - state.Margin.Bottom,
+            stroke = "#999",
+            strokeWidth = 1
+        });
+
+        return new VNode("g", new { className = "x-axis" },
+            axisLine,
+            labels
+        );
+    }
+
+    private VNode? RenderYAxis(BarChartState state, LinearScale yScale)
+    {
+        if (state.YAxis == null) return null;
+
+        var ticks = yScale.GetTicks(5);
+        var tickElements = ticks.Select(tick =>
+            new VNode("g", new { className = "tick" },
+                // Tick line
+                new VNode("line", new
+                {
+                    x1 = state.Margin.Left - 5,
+                    y1 = yScale.Scale(tick),
+                    x2 = state.Margin.Left,
+                    y2 = yScale.Scale(tick),
+                    stroke = "#999",
+                    strokeWidth = 1
+                }),
+                // Tick label
+                new VNode("text", new
+                {
+                    x = state.Margin.Left - 10,
+                    y = yScale.Scale(tick) + 4,
+                    textAnchor = "end",
+                    fontSize = 12,
+                    fill = "#666"
+                }, tick.ToString("F0"))
+            )
+        ).ToArray();
+
+        // Axis line
+        var axisLine = new VNode("line", new
+        {
+            x1 = state.Margin.Left,
+            y1 = state.Margin.Top,
+            x2 = state.Margin.Left,
+            y2 = state.Height - state.Margin.Bottom,
+            stroke = "#999",
+            strokeWidth = 1
+        });
+
+        return new VNode("g", new { className = "y-axis" },
+            axisLine,
+            tickElements
+        );
+    }
+
+    public override PluginAssets GetAssets()
+    {
+        return new PluginAssets
+        {
+            CssFiles = new List<string> { "/plugin-assets/Charts@1.0.0/charts.css" },
+            Source = AssetSource.Embedded
+        };
+    }
+}
+```
+
+---
+
+### 3. State Models
+
+#### BarChartState.cs
+
+```csharp
+namespace Minimact.Charts.Models;
+
+public class BarChartState : ChartStateBase
+{
+    /// <summary>
+    /// Chart data points
+    /// </summary>
+    public List<DataPoint> Data { get; set; } = new();
+
+    /// <summary>
+    /// Bar fill color
+    /// </summary>
+    public string? BarFill { get; set; }
+
+    /// <summary>
+    /// Background fill color
+    /// </summary>
+    public string? BackgroundFill { get; set; }
+
+    /// <summary>
+    /// X-axis configuration
+    /// </summary>
+    public XAxisConfig? XAxis { get; set; }
+
+    /// <summary>
+    /// Y-axis configuration
+    /// </summary>
+    public YAxisConfig? YAxis { get; set; }
+
+    /// <summary>
+    /// Tooltip configuration
+    /// </summary>
+    public TooltipConfig? Tooltip { get; set; }
+
+    /// <summary>
+    /// Legend configuration
+    /// </summary>
+    public LegendConfig? Legend { get; set; }
+}
+
+public class ChartStateBase
+{
+    public int Width { get; set; } = 600;
+    public int Height { get; set; } = 400;
+    public ChartMargin Margin { get; set; } = new() { Top = 20, Right = 30, Bottom = 40, Left = 50 };
+}
+
+public class ChartMargin
+{
+    public int Top { get; set; }
+    public int Right { get; set; }
+    public int Bottom { get; set; }
+    public int Left { get; set; }
+}
+
+public class DataPoint
+{
+    public string Category { get; set; } = string.Empty;
+    public double Value { get; set; }
+    public string? Label { get; set; }
+    public string? Fill { get; set; }
+}
+```
+
+---
+
+## 📡 Client Package (TypeScript)
+
+### index.ts
+
+```typescript
+/**
+ * @minimact/charts - Client-side chart integration
+ *
+ * This package provides TypeScript types and client-side utilities
+ * for Minimact Charts. The actual rendering happens server-side.
+ */
+
+export interface ChartState {
+  width: number;
+  height: number;
+  margin: ChartMargin;
+}
+
+export interface ChartMargin {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface DataPoint {
+  category: string;
+  value: number;
+  label?: string;
+  fill?: string;
+}
+
+export interface BarChartState extends ChartState {
+  data: DataPoint[];
+  barFill?: string;
+  backgroundFill?: string;
+  xAxis?: XAxisConfig;
+  yAxis?: YAxisConfig;
+  tooltip?: TooltipConfig;
+  legend?: LegendConfig;
+}
+
+export interface LineChartState extends ChartState {
+  data: DataPoint[];
+  strokeColor?: string;
+  strokeWidth?: number;
+  strokeDasharray?: string;
+  fill?: string;
+  xAxis?: XAxisConfig;
+  yAxis?: YAxisConfig;
+  tooltip?: TooltipConfig;
+  legend?: LegendConfig;
+}
+
+export interface PieChartState extends ChartState {
+  data: DataPoint[];
+  innerRadius?: number;
+  outerRadius?: number;
+  cx?: string;
+  cy?: string;
+  tooltip?: TooltipConfig;
+  legend?: LegendConfig;
+}
+
+export interface AreaChartState extends ChartState {
+  data: DataPoint[];
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  xAxis?: XAxisConfig;
+  yAxis?: YAxisConfig;
+  tooltip?: TooltipConfig;
+  legend?: LegendConfig;
+}
+
+export interface XAxisConfig {
+  dataKey: string;
+  label?: string;
+  tickFormatter?: string;
+}
+
+export interface YAxisConfig {
+  dataKey?: string;
+  label?: string;
+  tickFormatter?: string;
+  domain?: [number, number];
+}
+
+export interface TooltipConfig {
+  enabled: boolean;
+  formatter?: string;
+}
+
+export interface LegendConfig {
+  enabled: boolean;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+// Re-export for convenience
+export type {
+  ChartState,
+  ChartMargin,
+  DataPoint,
+  BarChartState,
+  LineChartState,
+  PieChartState,
+  AreaChartState
+};
+```
+
+---
+
+## 🚀 Usage Examples
+
+### Bar Chart
 
 ```tsx
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from '@minimact/charts';
+import { useState } from 'minimact';
+import type { DataPoint } from '@minimact/charts';
 
 export function SalesDashboard() {
-  const [data] = useState([
-    { month: 'Jan', sales: 4000, revenue: 2400 },
-    { month: 'Feb', sales: 3000, revenue: 1398 },
-    { month: 'Mar', sales: 2000, revenue: 9800 }
-  ]);
-
-  return (
-    <BarChart width={600} height={300} data={data}>
-      <XAxis dataKey="month" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar dataKey="sales" fill="#8884d8" />
-      <Bar dataKey="revenue" fill="#82ca9d" />
-    </BarChart>
-  );
-}
-```
-
-### **2. Config Builder Layer**
-
-Transforms Recharts component tree → renderer-agnostic config:
-
-```typescript
-interface ChartConfig {
-  type: 'bar' | 'line' | 'pie' | 'area';
-  width: number | string;
-  height: number | string;
-  data: any[];
-  series: SeriesConfig[];
-  axes: AxisConfig[];
-  tooltip: TooltipConfig;
-  legend: LegendConfig;
-  grid: GridConfig;
-}
-
-function buildChartConfig(props: ChartProps, children: ReactNode): ChartConfig {
-  const series = extractSeries(children); // Extract <Bar>, <Line>, etc.
-  const axes = extractAxes(children);     // Extract <XAxis>, <YAxis>
-  const tooltip = extractTooltip(children);
-  const legend = extractLegend(children);
-
-  return {
-    type: props.type,
-    width: props.width,
-    height: props.height,
-    data: props.data,
-    series,
-    axes,
-    tooltip,
-    legend,
-    grid: extractGrid(children)
-  };
-}
-```
-
-### **3. Renderer Layer**
-
-Multiple backends implement common interface:
-
-```typescript
-interface ChartRenderer {
-  render(element: HTMLElement, config: ChartConfig): ChartInstance;
-  update(instance: ChartInstance, config: ChartConfig): void;
-  destroy(instance: ChartInstance): void;
-}
-
-class ApexRenderer implements ChartRenderer {
-  render(element: HTMLElement, config: ChartConfig): ChartInstance {
-    const apexConfig = transformToApexConfig(config);
-    const chart = new ApexCharts(element, apexConfig);
-    chart.render();
-    return { type: 'apex', instance: chart };
-  }
-
-  update(instance: ChartInstance, config: ChartConfig): void {
-    const apexConfig = transformToApexConfig(config);
-    instance.instance.updateOptions(apexConfig);
-  }
-
-  destroy(instance: ChartInstance): void {
-    instance.instance.destroy();
-  }
-}
-```
-
-### **4. Minimact Integration Layer**
-
-Use `useClientComputed` for client-side initialization:
-
-```typescript
-export function BarChart({ width, height, data, children }: BarChartProps) {
-  const chartId = useState(`chart-${Date.now()}`)[0];
-  const renderer = useContext(RendererContext) || 'apex';
-
-  // Build renderer-agnostic config
-  const config = buildChartConfig({ type: 'bar', width, height, data }, children);
-
-  // Initialize chart on client
-  useClientComputed(`chart-${chartId}`, () => {
-    const element = document.getElementById(chartId);
-    if (!element) return;
-
-    const rendererInstance = getRenderer(renderer);
-    const chart = rendererInstance.render(element, config);
-
-    // Cleanup on unmount
-    return () => rendererInstance.destroy(chart);
-  }, [data, config]);
-
-  // Server-side: render placeholder div
-  return (
-    <div
-      id={chartId}
-      style={{ width, height }}
-      data-chart-type="bar"
-      data-chart-renderer={renderer}
-    />
-  );
-}
-```
-
----
-
-## 🚀 MVP Feature Checklist
-
-### **Phase 1: Foundation** (Est. 2-3 days)
-
-| Feature | Effort | Priority | Status |
-|---------|--------|----------|--------|
-| Package scaffold | 2 hours | P0 | 📋 Todo |
-| TypeScript types (Recharts-compatible) | 3 hours | P0 | 📋 Todo |
-| Config builder core | 4 hours | P0 | 📋 Todo |
-| ApexCharts renderer | 4 hours | P0 | 📋 Todo |
-| useChart hook | 3 hours | P0 | 📋 Todo |
-| ChartContext provider | 2 hours | P0 | 📋 Todo |
-
-### **Phase 2: Basic Charts** (Est. 3-4 days)
-
-| Feature | Effort | Priority | Status |
-|---------|--------|----------|--------|
-| `<BarChart>` + `<Bar>` | 1 day | P0 | 📋 Todo |
-| `<LineChart>` + `<Line>` | 1 day | P0 | 📋 Todo |
-| `<PieChart>` + `<Pie>` | 0.5 day | P0 | 📋 Todo |
-| `<AreaChart>` + `<Area>` | 0.5 day | P1 | 📋 Todo |
-| `<XAxis>` / `<YAxis>` | 1 day | P0 | 📋 Todo |
-| `<Tooltip>` | 0.5 day | P0 | 📋 Todo |
-| `<Legend>` | 0.5 day | P0 | 📋 Todo |
-
-### **Phase 3: Advanced Features** (Est. 2-3 days)
-
-| Feature | Effort | Priority | Status |
-|---------|--------|----------|--------|
-| `<CartesianGrid>` | 0.5 day | P1 | 📋 Todo |
-| `<ResponsiveContainer>` | 0.5 day | P1 | 📋 Todo |
-| Multi-renderer support | 1.5 days | P1 | 📋 Todo |
-| Server-side SVG fallback | 2 days | P2 | 📋 Todo |
-| Stacked bars/areas | 1 day | P2 | 📋 Todo |
-| Multi-axis charts | 1 day | P2 | 📋 Todo |
-
-### **Phase 4: Integration** (Est. 1-2 days)
-
-| Feature | Effort | Priority | Status |
-|---------|--------|----------|--------|
-| Build system (Rollup/Vite) | 0.5 day | P0 | 📋 Todo |
-| Add to Swig hook library | 0.5 day | P0 | 📋 Todo |
-| Update Dashboard template | 0.5 day | P0 | 📋 Todo |
-| Documentation & examples | 1 day | P0 | 📋 Todo |
-
-**Total MVP Estimate:** 8-12 days
-
----
-
-## 📐 Recharts API Compatibility
-
-### **Target API Surface**
-
-#### **Chart Components**
-```tsx
-<BarChart width={600} height={400} data={data}>
-  {children}
-</BarChart>
-
-<LineChart width={600} height={400} data={data}>
-  {children}
-</LineChart>
-
-<PieChart width={600} height={400}>
-  {children}
-</PieChart>
-
-<AreaChart width={600} height={400} data={data}>
-  {children}
-</AreaChart>
-```
-
-#### **Series Components**
-```tsx
-<Bar dataKey="sales" fill="#8884d8" name="Sales" />
-<Line dataKey="revenue" stroke="#82ca9d" strokeWidth={2} />
-<Pie data={data} dataKey="value" nameKey="name" />
-<Area dataKey="profit" fill="#ffc658" stroke="#ffc658" />
-```
-
-#### **Axis Components**
-```tsx
-<XAxis dataKey="month" />
-<YAxis />
-<YAxis yAxisId="right" orientation="right" />
-```
-
-#### **Utility Components**
-```tsx
-<Tooltip />
-<Tooltip formatter={(value) => `$${value}`} />
-
-<Legend />
-<Legend verticalAlign="top" height={36} />
-
-<CartesianGrid strokeDasharray="3 3" />
-
-<ResponsiveContainer width="100%" height={400}>
-  <BarChart data={data}>
-    {/* ... */}
-  </BarChart>
-</ResponsiveContainer>
-```
-
----
-
-## 🎨 Renderer Comparison
-
-### **ApexCharts** (Recommended Default)
-
-**Pros:**
-- ✅ Modern, actively maintained
-- ✅ 300+ chart types
-- ✅ Great TypeScript support
-- ✅ Professional animations
-- ✅ Built-in responsive
-- ✅ Interactive tooltips
-
-**Cons:**
-- ❌ 165KB (50KB gzipped) - larger than Chart.js
-- ❌ Less npm downloads than Chart.js
-
-**Best for:** Production dashboards, business apps
-
-### **Chart.js** (Alternative)
-
-**Pros:**
-- ✅ Most popular (4M+ weekly downloads)
-- ✅ Smaller (64KB, 20KB gzipped)
-- ✅ Simple API
-- ✅ Great documentation
-
-**Cons:**
-- ❌ Less chart types than Apex
-- ❌ Older API design
-- ❌ Less built-in interactivity
-
-**Best for:** Simple charts, smaller bundles
-
-### **Server-Side SVG** (Fallback)
-
-**Pros:**
-- ✅ Zero client dependencies
-- ✅ SEO-friendly
-- ✅ Works without JS
-- ✅ Fast initial render
-
-**Cons:**
-- ❌ No interactivity (unless hydrated)
-- ❌ More server processing
-- ❌ Complex to implement all features
-
-**Best for:** Static content, accessibility
-
----
-
-## 🔧 Implementation Details
-
-### **1. Component Extraction Pattern**
-
-Extract child component configs from JSX tree:
-
-```typescript
-function extractSeries(children: ReactNode): SeriesConfig[] {
-  return React.Children.toArray(children)
-    .filter(child => isValidElement(child) &&
-            (child.type === Bar || child.type === Line || child.type === Pie))
-    .map(child => ({
-      type: child.type.name.toLowerCase(), // 'bar', 'line', 'pie'
-      dataKey: child.props.dataKey,
-      fill: child.props.fill || child.props.stroke,
-      name: child.props.name || child.props.dataKey,
-      ...child.props
-    }));
-}
-
-function extractAxes(children: ReactNode): AxisConfig[] {
-  return React.Children.toArray(children)
-    .filter(child => isValidElement(child) &&
-            (child.type === XAxis || child.type === YAxis))
-    .map(child => ({
-      type: child.type === XAxis ? 'x' : 'y',
-      dataKey: child.props.dataKey,
-      orientation: child.props.orientation,
-      ...child.props
-    }));
-}
-```
-
-### **2. ApexCharts Transformation**
-
-```typescript
-function transformToApexConfig(config: ChartConfig): ApexOptions {
-  return {
-    chart: {
-      type: config.type === 'bar' ? 'bar' : config.type,
-      width: config.width,
-      height: config.height,
-      animations: {
-        enabled: true,
-        speed: 800
-      }
-    },
-    series: config.series.map(series => ({
-      name: series.name,
-      data: config.data.map(d => d[series.dataKey])
-    })),
-    xaxis: {
-      categories: config.data.map(d => {
-        const xAxis = config.axes.find(a => a.type === 'x');
-        return xAxis ? d[xAxis.dataKey] : d.name;
-      })
-    },
-    colors: config.series.map(s => s.fill),
-    legend: {
-      show: config.legend.enabled,
-      position: config.legend.position || 'bottom'
-    },
-    tooltip: {
-      enabled: config.tooltip.enabled,
-      shared: true,
-      intersect: false
-    },
-    grid: {
-      show: config.grid.enabled,
-      strokeDashArray: config.grid.strokeDasharray
-    }
-  };
-}
-```
-
-### **3. Chart.js Transformation**
-
-```typescript
-function transformToChartJsConfig(config: ChartConfig): ChartConfiguration {
-  return {
-    type: config.type,
-    data: {
-      labels: config.data.map(d => {
-        const xAxis = config.axes.find(a => a.type === 'x');
-        return xAxis ? d[xAxis.dataKey] : d.name;
-      }),
-      datasets: config.series.map(series => ({
-        label: series.name,
-        data: config.data.map(d => d[series.dataKey]),
-        backgroundColor: series.fill,
-        borderColor: series.stroke || series.fill,
-        borderWidth: series.strokeWidth || 2
-      }))
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: config.legend.enabled,
-          position: config.legend.position || 'top'
-        },
-        tooltip: {
-          enabled: config.tooltip.enabled
-        }
-      },
-      scales: {
-        x: {
-          display: config.axes.some(a => a.type === 'x')
-        },
-        y: {
-          display: config.axes.some(a => a.type === 'y')
-        }
-      }
-    }
-  };
-}
-```
-
-### **4. Server-Side SVG Rendering**
-
-```typescript
-function renderSvg(config: ChartConfig): string {
-  const { width, height, data, series } = config;
-  const maxValue = Math.max(...data.flatMap(d =>
-    series.map(s => d[s.dataKey])
-  ));
-
-  const barWidth = (width as number) / data.length * 0.8;
-  const barGroupWidth = barWidth / series.length;
-
-  const bars = data.flatMap((datum, dataIndex) =>
-    series.map((s, seriesIndex) => {
-      const value = datum[s.dataKey];
-      const barHeight = (value / maxValue) * (height as number * 0.8);
-      const x = dataIndex * barWidth + seriesIndex * barGroupWidth;
-      const y = (height as number) - barHeight;
-
-      return `<rect
-        x="${x}"
-        y="${y}"
-        width="${barGroupWidth * 0.9}"
-        height="${barHeight}"
-        fill="${s.fill}"
-      />`;
-    })
-  ).join('\n');
-
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    <g class="bars">${bars}</g>
-  </svg>`;
-}
-```
-
----
-
-## 🧪 Testing Strategy
-
-### **Unit Tests**
-- Config builder logic
-- Data transformation
-- Component prop extraction
-- Renderer transformations
-
-### **Integration Tests**
-- Full chart rendering
-- State updates trigger re-render
-- Multiple charts on same page
-- Renderer switching
-
-### **Visual Regression Tests**
-- Screenshot comparison
-- Chart appearance consistency
-- Responsive behavior
-
----
-
-## 📚 Documentation Plan
-
-### **README.md**
-- Quick start guide
-- Installation instructions
-- Basic examples
-- Renderer selection guide
-
-### **API.md**
-- Complete component reference
-- Prop types and descriptions
-- Advanced usage patterns
-- Renderer-specific notes
-
-### **EXAMPLES.md**
-- Common chart patterns
-- Real-world use cases
-- Styling customization
-- Performance tips
-
-### **MIGRATION.md**
-- Differences from Recharts
-- Unsupported features
-- Workarounds and alternatives
-
----
-
-## 🔄 Integration with Minimact Ecosystem
-
-### **1. Hook Library Entry**
-
-Add to `src/minimact-swig-electron/src/main/data/hook-library.ts`:
-
-```typescript
-{
-  id: 'useCharts',
-  name: 'Charts (Recharts-compatible)',
-  description: 'Bar, Line, Pie, Area charts with ApexCharts/Chart.js rendering',
-  category: 'visualization',
-  packageName: '@minimact/charts',
-  imports: [
-    "import { BarChart, Bar, LineChart, Line, PieChart, Pie } from '@minimact/charts';",
-    "import { XAxis, YAxis, Tooltip, Legend, CartesianGrid } from '@minimact/charts';"
-  ],
-  example: `export function SalesDashboard() {
-  const [data] = useState([
-    { month: 'Jan', sales: 4000, revenue: 2400 },
-    { month: 'Feb', sales: 3000, revenue: 1398 },
-    { month: 'Mar', sales: 2000, revenue: 9800 },
-    { month: 'Apr', sales: 2780, revenue: 3908 },
-    { month: 'May', sales: 1890, revenue: 4800 },
-    { month: 'Jun', sales: 2390, revenue: 3800 }
+  const [salesData] = useState<DataPoint[]>([
+    { category: 'Jan', value: 4000 },
+    { category: 'Feb', value: 3000 },
+    { category: 'Mar', value: 2000 },
+    { category: 'Apr', value: 2780 },
+    { category: 'May', value: 1890 },
+    { category: 'Jun', value: 2390 }
   ]);
 
   return (
     <div>
       <h1>Sales Dashboard</h1>
 
-      {/* Bar Chart */}
-      <BarChart width={600} height={300} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="sales" fill="#8884d8" name="Sales" />
-        <Bar dataKey="revenue" fill="#82ca9d" name="Revenue" />
-      </BarChart>
-
-      {/* Line Chart */}
-      <LineChart width={600} height={300} data={data}>
-        <XAxis dataKey="month" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="sales" stroke="#8884d8" />
-        <Line type="monotone" dataKey="revenue" stroke="#82ca9d" />
-      </LineChart>
+      <Plugin name="BarChart" state={{
+        data: salesData,
+        width: 600,
+        height: 400,
+        margin: { top: 20, right: 30, bottom: 40, left: 50 },
+        barFill: '#8884d8',
+        xAxis: { dataKey: 'category' },
+        yAxis: {}
+      }} />
     </div>
   );
-}`,
-  isDefault: false
 }
 ```
 
-### **2. Swig Package Copying**
-
-Update `HookExampleGenerator.ts` to copy chart renderer libraries:
-
-```typescript
-// Copy ApexCharts to wwwroot/js
-if (selectedHooks.includes('useCharts')) {
-  await this.copyApexCharts(projectPath);
-}
-
-private async copyApexCharts(projectPath: string): Promise<void> {
-  const jsDir = path.join(projectPath, 'wwwroot', 'js');
-  const source = path.join(__dirname, '..', '..', 'mact_modules', '@minimact', 'charts', 'dist', 'charts.min.js');
-  const dest = path.join(jsDir, 'minimact-charts.min.js');
-
-  await fs.copyFile(source, dest);
-  console.log('[HookExampleGenerator] ✓ Copied @minimact/charts → wwwroot/js/minimact-charts.min.js');
-}
-```
-
-### **3. MinimactPageRenderer Integration**
-
-Add chart extension support:
-
-```csharp
-public class MinimactPageRenderOptions
-{
-    // ... existing properties ...
-
-    /// <summary>
-    /// Include @minimact/charts extension script (default: false)
-    /// Set to true when using BarChart, LineChart, PieChart components
-    /// Adds: <script src="/js/minimact-charts.min.js"></script>
-    /// </summary>
-    public bool IncludeChartsExtension { get; set; } = false;
-
-    /// <summary>
-    /// Chart renderer to use (default: "apex")
-    /// Options: "apex" (ApexCharts), "chartjs" (Chart.js), "svg" (server-side)
-    /// </summary>
-    public string ChartRenderer { get; set; } = "apex";
-}
-```
-
-### **4. Dashboard Template Update**
-
-Replace pure CSS charts with `@minimact/charts`:
+### Line Chart
 
 ```tsx
-import { useState } from 'minimact';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from '@minimact/charts';
-
-export function Index() {
-  const [salesData] = useState([
-    { month: 'Jan', sales: 45, revenue: 62 },
-    { month: 'Feb', sales: 62, revenue: 58 },
-    { month: 'Mar', sales: 58, revenue: 71 },
-    { month: 'Apr', sales: 71, revenue: 89 },
-    { month: 'May', sales: 89, revenue: 94 },
-    { month: 'Jun', sales: 94, revenue: 102 }
-  ]);
-
-  const [metrics] = useState([
-    { label: 'Total Sales', value: '$124,532', change: '+12.5%', positive: true },
-    { label: 'Active Users', value: '8,429', change: '+8.2%', positive: true },
-    { label: 'Conversion Rate', value: '3.24%', change: '-0.5%', positive: false },
-    { label: 'Avg. Order Value', value: '$89.50', change: '+5.1%', positive: true }
+export function TemperatureChart() {
+  const [tempData] = useState<DataPoint[]>([
+    { category: '00:00', value: 18 },
+    { category: '04:00', value: 16 },
+    { category: '08:00', value: 20 },
+    { category: '12:00', value: 25 },
+    { category: '16:00', value: 23 },
+    { category: '20:00', value: 19 }
   ]);
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-      <h1>Sales Dashboard</h1>
+    <Plugin name="LineChart" state={{
+      data: tempData,
+      width: 600,
+      height: 400,
+      strokeColor: '#8884d8',
+      strokeWidth: 2,
+      xAxis: { dataKey: 'category', label: 'Time' },
+      yAxis: { label: 'Temperature (°C)' }
+    }} />
+  );
+}
+```
 
-      {/* Metrics Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '20px',
-        marginBottom: '40px'
-      }}>
-        {metrics.map(metric => (
-          <div key={metric.label} style={{
-            padding: '20px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            backgroundColor: 'white'
-          }}>
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
-              {metric.label}
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
-              {metric.value}
-            </div>
-            <div style={{ fontSize: '14px', color: metric.positive ? '#4CAF50' : '#F44336' }}>
-              {metric.change}
-            </div>
-          </div>
-        ))}
-      </div>
+### Pie Chart
 
-      {/* Bar Chart */}
-      <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Monthly Performance</h2>
-        <BarChart width={800} height={300} data={salesData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="sales" fill="#8884d8" name="Sales ($k)" />
-          <Bar dataKey="revenue" fill="#82ca9d" name="Revenue ($k)" />
-        </BarChart>
-      </div>
+```tsx
+export function BudgetChart() {
+  const [budgetData] = useState<DataPoint[]>([
+    { category: 'Housing', value: 1200, fill: '#0088FE' },
+    { category: 'Food', value: 600, fill: '#00C49F' },
+    { category: 'Transport', value: 300, fill: '#FFBB28' },
+    { category: 'Entertainment', value: 200, fill: '#FF8042' }
+  ]);
 
-      {/* Line Chart */}
-      <div>
-        <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Trend Analysis</h2>
-        <LineChart width={800} height={300} data={salesData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="sales" stroke="#8884d8" strokeWidth={2} name="Sales ($k)" />
-          <Line type="monotone" dataKey="revenue" stroke="#82ca9d" strokeWidth={2} name="Revenue ($k)" />
-        </LineChart>
-      </div>
-    </div>
+  return (
+    <Plugin name="PieChart" state={{
+      data: budgetData,
+      width: 400,
+      height: 400,
+      innerRadius: 0,
+      outerRadius: 120,
+      cx: '50%',
+      cy: '50%',
+      legend: { enabled: true, position: 'bottom' }
+    }} />
+  );
+}
+```
+
+### Area Chart
+
+```tsx
+export function RevenueChart() {
+  const [revenueData] = useState<DataPoint[]>([
+    { category: 'Q1', value: 45000 },
+    { category: 'Q2', value: 52000 },
+    { category: 'Q3', value: 48000 },
+    { category: 'Q4', value: 61000 }
+  ]);
+
+  return (
+    <Plugin name="AreaChart" state={{
+      data: revenueData,
+      width: 600,
+      height: 400,
+      fill: 'rgba(136, 132, 216, 0.3)',
+      stroke: '#8884d8',
+      strokeWidth: 2,
+      xAxis: { dataKey: 'category', label: 'Quarter' },
+      yAxis: { label: 'Revenue ($)' }
+    }} />
   );
 }
 ```
 
 ---
 
-## 🚦 Success Metrics
+## 📐 Template Patch System Integration
 
-### **MVP Success Criteria**
+### How Parameterized Templates Work
 
-- ✅ 4 chart types working (Bar, Line, Pie, Area)
-- ✅ Recharts API compatibility (core components)
-- ✅ ApexCharts renderer functional
-- ✅ Integrated with Swig hook library
-- ✅ Dashboard template uses @minimact/charts
-- ✅ Documentation complete
-- ✅ 0 critical bugs
-- ✅ Bundle size < 100KB (gzipped)
+**Server Side (First Render):**
 
-### **Performance Targets**
+1. BarChartPlugin calculates bar positions
+2. Generates VNode tree with `[LoopTemplate]` attribute
+3. Template metadata sent to client:
 
-- Chart initialization: < 100ms
-- Re-render on state change: < 50ms
-- Multiple charts on page: < 500ms total
-- Memory usage: < 5MB per chart
+```json
+{
+  "stateKey": "data",
+  "itemTemplate": {
+    "type": "Element",
+    "tag": "rect",
+    "propsTemplates": {
+      "x": { "template": "{0}", "bindings": ["item.x"], "slots": [0] },
+      "y": { "template": "{0}", "bindings": ["item.y"], "slots": [0] },
+      "width": { "template": "{0}", "bindings": ["item.width"], "slots": [0] },
+      "height": { "template": "{0}", "bindings": ["item.height"], "slots": [0] },
+      "fill": { "template": "{0}", "bindings": ["item.fill"], "slots": [0] }
+    }
+  }
+}
+```
 
-### **Developer Experience**
+**Client Side (Subsequent Updates):**
 
-- Installation time: < 2 minutes
-- Time to first chart: < 5 minutes
-- API discoverability: TypeScript IntelliSense
-- Migration from Recharts: < 1 hour
-
----
-
-## 🛣️ Future Roadmap
-
-### **Phase 5: Advanced Charts** (Post-MVP)
-
-- `<ScatterChart>` - Scatter plots
-- `<RadarChart>` - Radar/spider charts
-- `<RadialBarChart>` - Radial bars
-- `<ComposedChart>` - Mixed chart types
-- `<Treemap>` - Hierarchical data
-- `<Sankey>` - Flow diagrams
-- `<Funnel>` - Conversion funnels
-
-### **Phase 6: Interactivity**
-
-- Click events on bars/lines/slices
-- Brush selection for zooming
-- Synchronized tooltips across multiple charts
-- Real-time data updates (WebSocket integration)
-
-### **Phase 7: Customization**
-
-- Custom tooltip renderers
-- Custom legend renderers
-- Theme support (dark mode, custom palettes)
-- Animation customization
-
-### **Phase 8: Performance**
-
-- Virtual scrolling for large datasets
-- Data aggregation/sampling
-- WebGL rendering for massive datasets
-- Server-side data pagination
+1. User updates data: `setSalesData([...newData])`
+2. Client runtime:
+   - Matches template by `stateKey: "data"`
+   - For each item in `newData`:
+     - Calculates `x = xScale(item.category)`
+     - Calculates `y = yScale(item.value)`
+     - Fills template slots: `{0} = x`, `{1} = y`, etc.
+   - Updates DOM directly
+3. Result: **0ms latency!** ⚡
 
 ---
 
-## 📝 Open Questions
+## 🧩 Implementation Phases
 
-1. **Renderer Selection:** Should ApexCharts or Chart.js be the default?
-   - **Recommendation:** ApexCharts (more features, modern API)
+### Phase 1: Core Infrastructure (Week 1)
 
-2. **Server-Side SVG:** MVP or post-MVP?
-   - **Recommendation:** Post-MVP (complex, less critical)
+**Deliverables:**
+- ✅ Scale calculators (LinearScale, BandScale)
+- ✅ PathGenerator utilities
+- ✅ ChartCalculator entry point
+- ✅ Base state models (ChartStateBase, ChartMargin, DataPoint)
 
-3. **ResponsiveContainer:** Use ResizeObserver or percentage width?
-   - **Recommendation:** ResizeObserver (better DX)
+**Files to Create:**
+- `Minimact.Charts/Utils/LinearScale.cs`
+- `Minimact.Charts/Utils/BandScale.cs`
+- `Minimact.Charts/Utils/PathGenerator.cs`
+- `Minimact.Charts/Utils/ChartCalculator.cs`
+- `Minimact.Charts/Models/ChartStateBase.cs`
+- `Minimact.Charts/Models/DataPoint.cs`
 
-4. **Bundle Strategy:** Single bundle or separate renderer bundles?
-   - **Recommendation:** Separate (users only load chosen renderer)
-
-5. **TypeScript Strictness:** Match Recharts types exactly or improve?
-   - **Recommendation:** Match exactly for compatibility
+**Tests:**
+- Unit tests for scale calculations
+- Unit tests for path generation
+- Validate edge cases (empty data, negative values)
 
 ---
 
-## 🎯 Implementation Priority
+### Phase 2: Bar Chart (Week 2)
 
-**Week 1: Foundation**
-- Day 1-2: Package scaffold, types, config builder
-- Day 3-4: ApexCharts renderer + useChart hook
-- Day 5: BarChart + Bar components
+**Deliverables:**
+- ✅ BarChartPlugin with LoopTemplate
+- ✅ BarChartState model
+- ✅ X/Y axis rendering
+- ✅ Bar positioning logic
 
-**Week 2: Core Charts**
-- Day 1: LineChart + Line
-- Day 2: PieChart + Pie
-- Day 3: XAxis, YAxis, Tooltip, Legend
-- Day 4-5: Testing + bug fixes
+**Files to Create:**
+- `Minimact.Charts/Plugins/BarChartPlugin.cs`
+- `Minimact.Charts/Models/BarChartState.cs`
+- `Minimact.Charts/Components/XAxisConfig.cs`
+- `Minimact.Charts/Components/YAxisConfig.cs`
+- `Minimact.Charts/assets/charts.css`
 
-**Week 3: Integration & Polish**
-- Day 1: Build system + bundle optimization
-- Day 2: Swig integration (hook library + file copying)
-- Day 3: Update Dashboard template
-- Day 4-5: Documentation + examples
+**Tests:**
+- Integration test with sample data
+- Visual regression test
+- Template patch application test
+
+---
+
+### Phase 3: Line Chart (Week 3)
+
+**Deliverables:**
+- ✅ LineChartPlugin with LoopTemplate
+- ✅ LineChartState model
+- ✅ Path-based line rendering
+- ✅ Multiple line series support
+
+**Files to Create:**
+- `Minimact.Charts/Plugins/LineChartPlugin.cs`
+- `Minimact.Charts/Models/LineChartState.cs`
+- `Minimact.Charts/Renderers/LineRenderer.cs`
+
+**Tests:**
+- Multi-series line chart test
+- Smooth curve interpolation test
+- Missing data handling test
+
+---
+
+### Phase 4: Pie Chart (Week 4)
+
+**Deliverables:**
+- ✅ PieChartPlugin with LoopTemplate
+- ✅ PieChartState model
+- ✅ Arc path generation
+- ✅ Donut chart support (innerRadius)
+
+**Files to Create:**
+- `Minimact.Charts/Plugins/PieChartPlugin.cs`
+- `Minimact.Charts/Models/PieChartState.cs`
+- `Minimact.Charts/Renderers/PieRenderer.cs`
+
+**Tests:**
+- Pie slice calculation test
+- Donut chart test
+- Label positioning test
+
+---
+
+### Phase 5: Area Chart (Week 5)
+
+**Deliverables:**
+- ✅ AreaChartPlugin with LoopTemplate
+- ✅ AreaChartState model
+- ✅ Filled area path generation
+- ✅ Stacked area support
+
+**Files to Create:**
+- `Minimact.Charts/Plugins/AreaChartPlugin.cs`
+- `Minimact.Charts/Models/AreaChartState.cs`
+- `Minimact.Charts/Renderers/AreaRenderer.cs`
+
+**Tests:**
+- Area fill test
+- Stacked area test
+- Gradient fill test
+
+---
+
+### Phase 6: Client Package (Week 6)
+
+**Deliverables:**
+- ✅ TypeScript type definitions
+- ✅ NPM package setup
+- ✅ Documentation
+- ✅ Usage examples
+
+**Files to Create:**
+- `src/minimact-charts/src/index.ts`
+- `src/minimact-charts/src/types.ts`
+- `src/minimact-charts/package.json`
+- `src/minimact-charts/README.md`
+
+**Tests:**
+- Type checking tests
+- Import tests
+- Bundle size check
+
+---
+
+### Phase 7: Polish & Documentation (Week 7)
+
+**Deliverables:**
+- ✅ Default color palettes
+- ✅ Responsive sizing
+- ✅ Accessibility (ARIA labels)
+- ✅ Comprehensive documentation
+- ✅ Interactive examples
+
+**Files to Create:**
+- `Minimact.Charts/Utils/ColorPalette.cs`
+- `docs/CHARTS_API_REFERENCE.md`
+- `docs/CHARTS_EXAMPLES.md`
+
+---
+
+## 🎯 Success Criteria
+
+**MVP is successful when:**
+
+1. ✅ Developer can use Recharts-style JSX syntax
+2. ✅ Bar, Line, Pie, Area charts all work
+3. ✅ Template patches apply with 0ms latency
+4. ✅ TypeScript types provide full IntelliSense
+5. ✅ Zero client bundle overhead (server-rendered)
+6. ✅ Charts are responsive and accessible
+7. ✅ NuGet package can be installed: `dotnet add package Minimact.Charts`
+8. ✅ NPM package can be installed: `npm install @minimact/charts`
+
+---
+
+## 🔐 Security Considerations
+
+### Data Validation
+
+**Problem:** Client could send malicious data to plugin.
+
+**Solution:**
+1. JSON Schema validation for chart state
+2. Boundary checks (min/max values, array lengths)
+3. Sanitize labels/categories for XSS prevention
+
+### Asset Serving
+
+**Problem:** CSS could contain malicious code.
+
+**Solution:**
+1. Embed CSS as resource (not user-provided)
+2. Use Content Security Policy headers
+3. Validate CSS at build time
+
+---
+
+## 📊 Performance Targets
+
+| Operation | Target | Actual |
+|-----------|--------|--------|
+| Plugin discovery | < 50ms | TBD |
+| Template registration | < 10ms | TBD |
+| Chart rendering (100 data points) | < 50ms | TBD |
+| Template patch (data update) | < 2ms | TBD |
+| SVG file size (100 data points) | < 10KB | TBD |
+
+---
+
+## 🌐 Browser Compatibility
+
+**SVG Support:**
+- ✅ Chrome/Edge 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+
+**Template Patches:**
+- Requires Minimact client runtime 1.0.0+
+- Requires minimact-plugin package
+
+---
+
+## 📚 Related Documentation
+
+- [Plugin System Implementation Plan](./PLUGIN_SYSTEM_IMPLEMENTATION_PLAN.md)
+- [Template Patch System](./TEMPLATE_PATCH_SYSTEM.md)
+- [Minimact Swig - Electron Plan](./MINIMACT_SWIG_ELECTRON_PLAN.md)
 
 ---
 
 ## ✅ Next Steps
 
-1. **Approve this plan** - Review and sign-off
-2. **Create package** - Run `npm init` in `src/minimact-charts`
-3. **Implement BarChart POC** - Prove the architecture works
-4. **Iterate** - Build remaining charts following proven pattern
+1. **Review this plan** - Gather feedback
+2. **Phase 1 implementation** - Build scale calculators
+3. **Phase 2 implementation** - Build BarChartPlugin
+4. **Test with real data** - Validate performance
+5. **Iterate** - Refine based on testing
 
 ---
 
-**Estimated Delivery:** 3 weeks from start
-**Estimated Effort:** 60-80 developer hours
-**Risk Level:** Low (well-defined scope, proven technologies)
-**Impact:** High (major DX improvement, production-ready charting)
+**Status:** Ready for implementation! 🚀
+**Confidence Level:** 🟢 High
+**Philosophy:** Charts should be as easy to use as Recharts, as fast as native rendering, and as lightweight as pure SVG.
+
+Let's build the most elegant charting library for .NET! ✨
