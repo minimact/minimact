@@ -2034,10 +2034,19 @@ function extractUseRazorMarkdown(path, component) {
     component.useRazorMarkdown = [];
   }
 
+  // Extract raw markdown string (for Razor conversion)
+  let rawMarkdown = '';
+  if (t$b.isStringLiteral(initialValue)) {
+    rawMarkdown = initialValue.value;
+  } else if (t$b.isTemplateLiteral(initialValue)) {
+    // Template literal - extract raw string
+    rawMarkdown = initialValue.quasis.map(q => q.value.raw).join('');
+  }
+
   component.useRazorMarkdown.push({
     name: contentVar.name,
     setter: setterVar.name,
-    initialValue: generateCSharpExpression$2(initialValue),
+    initialValue: rawMarkdown, // Store raw markdown for Razor conversion
     hasRazorSyntax: true, // Will be determined by Razor detection later
     referencedVariables: [] // Will be populated by Razor variable extraction
   });
@@ -6379,9 +6388,9 @@ function requireRazorMarkdown () {
 	 */
 	function convertIfBlocks(markdown) {
 	  // Pattern: @if \s* ( condition ) \s* { body } [else { elseBody }]
-	  // Using non-greedy matching and balanced brace counting
+	  // Using [\s\S] to match any character including newlines
 
-	  const ifPattern = /@if\s*\(([^)]+)\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}(?:\s*else\s*\{((?:[^{}]|\{[^{}]*\})*)\})?/g;
+	  const ifPattern = /@if\s*\(([^)]+)\)\s*\{([\s\S]*?)\}(?:\s*else\s*\{([\s\S]*?)\})?/g;
 
 	  return markdown.replace(ifPattern, (match, condition, thenBody, elseBody) => {
 	    const then = thenBody.trim();
@@ -6410,7 +6419,8 @@ function requireRazorMarkdown () {
 	 */
 	function convertForeachBlocks(markdown) {
 	  // Pattern: @foreach \s* ( var itemVar in collection ) \s* { body }
-	  const foreachPattern = /@foreach\s*\(\s*var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+in\s+([a-zA-Z_][a-zA-Z0-9_.]*)\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g;
+	  // Using [\s\S] to match any character including newlines
+	  const foreachPattern = /@foreach\s*\(\s*var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+in\s+([a-zA-Z_][a-zA-Z0-9_.]*)\)\s*\{([\s\S]*?)\}/g;
 
 	  return markdown.replace(foreachPattern, (match, itemVar, collection, body) => {
 	    const bodyTrimmed = body.trim();
@@ -6432,7 +6442,9 @@ function requireRazorMarkdown () {
 	 */
 	function convertForBlocks(markdown) {
 	  // Pattern: @for ( var indexVar = start; indexVar <= end; indexVar++ ) { body }
-	  const forPattern = /@for\s*\(\s*var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(\d+)\s*;\s*\1\s*<=?\s*([a-zA-Z_][a-zA-Z0-9_.]*)\s*;\s*\1\+\+\s*\)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g;
+	  // Using [\s\S] to match any character including newlines
+	  // End can be either a number or a variable name
+	  const forPattern = /@for\s*\(\s*var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(\d+)\s*;\s*\1\s*<=?\s*([a-zA-Z_0-9][a-zA-Z0-9_.]*)\s*;\s*\1\+\+\s*\)\s*\{([\s\S]*?)\}/g;
 
 	  return markdown.replace(forPattern, (match, indexVar, start, end, body) => {
 	    const bodyTrimmed = body.trim();

@@ -126,7 +126,7 @@ export default function CreateProject() {
             >
               <option value="Counter">Counter (Basic)</option>
               <option value="TodoList">Todo List (CRUD)</option>
-              <option value="Dashboard">Dashboard (Charts)</option>
+              <option value="Dashboard">Dashboard (Charts + Powered Badge)</option>
               <option value="MVC">MVC Bridge (ASP.NET MVC + Minimact)</option>
             </select>
             <p className="text-xs text-gray-500 mt-2">

@@ -144,6 +144,40 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/charts',
+      source: 'src/minimact-charts',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/powered',
+      source: 'src/minimact-powered',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
     }
   ],
 
@@ -167,7 +201,9 @@ module.exports = {
         '@minimact/query',
         '@minimact/trees',
         '@minimact/quantum',
-        '@minimact/md'
+        '@minimact/md',
+        '@minimact/charts',
+        '@minimact/powered'
       ]
     }
     // Add more targets as needed:

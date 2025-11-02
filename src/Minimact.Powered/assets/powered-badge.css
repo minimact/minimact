@@ -1,0 +1,220 @@
+/**
+ * Minimact Powered Badge Styles
+ * Interactive badge with smooth slide-out animation
+ */
+
+.minimact-powered {
+  position: fixed;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--animation-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  width: 48px;
+  height: 64px;
+}
+
+/* Position variants */
+.minimact-powered--bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.minimact-powered--bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.minimact-powered--top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.minimact-powered--top-left {
+  top: 20px;
+  left: 20px;
+}
+
+/* Expanded state */
+.minimact-powered.expanded {
+  width: 356px;
+  height: 64px;
+}
+
+/* Theme: Dark (default) */
+.minimact-powered--dark {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: #ecf0f1;
+}
+
+/* Theme: Light */
+.minimact-powered--light {
+  background: linear-gradient(135deg, #ecf0f1 0%, #ffffff 100%);
+  color: #2c3e50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Hover effect */
+.minimact-powered:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.minimact-powered--light:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Link wrapper */
+.minimact-powered__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+/* Icon container */
+.minimact-powered__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+
+/* Text content */
+.minimact-powered__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity var(--animation-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1),
+              transform var(--animation-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.minimact-powered.expanded .minimact-powered__text {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 100ms; /* Delay text animation slightly */
+}
+
+/* Text styling */
+.minimact-powered__title {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.minimact-powered__brand {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #4FC3F7 0%, #4CAF50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.minimact-powered--light .minimact-powered__brand {
+  background: linear-gradient(135deg, #0288D1 0%, #388E3C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.minimact-powered__tagline {
+  font-size: 9px;
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+}
+
+/* Collapsed state - hide text */
+.minimact-powered.collapsed .minimact-powered__text {
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+/* Active/focus states */
+.minimact-powered:active {
+  transform: translateY(0);
+}
+
+.minimact-powered__link:focus {
+  outline: 2px solid #4FC3F7;
+  outline-offset: 2px;
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .minimact-powered,
+  .minimact-powered__text {
+    transition-duration: 50ms;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .minimact-powered {
+    width: 40px;
+    height: 56px;
+  }
+
+  .minimact-powered.expanded {
+    width: 280px;
+    height: 56px;
+  }
+
+  .minimact-powered__brand {
+    font-size: 20px;
+  }
+
+  .minimact-powered__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .minimact-powered__icon svg {
+    width: 40px;
+    height: 56px;
+  }
+
+  /* Smaller positioning on mobile */
+  .minimact-powered--bottom-right,
+  .minimact-powered--top-right {
+    right: 10px;
+  }
+
+  .minimact-powered--bottom-left,
+  .minimact-powered--top-left {
+    left: 10px;
+  }
+
+  .minimact-powered--bottom-right,
+  .minimact-powered--bottom-left {
+    bottom: 10px;
+  }
+
+  .minimact-powered--top-right,
+  .minimact-powered--top-left {
+    top: 10px;
+  }
+}
+
+/* Print: Hide badge */
+@media print {
+  .minimact-powered {
+    display: none !important;
+  }
+}
