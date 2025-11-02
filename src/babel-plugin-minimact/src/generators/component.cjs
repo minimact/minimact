@@ -379,9 +379,17 @@ function generateComponent(component) {
 
     // Generate parameter list
     const params = handler.params || [];
-    const paramStr = params.length > 0
-      ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg').join(', ')
-      : '';
+    let paramList = params.length > 0
+      ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg')
+      : [];
+
+    // Add captured parameters from .map() context (e.g., item, index)
+    const capturedParams = handler.capturedParams || [];
+    if (capturedParams.length > 0) {
+      paramList = paramList.concat(capturedParams.map(p => `dynamic ${p}`));
+    }
+
+    const paramStr = paramList.join(', ');
 
     // Event handlers must be public so SignalR hub can call them
     lines.push(`    public void ${handler.name}(${paramStr})`);

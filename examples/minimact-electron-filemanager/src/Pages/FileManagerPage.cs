@@ -290,7 +290,7 @@ public partial class FileManagerPage : MinimactComponent
                     {
                         new VText("Error:"),
                         new VText($"{(error)}")
-                    }) : null, (((!loading) && (!error)) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : ((IEnumerable<dynamic>)directoryData.items).Select((item, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{index}", ["class"] = $"{$"file-item {((selectedFile?.Path == item.path) ? "selected" : "")}"}", ["onclick"] = "Handle0" }, new VNode[]
+                    }) : null, (((!loading) && (!error)) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : ((IEnumerable<dynamic>)directoryData.items).Select((item, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{index}", ["class"] = $"{$"file-item {((selectedFile?.Path == item.path) ? "selected" : "")}"}", ["onclick"] = "Handle0:{item}:{index}" }, new VNode[]
 {
     new VElement("div", new Dictionary<string, string> { ["class"] = "file-icon" }, new VNode[]
     {
@@ -358,7 +358,7 @@ public partial class FileManagerPage : MinimactComponent
         loadDirectory(currentPath);
     }
 
-    public void Handle0()
+    public void Handle0(dynamic item, dynamic index)
     {
         handleItemClick(item);
     }

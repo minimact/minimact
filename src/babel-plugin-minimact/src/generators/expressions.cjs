@@ -525,7 +525,16 @@ function generateCSharpExpression(node, inInterpolation = false) {
             body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
           } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
             // JSX element - use generateJSXElement with currentComponent context
+            // Store map context for event handler closure capture
+            const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+            if (currentComponent) {
+              currentComponent.currentMapContext = { params: paramNames };
+            }
             body = generateJSXElement(callback.body, currentComponent, 0);
+            // Restore previous context
+            if (currentComponent) {
+              currentComponent.currentMapContext = previousMapContext;
+            }
           } else {
             body = generateCSharpExpression(callback.body);
           }
@@ -567,7 +576,16 @@ function generateCSharpExpression(node, inInterpolation = false) {
             body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
           } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
             // JSX element - use generateJSXElement with currentComponent context
+            // Store map context for event handler closure capture
+            const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+            if (currentComponent) {
+              currentComponent.currentMapContext = { params: paramNames };
+            }
             body = generateJSXElement(callback.body, currentComponent, 0);
+            // Restore previous context
+            if (currentComponent) {
+              currentComponent.currentMapContext = previousMapContext;
+            }
           } else {
             body = generateCSharpExpression(callback.body);
           }

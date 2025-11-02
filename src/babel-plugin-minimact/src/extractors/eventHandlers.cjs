@@ -48,11 +48,24 @@ function extractEventHandler(value, component) {
         }
       }
 
+      // Check if we're inside a .map() context and capture those variables
+      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
       component.eventHandlers.push({
         name: handlerName,
         body: body,
-        params: params
+        params: params,
+        capturedParams: capturedParams  // e.g., ['item', 'index']
       });
+
+      // Return handler registration string
+      // If there are captured params, append them as colon-separated interpolations
+      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+      if (capturedParams.length > 0) {
+        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+        return `${handlerName}:${capturedRefs}`;
+      }
+
       return handlerName;
     }
 
@@ -63,7 +76,24 @@ function extractEventHandler(value, component) {
     if (t.isCallExpression(expr)) {
       // () => someMethod() - extract
       const handlerName = `Handle${component.eventHandlers.length}`;
-      component.eventHandlers.push({ name: handlerName, body: expr });
+
+      // Check if we're inside a .map() context and capture those variables
+      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
+      component.eventHandlers.push({
+        name: handlerName,
+        body: expr,
+        capturedParams: capturedParams  // e.g., ['item', 'index']
+      });
+
+      // Return handler registration string
+      // If there are captured params, append them as colon-separated interpolations
+      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+      if (capturedParams.length > 0) {
+        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+        return `${handlerName}:${capturedRefs}`;
+      }
+
       return handlerName;
     }
   }
