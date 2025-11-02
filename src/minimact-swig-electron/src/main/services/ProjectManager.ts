@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { Project, RecentProject, ProjectFile } from '../types/project';
+import { HookExampleGenerator } from './HookExampleGenerator';
 
 /**
  * ProjectManager - Manages Minimact project lifecycle
@@ -11,18 +12,21 @@ import type { Project, RecentProject, ProjectFile } from '../types/project';
  * - Scan project files
  * - Detect port configuration
  * - Track recent projects
+ * - Generate hook examples
  */
 export class ProjectManager {
   private recentProjectsPath: string;
+  private hookExampleGenerator: HookExampleGenerator;
 
   constructor(userDataPath: string) {
     this.recentProjectsPath = path.join(userDataPath, 'recent-projects.json');
+    this.hookExampleGenerator = new HookExampleGenerator();
   }
 
   /**
    * Create a new Minimact project from template
    */
-  async createProject(projectPath: string, template: string, options?: { createSolution?: boolean; enableTailwind?: boolean }): Promise<Project> {
+  async createProject(projectPath: string, template: string, options?: { createSolution?: boolean; enableTailwind?: boolean; selectedHooks?: string[] }): Promise<Project> {
     const projectName = path.basename(projectPath);
 
     // Ensure directory exists
@@ -39,6 +43,11 @@ export class ProjectManager {
     // Setup Tailwind CSS if requested
     if (options?.enableTailwind) {
       await this.setupTailwindCss(projectPath, projectName);
+    }
+
+    // Generate hook examples if hooks selected
+    if (options?.selectedHooks && options.selectedHooks.length > 0) {
+      await this.hookExampleGenerator.generateHookExamples(projectPath, options.selectedHooks);
     }
 
     // Detect port from launchSettings.json

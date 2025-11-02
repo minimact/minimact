@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, FolderOpen } from 'lucide-react'
+import { HookLibrarySelector } from '../components/create-project/HookLibrarySelector'
+import { HOOK_LIBRARY, getDefaultHooks } from '../../../main/data/hook-library'
 
 export default function CreateProject() {
   const navigate = useNavigate()
@@ -9,6 +11,9 @@ export default function CreateProject() {
   const [template, setTemplate] = useState('Counter')
   const [createSolution, setCreateSolution] = useState(true)
   const [enableTailwind, setEnableTailwind] = useState(false)
+  const [selectedHooks, setSelectedHooks] = useState<string[]>(
+    getDefaultHooks().map(h => h.id) // Pre-select default hooks
+  )
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -34,7 +39,8 @@ export default function CreateProject() {
       const projectPath = `${targetDir}\\${projectName}`
       const result = await window.api.project.create(projectPath, template, {
         createSolution,
-        enableTailwind
+        enableTailwind,
+        selectedHooks
       })
 
       if (result.success) {
@@ -165,6 +171,13 @@ export default function CreateProject() {
               </div>
             </label>
           </div>
+
+          {/* Hook Library Selector */}
+          <HookLibrarySelector
+            selectedHooks={selectedHooks}
+            onSelectionChange={setSelectedHooks}
+            hooks={HOOK_LIBRARY}
+          />
 
           {/* Error Message */}
           {error && (
