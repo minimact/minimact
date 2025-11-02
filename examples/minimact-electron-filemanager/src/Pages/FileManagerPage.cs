@@ -290,7 +290,25 @@ public partial class FileManagerPage : MinimactComponent
                     {
                         new VText("Error:"),
                         new VText($"{(error)}")
-                    }) : null, (((!loading) && (!error)) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : ((IEnumerable<dynamic>)directoryData.items).Select((item, index) => null).ToList()) : null),
+                    }) : null, (((!loading) && (!error)) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : ((IEnumerable<dynamic>)directoryData.items).Select((item, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{index}", ["class"] = $"{$"file-item {((selectedFile?.Path == item.path) ? "selected" : "")}"}", ["onclick"] = "Handle0" }, new VNode[]
+{
+    new VElement("div", new Dictionary<string, string> { ["class"] = "file-icon" }, new VNode[]
+    {
+        new VText($"{((item.type == "directory") ? "📁" : "📄")}")
+    }),
+    new VElement("div", new Dictionary<string, string> { ["class"] = "file-name" }, new VNode[]
+    {
+        new VText($"{(item.name)}")
+    }),
+    new VElement("div", new Dictionary<string, string> { ["class"] = "file-size" }, new VNode[]
+    {
+        new VText($"{(formatFileSize(item.size))}")
+    }),
+    new VElement("div", new Dictionary<string, string> { ["class"] = "file-date" }, new VNode[]
+    {
+        new VText($"{(formatDate(item.modified))}")
+    })
+})).ToList()) : null),
                 new VText($"{(null)}"),
                 MinimactHelpers.createElement("div", new { className = "sidebar" }, null, ((fileStats) && (chartData.Count > 0)) ? new VElement("div", new Dictionary<string, string> { ["class"] = "panel" }, new VNode[]
                     {
@@ -340,11 +358,33 @@ public partial class FileManagerPage : MinimactComponent
         loadDirectory(currentPath);
     }
 
+    public void Handle0()
+    {
+        handleItemClick(item);
+    }
+
     private async Task loadDirectory(string path)
     {
 SetState(nameof(loading), true);
 SetState(nameof(error), null);
-null;
+try {
+    var dirResponse = await new HttpClient().GetAsync($"/api/desktop/directory?path={Uri.EscapeDataString(path)}");
+    if (!dirResponse.IsSuccessStatusCode) {
+    throw new Exception("Failed to load directory");
+}
+    var dirData = await dirResponse.Content.ReadFromJsonAsync<dynamic>();
+    SetState(nameof(directoryData), dirData);
+    var statsResponse = await new HttpClient().GetAsync($"/api/desktop/file-stats?path={Uri.EscapeDataString(path)}");
+    if (statsResponse.IsSuccessStatusCode) {
+    var stats = await statsResponse.Content.ReadFromJsonAsync<dynamic>();
+    SetState(nameof(fileStats), stats);
+}
+    SetState(nameof(currentPath), dirData.currentPath);
+} catch (Exception err) {
+    SetState(nameof(error), err.Message);
+} finally {
+    SetState(nameof(loading), false);
+}
     }
 
     private void handleItemClick(dynamic item)

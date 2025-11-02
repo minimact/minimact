@@ -154,6 +154,10 @@ function generateCSharpStatement(node) {
     return `return ${generateCSharpExpression(node.argument)};`;
   }
 
+  if (t.isThrowStatement(node)) {
+    return `throw ${generateCSharpExpression(node.argument)};`;
+  }
+
   if (t.isVariableDeclaration(node)) {
     const declarations = node.declarations.map(d => {
       const name = d.id.name;
@@ -197,6 +201,48 @@ function generateCSharpStatement(node) {
     return result;
   }
 
+  if (t.isTryStatement(node)) {
+    let result = 'try {\n';
+
+    // Handle try block
+    if (t.isBlockStatement(node.block)) {
+      for (const stmt of node.block.body) {
+        result += '    ' + generateCSharpStatement(stmt) + '\n';
+      }
+    }
+
+    result += '}';
+
+    // Handle catch clause
+    if (node.handler) {
+      const catchParam = node.handler.param ? node.handler.param.name : 'ex';
+      result += ` catch (Exception ${catchParam}) {\n`;
+
+      if (t.isBlockStatement(node.handler.body)) {
+        for (const stmt of node.handler.body.body) {
+          result += '    ' + generateCSharpStatement(stmt) + '\n';
+        }
+      }
+
+      result += '}';
+    }
+
+    // Handle finally block
+    if (node.finalizer) {
+      result += ' finally {\n';
+
+      if (t.isBlockStatement(node.finalizer)) {
+        for (const stmt of node.finalizer.body) {
+          result += '    ' + generateCSharpStatement(stmt) + '\n';
+        }
+      }
+
+      result += '}';
+    }
+
+    return result;
+  }
+
   // Fallback: try to convert as expression
   return generateCSharpExpression(node) + ';';
 }
@@ -232,6 +278,10 @@ function generateCSharpExpression(node, inInterpolation = false) {
 
   if (t.isIdentifier(node)) {
     return node.name;
+  }
+
+  if (t.isAwaitExpression(node)) {
+    return `await ${generateCSharpExpression(node.argument, inInterpolation)}`;
   }
 
   // Handle optional chaining: viewModel?.userEmail → viewModel?.UserEmail
@@ -271,6 +321,16 @@ function generateCSharpExpression(node, inInterpolation = false) {
     if (propertyName === 'checked' && !node.computed) {
       // Capitalize for C# property convention
       return `${object}.Checked`;
+    }
+
+    // Handle exception properties (err.message → err.Message)
+    if (propertyName === 'message' && !node.computed) {
+      return `${object}.Message`;
+    }
+
+    // Handle fetch Response properties (response.ok → response.IsSuccessStatusCode)
+    if (propertyName === 'ok' && !node.computed) {
+      return `${object}.IsSuccessStatusCode`;
     }
 
     const property = node.computed
@@ -372,6 +432,20 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `Math.${pascalMethodName}(${args})`;
     }
 
+    // Handle encodeURIComponent() → Uri.EscapeDataString()
+    if (t.isIdentifier(node.callee, { name: 'encodeURIComponent' })) {
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `Uri.EscapeDataString(${args})`;
+    }
+
+    // Handle fetch() → HttpClient call
+    // Note: This generates a basic wrapper. Real implementation would use IHttpClientFactory
+    if (t.isIdentifier(node.callee, { name: 'fetch' })) {
+      const url = node.arguments.length > 0 ? generateCSharpExpression(node.arguments[0]) : '""';
+      // Return HttpResponseMessage (await is handled by caller)
+      return `new HttpClient().GetAsync(${url})`;
+    }
+
     // Handle alert() → Console.WriteLine() (or custom alert implementation)
     if (t.isIdentifier(node.callee, { name: 'alert' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
@@ -384,6 +458,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
         t.isIdentifier(node.callee.property, { name: 'log' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
       return `Console.WriteLine(${args})`;
+    }
+
+    // Handle response.json() → response.Content.ReadFromJsonAsync<dynamic>()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'json' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.Content.ReadFromJsonAsync<dynamic>()`;
     }
 
     // Handle .toFixed(n) → .ToString("Fn")
@@ -438,9 +518,17 @@ function generateCSharpExpression(node, inInterpolation = false) {
           const params = paramNames.length === 1
             ? paramNames[0]
             : `(${paramNames.join(', ')})`;
-          const body = t.isBlockStatement(callback.body)
-            ? `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`
-            : generateCSharpExpression(callback.body);
+
+          // Handle JSX in arrow function body
+          let body;
+          if (t.isBlockStatement(callback.body)) {
+            body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
+          } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
+            // JSX element - use generateJSXElement with currentComponent context
+            body = generateJSXElement(callback.body, currentComponent, 0);
+          } else {
+            body = generateCSharpExpression(callback.body);
+          }
 
           // Cast to IEnumerable<dynamic> if we detect dynamic access
           // Check for optional chaining or property access (likely dynamic)
@@ -472,9 +560,17 @@ function generateCSharpExpression(node, inInterpolation = false) {
           const params = paramNames.length === 1
             ? paramNames[0]
             : `(${paramNames.join(', ')})`;
-          const body = t.isBlockStatement(callback.body)
-            ? `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`
-            : generateCSharpExpression(callback.body);
+
+          // Handle JSX in arrow function body
+          let body;
+          if (t.isBlockStatement(callback.body)) {
+            body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
+          } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
+            // JSX element - use generateJSXElement with currentComponent context
+            body = generateJSXElement(callback.body, currentComponent, 0);
+          } else {
+            body = generateCSharpExpression(callback.body);
+          }
 
           // Cast to IEnumerable<dynamic> for optional chaining (likely dynamic)
           const castedObject = `((IEnumerable<dynamic>)${object})`;
@@ -516,7 +612,11 @@ function generateCSharpExpression(node, inInterpolation = false) {
       result += text;
 
       if (i < node.expressions.length) {
-        result += '{' + generateCSharpExpression(node.expressions[i]) + '}';
+        const expr = node.expressions[i];
+        // Wrap conditional (ternary) expressions in parentheses to avoid ':' conflict in C# interpolation
+        const exprCode = generateCSharpExpression(expr);
+        const needsParens = t.isConditionalExpression(expr);
+        result += '{' + (needsParens ? `(${exprCode})` : exprCode) + '}';
       }
     }
     result += '"';
@@ -532,6 +632,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
         const arg = generateCSharpExpression(node.arguments[0]);
         return `DateTime.Parse(${arg})`;
       }
+    }
+
+    // Handle new Error() → new Exception()
+    if (t.isIdentifier(node.callee, { name: 'Error' })) {
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `new Exception(${args})`;
     }
 
     // Handle other new expressions: new Foo() → new Foo()
