@@ -397,11 +397,24 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        }
 	      }
 
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
 	      component.eventHandlers.push({
 	        name: handlerName,
 	        body: body,
-	        params: params
+	        params: params,
+	        capturedParams: capturedParams  // e.g., ['item', 'index']
 	      });
+
+	      // Return handler registration string
+	      // If there are captured params, append them as colon-separated interpolations
+	      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	      if (capturedParams.length > 0) {
+	        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	        return `${handlerName}:${capturedRefs}`;
+	      }
+
 	      return handlerName;
 	    }
 
@@ -412,7 +425,24 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    if (t$d.isCallExpression(expr)) {
 	      // () => someMethod() - extract
 	      const handlerName = `Handle${component.eventHandlers.length}`;
-	      component.eventHandlers.push({ name: handlerName, body: expr });
+
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
+	      component.eventHandlers.push({
+	        name: handlerName,
+	        body: expr,
+	        capturedParams: capturedParams  // e.g., ['item', 'index']
+	      });
+
+	      // Return handler registration string
+	      // If there are captured params, append them as colon-separated interpolations
+	      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	      if (capturedParams.length > 0) {
+	        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	        return `${handlerName}:${capturedRefs}`;
+	      }
+
 	      return handlerName;
 	    }
 	  }
@@ -439,7 +469,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function requirePlugin () {
 		if (hasRequiredPlugin) return plugin;
 		hasRequiredPlugin = 1;
-		const { generateExpression } = requireExpressions();
+		const { generateCSharpExpression } = requireExpressions();
 
 		/**
 		 * Generate C# code for a plugin usage
@@ -485,7 +515,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		    case 'complexExpression':
 		      // Complex expression: evaluate using expression generator
-		      return generateExpression(stateBinding.expression);
+		      return generateCSharpExpression(stateBinding.expression);
 
 		    default:
 		      throw new Error(`Unknown state binding type: ${stateBinding.type}`);
@@ -507,7 +537,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		  const propStrings = properties.map(prop => {
 		    const key = prop.key.name || prop.key.value;
-		    const value = generateExpression(prop.value);
+		    const value = generateCSharpExpression(prop.value);
 		    return `${key} = ${value}`;
 		  });
 
@@ -1184,6 +1214,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    return `return ${generateCSharpExpression(node.argument)};`;
 		  }
 
+		  if (t.isThrowStatement(node)) {
+		    return `throw ${generateCSharpExpression(node.argument)};`;
+		  }
+
 		  if (t.isVariableDeclaration(node)) {
 		    const declarations = node.declarations.map(d => {
 		      const name = d.id.name;
@@ -1191,6 +1225,82 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      return `var ${name} = ${value};`;
 		    }).join(' ');
 		    return declarations;
+		  }
+
+		  if (t.isIfStatement(node)) {
+		    const test = generateCSharpExpression(node.test);
+		    let result = `if (${test}) {\n`;
+
+		    // Handle consequent (then branch)
+		    if (t.isBlockStatement(node.consequent)) {
+		      for (const stmt of node.consequent.body) {
+		        result += '    ' + generateCSharpStatement(stmt) + '\n';
+		      }
+		    } else {
+		      result += '    ' + generateCSharpStatement(node.consequent) + '\n';
+		    }
+
+		    result += '}';
+
+		    // Handle alternate (else branch) if it exists
+		    if (node.alternate) {
+		      result += ' else {\n';
+		      if (t.isBlockStatement(node.alternate)) {
+		        for (const stmt of node.alternate.body) {
+		          result += '    ' + generateCSharpStatement(stmt) + '\n';
+		        }
+		      } else if (t.isIfStatement(node.alternate)) {
+		        // else if
+		        result += '    ' + generateCSharpStatement(node.alternate) + '\n';
+		      } else {
+		        result += '    ' + generateCSharpStatement(node.alternate) + '\n';
+		      }
+		      result += '}';
+		    }
+
+		    return result;
+		  }
+
+		  if (t.isTryStatement(node)) {
+		    let result = 'try {\n';
+
+		    // Handle try block
+		    if (t.isBlockStatement(node.block)) {
+		      for (const stmt of node.block.body) {
+		        result += '    ' + generateCSharpStatement(stmt) + '\n';
+		      }
+		    }
+
+		    result += '}';
+
+		    // Handle catch clause
+		    if (node.handler) {
+		      const catchParam = node.handler.param ? node.handler.param.name : 'ex';
+		      result += ` catch (Exception ${catchParam}) {\n`;
+
+		      if (t.isBlockStatement(node.handler.body)) {
+		        for (const stmt of node.handler.body.body) {
+		          result += '    ' + generateCSharpStatement(stmt) + '\n';
+		        }
+		      }
+
+		      result += '}';
+		    }
+
+		    // Handle finally block
+		    if (node.finalizer) {
+		      result += ' finally {\n';
+
+		      if (t.isBlockStatement(node.finalizer)) {
+		        for (const stmt of node.finalizer.body) {
+		          result += '    ' + generateCSharpStatement(stmt) + '\n';
+		        }
+		      }
+
+		      result += '}';
+		    }
+
+		    return result;
 		  }
 
 		  // Fallback: try to convert as expression
@@ -1228,6 +1338,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		  if (t.isIdentifier(node)) {
 		    return node.name;
+		  }
+
+		  if (t.isAwaitExpression(node)) {
+		    return `await ${generateCSharpExpression(node.argument, inInterpolation)}`;
 		  }
 
 		  // Handle optional chaining: viewModel?.userEmail → viewModel?.UserEmail
@@ -1269,6 +1383,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      return `${object}.Checked`;
 		    }
 
+		    // Handle exception properties (err.message → err.Message)
+		    if (propertyName === 'message' && !node.computed) {
+		      return `${object}.Message`;
+		    }
+
+		    // Handle fetch Response properties (response.ok → response.IsSuccessStatusCode)
+		    if (propertyName === 'ok' && !node.computed) {
+		      return `${object}.IsSuccessStatusCode`;
+		    }
+
 		    const property = node.computed
 		      ? `[${generateCSharpExpression(node.property)}]`
 		      : `.${propertyName}`;
@@ -1277,7 +1401,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		  if (t.isArrayExpression(node)) {
 		    const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
-		    return `new List<object> { ${elements} }`;
+		    // Use List<dynamic> for empty arrays to be compatible with dynamic LINQ results
+		    const listType = elements.length === 0 ? 'dynamic' : 'object';
+		    return `new List<${listType}> { ${elements} }`;
 		  }
 
 		  if (t.isUnaryExpression(node)) {
@@ -1295,6 +1421,34 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    if (operator === '===') operator = '==';
 		    if (operator === '!==') operator = '!=';
 		    return `${left} ${operator} ${right}`;
+		  }
+
+		  if (t.isLogicalExpression(node)) {
+		    const left = generateCSharpExpression(node.left);
+		    const right = generateCSharpExpression(node.right);
+
+		    if (node.operator === '||') {
+		      // JavaScript: a || b
+		      // C#: a ?? b (null coalescing)
+		      return `(${left}) ?? (${right})`;
+		    } else if (node.operator === '&&') {
+		      // Check if right side is a boolean expression (comparison, logical, etc.)
+		      const rightIsBooleanExpr = t.isBinaryExpression(node.right) ||
+		                                  t.isLogicalExpression(node.right) ||
+		                                  t.isUnaryExpression(node.right);
+
+		      if (rightIsBooleanExpr) {
+		        // JavaScript: a && (b > 0)
+		        // C#: (a) && (b > 0) - boolean AND
+		        return `(${left}) && (${right})`;
+		      } else {
+		        // JavaScript: a && <jsx> or a && someValue
+		        // C#: a != null ? value : null (for objects)
+		        return `(${left}) != null ? (${right}) : null`;
+		      }
+		    }
+
+		    return `${left} ${node.operator} ${right}`;
 		  }
 
 		  if (t.isConditionalExpression(node)) {
@@ -1323,6 +1477,35 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      return `Math.Min(${args})`;
 		    }
 
+		    // Handle other Math methods (floor, ceil, round, pow, log, etc.) → Pascal case
+		    if (t.isMemberExpression(node.callee) &&
+		        t.isIdentifier(node.callee.object, { name: 'Math' })) {
+		      const methodName = node.callee.property.name;
+		      const pascalMethodName = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+		      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+
+		      // Cast floor/ceil/round to int for array indexing compatibility
+		      if (methodName === 'floor' || methodName === 'ceil' || methodName === 'round') {
+		        return `(int)Math.${pascalMethodName}(${args})`;
+		      }
+
+		      return `Math.${pascalMethodName}(${args})`;
+		    }
+
+		    // Handle encodeURIComponent() → Uri.EscapeDataString()
+		    if (t.isIdentifier(node.callee, { name: 'encodeURIComponent' })) {
+		      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+		      return `Uri.EscapeDataString(${args})`;
+		    }
+
+		    // Handle fetch() → HttpClient call
+		    // Note: This generates a basic wrapper. Real implementation would use IHttpClientFactory
+		    if (t.isIdentifier(node.callee, { name: 'fetch' })) {
+		      const url = node.arguments.length > 0 ? generateCSharpExpression(node.arguments[0]) : '""';
+		      // Return HttpResponseMessage (await is handled by caller)
+		      return `new HttpClient().GetAsync(${url})`;
+		    }
+
 		    // Handle alert() → Console.WriteLine() (or custom alert implementation)
 		    if (t.isIdentifier(node.callee, { name: 'alert' })) {
 		      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
@@ -1337,6 +1520,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      return `Console.WriteLine(${args})`;
 		    }
 
+		    // Handle response.json() → response.Content.ReadFromJsonAsync<dynamic>()
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'json' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      return `${object}.Content.ReadFromJsonAsync<dynamic>()`;
+		    }
+
 		    // Handle .toFixed(n) → .ToString("Fn")
 		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toFixed' })) {
 		      const object = generateCSharpExpression(node.callee.object);
@@ -1344,6 +1533,24 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		        ? node.arguments[0].value
 		        : 2;
 		      return `${object}.ToString("F${decimals}")`;
+		    }
+
+		    // Handle .toLocaleString() → .ToString("g") (DateTime)
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLocaleString' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      return `${object}.ToString("g")`;
+		    }
+
+		    // Handle .toLowerCase() → .ToLower()
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLowerCase' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      return `${object}.ToLower()`;
+		    }
+
+		    // Handle .toUpperCase() → .ToUpper()
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toUpperCase' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      return `${object}.ToUpper()`;
 		    }
 
 		    // Handle useState/useClientState setters → SetState calls
@@ -1360,23 +1567,161 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      }
 		    }
 
+		    // Handle .map() → .Select()
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'map' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      if (node.arguments.length > 0) {
+		        const callback = node.arguments[0];
+		        if (t.isArrowFunctionExpression(callback)) {
+		          const paramNames = callback.params.map(p => p.name);
+		          // C# requires parentheses for 0 or 2+ parameters
+		          const params = paramNames.length === 1
+		            ? paramNames[0]
+		            : `(${paramNames.join(', ')})`;
+
+		          // Handle JSX in arrow function body
+		          let body;
+		          if (t.isBlockStatement(callback.body)) {
+		            body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
+		          } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
+		            // JSX element - use generateJSXElement with currentComponent context
+		            // Store map context for event handler closure capture
+		            const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+		            if (currentComponent) {
+		              currentComponent.currentMapContext = { params: paramNames };
+		            }
+		            body = generateJSXElement(callback.body, currentComponent, 0);
+		            // Restore previous context
+		            if (currentComponent) {
+		              currentComponent.currentMapContext = previousMapContext;
+		            }
+		          } else {
+		            body = generateCSharpExpression(callback.body);
+		          }
+
+		          // Cast to IEnumerable<dynamic> if we detect dynamic access
+		          // Check for optional chaining or property access (likely dynamic)
+		          const needsCast = object.includes('?.') || object.includes('?') || object.includes('.');
+		          const castedObject = needsCast ? `((IEnumerable<dynamic>)${object})` : object;
+
+		          return `${castedObject}.Select(${params} => ${body}).ToList()`;
+		        }
+		      }
+		    }
+
 		    // Generic function call
 		    const callee = generateCSharpExpression(node.callee);
 		    const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
 		    return `${callee}(${args})`;
 		  }
 
+		  if (t.isOptionalCallExpression(node)) {
+		    // Handle optional call: array?.map(...)
+		    // Check if this is .map() which needs to be converted to .Select()
+		    if (t.isOptionalMemberExpression(node.callee) &&
+		        t.isIdentifier(node.callee.property, { name: 'map' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      if (node.arguments.length > 0) {
+		        const callback = node.arguments[0];
+		        if (t.isArrowFunctionExpression(callback)) {
+		          const paramNames = callback.params.map(p => p.name);
+		          // C# requires parentheses for 0 or 2+ parameters
+		          const params = paramNames.length === 1
+		            ? paramNames[0]
+		            : `(${paramNames.join(', ')})`;
+
+		          // Handle JSX in arrow function body
+		          let body;
+		          if (t.isBlockStatement(callback.body)) {
+		            body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
+		          } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
+		            // JSX element - use generateJSXElement with currentComponent context
+		            // Store map context for event handler closure capture
+		            const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+		            if (currentComponent) {
+		              currentComponent.currentMapContext = { params: paramNames };
+		            }
+		            body = generateJSXElement(callback.body, currentComponent, 0);
+		            // Restore previous context
+		            if (currentComponent) {
+		              currentComponent.currentMapContext = previousMapContext;
+		            }
+		          } else {
+		            body = generateCSharpExpression(callback.body);
+		          }
+
+		          // Cast to IEnumerable<dynamic> for optional chaining (likely dynamic)
+		          const castedObject = `((IEnumerable<dynamic>)${object})`;
+
+		          // Cast result to List<dynamic> for ?? operator compatibility
+		          // Anonymous types from Select need explicit Cast<dynamic>() before ToList()
+		          return `${castedObject}?.Select(${params} => ${body})?.Cast<dynamic>().ToList()`;
+		        }
+		      }
+		    }
+
+		    // Generic optional call
+		    const callee = generateCSharpExpression(node.callee);
+		    const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+		    return `${callee}(${args})`;
+		  }
+
 		  if (t.isTemplateLiteral(node)) {
-		    // Convert template literal to C# string interpolation
+		    // Convert template literal to C# string
+
+		    // If no expressions, use verbatim string literal (@"...") to avoid escaping issues
+		    if (node.expressions.length === 0) {
+		      const text = node.quasis[0].value.raw;
+		      // Use verbatim string literal (@"...") for multiline or strings with special chars
+		      // Escape " as "" in verbatim strings
+		      const escaped = text.replace(/"/g, '""');
+		      return `@"${escaped}"`;
+		    }
+
+		    // Has expressions - use C# string interpolation
 		    let result = '$"';
 		    for (let i = 0; i < node.quasis.length; i++) {
-		      result += node.quasis[i].value.raw;
+		      // Escape special chars in C# interpolated strings
+		      let text = node.quasis[i].value.raw;
+		      // Escape { and } by doubling them
+		      text = text.replace(/{/g, '{{').replace(/}/g, '}}');
+		      // Escape " as \"
+		      text = text.replace(/"/g, '\\"');
+		      result += text;
+
 		      if (i < node.expressions.length) {
-		        result += '{' + generateCSharpExpression(node.expressions[i]) + '}';
+		        const expr = node.expressions[i];
+		        // Wrap conditional (ternary) expressions in parentheses to avoid ':' conflict in C# interpolation
+		        const exprCode = generateCSharpExpression(expr);
+		        const needsParens = t.isConditionalExpression(expr);
+		        result += '{' + (needsParens ? `(${exprCode})` : exprCode) + '}';
 		      }
 		    }
 		    result += '"';
 		    return result;
+		  }
+
+		  if (t.isNewExpression(node)) {
+		    // Handle new Date() → DateTime.Parse()
+		    if (t.isIdentifier(node.callee, { name: 'Date' })) {
+		      if (node.arguments.length === 0) {
+		        return 'DateTime.Now';
+		      } else if (node.arguments.length === 1) {
+		        const arg = generateCSharpExpression(node.arguments[0]);
+		        return `DateTime.Parse(${arg})`;
+		      }
+		    }
+
+		    // Handle new Error() → new Exception()
+		    if (t.isIdentifier(node.callee, { name: 'Error' })) {
+		      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+		      return `new Exception(${args})`;
+		    }
+
+		    // Handle other new expressions: new Foo() → new Foo()
+		    const callee = generateCSharpExpression(node.callee);
+		    const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+		    return `new ${callee}(${args})`;
 		  }
 
 		  if (t.isObjectExpression(node)) {
@@ -1413,6 +1758,32 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    } else {
 		      return `new { ${properties.join(', ')} }`;
 		    }
+		  }
+
+		  if (t.isArrowFunctionExpression(node) || t.isFunctionExpression(node)) {
+		    // Arrow function: (x) => x * 2  →  x => x * 2
+		    // Function expression: function(x) { return x * 2; }  →  x => x * 2
+		    const params = node.params.map(p => {
+		      if (t.isIdentifier(p)) return p.name;
+		      if (t.isObjectPattern(p)) return '{...}'; // Destructuring - simplified
+		      return 'param';
+		    }).join(', ');
+
+		    // Wrap params in parentheses if multiple or none
+		    const paramsString = node.params.length === 1 ? params : `(${params})`;
+
+		    // Generate function body
+		    let body;
+		    if (t.isBlockStatement(node.body)) {
+		      // Block body: (x) => { return x * 2; }
+		      const statements = node.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ');
+		      body = `{ ${statements} }`;
+		    } else {
+		      // Expression body: (x) => x * 2
+		      body = generateCSharpExpression(node.body);
+		    }
+
+		    return `${paramsString} => ${body}`;
 		  }
 
 		  return 'null';
@@ -5553,6 +5924,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    useDropdown: [],
 	    eventHandlers: [],
 	    localVariables: [], // Local variables (const/let/var) in function body
+	    helperFunctions: [], // Helper functions declared in function body
 	    renderBody: null,
 	    pluginUsages: [], // Plugin instances (<Plugin name="..." state={...} />)
 	    stateTypes: new Map(), // Track which hook each state came from
@@ -5646,6 +6018,38 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      // Only extract local variables at the top level of the function body
 	      if (varPath.getFunctionParent() === path && varPath.parent.type === 'BlockStatement') {
 	        extractLocalVariables(varPath, component, t$3);
+	      }
+	    },
+
+	    FunctionDeclaration(funcPath) {
+	      // Only extract helper functions at the top level of the component body
+	      // (not nested functions inside other functions)
+	      if (funcPath.getFunctionParent() === path && funcPath.parent.type === 'BlockStatement') {
+	        const funcName = funcPath.node.id.name;
+	        const params = funcPath.node.params.map(param => {
+	          if (t$3.isIdentifier(param)) {
+	            // Simple parameter: (name)
+	            const paramType = param.typeAnnotation?.typeAnnotation
+	              ? tsTypeToCSharpType(param.typeAnnotation.typeAnnotation)
+	              : 'dynamic';
+	            return { name: param.name, type: paramType };
+	          }
+	          return { name: 'param', type: 'dynamic' };
+	        });
+
+	        const returnType = funcPath.node.returnType?.typeAnnotation
+	          ? tsTypeToCSharpType(funcPath.node.returnType.typeAnnotation)
+	          : 'void';
+
+	        const isAsync = funcPath.node.async;
+
+	        component.helperFunctions.push({
+	          name: funcName,
+	          params,
+	          returnType,
+	          isAsync,
+	          body: funcPath.node.body // Store the function body AST
+	        });
 	      }
 	    },
 
@@ -5839,6 +6243,9 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const declarations = statement.declarations.map(decl => {
 	      const name = decl.id.name;
 	      const init = decl.init ? transpileExpression(decl.init) : 'null';
+	      if (name === 'chartData') {
+	        console.log(`[DEBUG chartData] init type: ${decl.init?.type}, result: ${init}`);
+	      }
 	      return `var ${name} = ${init};`;
 	    });
 	    return declarations.join('\n');
@@ -5968,11 +6375,31 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    return transpileMemberExpression(fullExpr, object, property);
 	  }
 
+	  if (t$1.isOptionalMemberExpression(expr)) {
+	    const object = transpileExpression(expr.object);
+	    const property = expr.computed
+	      ? `[${transpileExpression(expr.property)}]`
+	      : `.${expr.property.name}`;
+
+	    // In C#, optional chaining (?.) is just ?.
+	    const fullExpr = `${object}?${property}`;
+	    return transpileMemberExpression(fullExpr, object, property);
+	  }
+
 	  if (t$1.isCallExpression(expr)) {
 	    const callee = transpileExpression(expr.callee);
 	    const args = expr.arguments.map(arg => transpileExpression(arg)).join(', ');
 
 	    // Handle special method calls
+	    return transpileMethodCall(callee, args);
+	  }
+
+	  if (t$1.isOptionalCallExpression(expr)) {
+	    const callee = transpileExpression(expr.callee);
+	    const args = expr.arguments.map(arg => transpileExpression(arg)).join(', ');
+
+	    // In C#, optional call (?.) is handled via null-conditional operator
+	    // The callee should already have ? from OptionalMemberExpression
 	    return transpileMethodCall(callee, args);
 	  }
 
@@ -6007,6 +6434,11 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      ? `{\n${indent$1(transpileBlockStatement(expr.body), 4)}\n}`
 	      : transpileExpression(expr.body);
 	    return `(${params}) => ${body}`;
+	  }
+
+	  if (t$1.isParenthesizedExpression(expr)) {
+	    // Unwrap parentheses - just transpile the inner expression
+	    return transpileExpression(expr.expression);
 	  }
 
 	  if (t$1.isBinaryExpression(expr)) {
@@ -6060,6 +6492,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    return expr.prefix ? `${operator}${argument}` : `${argument}${operator}`;
 	  }
 
+	  console.warn(`[transpileExpression] Unknown expression type: ${expr.type}`);
 	  return `/* TODO: ${expr.type} */`;
 	}
 
@@ -6991,9 +7424,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    // Generate parameter list
 	    const params = handler.params || [];
-	    const paramStr = params.length > 0
-	      ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg').join(', ')
-	      : '';
+	    let paramList = params.length > 0
+	      ? params.map(p => t.isIdentifier(p) ? `dynamic ${p.name}` : 'dynamic arg')
+	      : [];
+
+	    // Add captured parameters from .map() context (e.g., item, index)
+	    const capturedParams = handler.capturedParams || [];
+	    if (capturedParams.length > 0) {
+	      paramList = paramList.concat(capturedParams.map(p => `dynamic ${p}`));
+	    }
+
+	    const paramStr = paramList.join(', ');
 
 	    // Event handlers must be public so SignalR hub can call them
 	    lines.push(`    public void ${handler.name}(${paramStr})`);
@@ -7113,6 +7554,32 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    lines.push('    }');
+	  }
+
+	  // Helper functions (function declarations in component body)
+	  if (component.helperFunctions && component.helperFunctions.length > 0) {
+	    for (const func of component.helperFunctions) {
+	      lines.push('');
+
+	      const returnType = func.isAsync
+	        ? (func.returnType === 'void' ? 'async Task' : `async Task<${func.returnType}>`)
+	        : func.returnType;
+
+	      const params = func.params.map(p => `${p.type} ${p.name}`).join(', ');
+
+	      lines.push(`    private ${returnType} ${func.name}(${params})`);
+	      lines.push('    {');
+
+	      // Generate function body
+	      if (func.body && t.isBlockStatement(func.body)) {
+	        for (const statement of func.body.body) {
+	          const stmtCode = generateCSharpStatement(statement, 2);
+	          lines.push(stmtCode);
+	        }
+	      }
+
+	      lines.push('    }');
+	    }
 	  }
 
 	  lines.push('}');
