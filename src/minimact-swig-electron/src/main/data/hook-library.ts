@@ -6,6 +6,7 @@
  * - MVC Hooks (@minimact/mvc package)
  * - Punch Hooks (@minimact/punch package - DOM element state)
  * - Query Hooks (@minimact/query package - SQL for the DOM)
+ * - Trees Hooks (@minimact/trees package - Decision trees & state machines)
  * - Advanced Hooks (server tasks, context, computed)
  *
  * Each hook includes:
@@ -19,7 +20,7 @@ export interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'mvc' | 'punch' | 'query' | 'advanced';
+  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'advanced';
   packageName?: string; // NPM package if not core
   imports: string[]; // Import statements
   example: string; // Code example template (client-side TSX)
@@ -1057,6 +1058,392 @@ export function ProductDetailsPage() {
   );
 }`,
     isDefault: false
+  },
+
+  // ===== TREES HOOKS (Decision Trees & State Machines) =====
+  {
+    id: 'useDecisionTree',
+    name: 'useDecisionTree',
+    description: 'Universal state machine with decision trees - declarative state transitions for any value types',
+    category: 'trees',
+    packageName: '@minimact/trees',
+    imports: ["import { useDecisionTree } from '@minimact/trees';"],
+    example: `export function OnboardingFlow() {
+  const [step, setStep] = useState('welcome');
+  const [hasAccount, setHasAccount] = useState(false);
+
+  // Decision tree using colon syntax: stateName:Value
+  const nextStepTree = {
+    'step:Welcome': 'profile',
+    'step:Profile': {
+      'hasAccount:True': 'preferences',
+      'hasAccount:False': 'signup'
+    },
+    'step:Signup': 'preferences',
+    'step:Preferences': 'complete'
+  };
+
+  // useDecisionTree syncs tree result to server for predictive rendering
+  const nextStep = useDecisionTree(nextStepTree, { step, hasAccount });
+
+  const handleNext = () => {
+    if (nextStep) setStep(nextStep);
+  };
+
+  return (
+    <div>
+      {/* Welcome Step */}
+      {step === 'welcome' && (
+        <div>
+          <h2>Welcome to Our App!</h2>
+          <button onClick={handleNext}>Get Started</button>
+        </div>
+      )}
+
+      {/* Profile Step */}
+      {step === 'profile' && (
+        <div>
+          <h2>Your Profile</h2>
+          <label>
+            <input
+              type="checkbox"
+              checked={hasAccount}
+              onChange={(e) => setHasAccount(e.target.checked)}
+            />
+            I already have an account
+          </label>
+          <button onClick={handleNext}>Next</button>
+        </div>
+      )}
+
+      {/* Signup Step */}
+      {step === 'signup' && (
+        <div>
+          <h2>Create Account</h2>
+          <form>
+            <input type="email" placeholder="Email" />
+            <input type="password" placeholder="Password" />
+          </form>
+          <button onClick={handleNext}>Next</button>
+        </div>
+      )}
+
+      {/* Preferences Step */}
+      {step === 'preferences' && (
+        <div>
+          <h2>Preferences</h2>
+          <label>
+            <input type="checkbox" /> Email notifications
+          </label>
+          <label>
+            <input type="checkbox" /> Dark mode
+          </label>
+          <button onClick={handleNext}>Complete</button>
+        </div>
+      )}
+
+      {/* Complete Step */}
+      {step === 'complete' && (
+        <div>
+          <h2>All Set!</h2>
+          <p>Your account is ready to go.</p>
+        </div>
+      )}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState']
+  },
+
+  {
+    id: 'useDecisionTree-validation',
+    name: 'useDecisionTree (Form Validation)',
+    description: 'Multi-step form validation with conditional paths and async validation',
+    category: 'trees',
+    packageName: '@minimact/trees',
+    imports: ["import { useDecisionTree } from '@minimact/trees';"],
+    example: `export function CheckoutForm() {
+  const [step, setStep] = useState('cart');
+  const [items, setItems] = useState([]);
+  const [shippingMethod, setShippingMethod] = useState('standard');
+
+  // Decision tree using colon syntax
+  const nextStepTree = {
+    'step:Cart': 'shipping',
+    'step:Shipping': {
+      'shippingMethod:Pickup': 'payment',
+      'shippingMethod:Standard': 'delivery',
+      'shippingMethod:Express': 'delivery'
+    },
+    'step:Delivery': 'payment',
+    'step:Payment': 'confirmation'
+  };
+
+  // useDecisionTree syncs tree result to server
+  const nextStep = useDecisionTree(nextStepTree, { step, shippingMethod });
+
+  const handleNext = async () => {
+    // Validation before transition
+    if (step === 'cart' && items.length === 0) {
+      alert('Cart is empty');
+      return;
+    }
+
+    if (step === 'shipping') {
+      const valid = await validateAddress();
+      if (!valid) {
+        alert('Invalid shipping address');
+        return;
+      }
+    }
+
+    if (nextStep) setStep(nextStep);
+  };
+
+  return (
+    <div>
+      {/* Render current step */}
+      {step === 'cart' && <CartStep items={items} setItems={setItems} />}
+      {step === 'shipping' && (
+        <ShippingStep
+          shippingMethod={shippingMethod}
+          setShippingMethod={setShippingMethod}
+        />
+      )}
+      {step === 'delivery' && <DeliveryStep />}
+      {step === 'payment' && <PaymentStep />}
+      {step === 'confirmation' && <ConfirmationStep />}
+
+      {/* Navigation */}
+      <button onClick={handleNext}>
+        {step === 'confirmation' ? 'Done' : 'Next'}
+      </button>
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState']
+  },
+
+  {
+    id: 'useDecisionTree-game',
+    name: 'useDecisionTree (Game State)',
+    description: 'Game state management with complex branching logic and score tracking',
+    category: 'trees',
+    packageName: '@minimact/trees',
+    imports: ["import { useDecisionTree } from '@minimact/trees';"],
+    example: `export function AdventureGame() {
+  const [location, setLocation] = useState('start');
+  const [action, setAction] = useState('');
+  const [hasKey, setHasKey] = useState(false);
+  const [hasTorch, setHasTorch] = useState(false);
+  const [won, setWon] = useState(false);
+  const [score, setScore] = useState(0);
+
+  // Decision tree using colon syntax: stateName:Value
+  const gameTree = {
+    'location:Start': {
+      'choice:Forest': 'forest',
+      'choice:Cave': 'cave'
+    },
+    'location:Forest': {
+      'hasKey:True': 'treasure',
+      'action:Fight': {
+        'won:True': 'wolf-victory',
+        'won:False': 'game-over'
+      },
+      'action:Explore': 'forest-explore'
+    },
+    'location:Cave': {
+      'hasTorch:True': 'cave-deep',
+      'hasTorch:False': 'cave-dark'
+    },
+    'location:Wolf-victory': 'treasure',
+    'location:Cave-deep': {
+      'action:Take-gem': 'treasure',
+      'action:Leave': 'game-over'
+    },
+    'location:Treasure': 'win',
+    'location:Game-over': 'start' // Restart
+  };
+
+  // useDecisionTree syncs game state to server
+  const nextLocation = useDecisionTree(gameTree, {
+    location,
+    action,
+    hasKey,
+    hasTorch,
+    won,
+    choice: '' // Will be set by navigation
+  });
+
+  const navigate = (choice: string) => {
+    if (nextLocation) {
+      setLocation(nextLocation);
+      setAction('');
+    }
+  };
+
+  const performAction = (newAction: string, newWon?: boolean) => {
+    setAction(newAction);
+    if (newWon !== undefined) setWon(newWon);
+
+    if (nextLocation) {
+      setLocation(nextLocation);
+      if (nextLocation === 'treasure') setScore(score + 100);
+    }
+  };
+
+  return (
+    <div className="game">
+      <div className="score">Score: {score}</div>
+
+      {location === 'start' && (
+        <div>
+          <h2>The Adventure Begins</h2>
+          <p>You stand at a crossroads. Which path will you take?</p>
+          <button onClick={() => navigate('forest')}>Enter the Dark Forest</button>
+          <button onClick={() => navigate('cave')}>Explore the Cave</button>
+        </div>
+      )}
+
+      {location === 'forest' && (
+        <div>
+          <h2>Dark Forest</h2>
+          <p>You hear a wolf howling in the distance...</p>
+          <button onClick={() => performAction('fight', true)}>Fight the Wolf</button>
+          <button onClick={() => performAction('explore')}>Search for Another Path</button>
+        </div>
+      )}
+
+      {location === 'treasure' && (
+        <div>
+          <h2>Victory!</h2>
+          <p>You found the treasure! Score: {score}</p>
+        </div>
+      )}
+
+      {location === 'game-over' && (
+        <div>
+          <h2>Game Over</h2>
+          <button onClick={() => { setLocation('start'); setScore(0); }}>Try Again</button>
+        </div>
+      )}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState']
+  },
+
+  {
+    id: 'useDecisionTree-survey',
+    name: 'useDecisionTree (Conditional Survey)',
+    description: 'Dynamic survey with skip logic and branching questions',
+    category: 'trees',
+    packageName: '@minimact/trees',
+    imports: ["import { useDecisionTree } from '@minimact/trees';"],
+    example: `export function DynamicSurvey() {
+  const [question, setQuestion] = useState('q1');
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answer, setAnswer] = useState('');
+  const [frequency, setFrequency] = useState('');
+
+  // Decision tree using colon syntax: stateName:Value
+  const surveyTree = {
+    'question:Q1': {
+      'answer:Yes': 'q2-car',
+      'answer:No': 'q2-transport'
+    },
+    'question:Q2-car': 'q3',
+    'question:Q2-transport': 'q3',
+    'question:Q3': {
+      'frequency:Daily': 'q4-daily',
+      'frequency:Weekly': 'q4-weekly',
+      'frequency:Rarely': 'complete'
+    },
+    'question:Q4-daily': 'complete',
+    'question:Q4-weekly': 'complete'
+  };
+
+  // useDecisionTree syncs survey state to server
+  const nextQuestion = useDecisionTree(surveyTree, {
+    question,
+    answer,
+    frequency
+  });
+
+  const questions = {
+    q1: 'Do you own a car?',
+    'q2-car': 'What type of car do you drive?',
+    'q2-transport': 'What is your primary mode of transportation?',
+    q3: 'How often do you commute?',
+    'q4-daily': 'What time do you usually commute?',
+    'q4-weekly': 'Which days do you commute?'
+  };
+
+  const handleAnswer = (newAnswer: string) => {
+    const newAnswers = { ...answers, [question]: newAnswer };
+    setAnswers(newAnswers);
+
+    // Update state based on question
+    if (question === 'q1') {
+      setAnswer(newAnswer.charAt(0).toUpperCase() + newAnswer.slice(1));
+    } else if (question === 'q3') {
+      setFrequency(newAnswer.charAt(0).toUpperCase() + newAnswer.slice(1));
+    }
+
+    // Navigate to next question
+    if (nextQuestion) {
+      setQuestion(nextQuestion);
+    }
+  };
+
+  const totalQuestions = Object.keys(questions).length;
+  const currentIndex = Object.keys(questions).indexOf(question) + 1;
+  const progress = (currentIndex / totalQuestions) * 100;
+
+  return (
+    <div className="survey">
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: \`\${progress}%\` }} />
+      </div>
+
+      {question !== 'complete' && (
+        <div className="question">
+          <h3>{questions[question]}</h3>
+          <div className="answer-options">
+            {question === 'q1' && (
+              <>
+                <button onClick={() => handleAnswer('yes')}>Yes</button>
+                <button onClick={() => handleAnswer('no')}>No</button>
+              </>
+            )}
+            {question === 'q3' && (
+              <>
+                <button onClick={() => handleAnswer('daily')}>Daily</button>
+                <button onClick={() => handleAnswer('weekly')}>Weekly</button>
+                <button onClick={() => handleAnswer('rarely')}>Rarely</button>
+              </>
+            )}
+            {/* Other question types would have their own inputs */}
+          </div>
+        </div>
+      )}
+
+      {question === 'complete' && (
+        <div className="complete">
+          <h2>Thank you!</h2>
+          <p>Survey completed.</p>
+          <pre>{JSON.stringify(answers, null, 2)}</pre>
+        </div>
+      )}
+    </div>
+  );
+}`,
+    isDefault: false,
+    dependencies: ['useState']
   }
 ];
 

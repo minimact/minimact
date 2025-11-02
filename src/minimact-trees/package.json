@@ -1,24 +1,44 @@
 {
-  "name": "minimact-trees",
+  "name": "@minimact/trees",
   "version": "0.1.0",
-  "description": "🌳 Universal State Machine - Decision trees for any value types",
-  "main": "dist/index.js",
+  "description": "🌳 Universal State Machine - Decision trees for any value types, built for Minimact",
+  "type": "module",
+  "main": "dist/trees.js",
+  "module": "dist/trees.esm.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "jest"
+    "clean": "rimraf dist",
+    "build": "npm run clean && rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "minimact",
     "decision-tree",
     "state-machine",
     "xstate",
-    "minimal"
+    "minimal",
+    "reactive",
+    "ssr"
   ],
-  "author": "",
+  "author": "Minimact Team",
   "license": "MIT",
+  "peerDependencies": {
+    "@minimact/core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@minimact/core": "file:../client-runtime",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
   }
 }

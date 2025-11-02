@@ -11,3 +11,4 @@ export { parseStateKey, matchesState, findMatchingKeys, debugParseKey } from './
 export type { DecisionTree, ParsedStateKey, StateContext, DecisionTreeOptions, ComponentContext, DecisionTreeState } from './types';
 export declare const VERSION = "0.1.0";
 export declare const CODENAME = "Universal State Machine";
+//# sourceMappingURL=index.d.ts.map

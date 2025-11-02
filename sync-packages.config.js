@@ -93,6 +93,23 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/trees',
+      source: 'src/minimact-trees',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
     }
   ],
 
@@ -113,7 +130,8 @@ module.exports = {
         '@minimact/babel-plugin',
         '@minimact/punch',
         '@minimact/core',
-        '@minimact/query'
+        '@minimact/query',
+        '@minimact/trees'
       ]
     }
     // Add more targets as needed:

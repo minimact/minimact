@@ -37,3 +37,4 @@ export declare function evaluateTree<TResult = any>(tree: DecisionTree<TResult>,
  * @returns Array of path strings
  */
 export declare function getAllPaths(tree: DecisionTree, prefix?: string): string[];
+//# sourceMappingURL=evaluator.d.ts.map
