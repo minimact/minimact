@@ -36,6 +36,9 @@ function extractHook(path, component) {
     case 'useMarkdown':
       extractUseMarkdown(path, component);
       break;
+    case 'useRazorMarkdown':
+      extractUseRazorMarkdown(path, component);
+      break;
     case 'useTemplate':
       extractUseTemplate(path, component);
       break;
@@ -170,6 +173,44 @@ function extractUseMarkdown(path, component) {
 
   // Track as markdown state type
   component.stateTypes.set(contentVar.name, 'markdown');
+}
+
+/**
+ * Extract useRazorMarkdown - markdown with Razor syntax
+ */
+function extractUseRazorMarkdown(path, component) {
+  const parent = path.parent;
+
+  if (!t.isVariableDeclarator(parent)) return;
+  if (!t.isArrayPattern(parent.id)) return;
+
+  const [contentVar, setterVar] = parent.id.elements;
+  const initialValue = path.node.arguments[0];
+
+  // Initialize useRazorMarkdown array if it doesn't exist
+  if (!component.useRazorMarkdown) {
+    component.useRazorMarkdown = [];
+  }
+
+  // Extract raw markdown string (for Razor conversion)
+  let rawMarkdown = '';
+  if (t.isStringLiteral(initialValue)) {
+    rawMarkdown = initialValue.value;
+  } else if (t.isTemplateLiteral(initialValue)) {
+    // Template literal - extract raw string
+    rawMarkdown = initialValue.quasis.map(q => q.value.raw).join('');
+  }
+
+  component.useRazorMarkdown.push({
+    name: contentVar.name,
+    setter: setterVar.name,
+    initialValue: rawMarkdown, // Store raw markdown for Razor conversion
+    hasRazorSyntax: true, // Will be determined by Razor detection later
+    referencedVariables: [] // Will be populated by Razor variable extraction
+  });
+
+  // Track as razor-markdown state type
+  component.stateTypes.set(contentVar.name, 'razor-markdown');
 }
 
 /**
@@ -850,6 +891,7 @@ module.exports = {
   extractUseEffect,
   extractUseRef,
   extractUseMarkdown,
+  extractUseRazorMarkdown,
   extractUseTemplate,
   extractUseValidation,
   extractUseModal,

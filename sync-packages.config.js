@@ -127,6 +127,23 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/md',
+      source: 'src/minimact-md',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
     }
   ],
 
@@ -149,7 +166,8 @@ module.exports = {
         '@minimact/core',
         '@minimact/query',
         '@minimact/trees',
-        '@minimact/quantum'
+        '@minimact/quantum',
+        '@minimact/md'
       ]
     }
     // Add more targets as needed:

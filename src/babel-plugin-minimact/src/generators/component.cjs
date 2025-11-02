@@ -152,6 +152,17 @@ function generateComponent(component) {
     lines.push('');
   }
 
+  // Razor Markdown fields (useRazorMarkdown)
+  // These are initialized in OnInitialized() after Razor syntax is evaluated
+  if (component.useRazorMarkdown) {
+    for (const md of component.useRazorMarkdown) {
+      lines.push(`    [RazorMarkdown]`);
+      lines.push(`    [State]`);
+      lines.push(`    private string ${md.name} = null!;`);
+      lines.push('');
+    }
+  }
+
   // Validation fields (useValidation)
   for (const validation of component.useValidation) {
     lines.push(`    [Validation]`);
@@ -471,6 +482,25 @@ function generateComponent(component) {
         lines.push('    }');
       }
     }
+  }
+
+  // OnInitialized method for Razor Markdown initialization
+  if (component.useRazorMarkdown && component.useRazorMarkdown.length > 0) {
+    const { convertRazorMarkdownToCSharp } = require('./razorMarkdown.cjs');
+
+    lines.push('');
+    lines.push('    protected override void OnInitialized()');
+    lines.push('    {');
+    lines.push('        base.OnInitialized();');
+    lines.push('');
+
+    for (const md of component.useRazorMarkdown) {
+      // Convert Razor markdown to C# string interpolation
+      const csharpMarkdown = convertRazorMarkdownToCSharp(md.initialValue);
+      lines.push(`        ${md.name} = ${csharpMarkdown};`);
+    }
+
+    lines.push('    }');
   }
 
   lines.push('}');
