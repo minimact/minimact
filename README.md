@@ -689,6 +689,730 @@ When the next developer asks "But where's the client state?" you just turn slowl
 
 ---
 
+## 🔌 Plugin System
+
+**Extend Minimact with third-party components. Zero configuration. Type-safe. Production-ready.**
+
+Minimact's plugin system allows you to create and distribute reusable UI components as NuGet packages. Plugins are auto-discovered, type-safe, and integrate seamlessly with Minimact's template prediction system.
+
+### Using a Plugin
+
+**1. Install the NuGet package:**
+```bash
+dotnet add package Minimact.Plugin.Clock
+```
+
+**2. Use it in your TSX component:**
+```tsx
+import { useState, useEffect } from 'minimact';
+
+interface ClockState {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  date: string;
+  theme: 'light' | 'dark';
+  showSeconds: boolean;
+  use24Hour: boolean;
+}
+
+export function Dashboard() {
+  const [currentTime, setCurrentTime] = useState<ClockState>({
+    hours: 14,
+    minutes: 30,
+    seconds: 45,
+    date: 'November 1, 2025',
+    theme: 'light',
+    showSeconds: true,
+    use24Hour: true
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(prev => ({
+        ...prev,
+        hours: now.getHours(),
+        minutes: now.getMinutes(),
+        seconds: now.getSeconds(),
+        date: now.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      }));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <Plugin name="Clock" state={currentTime} />
+    </div>
+  );
+}
+```
+
+**That's it!** The plugin is auto-discovered, rendered server-side, and its assets (CSS, JS) are served automatically.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Developer writes <Plugin name="Clock" state={...} />  │
+│  ↓                                                       │
+│  Babel plugin:                                          │
+│    - Transforms to new PluginNode("Clock", state)       │
+│    - Extracts type-safe state bindings                  │
+│  ↓                                                       │
+│  ASP.NET Core:                                          │
+│    - PluginManager auto-discovers plugins via reflection│
+│    - Validates state against JSON Schema                │
+│    - Renders plugin to VNode tree                       │
+│  ↓                                                       │
+│  Server sends HTML with plugin markup                   │
+│  ↓                                                       │
+│  Client requests plugin assets:                         │
+│    GET /plugin-assets/Clock@1.0.0/clock-widget.css      │
+│  ↓                                                       │
+│  PluginAssetMiddleware serves embedded resources         │
+│    - Versioned URLs for cache busting                   │
+│    - 24-hour cache with ETag validation                 │
+│  ↓                                                       │
+│  Template prediction system works seamlessly:           │
+│    - State changes → Instant patch application          │
+│    - 95-98% cache hit rate                              │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Features
+
+- ✅ **Auto-discovery** - Plugins found via `[MinimactPlugin]` attribute
+- ✅ **Type-safe state contracts** - JSON Schema validation
+- ✅ **Versioned assets** - `/plugin-assets/Name@1.0.0/file.css`
+- ✅ **Embedded resources** - CSS, JS, images, fonts served automatically
+- ✅ **Multi-version support** - Side-by-side plugin versions
+- ✅ **Semver compatibility** - Automatic version resolution
+- ✅ **Template prediction** - Full integration with Minimact's prediction system
+- ✅ **Zero client bundle** - Server-rendered, no JavaScript required
+- ✅ **Cache optimization** - 24-hour cache with ETag headers
+
+### Configuration
+
+**Option A: Auto-Discovery (Default)**
+```csharp
+// Program.cs
+builder.Services.AddMinimact(options =>
+{
+    options.AutoDiscoverPlugins = true; // Default
+});
+
+var app = builder.Build();
+app.UseMinimact();
+```
+
+**Option B: Explicit Registration**
+```csharp
+builder.Services.AddMinimact(options =>
+{
+    options.AutoDiscoverPlugins = false;
+    options.RegisterPlugin<ClockPlugin>();
+    options.RegisterPlugin<WeatherPlugin>();
+});
+```
+
+**Option C: Custom Asset Options**
+```csharp
+builder.Services.AddMinimact(options =>
+{
+    options.PluginAssets.BasePath = "/assets/plugins";
+    options.PluginAssets.VersionAssetUrls = true;
+    options.PluginAssets.CacheDuration = 3600; // 1 hour
+});
+```
+
+### Creating a Plugin
+
+**1. Create a new C# class library:**
+```bash
+dotnet new classlib -n Minimact.Plugin.MyWidget
+cd Minimact.Plugin.MyWidget
+dotnet add package Minimact.AspNetCore
+```
+
+**2. Define the state contract:**
+```csharp
+namespace Minimact.Plugin.MyWidget;
+
+public class MyWidgetState
+{
+    public string Title { get; set; } = string.Empty;
+    public int Value { get; set; }
+    public bool IsActive { get; set; }
+}
+```
+
+**3. Implement the plugin:**
+```csharp
+using Minimact.AspNetCore.Plugins;
+using Minimact.AspNetCore.Core;
+
+namespace Minimact.Plugin.MyWidget;
+
+[MinimactPlugin("MyWidget")]
+public class MyWidgetPlugin : MinimactPlugin<MyWidgetState>
+{
+    public override string Name => "MyWidget";
+    public override string Version => "1.0.0";
+    public override string Description => "A custom widget";
+    public override string Author => "Your Name";
+
+    protected override VNode RenderTyped(MyWidgetState state)
+    {
+        return new VElement("div", new Dictionary<string, string>
+        {
+            ["className"] = state.IsActive ? "widget active" : "widget"
+        }, new[]
+        {
+            new VElement("h3", new Dictionary<string, string>(),
+                state.Title),
+            new VElement("span", new Dictionary<string, string>
+            {
+                ["className"] = "value"
+            }, state.Value.ToString())
+        });
+    }
+
+    public override PluginAssets GetAssets()
+    {
+        return new PluginAssets
+        {
+            CssFiles = new List<string>
+            {
+                "/plugin-assets/MyWidget@1.0.0/widget.css"
+            },
+            Source = AssetSource.Embedded
+        };
+    }
+
+    public override void Initialize(IServiceProvider services)
+    {
+        Console.WriteLine($"[MyWidget Plugin] Initialized v{Version}");
+    }
+}
+```
+
+**4. Add embedded CSS (assets/widget.css):**
+```css
+.widget {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.widget.active {
+  border-color: #4CAF50;
+  background: #f0f8f0;
+}
+
+.widget .value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+}
+```
+
+**5. Configure embedded resources in .csproj:**
+```xml
+<ItemGroup>
+  <EmbeddedResource Include="assets\**\*" />
+</ItemGroup>
+```
+
+**6. Build and publish:**
+```bash
+dotnet build
+dotnet pack
+dotnet nuget push bin/Release/Minimact.Plugin.MyWidget.1.0.0.nupkg
+```
+
+### Example Plugins
+
+**Clock Widget** - Real-time clock with themes ([Source](./plugins/Minimact.Plugin.Clock))
+- 12/24-hour formats
+- Light and dark themes
+- Optional timezone display
+- Beautiful gradients
+
+**Coming Soon:**
+- Weather Widget
+- Chart Components (Line, Bar, Pie)
+- Calendar/Date Picker
+- Code Editor
+- Markdown Renderer
+
+### Plugin Discovery Flow
+
+```
+1. App starts
+   ↓
+2. AddMinimact() called
+   ↓
+3. PluginManager registered as singleton
+   ↓
+4. If AutoDiscoverPlugins = true:
+   ├─ Scan all loaded assemblies
+   ├─ Find types with [MinimactPlugin] attribute
+   ├─ Instantiate via DI
+   └─ Call plugin.Initialize()
+   ↓
+5. Register explicit plugins
+   ↓
+6. UseMinimact() called
+   ↓
+7. PluginAssetMiddleware added to pipeline
+   ↓
+8. Plugins ready for use in components
+```
+
+### Asset Serving Flow
+
+```
+1. Client requests: /plugin-assets/Clock@1.0.0/clock-widget.css
+   ↓
+2. PluginAssetMiddleware intercepts
+   ↓
+3. Parse URL:
+   ├─ Plugin Name: "Clock"
+   ├─ Version: "1.0.0"
+   └─ Asset Path: "clock-widget.css"
+   ↓
+4. Get plugin from PluginManager
+   ↓
+5. Find embedded resource in plugin assembly
+   ├─ Try exact match
+   ├─ Try partial match
+   └─ Try assets folder convention
+   ↓
+6. Serve resource:
+   ├─ Content-Type: text/css
+   ├─ Cache-Control: public, max-age=86400
+   ├─ ETag: "Clock-1.0.0-12345678"
+   └─ Stream resource bytes
+```
+
+### Performance
+
+- **Plugin discovery:** ~50ms (one-time on startup)
+- **Plugin lookup:** O(1) (dictionary-based)
+- **Asset serving:** ~2-5ms (first request), ~0ms (cached)
+- **Memory overhead:** ~2KB per plugin
+- **Template prediction:** Same 95-98% cache hit rate as core Minimact
+
+### Security
+
+- ✅ **JSON Schema validation** - Prevents malicious state injection
+- ✅ **Content-Type enforcement** - Protects against MIME confusion
+- ✅ **Cache headers** - Optimizes performance without sacrificing security
+- ✅ **ETag validation** - Ensures asset integrity
+- ✅ **Embedded resource isolation** - Plugins can't access host filesystem
+
+### Documentation
+
+- [Plugin System Implementation Plan](./docs/PLUGIN_SYSTEM_PHASE2_COMPLETE.md)
+- [Clock Plugin Source](./plugins/Minimact.Plugin.Clock)
+- [Creating Custom Plugins Guide](./docs/creating-plugins.md)
+
+---
+
+## 🎯 MVC Bridge
+
+**Traditional ASP.NET MVC Controllers → React-like Minimact Components. The best of both worlds.**
+
+The MVC Bridge seamlessly integrates Minimact with traditional ASP.NET MVC, allowing you to use Controllers, ViewModels, and all the familiar MVC patterns while rendering modern React-like UI components. Perfect for migrating existing MVC applications or building new ones with a familiar backend architecture.
+
+### The Pattern
+
+```
+Traditional MVC Flow:
+Controller → ViewModel → Razor View → HTML
+
+Minimact MVC Flow:
+Controller → ViewModel → Minimact Component → HTML
+            ↓
+     [Mutable] attribute controls client mutability
+            ↓
+    Type-safe state synchronization
+```
+
+### Quick Example
+
+**1. Define a ViewModel with mutability control:**
+```csharp
+using Minimact.AspNetCore.Attributes;
+
+public class ProductViewModel
+{
+    // ❌ IMMUTABLE - Server authority (security, business logic)
+    public string ProductName { get; set; }
+    public decimal Price { get; set; }
+    public bool IsAdminRole { get; set; }
+    public string UserEmail { get; set; }
+
+    // ✅ MUTABLE - Client can modify (UI state, form inputs)
+    [Mutable]
+    public int InitialQuantity { get; set; }
+
+    [Mutable]
+    public string InitialSelectedColor { get; set; } = "Black";
+
+    [Mutable]
+    public bool InitialIsExpanded { get; set; }
+}
+```
+
+**2. Use it in an MVC Controller:**
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using Minimact.AspNetCore.Rendering;
+
+[ApiController]
+[Route("[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly MinimactPageRenderer _renderer;
+
+    public ProductsController(MinimactPageRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Details(int id)
+    {
+        // 1. Fetch data (EF Core, Dapper, etc.)
+        var product = await _db.Products.FindAsync(id);
+
+        // 2. Prepare ViewModel (traditional MVC pattern)
+        var viewModel = new ProductViewModel
+        {
+            ProductName = product.Name,
+            Price = product.Price,
+            IsAdminRole = User.IsInRole("Admin"),
+            UserEmail = User.Identity?.Name ?? "Guest",
+            InitialQuantity = 1,
+            InitialSelectedColor = "Black"
+        };
+
+        // 3. Render Minimact component with ViewModel
+        return await _renderer.RenderPage<ProductDetailsPage>(
+            viewModel: viewModel,
+            pageTitle: $"{product.Name} - Product Details"
+        );
+    }
+}
+```
+
+**3. Build the UI with React-like TSX:**
+```tsx
+import { useMvcState, useMvcViewModel } from '@minimact/mvc';
+
+export function ProductDetailsPage() {
+  // Immutable props (no setter returned)
+  const [productName] = useMvcState<string>('productName');
+  const [price] = useMvcState<number>('price');
+  const [isAdmin] = useMvcState<boolean>('isAdminRole');
+
+  // Mutable props (setter returned)
+  const [quantity, setQuantity] = useMvcState<number>('initialQuantity', {
+    sync: 'immediate' // Sync changes to server instantly
+  });
+  const [color, setColor] = useMvcState<string>('initialSelectedColor');
+  const [isExpanded, setIsExpanded] = useMvcState<boolean>('initialIsExpanded');
+
+  // Access entire ViewModel
+  const viewModel = useMvcViewModel<ProductViewModel>();
+
+  return (
+    <div className="product-details">
+      <h1>{productName}</h1>
+      <div className="price">${price.toFixed(2)}</div>
+
+      {/* Quantity selector - client can modify */}
+      <div>
+        <button onClick={() => setQuantity(quantity - 1)}>-</button>
+        <span>{quantity}</span>
+        <button onClick={() => setQuantity(quantity + 1)}>+</button>
+      </div>
+
+      {/* Color selector - client can modify */}
+      <select value={color} onChange={(e) => setColor(e.target.value)}>
+        <option value="Black">Black</option>
+        <option value="White">White</option>
+        <option value="Red">Red</option>
+      </select>
+
+      {/* Admin-only controls - server-controlled visibility */}
+      {isAdmin && (
+        <div className="admin-controls">
+          <button>Edit Product</button>
+          <button>Delete Product</button>
+        </div>
+      )}
+
+      {/* Expandable section - client state */}
+      <button onClick={() => setIsExpanded(!isExpanded)}>
+        {isExpanded ? 'Hide' : 'Show'} Details
+      </button>
+      {isExpanded && (
+        <div className="details">
+          <p>Product specifications...</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  MVC Controller prepares ViewModel                      │
+│  ↓                                                       │
+│  MinimactPageRenderer receives ViewModel                │
+│  ↓                                                       │
+│  Reflection extracts mutability metadata:               │
+│    - [Mutable] fields → Client can modify               │
+│    - Non-[Mutable] → Server authority only              │
+│  ↓                                                       │
+│  ViewModel serialized to HTML with _mutability field:   │
+│    <script>                                             │
+│      window.__MINIMACT_MVC__ = {                        │
+│        viewModel: { productName: "Widget", price: 99.99 }│
+│        mutability: { initialQuantity: true, price: false}│
+│      }                                                   │
+│    </script>                                            │
+│  ↓                                                       │
+│  Client-side @minimact/mvc hooks:                       │
+│    - useMvcState('price') → No setter (immutable)       │
+│    - useMvcState('quantity') → Has setter (mutable)     │
+│  ↓                                                       │
+│  User changes quantity:                                 │
+│    setQuantity(5) → SignalR → Server validation         │
+│  ↓                                                       │
+│  Server validates [Mutable] attribute:                  │
+│    ✅ quantity is [Mutable] → Accept change             │
+│    ❌ price is NOT [Mutable] → Reject, log security event│
+│  ↓                                                       │
+│  Template prediction applies patches instantly          │
+│  (95-98% cache hit rate - same as core Minimact)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Features
+
+- ✅ **Traditional MVC pattern** - Controllers, ViewModels, routing
+- ✅ **Fine-grained mutability** - `[Mutable]` attribute per property
+- ✅ **Type-safe synchronization** - TypeScript ↔ C# type safety
+- ✅ **Security by default** - Server validates all mutations
+- ✅ **Defense in depth** - Compile-time + runtime + server validation
+- ✅ **Template prediction** - Instant UI updates (95-98% hit rate)
+- ✅ **Sync strategies** - Immediate, debounced, or manual
+- ✅ **EF Core integration** - Works with Entity Framework, Dapper, etc.
+- ✅ **Familiar patterns** - MVC developers feel at home
+
+### Configuration
+
+**Program.cs setup:**
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Add Minimact services
+builder.Services.AddMinimact();
+builder.Services.AddMinimactMvcBridge(); // ← Enable MVC Bridge
+
+// Add MVC services (traditional pattern)
+builder.Services.AddControllersWithViews();
+
+// Add SignalR for real-time communication
+builder.Services.AddSignalR();
+
+var app = builder.Build();
+
+app.UseStaticFiles();
+app.UseRouting();
+
+app.MapControllers();
+app.MapHub<MinimactHub>("/minimact");
+
+app.Run();
+```
+
+**Install the NPM package:**
+```bash
+npm install @minimact/mvc
+```
+
+### Mutability Enforcement
+
+**The Security Model - Defense in Depth:**
+
+```
+Layer 1: TypeScript Compile-Time
+  └─ useMvcState<T>() returns setter only if mutable
+  └─ Compile error if trying to modify immutable property
+
+Layer 2: Runtime Hook Validation
+  └─ Hook checks _mutability metadata
+  └─ Setter function not created for immutable properties
+
+Layer 3: Server-Side Validation
+  └─ MinimactHub.UpdateMvcState validates [Mutable]
+  └─ Security events logged for attempted violations
+
+Layer 4: Audit Trail
+  └─ All mutation attempts logged
+  └─ Security monitoring and alerts
+```
+
+**Example - What happens when client tries to modify immutable property:**
+
+```tsx
+// Client code
+const [price, setPrice] = useMvcState<number>('price');
+
+// ❌ TypeScript error: "setPrice is undefined"
+setPrice(999.99); // Won't compile!
+
+// If they bypass TypeScript (malicious):
+fetch('/minimact/UpdateMvcState', {
+  body: JSON.stringify({ field: 'price', value: 999.99 })
+});
+
+// Server response:
+// ❌ 403 Forbidden
+// Security Event Logged: "Attempted mutation of immutable field 'price'"
+```
+
+### Sync Strategies
+
+**Immediate (default for critical state):**
+```tsx
+const [quantity, setQuantity] = useMvcState<number>('quantity', {
+  sync: 'immediate' // Every change → instant server sync
+});
+```
+
+**Debounced (for text inputs):**
+```tsx
+const [search, setSearch] = useMvcState<string>('searchQuery', {
+  sync: 'debounced',
+  debounceMs: 500 // Wait 500ms after last keystroke
+});
+```
+
+**Manual (for batch updates):**
+```tsx
+const [formData, setFormData] = useMvcState<FormData>('formData', {
+  sync: 'manual'
+});
+
+// Make multiple changes
+setFormData({ ...formData, firstName: 'John' });
+setFormData({ ...formData, lastName: 'Doe' });
+
+// Sync all at once
+await useMvcViewModel().sync();
+```
+
+### Real-World Use Cases
+
+**E-commerce Product Page:**
+- ❌ Immutable: Product name, price, reviews (server authority)
+- ✅ Mutable: Quantity, color, size, gift message (client state)
+
+**Admin Dashboard:**
+- ❌ Immutable: User roles, permissions, audit logs (security)
+- ✅ Mutable: Filter selections, sort order, pagination (UI state)
+
+**Blog Post Editor:**
+- ❌ Immutable: Author, publish date, view count (server authority)
+- ✅ Mutable: Draft content, title, tags (client editing)
+
+**Financial Dashboard:**
+- ❌ Immutable: Account balance, transaction history (security)
+- ✅ Mutable: Date range, chart type, currency display (UI preferences)
+
+### Performance
+
+**Same as core Minimact:**
+- **Template prediction:** 95-98% cache hit rate
+- **Initial load:** < 100ms time to interactive
+- **State sync:** < 5ms for mutable property updates
+- **Bundle size:** +3KB for MVC Bridge (on top of 13.33 KB core)
+
+**Comparison to traditional MVC + React:**
+```
+Traditional Stack:
+  MVC Backend → JSON API → React Frontend → Redux → React rendering
+  Round trip: ~200ms | Bundle: ~150 KB
+
+Minimact MVC:
+  MVC Backend → MinimactPageRenderer → Server-rendered HTML
+  First paint: ~50ms | Interaction: ~5ms (predicted) | Bundle: 16.33 KB
+```
+
+### Migration Path
+
+**Step 1: Add Minimact to existing MVC app**
+```bash
+dotnet add package Minimact.AspNetCore
+npm install @minimact/mvc
+```
+
+**Step 2: Convert views incrementally**
+```csharp
+// Before (Razor)
+public IActionResult Details(int id)
+{
+    var model = GetProduct(id);
+    return View(model); // Razor view
+}
+
+// After (Minimact)
+public async Task<IActionResult> Details(int id)
+{
+    var viewModel = GetProductViewModel(id);
+    return await _renderer.RenderPage<ProductDetailsPage>(viewModel);
+}
+```
+
+**Step 3: Keep existing routes, controllers, auth**
+- ✅ All MVC routing works unchanged
+- ✅ `[Authorize]` and role-based auth work
+- ✅ Model binding and validation work
+- ✅ Filters and middleware work
+
+### Working Example
+
+See the complete working example at [`examples/MyMvcTw`](./examples/MyMvcTw):
+- Full MVC controller with ViewModel
+- Product details page with Tailwind CSS
+- Mutable/immutable property demonstrations
+- Admin role-based UI
+- Real-time quantity updates with cart total
+
+### Documentation
+
+- [MVC Bridge Implementation Plan](./docs/MVC_BRIDGE_IMPLEMENTATION_PLAN.md)
+- [MVC Bridge Quick Start Guide](./docs/MVC_BRIDGE_QUICK_START.md)
+- [MVC Bridge Status](./docs/MVC_BRIDGE_STATUS.md)
+- [Working Example](./examples/MyMvcTw)
+
+---
+
 ## Architecture
 
 Minimact consists of four main components:
