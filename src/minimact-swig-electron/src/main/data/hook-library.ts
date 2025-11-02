@@ -3,12 +3,14 @@
  *
  * Categories:
  * - Core Hooks (built-in React-like hooks)
+ * - Communication Hooks (pub/sub, SignalR)
+ * - Task Hooks (server tasks, task scheduling)
+ * - Advanced Hooks (context, computed values)
  * - MVC Hooks (@minimact/mvc package)
  * - Punch Hooks (@minimact/punch package - DOM element state)
  * - Query Hooks (@minimact/query package - SQL for the DOM)
  * - Trees Hooks (@minimact/trees package - Decision trees & state machines)
  * - Quantum Hooks (@minimact/quantum package - Quantum DOM entanglement)
- * - Advanced Hooks (server tasks, context, computed)
  *
  * Each hook includes:
  * - Name, description, category
@@ -21,7 +23,7 @@ export interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum' | 'advanced';
+  category: 'core' | 'communication' | 'tasks' | 'advanced' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum';
   packageName?: string; // NPM package if not core
   imports: string[]; // Import statements
   example: string; // Code example template (client-side TSX)
@@ -170,11 +172,12 @@ export function LocationMap() {
     isDefault: false
   },
 
+  // ===== TASK HOOKS =====
   {
     id: 'useServerTask',
     name: 'useServerTask',
     description: 'Execute TypeScript on C# or Rust runtime with automatic transpilation',
-    category: 'advanced',
+    category: 'tasks',
     imports: ["import { useServerTask } from 'minimact';"],
     example: `export function DataProcessor() {
   const crunch = useServerTask(async (numbers: number[]) => {
@@ -462,7 +465,7 @@ public class ShoppingCartComponent : MinimactComponent
     id: 'usePaginatedServerTask',
     name: 'usePaginatedServerTask',
     description: 'Server-side pagination with prefetching and automatic re-fetch on filters',
-    category: 'advanced',
+    category: 'tasks',
     imports: ["import { usePaginatedServerTask } from 'minimact';"],
     example: `export function UserList() {
   const [filters, setFilters] = useState({ role: 'admin' });
@@ -508,11 +511,12 @@ public class ShoppingCartComponent : MinimactComponent
     dependencies: ['useServerTask', 'useState']
   },
 
+  // ===== COMMUNICATION HOOKS =====
   {
     id: 'usePub',
     name: 'usePub',
     description: 'Publish messages to a channel - component-to-component communication without prop drilling',
-    category: 'core',
+    category: 'communication',
     imports: ["import { usePub } from 'minimact';"],
     example: `export function CartButton() {
   const publishCartUpdate = usePub<{ itemCount: number }>('cart:updated');
@@ -538,7 +542,7 @@ public class ShoppingCartComponent : MinimactComponent
     id: 'useSub',
     name: 'useSub',
     description: 'Subscribe to messages from a channel - listen to events from other components',
-    category: 'core',
+    category: 'communication',
     imports: ["import { useSub } from 'minimact';"],
     example: `export function CartBadge() {
   const [itemCount, setItemCount] = useState(0);
@@ -563,7 +567,7 @@ public class ShoppingCartComponent : MinimactComponent
     id: 'useMicroTask',
     name: 'useMicroTask',
     description: 'Schedule callback in microtask queue (before paint) - perfect for DOM measurements and critical updates',
-    category: 'core',
+    category: 'tasks',
     imports: ["import { useMicroTask } from 'minimact';"],
     example: `export function AutoExpandTextarea() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -595,7 +599,7 @@ public class ShoppingCartComponent : MinimactComponent
     id: 'useMacroTask',
     name: 'useMacroTask',
     description: 'Schedule callback in task queue (after paint) - perfect for analytics, logging, deferred work',
-    category: 'core',
+    category: 'tasks',
     imports: ["import { useMacroTask } from 'minimact';"],
     example: `export function SearchInput() {
   const [query, setQuery] = useState('');
@@ -629,7 +633,7 @@ public class ShoppingCartComponent : MinimactComponent
     id: 'useSignalR',
     name: 'useSignalR',
     description: 'Access SignalR connection state and methods - invoke server methods and listen for server events',
-    category: 'core',
+    category: 'communication',
     imports: ["import { useSignalR } from 'minimact';"],
     example: `export function ConnectionStatus() {
   const { state, connectionId, invoke, on, off } = useSignalR();

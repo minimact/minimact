@@ -5,7 +5,7 @@ interface Hook {
   id: string;
   name: string;
   description: string;
-  category: 'core' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum' | 'advanced';
+  category: 'core' | 'communication' | 'tasks' | 'advanced' | 'mvc' | 'punch' | 'query' | 'trees' | 'quantum';
   packageName?: string;
   example: string;
   isDefault: boolean;
@@ -49,6 +49,12 @@ export function HookLibrarySelector({
     switch (category) {
       case 'core':
         return 'Core Hooks';
+      case 'communication':
+        return 'Communication Hooks';
+      case 'tasks':
+        return 'Task Hooks';
+      case 'advanced':
+        return 'Advanced Hooks';
       case 'mvc':
         return 'MVC Bridge Hooks';
       case 'punch':
@@ -59,8 +65,6 @@ export function HookLibrarySelector({
         return 'Trees Hooks (State Machines)';
       case 'quantum':
         return 'Quantum Hooks (DOM Entanglement)';
-      case 'advanced':
-        return 'Advanced Hooks';
       default:
         return category;
     }
@@ -70,6 +74,12 @@ export function HookLibrarySelector({
     switch (category) {
       case 'core':
         return 'Essential React-like hooks (useState, useEffect, useRef)';
+      case 'communication':
+        return 'Real-time communication (pub/sub, SignalR)';
+      case 'tasks':
+        return 'Server tasks, pagination, and task scheduling';
+      case 'advanced':
+        return 'Context, client-computed values, server reducers';
       case 'mvc':
         return 'ASP.NET MVC integration with ViewModels';
       case 'punch':
@@ -80,8 +90,6 @@ export function HookLibrarySelector({
         return 'Decision trees and state machines for complex flows';
       case 'quantum':
         return 'Share DOM identity across clients with mutation vectors';
-      case 'advanced':
-        return 'Server tasks, context, client-computed values';
       default:
         return '';
     }
