@@ -2,15 +2,27 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- NuGet Package Metadata -->
     <PackageId>Minimact.Powered</PackageId>
-    <Version>1.0.0</Version>
-    <Authors>Minimact Team</Authors>
+    <Version>0.1.0</Version>
+    <Authors>Minimact Contributors</Authors>
+    <Company>Minimact</Company>
     <Description>Interactive "Powered by Minimact" badge plugin with smooth slide-out animation. Uses parameterized template patches for instant state transitions.</Description>
     <PackageTags>minimact;plugin;badge;branding;powered-by;animation</PackageTags>
-    <RepositoryUrl>https://github.com/minimact/minimact</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>© 2025 Minimact Contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/minimact/minimact</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/minimact/minimact</PackageProjectUrl>
+    <PackageIcon>logo-rem.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <RootNamespace>Minimact.Powered</RootNamespace>
+    <AssemblyName>Minimact.Powered</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +31,12 @@
 
   <ItemGroup>
     <EmbeddedResource Include="assets\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include README in package -->
+    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+    <None Include="..\logo-rem.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
