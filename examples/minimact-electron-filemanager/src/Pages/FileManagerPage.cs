@@ -33,7 +33,7 @@ public partial class FileManagerPage : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        var chartData = null;
+        var chartData = (fileStats?.ExtensionStats?.Map(stat => new { name = stat.extension, count = stat.count, size = stat.totalSize })) ?? (new List<object> {  });
 
         return new VElement("div", new Dictionary<string, string> { ["class"] = "file-manager" }, new VNode[]
         {
@@ -258,7 +258,7 @@ public partial class FileManagerPage : MinimactComponent
                     new VElement("button", new Dictionary<string, string> { ["disabled"] = $"{!directoryData?.ParentPath}", ["onclick"] = "handleGoUp" }, "⬆️ Up"),
                     new VElement("span", new Dictionary<string, string> { ["class"] = "current-path" }, new VNode[]
                     {
-                        new VText($"{(null)}")
+                        new VText($"{((currentPath) ?? ("Loading..."))}")
                     })
                 }), (new MObject(directoryData)) ? MinimactHelpers.createElement("div", new { className = "stats-summary" }, new VElement("div", new Dictionary<string, string> { ["class"] = "stat-item" }, new VNode[]
                     {
@@ -290,9 +290,9 @@ public partial class FileManagerPage : MinimactComponent
                     {
                         new VText("Error:"),
                         new VText($"{(error)}")
-                    }) : null, (null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : directoryData.items.map(null)) : null),
+                    }) : null, (((!loading) != null ? (!error) : null) != null ? (directoryData) : null) ? MinimactHelpers.createElement("div", new { className = "file-list" }, (directoryData.items.Count == 0) ? new VElement("div", new Dictionary<string, string> { ["class"] = "empty" }, "Empty directory") : directoryData.items.Select(item, index => null).ToList()) : null),
                 new VText($"{(null)}"),
-                MinimactHelpers.createElement("div", new { className = "sidebar" }, null, (null) ? new VElement("div", new Dictionary<string, string> { ["class"] = "panel" }, new VNode[]
+                MinimactHelpers.createElement("div", new { className = "sidebar" }, null, ((fileStats) != null ? (chartData.Count > 0) : null) ? new VElement("div", new Dictionary<string, string> { ["class"] = "panel" }, new VNode[]
                     {
                         new VElement("h2", new Dictionary<string, string>(), "📊 File Types"),
                         new VElement("div", new Dictionary<string, string> { ["class"] = "chart-container" }, new VNode[]
@@ -312,7 +312,7 @@ public partial class FileManagerPage : MinimactComponent
                             new VElement("div", new Dictionary<string, string>(), new VNode[]
                             {
                                 new VElement("strong", new Dictionary<string, string>(), "Type:"),
-                                new VText($"{(null)}")
+                                new VText($"{((selectedFile.extension) ?? ("Unknown"))}")
                             }),
                             new VElement("div", new Dictionary<string, string>(), new VNode[]
                             {

@@ -301,6 +301,23 @@ function generateCSharpExpression(node, inInterpolation = false) {
     return `${left} ${operator} ${right}`;
   }
 
+  if (t.isLogicalExpression(node)) {
+    const left = generateCSharpExpression(node.left);
+    const right = generateCSharpExpression(node.right);
+
+    if (node.operator === '||') {
+      // JavaScript: a || b
+      // C#: a ?? b (null coalescing)
+      return `(${left}) ?? (${right})`;
+    } else if (node.operator === '&&') {
+      // JavaScript: a && b
+      // C#: a != null ? b : null (for objects) or (a && b) for bools
+      return `(${left}) != null ? (${right}) : null`;
+    }
+
+    return `${left} ${node.operator} ${right}`;
+  }
+
   if (t.isConditionalExpression(node)) {
     // Handle ternary operator: test ? consequent : alternate
     // Children are always in normal C# expression context, not interpolation context
@@ -391,7 +408,46 @@ function generateCSharpExpression(node, inInterpolation = false) {
       }
     }
 
+    // Handle .map() → .Select()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'map' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      if (node.arguments.length > 0) {
+        const callback = node.arguments[0];
+        if (t.isArrowFunctionExpression(callback)) {
+          const params = callback.params.map(p => p.name).join(', ');
+          const body = t.isBlockStatement(callback.body)
+            ? `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`
+            : generateCSharpExpression(callback.body);
+          return `${object}.Select(${params} => ${body}).ToList()`;
+        }
+      }
+    }
+
     // Generic function call
+    const callee = generateCSharpExpression(node.callee);
+    const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+    return `${callee}(${args})`;
+  }
+
+  if (t.isOptionalCallExpression(node)) {
+    // Handle optional call: array?.map(...)
+    // Check if this is .map() which needs to be converted to .Select()
+    if (t.isOptionalMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.property, { name: 'map' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      if (node.arguments.length > 0) {
+        const callback = node.arguments[0];
+        if (t.isArrowFunctionExpression(callback)) {
+          const params = callback.params.map(p => p.name).join(', ');
+          const body = t.isBlockStatement(callback.body)
+            ? `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`
+            : generateCSharpExpression(callback.body);
+          return `${object}?.Select(${params} => ${body})`;
+        }
+      }
+    }
+
+    // Generic optional call
     const callee = generateCSharpExpression(node.callee);
     const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
     return `${callee}(${args})`;
@@ -479,6 +535,32 @@ function generateCSharpExpression(node, inInterpolation = false) {
     } else {
       return `new { ${properties.join(', ')} }`;
     }
+  }
+
+  if (t.isArrowFunctionExpression(node) || t.isFunctionExpression(node)) {
+    // Arrow function: (x) => x * 2  →  x => x * 2
+    // Function expression: function(x) { return x * 2; }  →  x => x * 2
+    const params = node.params.map(p => {
+      if (t.isIdentifier(p)) return p.name;
+      if (t.isObjectPattern(p)) return '{...}'; // Destructuring - simplified
+      return 'param';
+    }).join(', ');
+
+    // Wrap params in parentheses if multiple or none
+    const paramsString = node.params.length === 1 ? params : `(${params})`;
+
+    // Generate function body
+    let body;
+    if (t.isBlockStatement(node.body)) {
+      // Block body: (x) => { return x * 2; }
+      const statements = node.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ');
+      body = `{ ${statements} }`;
+    } else {
+      // Expression body: (x) => x * 2
+      body = generateCSharpExpression(node.body);
+    }
+
+    return `${paramsString} => ${body}`;
   }
 
   return 'null';

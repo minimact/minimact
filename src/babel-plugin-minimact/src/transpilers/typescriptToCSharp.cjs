@@ -48,6 +48,9 @@ function transpileStatement(statement) {
     const declarations = statement.declarations.map(decl => {
       const name = decl.id.name;
       const init = decl.init ? transpileExpression(decl.init) : 'null';
+      if (name === 'chartData') {
+        console.log(`[DEBUG chartData] init type: ${decl.init?.type}, result: ${init}`);
+      }
       return `var ${name} = ${init};`;
     });
     return declarations.join('\n');
@@ -177,11 +180,31 @@ function transpileExpression(expr) {
     return transpileMemberExpression(fullExpr, object, property);
   }
 
+  if (t.isOptionalMemberExpression(expr)) {
+    const object = transpileExpression(expr.object);
+    const property = expr.computed
+      ? `[${transpileExpression(expr.property)}]`
+      : `.${expr.property.name}`;
+
+    // In C#, optional chaining (?.) is just ?.
+    const fullExpr = `${object}?${property}`;
+    return transpileMemberExpression(fullExpr, object, property);
+  }
+
   if (t.isCallExpression(expr)) {
     const callee = transpileExpression(expr.callee);
     const args = expr.arguments.map(arg => transpileExpression(arg)).join(', ');
 
     // Handle special method calls
+    return transpileMethodCall(callee, args);
+  }
+
+  if (t.isOptionalCallExpression(expr)) {
+    const callee = transpileExpression(expr.callee);
+    const args = expr.arguments.map(arg => transpileExpression(arg)).join(', ');
+
+    // In C#, optional call (?.) is handled via null-conditional operator
+    // The callee should already have ? from OptionalMemberExpression
     return transpileMethodCall(callee, args);
   }
 
@@ -216,6 +239,11 @@ function transpileExpression(expr) {
       ? `{\n${indent(transpileBlockStatement(expr.body), 4)}\n}`
       : transpileExpression(expr.body);
     return `(${params}) => ${body}`;
+  }
+
+  if (t.isParenthesizedExpression(expr)) {
+    // Unwrap parentheses - just transpile the inner expression
+    return transpileExpression(expr.expression);
   }
 
   if (t.isBinaryExpression(expr)) {
@@ -269,6 +297,7 @@ function transpileExpression(expr) {
     return expr.prefix ? `${operator}${argument}` : `${argument}${operator}`;
   }
 
+  console.warn(`[transpileExpression] Unknown expression type: ${expr.type}`);
   return `/* TODO: ${expr.type} */`;
 }
 
