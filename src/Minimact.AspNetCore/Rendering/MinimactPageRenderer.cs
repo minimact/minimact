@@ -153,6 +153,48 @@ public class MinimactPageRenderer
             }
             extensionScripts.AppendLine($"    <script src=\"{punchScriptSrc}\"></script>");
         }
+        if (options.IncludeMarkdownExtension)
+        {
+            var mdScriptSrc = "/js/minimact-md.min.js";
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                mdScriptSrc += $"?v={timestamp}";
+            }
+            extensionScripts.AppendLine($"    <script src=\"{mdScriptSrc}\"></script>");
+        }
+
+        // Prism.js for syntax highlighting (if enabled)
+        var prismIncludes = new System.Text.StringBuilder();
+        if (options.EnablePrismSyntaxHighlighting)
+        {
+            var prismTheme = options.PrismTheme ?? "prism";
+            prismIncludes.AppendLine($"    <!-- Prism.js Syntax Highlighting -->");
+            prismIncludes.AppendLine($"    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/{prismTheme}.min.css\" rel=\"stylesheet\" />");
+            prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js\" data-manual></script>");
+
+            // Include language plugins
+            if (options.PrismLanguages != null && options.PrismLanguages.Any())
+            {
+                foreach (var lang in options.PrismLanguages)
+                {
+                    prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-{lang}.min.js\"></script>");
+                }
+            }
+            else
+            {
+                // Default language set
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js\"></script>");
+                prismIncludes.AppendLine($"    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js\"></script>");
+            }
+        }
 
         var enableDebugLogging = options.EnableDebugLogging ? "true" : "false";
 
@@ -162,7 +204,7 @@ public class MinimactPageRenderer
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>{EscapeHtml(title)}</title>
-    <script src=""{EscapeHtml(scriptSrc)}""></script>
+{prismIncludes}    <script src=""{EscapeHtml(scriptSrc)}""></script>
 {extensionScripts}    {(options.AdditionalHeadContent != null ? options.AdditionalHeadContent : "")}
     <style>
         body {{
@@ -203,6 +245,12 @@ public class MinimactPageRenderer
             enableDebugLogging: {enableDebugLogging}
         }});
         minimact.start();
+
+        {(options.EnablePrismSyntaxHighlighting ? @"
+        // Initialize Prism.js for syntax highlighting
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }" : "")}
     </script>
     {(options.AdditionalBodyContent != null ? options.AdditionalBodyContent : "")}
 </body>
@@ -271,6 +319,35 @@ public class MinimactPageRenderOptions
     /// Adds: &lt;script src="/js/minimact-punch.min.js"&gt;&lt;/script&gt;
     /// </summary>
     public bool IncludePunchExtension { get; set; } = false;
+
+    /// <summary>
+    /// Include @minimact/md extension script (default: false)
+    /// Set to true when using useMarkdown or useRazorMarkdown hooks
+    /// Adds: &lt;script src="/js/minimact-md.min.js"&gt;&lt;/script&gt;
+    /// </summary>
+    public bool IncludeMarkdownExtension { get; set; } = false;
+
+    /// <summary>
+    /// Enable Prism.js syntax highlighting for code blocks (default: false)
+    /// Automatically includes Prism.js CDN scripts and CSS
+    /// Perfect for markdown code blocks in useMarkdown/useRazorMarkdown
+    /// </summary>
+    public bool EnablePrismSyntaxHighlighting { get; set; } = false;
+
+    /// <summary>
+    /// Prism.js theme to use (default: "prism")
+    /// Options: "prism", "prism-dark", "prism-twilight", "prism-okaidia", "prism-tomorrow"
+    /// Only used if EnablePrismSyntaxHighlighting = true
+    /// </summary>
+    public string? PrismTheme { get; set; }
+
+    /// <summary>
+    /// Languages to include for Prism.js syntax highlighting (default: null = common languages)
+    /// Examples: "csharp", "javascript", "typescript", "python", "sql", "bash"
+    /// If null, includes: csharp, javascript, typescript, css, markup, json, python, sql, bash
+    /// Only used if EnablePrismSyntaxHighlighting = true
+    /// </summary>
+    public List<string>? PrismLanguages { get; set; }
 
     /// <summary>
     /// Additional HTML to inject in &lt;head&gt;

@@ -362,6 +362,65 @@ $@"
 
 ---
 
+## Syntax Highlighting
+
+Code blocks automatically include language classes for syntax highlighting. Choose one of these options:
+
+### Option 1: Prism.js (Recommended)
+
+Add to your HTML `<head>`:
+
+```html
+<!-- Prism CSS theme -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+
+<!-- Prism JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+<!-- Language plugins (add as needed) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+```
+
+**Available themes**: `prism.min.css`, `prism-dark.min.css`, `prism-twilight.min.css`, `prism-okaidia.min.css`, `prism-tomorrow.min.css`
+
+### Option 2: highlight.js
+
+Add to your HTML `<head>`:
+
+```html
+<!-- Highlight.js theme -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" rel="stylesheet" />
+
+<!-- Highlight.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- Initialize -->
+<script>hljs.highlightAll();</script>
+```
+
+**Available themes**: `default.min.css`, `github.min.css`, `monokai.min.css`, `vs2015.min.css`, `atom-one-dark.min.css`
+
+### How It Works
+
+Markdown:
+````markdown
+```javascript
+console.log('Hello World');
+```
+````
+
+Server renders to HTML:
+```html
+<pre><code class="language-javascript">console.log('Hello World');</code></pre>
+```
+
+Browser applies syntax highlighting based on the `language-javascript` class.
+
+---
+
 ## MES Certification
 
 **Bronze** - Minimact Extension Standards

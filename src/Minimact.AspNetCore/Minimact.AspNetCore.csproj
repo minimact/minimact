@@ -34,16 +34,11 @@
 
 <Target Name="CopyNativeDllToPackageDir" AfterTargets="Build">
   <Message Text="Copying Rust native DLL for NuGet packaging..." Importance="high" />
-  <Copy SourceFiles="..\target\release\minimact.dll"
-        DestinationFiles="$(ProjectDir)native\win-x64\minimact-nuget.dll"
-        SkipUnchangedFiles="true" />
+  <Copy SourceFiles="..\target\release\minimact.dll" DestinationFiles="$(ProjectDir)native\win-x64\minimact-nuget.dll" SkipUnchangedFiles="true" />
 </Target>
 
 <ItemGroup>
-  <None Include="native\win-x64\minimact-nuget.dll"
-        Pack="true"
-        PackagePath="runtimes/win-x64/native/minimact.dll"
-        Condition="Exists('native\win-x64\minimact.dll')" />
+  <None Include="native\win-x64\minimact-nuget.dll" Pack="true" PackagePath="runtimes/win-x64/native/minimact.dll" Condition="Exists('native\win-x64\minimact.dll')" />
 </ItemGroup>
 
   <ItemGroup>

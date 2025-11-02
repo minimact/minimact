@@ -110,7 +110,8 @@ export const HOOK_LIBRARY: Hook[] = [
     name: 'useMarkdown',
     description: 'Markdown content parsed to HTML on server (supports GFM, tables, syntax highlighting)',
     category: 'core',
-    imports: ["import { useMarkdown } from 'minimact';"],
+    packageName: '@minimact/md',
+    imports: ["import { useMarkdown } from '@minimact/md';"],
     example: `export function BlogPost() {
   const [content, setContent] = useMarkdown(\`
 # Welcome to My Blog
@@ -120,8 +121,29 @@ This is **markdown** content that gets parsed to HTML on the server!
 ## Features
 - GitHub Flavored Markdown
 - Tables
-- Syntax highlighting
-- And more!
+- Task lists
+- **Syntax highlighting** with Prism.js
+
+## Code Example
+
+\\\`\\\`\\\`csharp
+public class Product
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+
+    public void Display()
+    {
+        Console.WriteLine(\$"{Name}: \${Price}");
+    }
+}
+\\\`\\\`\\\`
+
+\\\`\\\`\\\`javascript
+// Client-side code
+const products = await fetch('/api/products');
+console.log('Loaded:', products.length);
+\\\`\\\`\\\`
 
 [Read more](https://example.com)
   \`);
@@ -132,20 +154,147 @@ This is **markdown** content that gets parsed to HTML on the server!
 
 The content has been **updated** dynamically!
 
-\`\`\`javascript
-console.log('Code blocks work too!');
-\`\`\`
+\\\`\\\`\\\`typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const user: User = {
+  id: 1,
+  name: 'Alice',
+  email: 'alice@example.com'
+};
+\\\`\\\`\\\`
     \`);
   };
 
   return (
     <div className="blog-post">
-      {content}  {/* Server renders markdown → HTML automatically */}
+      {content}  {/* Server renders markdown → HTML with syntax highlighting */}
       <button onClick={handleUpdate}>Update Content</button>
     </div>
   );
-}`,
+}
+
+// Controller setup (C#):
+// return await _renderer.RenderPage<BlogPost>(viewModel, "Blog", new MinimactPageRenderOptions
+// {
+//     IncludeMarkdownExtension = true,
+//     EnablePrismSyntaxHighlighting = true,  // ✅ Enable Prism.js
+//     PrismTheme = "prism-tomorrow"           // Optional: dark theme
+// });`,
     isDefault: true
+  },
+
+  {
+    id: 'useRazorMarkdown',
+    name: 'useRazorMarkdown',
+    description: 'Markdown with Razor syntax - dynamic state interpolation (@variables, @if, @foreach, @switch)',
+    category: 'core',
+    packageName: '@minimact/md',
+    imports: ["import { useRazorMarkdown } from '@minimact/md';", "import { useState } from 'minimact';"],
+    example: `export function TutorialPage() {
+  const [language] = useState('csharp');
+  const [level] = useState('intermediate');
+  const [topics] = useState(['Classes', 'LINQ', 'Async/Await']);
+
+  const [tutorial] = useRazorMarkdown(\`
+# Learn @language Programming
+
+## Difficulty Level
+@switch (level) {
+  case "beginner":
+    🟢 **Beginner Friendly** - No prior experience needed
+    break;
+  case "intermediate":
+    🟡 **Intermediate** - Some programming knowledge required
+    break;
+  case "advanced":
+    🔴 **Advanced** - For experienced developers
+    break;
+}
+
+## Topics Covered
+@foreach (var topic in topics) {
+- ✓ @topic
+}
+
+## Quick Start Example
+
+@if (language == "csharp") {
+\\\`\\\`\\\`csharp
+// Hello World in C#
+public class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine("Hello, World!");
+
+        // LINQ example
+        var numbers = new[] { 1, 2, 3, 4, 5 };
+        var evens = numbers.Where(n => n % 2 == 0);
+
+        Console.WriteLine(\$"Even numbers: {string.Join(", ", evens)}");
+    }
+}
+\\\`\\\`\\\`
+} else {
+\\\`\\\`\\\`javascript
+// Hello World in JavaScript
+const message = 'Hello, World!';
+console.log(message);
+
+// Array filtering
+const numbers = [1, 2, 3, 4, 5];
+const evens = numbers.filter(n => n % 2 === 0);
+console.log('Even numbers:', evens);
+\\\`\\\`\\\`
+}
+
+## Advanced Topics
+
+@if (level == "advanced") {
+For advanced learners, we'll cover:
+- Design patterns
+- Performance optimization
+- Concurrency patterns
+
+\\\`\\\`\\\`csharp
+// Async/Await example
+public async Task<List<User>> GetUsersAsync()
+{
+    using var client = new HttpClient();
+    var response = await client.GetStringAsync("https://api.example.com/users");
+    return JsonSerializer.Deserialize<List<User>>(response);
+}
+\\\`\\\`\\\`
+}
+
+## Practice Exercises
+
+Try implementing these concepts in **@language**!
+  \`);
+
+  return (
+    <div className="tutorial">
+      {tutorial}
+      <button onClick={() => nextLesson()}>Next Lesson →</button>
+    </div>
+  );
+}
+
+// Controller setup (C#):
+// return await _renderer.RenderPage<TutorialPage>(viewModel, "Tutorial", new MinimactPageRenderOptions
+// {
+//     IncludeMarkdownExtension = true,
+//     EnablePrismSyntaxHighlighting = true,  // ✅ Enable Prism.js
+//     PrismTheme = "prism-okaidia",           // Dark theme
+//     PrismLanguages = new List<string> { "csharp", "javascript", "typescript" }
+// });`,
+    isDefault: true,
+    dependencies: ['useState']
   },
 
   // ===== ADVANCED HOOKS =====
