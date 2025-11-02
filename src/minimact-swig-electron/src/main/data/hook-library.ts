@@ -109,7 +109,7 @@ export const HOOK_LIBRARY: Hook[] = [
     id: 'useMarkdown',
     name: 'useMarkdown',
     description: 'Markdown content parsed to HTML on server (supports GFM, tables, syntax highlighting)',
-    category: 'core',
+    category: 'advanced',
     packageName: '@minimact/md',
     imports: ["import { useMarkdown } from '@minimact/md';"],
     example: `export function BlogPost() {
@@ -185,14 +185,14 @@ const user: User = {
 //     EnablePrismSyntaxHighlighting = true,  // ✅ Enable Prism.js
 //     PrismTheme = "prism-tomorrow"           // Optional: dark theme
 // });`,
-    isDefault: true
+    isDefault: false
   },
 
   {
     id: 'useRazorMarkdown',
     name: 'useRazorMarkdown',
     description: 'Markdown with Razor syntax - dynamic state interpolation (@variables, @if, @foreach, @switch)',
-    category: 'core',
+    category: 'advanced',
     packageName: '@minimact/md',
     imports: ["import { useRazorMarkdown } from '@minimact/md';", "import { useState } from 'minimact';"],
     example: `export function TutorialPage() {
@@ -293,7 +293,7 @@ Try implementing these concepts in **@language**!
 //     PrismTheme = "prism-okaidia",           // Dark theme
 //     PrismLanguages = new List<string> { "csharp", "javascript", "typescript" }
 // });`,
-    isDefault: true,
+    isDefault: false,
     dependencies: ['useState']
   },
 

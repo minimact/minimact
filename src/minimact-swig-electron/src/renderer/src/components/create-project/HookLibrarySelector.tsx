@@ -213,7 +213,7 @@ export function HookLibrarySelector({
             ) : (
               <ChevronRight className="w-4 h-4 text-gray-400" />
             )}
-            <span className="font-medium text-gray-200">Advanced Hooks</span>
+            <span className="font-medium text-gray-200">Additional Hooks</span>
             <span className="text-xs text-gray-500">
               ({advancedHooks.length} additional hooks)
             </span>
