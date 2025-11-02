@@ -292,6 +292,10 @@ export class ProjectManager {
     // 6. Create template-specific files
     if (template === 'Counter') {
       await this.createCounterTemplate(projectPath);
+    } else if (template === 'TodoList') {
+      await this.createTodoListTemplate(projectPath);
+    } else if (template === 'Dashboard') {
+      await this.createDashboardTemplate(projectPath);
     } else if (template === 'MVC') {
       await this.createMvcTemplate(projectPath, enableTailwind);
     }
@@ -305,11 +309,18 @@ export class ProjectManager {
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Minimact services
 builder.Services.AddMinimact();
+
+// Add SignalR (required for Minimact real-time communication)
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
+app.UseStaticFiles(); // Serve wwwroot/js and wwwroot/css
 app.UseMinimact(); // Auto-discovers pages from ./Generated/routes.json
+
+app.MapHub<Minimact.AspNetCore.SignalR.MinimactHub>("/minimact");
 
 app.Run();
 `;
@@ -349,6 +360,9 @@ app.Run();
    * Create Counter template files
    */
   private async createCounterTemplate(projectPath: string): Promise<void> {
+    // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
+
     // Create Pages/Index.tsx
     const indexTsx = `import { useState } from 'minimact';
 
@@ -368,6 +382,241 @@ export function Index() {
 `;
 
     await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
+
+    // Copy Minimact client runtime to wwwroot/js
+    await this.copyClientRuntimeToProject(projectPath);
+  }
+
+  /**
+   * Create TodoList template files
+   */
+  private async createTodoListTemplate(projectPath: string): Promise<void> {
+    // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
+
+    // Create Pages/Index.tsx
+    const indexTsx = `import { useState } from 'minimact';
+
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
+export function Index() {
+  const [todos, setTodos] = useState<Todo[]>([
+    { id: 1, text: 'Learn Minimact', done: false },
+    { id: 2, text: 'Build an app', done: false }
+  ]);
+  const [newTodo, setNewTodo] = useState('');
+
+  const addTodo = () => {
+    if (newTodo.trim()) {
+      setTodos([...todos, { id: Date.now(), text: newTodo, done: false }]);
+      setNewTodo('');
+    }
+  };
+
+  const toggleTodo = (id: number) => {
+    setTodos(todos.map(todo =>
+      todo.id === id ? { ...todo, done: !todo.done } : todo
+    ));
+  };
+
+  const deleteTodo = (id: number) => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+
+  return (
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+      <h1>Todo List</h1>
+
+      {/* Add Todo Form */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <input
+          type="text"
+          value={newTodo}
+          onChange={(e) => setNewTodo(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+          placeholder="What needs to be done?"
+          style={{ flex: 1, padding: '8px', fontSize: '16px' }}
+        />
+        <button onClick={addTodo} style={{ padding: '8px 16px' }}>
+          Add
+        </button>
+      </div>
+
+      {/* Todo List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {todos.map(todo => (
+          <div
+            key={todo.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              backgroundColor: todo.done ? '#f0f0f0' : 'white'
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={todo.done}
+              onChange={() => toggleTodo(todo.id)}
+            />
+            <span
+              style={{
+                flex: 1,
+                textDecoration: todo.done ? 'line-through' : 'none',
+                color: todo.done ? '#999' : '#000'
+              }}
+            >
+              {todo.text}
+            </span>
+            <button
+              onClick={() => deleteTodo(todo.id)}
+              style={{ padding: '4px 8px', fontSize: '12px' }}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div style={{ marginTop: '20px', color: '#666', fontSize: '14px' }}>
+        {todos.filter(t => !t.done).length} of {todos.length} tasks remaining
+      </div>
+    </div>
+  );
+}
+`;
+
+    await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
+
+    // Copy Minimact client runtime to wwwroot/js
+    await this.copyClientRuntimeToProject(projectPath);
+  }
+
+  /**
+   * Create Dashboard template files
+   */
+  private async createDashboardTemplate(projectPath: string): Promise<void> {
+    // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
+
+    // Create Pages/Index.tsx
+    const indexTsx = `import { useState, useEffect } from 'minimact';
+
+interface ChartData {
+  label: string;
+  value: number;
+  color: string;
+}
+
+export function Index() {
+  const [salesData] = useState<ChartData[]>([
+    { label: 'Jan', value: 45, color: '#4CAF50' },
+    { label: 'Feb', value: 62, color: '#2196F3' },
+    { label: 'Mar', value: 58, color: '#FF9800' },
+    { label: 'Apr', value: 71, color: '#9C27B0' },
+    { label: 'May', value: 89, color: '#F44336' },
+    { label: 'Jun', value: 94, color: '#00BCD4' }
+  ]);
+
+  const [metrics] = useState([
+    { label: 'Total Sales', value: '$124,532', change: '+12.5%', positive: true },
+    { label: 'Active Users', value: '8,429', change: '+8.2%', positive: true },
+    { label: 'Conversion Rate', value: '3.24%', change: '-0.5%', positive: false },
+    { label: 'Avg. Order Value', value: '$89.50', change: '+5.1%', positive: true }
+  ]);
+
+  const maxValue = Math.max(...salesData.map(d => d.value));
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+      <h1 style={{ marginBottom: '30px' }}>Sales Dashboard</h1>
+
+      {/* Metrics Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        marginBottom: '40px'
+      }}>
+        {metrics.map(metric => (
+          <div
+            key={metric.label}
+            style={{
+              padding: '20px',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor: 'white'
+            }}
+          >
+            <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+              {metric.label}
+            </div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
+              {metric.value}
+            </div>
+            <div style={{ fontSize: '14px', color: metric.positive ? '#4CAF50' : '#F44336' }}>
+              {metric.change}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bar Chart */}
+      <div style={{
+        padding: '20px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: 'white'
+      }}>
+        <h2 style={{ marginBottom: '20px', fontSize: '18px' }}>Monthly Sales</h2>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '200px' }}>
+          {salesData.map(data => (
+            <div
+              key={data.label}
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>
+                \${data.value}k
+              </div>
+              <div
+                style={{
+                  width: '100%',
+                  height: \`\${(data.value / maxValue) * 100}%\`,
+                  backgroundColor: data.color,
+                  borderRadius: '4px 4px 0 0',
+                  transition: 'height 0.3s ease'
+                }}
+              />
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                {data.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+`;
+
+    await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
+
+    // Copy Minimact client runtime to wwwroot/js
+    await this.copyClientRuntimeToProject(projectPath);
   }
 
   /**
