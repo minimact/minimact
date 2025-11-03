@@ -107,7 +107,7 @@ State 1000000 → Apply template → "Count: 1000000"  ✅
 Write familiar React code:
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);

@@ -18,7 +18,7 @@ Execute expensive operations on the server with real-time progress updates.
 **Hooks:** [useServerTask](/api/hooks#useservertask)
 
 ```tsx
-import { useServerTask } from 'minimact';
+import { useServerTask } from '@minimact/core';
 
 function AIImageGenerator() {
   const [task, generateImage] = useServerTask(async (updateProgress) => {
@@ -106,7 +106,7 @@ Server-side filtering, sorting, and counting with automatic prefetching.
 **Hooks:** [usePaginatedServerTask](/api/hooks#usepaginatedservertask)
 
 ```tsx
-import { usePaginatedServerTask } from 'minimact';
+import { usePaginatedServerTask } from '@minimact/core';
 
 function ProductCatalog() {
   const {
@@ -236,7 +236,7 @@ Decouple components with event-based communication.
 
 ```tsx
 // Publisher component
-import { usePub } from 'minimact';
+import { usePub } from '@minimact/core';
 
 function AddToCartButton({ product }) {
   const publish = usePub();
@@ -252,7 +252,7 @@ function AddToCartButton({ product }) {
 }
 
 // Subscriber component (anywhere in the app)
-import { useSub } from 'minimact';
+import { useSub } from '@minimact/core';
 
 function CartBadge() {
   const [count, setCount] = useState(0);
@@ -297,7 +297,7 @@ Low-level SignalR control for custom protocols.
 **Hooks:** [useSignalR](/api/hooks#usesignalr)
 
 ```tsx
-import { useSignalR } from 'minimact';
+import { useSignalR } from '@minimact/core';
 
 function LiveNotifications() {
   const { state, connectionId, on, off, invoke } = useSignalR();
@@ -342,7 +342,7 @@ Control when code runs for optimal performance.
 **Hooks:** [useMicroTask](/api/hooks#usemicrotask), [useMacroTask](/api/hooks#usemacrotask), [useAnimationFrame](/api/hooks#useanimationframe), [useIdleCallback](/api/hooks#useidlecallback)
 
 ```tsx
-import { useAnimationFrame, useIdleCallback } from 'minimact';
+import { useAnimationFrame, useIdleCallback } from '@minimact/core';
 
 function SmoothCounter() {
   const [count, setCount] = useState(0);
@@ -564,7 +564,7 @@ High-frequency updates without server round-trips.
 **Hooks:** [useClientState](/api/hooks#useclientstate)
 
 ```tsx
-import { useClientState } from 'minimact';
+import { useClientState } from '@minimact/core';
 
 function MouseTracker() {
   const [pos, setPos] = useClientState({ x: 0, y: 0 });
@@ -601,7 +601,7 @@ Default state management with automatic synchronization.
 **Hooks:** [useState](/api/hooks#usestate)
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 function ShoppingCart() {
   const [items, setItems] = useState([]);
@@ -646,7 +646,7 @@ Lifecycle hooks for setup and cleanup.
 **Hooks:** [useEffect](/api/hooks#useeffect)
 
 ```tsx
-import { useEffect, useState } from 'minimact';
+import { useEffect, useState } from '@minimact/core';
 
 function UserProfile({ userId }) {
   const [user, setUser] = useState(null);
@@ -683,7 +683,7 @@ Direct DOM manipulation when needed.
 **Hooks:** [useRef](/api/hooks#useref)
 
 ```tsx
-import { useRef, useEffect } from 'minimact';
+import { useRef, useEffect } from '@minimact/core';
 
 function AutoFocusInput() {
   const inputRef = useRef(null);
@@ -711,7 +711,7 @@ Explicitly hint upcoming state changes for instant UI updates.
 **Hooks:** [usePredictHint](/api/hooks#usepredicthint)
 
 ```tsx
-import { usePredictHint, useState } from 'minimact';
+import { usePredictHint, useState } from '@minimact/core';
 
 function Counter() {
   const [count, setCount] = useState(0);
@@ -744,7 +744,7 @@ Server-side markdown parsing for security and performance.
 **Hooks:** [useMarkdown](/api/hooks#usemarkdown)
 
 ```tsx
-import { useMarkdown } from 'minimact';
+import { useMarkdown } from '@minimact/core';
 
 function BlogPost({ markdown }) {
   const html = useMarkdown(markdown);
@@ -768,7 +768,7 @@ Apply consistent layouts across pages.
 **Hooks:** [useTemplate](/api/hooks#usetemplate)
 
 ```tsx
-import { useTemplate } from 'minimact';
+import { useTemplate } from '@minimact/core';
 
 function Dashboard() {
   useTemplate('AdminLayout'); // Sidebar + header

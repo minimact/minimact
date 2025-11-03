@@ -134,7 +134,7 @@ Sometimes you need browser-only APIs or libraries:
 #### Basic Usage
 
 ```tsx
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 function UserList({ users }) {
   // Compute on client using lodash
@@ -232,7 +232,7 @@ const total = useComputed('total', () => {
 #### Complete Example: Client-Side Crypto
 
 ```tsx
-import { useComputed, useState } from 'minimact';
+import { useComputed, useState } from '@minimact/core';
 
 function SecureForm() {
   const [password, setPassword] = useState('');
@@ -342,7 +342,7 @@ Unlike React's context (which requires Provider components), Minimact's context 
 Create a context with specified scope and options.
 
 ```tsx
-import { createContext } from 'minimact';
+import { createContext } from '@minimact/core';
 
 // Session-scoped user context
 const UserContext = createContext<User>('current-user', {
@@ -379,7 +379,7 @@ Use a context — returns `[value, setValue, clearValue]`.
 **No Provider component needed** — the context is stored server-side in a cache.
 
 ```tsx
-import { useContext } from 'minimact';
+import { useContext } from '@minimact/core';
 
 // Component 1: Write to context
 function LoginForm() {
@@ -498,7 +498,7 @@ function ThemeToggle() {
 Client-only reactive state that never syncs to the server. Perfect for UI state like mouse position, scroll position, or animations.
 
 ```tsx
-import { useClientState } from 'minimact';
+import { useClientState } from '@minimact/core';
 
 const [mousePos, setMousePos] = useClientState({ x: 0, y: 0 });
 const [isHovered, setIsHovered] = useClientState(false);
@@ -525,7 +525,7 @@ const [isHovered, setIsHovered] = useClientState(false);
 Explicitly tell the prediction system about upcoming state changes for 100% cache hit rates.
 
 ```tsx
-import { usePredictHint } from 'minimact';
+import { usePredictHint } from '@minimact/core';
 
 function Counter() {
   const [count, setCount] = useState(0);
@@ -553,7 +553,7 @@ function Counter() {
 Server-side markdown parsing and rendering.
 
 ```tsx
-import { useMarkdown } from 'minimact';
+import { useMarkdown } from '@minimact/core';
 
 function BlogPost({ content }: { content: string }) {
   const html = useMarkdown(content);
@@ -573,7 +573,7 @@ function BlogPost({ content }: { content: string }) {
 Apply layout templates to components.
 
 ```tsx
-import { useTemplate } from 'minimact';
+import { useTemplate } from '@minimact/core';
 
 function Dashboard() {
   useTemplate('AdminLayout'); // Apply admin layout
@@ -772,7 +772,7 @@ useBundle("interactive", {
 Execute long-running server tasks with progress updates and cancellation support.
 
 ```tsx
-import { useServerTask } from 'minimact';
+import { useServerTask } from '@minimact/core';
 
 function DataProcessor() {
   const [task, startTask] = useServerTask(async (updateProgress) => {
@@ -822,7 +822,7 @@ const [task, startTask] = useServerTask(taskFunction, {
 Execute server tasks with automatic pagination for large datasets.
 
 ```tsx
-import { usePaginatedServerTask } from 'minimact';
+import { usePaginatedServerTask } from '@minimact/core';
 
 function UserList() {
   const {
@@ -902,7 +902,7 @@ Traditional `useState` works great for simple values, but complex state transiti
 #### Basic Usage
 
 ```tsx
-import { useServerReducer } from 'minimact';
+import { useServerReducer } from '@minimact/core';
 
 type CounterState = { count: number };
 type CounterAction =
@@ -1284,7 +1284,7 @@ Use `useState` when:
 Publish messages to other components using a pub/sub pattern.
 
 ```tsx
-import { usePub } from 'minimact';
+import { usePub } from '@minimact/core';
 
 function CartButton() {
   const publish = usePub();
@@ -1303,7 +1303,7 @@ function CartButton() {
 Subscribe to messages from other components.
 
 ```tsx
-import { useSub } from 'minimact';
+import { useSub } from '@minimact/core';
 
 function CartCounter() {
   const [count, setCount] = useState(0);
@@ -1337,7 +1337,7 @@ useSub(['cart:add', 'cart:remove'], (message) => {
 Schedule a callback to run as a microtask (before next render).
 
 ```tsx
-import { useMicroTask } from 'minimact';
+import { useMicroTask } from '@minimact/core';
 
 function Component() {
   useMicroTask(() => {
@@ -1352,7 +1352,7 @@ function Component() {
 Schedule a callback to run as a macrotask (after current event loop).
 
 ```tsx
-import { useMacroTask } from 'minimact';
+import { useMacroTask } from '@minimact/core';
 
 function Component() {
   useMacroTask(() => {
@@ -1367,7 +1367,7 @@ function Component() {
 Schedule a callback to run before next repaint (requestAnimationFrame).
 
 ```tsx
-import { useAnimationFrame } from 'minimact';
+import { useAnimationFrame } from '@minimact/core';
 
 function AnimatedComponent() {
   const [position, setPosition] = useState(0);
@@ -1385,7 +1385,7 @@ function AnimatedComponent() {
 Schedule a callback to run when browser is idle (requestIdleCallback).
 
 ```tsx
-import { useIdleCallback } from 'minimact';
+import { useIdleCallback } from '@minimact/core';
 
 function Component() {
   useIdleCallback((deadline) => {
@@ -1404,7 +1404,7 @@ function Component() {
 Access SignalR connection state and methods directly.
 
 ```tsx
-import { useSignalR } from 'minimact';
+import { useSignalR } from '@minimact/core';
 
 function ConnectionStatus() {
   const { state, connectionId, invoke, on, off } = useSignalR();

@@ -7,7 +7,7 @@ Real-world examples to help you get started with Minimact.
 The classic counter example with predictive rendering.
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
     const [count, setCount] = useState(0);
@@ -30,7 +30,7 @@ export function Counter() {
 A todo list with server-side state persistence.
 
 ```tsx
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 
 interface Todo {
     id: number;
@@ -99,7 +99,7 @@ export function TodoList() {
 Chat with server-side state and SignalR broadcasting.
 
 ```tsx
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 import { useSignalR } from 'minimact/signalr';
 
 export function Chat() {
@@ -158,7 +158,7 @@ export function Chat() {
 Server-side filtering with Entity Framework.
 
 ```tsx
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 import { useDbContext } from 'minimact/ef-core';
 
 export function UserTable() {
@@ -221,8 +221,8 @@ export function UserTable() {
 Long-running task with progress updates.
 
 ```tsx
-import { useState } from 'minimact';
-import { useServerTask } from 'minimact';
+import { useState } from '@minimact/core';
+import { useServerTask } from '@minimact/core';
 
 export function FileUploader() {
     const [file, setFile] = useState<File | null>(null);

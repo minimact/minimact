@@ -256,7 +256,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 **Minimact Developer Experience:**
 ```tsx
 // Just write components
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);

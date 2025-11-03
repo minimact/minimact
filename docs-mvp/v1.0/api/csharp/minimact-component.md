@@ -19,7 +19,7 @@ using Minimact.AspNetCore.Core;
 **TSX (what you write):**
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -534,7 +534,7 @@ public MyComponent()
 **TSX:**
 
 ```tsx
-import { useState, useServerTask } from 'minimact';
+import { useState, useServerTask } from '@minimact/core';
 
 export function UserList() {
   const [users, setUsers] = useState<User[]>([]);

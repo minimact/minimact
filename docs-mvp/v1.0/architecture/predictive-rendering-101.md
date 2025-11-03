@@ -348,7 +348,7 @@ private string[] RenderItems() { ... }
 For edge cases, you can give the predictor explicit hints:
 
 ```tsx
-import { usePredictHint } from 'minimact';
+import { usePredictHint } from '@minimact/core';
 
 function Counter() {
   const [count, setCount] = useState(0);

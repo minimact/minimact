@@ -11,113 +11,67 @@ A **Minimalist** is a developer who uses Minimact - someone who embraces minimal
 ## Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download) or later
-- [Node.js 16+](https://nodejs.org/) (for client tooling)
-- A code editor (VS Code recommended with the [Minimact extension](https://marketplace.visualstudio.com/items?itemName=minimact.minimact-vscode))
+- [Node.js 18+](https://nodejs.org/) (for Swig IDE)
 
 ## Quick Start
 
-### 1. Install Minimact
+### 1. Download Minimact Swig
 
-Install the .NET tool globally:
+**Swig** is the official IDE for Minimact development. It provides a visual interface for creating projects, editing code, and running your apps.
 
 ```bash
-dotnet tool install -g minimact
+git clone https://github.com/minimact/swig
+cd swig/swig
+npm install
+npm start
 ```
+
+The Swig IDE will launch automatically! 🎉
 
 ### 2. Create a New Project
 
-```bash
-# Create new ASP.NET project with Minimact
-dotnet minimact new MyApp
-cd MyApp
-```
+In the Swig IDE:
 
-This creates:
+1. Click **"Create New Project"**
+2. Choose a directory for your project
+3. Select a template:
+   - **Empty** — Minimal starter
+   - **Todo App** — Simple CRUD example
+   - **Electron File Manager** — Desktop app with native features
+4. Click **"Create"**
+
+Swig will scaffold your project with:
 ```
 MyApp/
 ├── Program.cs              # ASP.NET Core startup
 ├── MyApp.csproj            # .NET project file
-├── client/                 # Workspace for TSX components
-│   ├── package.json        # Client dependencies
-│   ├── src/
-│   │   ├── pages/          # File-based routing
-│   │   │   └── index.tsx   # Homepage (route: /)
-│   │   └── components/     # Shared components
-│   └── public/             # Static assets
-└── Generated/              # Auto-generated C# (do not edit)
-    └── routes.json         # Route manifest
+├── Pages/                  # TSX pages (file-based routing)
+│   ├── HomePage.tsx        # Homepage (route: /)
+│   └── HomePage.cs         # Auto-generated C# (do not edit)
+└── Components/             # Shared components
+    ├── Counter.tsx
+    └── Counter.cs          # Auto-generated C# (do not edit)
 ```
 
-### 3. Install Client Dependencies
+### 3. Start Development
 
-```bash
-cd client
-npm install
-```
+In Swig:
 
-This installs `minimact` (13.33 KB gzipped) by default.
+1. Click **"Transpile"** to convert TSX → C#
+2. Click **"Build"** to compile the project
+3. Click **"Run"** to start your app
+4. Click **"Open in Browser"** to view it
 
-**Want full SignalR compatibility?** Install `minimact-r` instead (25.03 KB):
-```bash
-npm install minimact-r
-```
+That's it! Your app is live at **http://localhost:5000**
 
-Both versions have identical APIs. See [Bundle Size Comparison](#bundle-sizes) below.
+### 4. Edit Your First Page
 
-### 4. Start Development Server
-
-```bash
-npm run dev
-```
-
-This will:
-1. Watch for TSX file changes
-2. Transpile TSX → C# automatically
-3. Generate route manifest
-4. Start ASP.NET Core server with hot reload
-
-Visit **http://localhost:5000** — your app is live!
-
----
-
-## File-Based Routing
-
-Minimact uses **Next.js-style file-based routing**. Files in `client/src/pages/` automatically become routes.
-
-### Basic Routes
-
-```
-client/src/pages/index.tsx       → /
-client/src/pages/about.tsx       → /about
-client/src/pages/blog.tsx        → /blog
-client/src/pages/contact.tsx     → /contact
-```
-
-### Dynamic Routes
-
-```
-client/src/pages/blog/[id].tsx       → /blog/:id
-client/src/pages/users/[userId].tsx  → /users/:userId
-```
-
-### Nested Routes
-
-```
-client/src/pages/dashboard/index.tsx    → /dashboard
-client/src/pages/dashboard/settings.tsx → /dashboard/settings
-client/src/pages/dashboard/profile.tsx  → /dashboard/profile
-```
-
----
-
-## Your First Page
-
-Edit `client/src/pages/index.tsx`:
+In the Swig editor, open `Pages/HomePage.tsx`:
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
-export default function Home() {
+export default function HomePage() {
   const [count, setCount] = useState(0);
 
   return (
@@ -132,26 +86,90 @@ export default function Home() {
 }
 ```
 
-**Save the file** — Minimact will:
-1. Auto-transpile to C# in `Generated/pages/Index.cs`
-2. Babel generates `.templates.json` with extracted templates
-3. Update `Generated/routes.json`
-4. Hot reload manager detects template changes
-5. Send template patches via SignalR to browser
-6. Client applies patches **instantly without page refresh**
+**Save the file (Ctrl+S)** — Swig will:
+1. Auto-transpile to C# in `Pages/HomePage.cs` (same directory)
+2. Generate template metadata in `HomePage.templates.json`
+3. Hot reload your browser with the changes
+4. **Preserve your component state** — the counter won't reset!
 
-**Your component state is preserved** — the counter won't reset!
+---
+
+## File-Based Routing
+
+Minimact uses **Next.js-style file-based routing**. Files in `Pages/` automatically become routes.
+
+### Basic Routes
+
+```
+Pages/HomePage.tsx       → /
+Pages/AboutPage.tsx      → /about
+Pages/BlogPage.tsx       → /blog
+Pages/ContactPage.tsx    → /contact
+```
+
+### Dynamic Routes
+
+```
+Pages/Blog/[id].tsx         → /blog/:id
+Pages/Users/[userId].tsx    → /users/:userId
+```
+
+### Nested Routes
+
+```
+Pages/Dashboard/Index.tsx      → /dashboard
+Pages/Dashboard/Settings.tsx   → /dashboard/settings
+Pages/Dashboard/Profile.tsx    → /dashboard/profile
+```
+
+---
+
+## Swig IDE Features
+
+### Monaco Editor
+
+The built-in Monaco editor provides:
+- Full TypeScript/TSX syntax highlighting
+- IntelliSense and autocomplete
+- Error checking and linting
+- Multi-file editing
+
+### Real-Time Transpilation
+
+As you type:
+1. Swig watches for file changes
+2. Auto-transpiles TSX → C# on save
+3. Generates template metadata
+4. Updates the generated C# code in real-time
+
+### Integrated Terminal
+
+Run commands directly in Swig:
+- `dotnet build` to compile
+- `dotnet run` to start the server
+- View build output and errors
+
+### Live Component Inspector
+
+While your app is running, Swig connects via SignalR to show:
+- **Component Tree** — Visual hierarchy of active components
+- **State Inspector** — Real-time state values
+- **Template Viewer** — See the generated templates
 
 ---
 
 ## Creating Components
 
-Components (non-pages) go in `client/src/components/`:
+In Swig, create a new component:
 
-**`client/src/components/Counter.tsx`:**
+1. Right-click in the **File Tree**
+2. Select **"New Component"**
+3. Enter name: `Counter.tsx`
+
+**`Components/Counter.tsx`:**
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -176,9 +194,9 @@ export function Counter() {
 **Use it in a page:**
 
 ```tsx
-import { Counter } from '../components/Counter';
+import { Counter } from '../Components/Counter';
 
-export default function Home() {
+export default function HomePage() {
   return (
     <div>
       <h1>Counter Demo</h1>
@@ -188,49 +206,38 @@ export default function Home() {
 }
 ```
 
+Swig will auto-transpile both files when you save!
+
 ---
 
 ## Project Structure
 
-### The `client/` Workspace
+Minimact projects created with Swig have a clean structure:
 
-The `client/` folder is a **workspace** with its own `package.json`. This keeps client-side tooling separate from your .NET project.
-
-**`client/package.json`:**
-
-```json
-{
-  "name": "myapp-client",
-  "scripts": {
-    "dev": "minimact watch & dotnet watch run --project ..",
-    "build": "minimact transpile",
-    "clean": "rm -rf ../Generated"
-  },
-  "dependencies": {
-    "minimact": "^0.1.0"
-  }
-}
 ```
-
-**npm commands:**
-- `npm run dev` — Watch mode + dev server
-- `npm run build` — Build for production
-- `npm run clean` — Remove generated files
+MyApp/
+├── Program.cs              # ASP.NET Core startup
+├── MyApp.csproj            # .NET project file
+├── Pages/                  # TSX pages (file-based routing)
+│   ├── HomePage.tsx        # Route: / (you edit this)
+│   ├── HomePage.cs         # Auto-generated C# (do not edit)
+│   ├── HomePage.templates.json  # Template metadata
+│   ├── AboutPage.tsx       # Route: /about
+│   ├── AboutPage.cs        # Auto-generated C#
+│   └── AboutPage.templates.json
+└── Components/             # Shared components
+    ├── Counter.tsx         # Reusable component (you edit this)
+    ├── Counter.cs          # Auto-generated C# (do not edit)
+    └── Counter.templates.json
+```
 
 ### Generated Files
 
-The `Generated/` folder contains auto-generated C# code. **Do not edit these files manually** — they'll be overwritten on next transpile.
+**C# files (`.cs`)** are auto-generated in the **same directory** as your TSX files. **Do not edit them manually** — Swig overwrites them when you save the corresponding `.tsx` file.
 
-```
-Generated/
-├── pages/
-│   ├── Index.cs         # From client/src/pages/index.tsx
-│   ├── About.cs         # From client/src/pages/about.tsx
-│   └── Blog.cs          # From client/src/pages/blog.tsx
-├── components/
-│   └── Counter.cs       # From client/src/components/Counter.tsx
-└── routes.json          # Route manifest
-```
+**Template files (`.templates.json`)** contain the extracted template metadata used for hot reload and predictive rendering.
+
+Swig shows generated files in a separate pane so you can see the C# output in real-time!
 
 ---
 
@@ -255,9 +262,9 @@ var app = builder.Build();
 app.UseStaticFiles();
 
 // Map SignalR hub for real-time communication
-app.MapHub<MinimactHub>("/minimact");
+app.MapHub<MinimactHub>("/minimacthub");
 
-// Map all pages from route manifest
+// Map all pages automatically
 app.MapMinimactPages();
 
 app.Run();
@@ -265,24 +272,13 @@ app.Run();
 
 **How it works:**
 
-1. Transpiler generates `Generated/routes.json`:
-```json
-[
-  {
-    "route": "/",
-    "componentPath": "Generated/pages/Index.cs",
-    "isPage": true
-  },
-  {
-    "route": "/about",
-    "componentPath": "Generated/pages/About.cs",
-    "isPage": true
-  }
-]
-```
-
-2. `MapMinimactPages()` reads the manifest and registers routes
-3. ASP.NET Core maps each route to its component
+1. Swig transpiles `Pages/HomePage.tsx` → `Pages/HomePage.cs`
+2. `MapMinimactPages()` scans the `Pages/` folder
+3. Finds all `.cs` files that inherit from `MinimactComponent`
+4. Registers routes based on file names:
+   - `HomePage.cs` → `/`
+   - `AboutPage.cs` → `/about`
+   - `Blog/PostPage.cs` → `/blog/post`
 
 ---
 
@@ -293,7 +289,7 @@ app.Run();
 State managed on the server, synchronized to the client:
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function UserProfile() {
   // Runs on server, syncs to client
@@ -315,7 +311,7 @@ export function UserProfile() {
 State managed entirely on the client (no server round-trip):
 
 ```tsx
-import { useClientState } from 'minimact';
+import { useClientState } from '@minimact/core';
 
 export function SearchBox() {
   // Runs on client only — instant updates
@@ -342,7 +338,7 @@ export function SearchBox() {
 Run long-running operations on the server with progress updates:
 
 ```tsx
-import { useServerTask } from 'minimact';
+import { useServerTask } from '@minimact/core';
 
 export function DataProcessor() {
   const [task, startTask] = useServerTask(async (updateProgress) => {
@@ -580,30 +576,44 @@ Now that you have Minimact set up:
 
 ## Troubleshooting
 
+### Swig won't start
+
+If Swig fails to launch:
+
+1. Ensure Node.js 18+ is installed: `node --version`
+2. Reinstall dependencies:
+   ```bash
+   cd swig/swig
+   rm -rf node_modules
+   npm install
+   npm start
+   ```
+
 ### Routes not found
 
 If routes aren't working:
 
-1. Check that `Generated/routes.json` exists
-2. Run `npm run build` to regenerate routes
+1. In Swig, click **"Transpile"** to regenerate routes
+2. Check that `.cs` files exist next to your `.tsx` files
 3. Ensure `MapMinimactPages()` is called in `Program.cs`
 
-### Transpiler not watching
+### Transpiler not working
 
-If file changes aren't detected:
+If file changes aren't detected in Swig:
 
-1. Ensure `npm run dev` is running
-2. Check that files are in `client/src/pages/` or `client/src/components/`
-3. Verify file extensions are `.tsx` or `.jsx`
+1. Check that files have `.tsx` extension
+2. Look for errors in the Swig terminal output
+3. Try clicking **"Transpile"** manually
 
 ### Port already in use
 
 If port 5000 is taken:
 
-```bash
-# Use a different port
-dotnet run --urls "http://localhost:5001"
-```
+1. In Swig terminal, run:
+   ```bash
+   dotnet run --urls "http://localhost:5001"
+   ```
+2. Or stop the other process using port 5000
 
 ---
 
@@ -643,33 +653,34 @@ Minimact is available in two versions:
 
 ---
 
-## CLI Reference
+## Advanced Features in Swig
 
-### `dotnet minimact new <name>`
+### Template Inspector
 
-Create a new Minimact project with workspace structure.
+View the extracted templates from your components:
 
-**Options:**
-- `--template <template>` — Use a template (default, minimal, full)
-- `--output <path>` — Output directory
+1. Click **"Inspector"** tab
+2. Select a component from the tree
+3. See all extracted templates with bindings
+4. Filter by type: static, dynamic, conditional, loop
 
-### `minimact watch`
+### File Watcher
 
-Watch for TSX file changes and transpile automatically.
+Swig automatically watches for file changes and rebuilds:
+- TSX files → Transpiles to C#
+- Template changes → Hot reloads browser
+- C# files → Triggers dotnet build
 
-**Options:**
-- `--input <path>` — Input directory (default: `./src`)
-- `--output <path>` — Output directory (default: `../Generated`)
+### Project Templates
 
-### `minimact transpile`
-
-Transpile TSX files to C# once (no watch mode).
-
-**Options:**
-- `--input <path>` — Input directory
-- `--output <path>` — Output directory
-- `--verbose` — Show detailed output
+Swig includes several starter templates:
+- **Empty** — Minimal Minimact project
+- **Todo App** — CRUD operations example
+- **Electron File Manager** — Desktop app with native APIs
+- **Dashboard** — Admin panel with charts
 
 ---
 
-🌵 **You're ready to build with Minimact!** 🌵
+🌵 **You're ready to build with Minimact and Swig!** 🌵
+
+For advanced CLI usage (optional), see the [CLI Reference](/v1.0/cli/commands).
