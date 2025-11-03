@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Play, Square, Hammer, Chrome, Activity, Zap, FilePlus } from 'lucide-react'
+import { Play, Square, Hammer, Chrome, Activity, Zap, FilePlus, BarChart3, FileText, Terminal as TerminalIcon } from 'lucide-react'
 import FileTree, { type ProjectFile } from '../components/editor/FileTree'
 import CodeEditor from '../components/editor/CodeEditor'
 import Terminal from '../components/terminal/Terminal'
 import ComponentTree from '../components/inspector/ComponentTree'
 import StateInspector from '../components/inspector/StateInspector'
 import AddPageModal from '../components/pages/AddPageModal'
+import Dock, { type DockWidget } from '../components/dock/Dock'
 
 interface Project {
   name: string
@@ -29,6 +30,15 @@ export default function Dashboard() {
   const [signalRConnected, setSignalRConnected] = useState(false)
   const [showAddPageModal, setShowAddPageModal] = useState(false)
   const [fileTreeRefreshKey, setFileTreeRefreshKey] = useState(0)
+
+  // Widget visibility state
+  const [widgets, setWidgets] = useState({
+    files: { visible: true, minimized: false },
+    editor: { visible: true, minimized: false },
+    terminal: { visible: true, minimized: false },
+    inspector: { visible: false, minimized: false },
+    metrics: { visible: true, minimized: false }
+  })
 
   useEffect(() => {
     if (projectPath) {
@@ -86,7 +96,7 @@ export default function Dashboard() {
       if (result.success) {
         console.log('Transpilation succeeded!')
         // Refresh file tree to show generated C# files
-        setFileTreeRefreshKey(prev => prev + 1)
+        setFileTreeRefreshKey((prev) => prev + 1)
       } else {
         console.error('Transpilation failed:', result.error)
       }
@@ -159,114 +169,217 @@ export default function Dashboard() {
     }
   }
 
+  // Widget control functions
+  const toggleWidget = (widgetId: keyof typeof widgets) => {
+    setWidgets((prev) => ({
+      ...prev,
+      [widgetId]: {
+        ...prev[widgetId],
+        visible: !prev[widgetId].visible,
+        minimized: false
+      }
+    }))
+  }
+
+  const minimizeWidget = (widgetId: keyof typeof widgets) => {
+    setWidgets((prev) => ({
+      ...prev,
+      [widgetId]: {
+        ...prev[widgetId],
+        visible: false,
+        minimized: true
+      }
+    }))
+  }
+
+  const closeWidget = (widgetId: keyof typeof widgets) => {
+    setWidgets((prev) => ({
+      ...prev,
+      [widgetId]: {
+        visible: false,
+        minimized: false
+      }
+    }))
+  }
+
+  const handleDockWidgetClick = (widgetId: string) => {
+    const widget = widgets[widgetId as keyof typeof widgets]
+    if (widget.minimized) {
+      // Restore from minimized
+      toggleWidget(widgetId as keyof typeof widgets)
+    } else if (widget.visible) {
+      // Minimize if already visible
+      minimizeWidget(widgetId as keyof typeof widgets)
+    }
+  }
+
+  // Build dock widgets array
+  const dockWidgets: DockWidget[] = [
+    {
+      id: 'files',
+      name: 'Files',
+      icon: <FileText className="w-5 h-5" />,
+      visible: widgets.files.visible,
+      minimized: widgets.files.minimized
+    },
+    {
+      id: 'editor',
+      name: 'Editor',
+      icon: <FileText className="w-5 h-5" />,
+      visible: widgets.editor.visible,
+      minimized: widgets.editor.minimized
+    },
+    {
+      id: 'terminal',
+      name: 'Terminal',
+      icon: <TerminalIcon className="w-5 h-5" />,
+      visible: widgets.terminal.visible,
+      minimized: widgets.terminal.minimized
+    },
+    {
+      id: 'inspector',
+      name: 'Inspector',
+      icon: <Activity className="w-5 h-5" />,
+      visible: widgets.inspector.visible,
+      minimized: widgets.inspector.minimized
+    },
+    {
+      id: 'metrics',
+      name: 'Performance',
+      icon: <BarChart3 className="w-5 h-5" />,
+      visible: widgets.metrics.visible,
+      minimized: widgets.metrics.minimized
+    }
+  ]
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
-        <div>Loading project...</div>
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-slate-400">Loading project...</div>
       </div>
     )
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
-        <div>Project not found</div>
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-slate-400">Project not found</div>
       </div>
     )
   }
 
   return (
-    <div className="h-screen bg-gray-900 text-gray-100 flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700 px-6 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-green-400">{project.name}</h1>
-          <p className="text-xs text-gray-400">{project.path}</p>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-2">
+    <div className="h-screen p-6 relative">
+      {/* Action Orb (Center Top) */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="relative">
+          {/* Center Orb */}
           <button
-            onClick={() => setShowAddPageModal(true)}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded transition-colors flex items-center gap-2 text-sm"
-            title="Add new page with route configuration"
+            onClick={isRunning ? handleStop : handleRun}
+            className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer group relative z-10 bg-gradient-to-br from-cyan-400 to-cyan-600 hover:scale-110 transition-all shadow-lg shadow-cyan-500/50"
           >
-            <FilePlus className="w-4 h-4" />
-            New Page
+            {isRunning ? (
+              <Square className="w-8 h-8 text-white" strokeWidth="2.5" fill="white" />
+            ) : (
+              <Play className="w-8 h-8 text-white ml-1" strokeWidth="2.5" fill="white" />
+            )}
           </button>
 
-          <button
-            onClick={() => setShowInspector(!showInspector)}
-            disabled={!signalRConnected}
-            className={`px-4 py-2 ${signalRConnected && showInspector ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'} disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm`}
-            title={signalRConnected ? 'Toggle Component Inspector' : 'Start app to enable inspector'}
-          >
-            <Activity className="w-4 h-4" />
-            Inspector
-          </button>
-
+          {/* Transpile Button (Purple - Top) */}
           <button
             onClick={handleTranspile}
             disabled={transpiling}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm"
-            title="Transpile all TSX files to C# and generate routes.json"
+            className="absolute w-12 h-12 rounded-full flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 transition-all bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg shadow-purple-500/40"
+            style={{ top: '-60px', left: '16px' }}
+            title="Transpile TSX → C#"
           >
-            <Zap className="w-4 h-4" />
-            {transpiling ? 'Transpiling...' : 'Transpile'}
+            <Zap className="w-5 h-5 text-white" strokeWidth="2.5" />
           </button>
 
+          {/* Build Button (Blue - Top Left) */}
           <button
             onClick={handleBuild}
             disabled={building}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 rounded transition-colors flex items-center gap-2 text-sm"
+            className="absolute w-12 h-12 rounded-full flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 transition-all bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/40"
+            style={{ top: '-48px', left: '-48px' }}
+            title="Build Project"
           >
-            <Hammer className="w-4 h-4" />
-            {building ? 'Building...' : 'Build'}
+            <Hammer className="w-5 h-5 text-white" strokeWidth="2.5" />
           </button>
 
-          {!isRunning ? (
-            <button
-              onClick={handleRun}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded transition-colors flex items-center gap-2 text-sm"
-            >
-              <Play className="w-4 h-4" />
-              Run
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={handleStop}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors flex items-center gap-2 text-sm"
-              >
-                <Square className="w-4 h-4" />
-                Stop
-              </button>
-              <button
-                onClick={handleOpenBrowser}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors flex items-center gap-2 text-sm"
-              >
-                <Chrome className="w-4 h-4" />
-                Open in Browser
-              </button>
-            </>
-          )}
-
-          <div
-            className={`ml-2 px-3 py-2 rounded text-xs font-medium ${isRunning ? 'bg-green-900/50 text-green-300' : 'bg-gray-700 text-gray-400'}`}
+          {/* Inspector Button (Orange - Top Right) */}
+          <button
+            onClick={() => toggleWidget('inspector')}
+            disabled={!signalRConnected}
+            className={`absolute w-12 h-12 rounded-full flex items-center justify-center cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 transition-all ${widgets.inspector.visible ? 'bg-gradient-to-br from-orange-400 to-orange-600' : 'bg-gradient-to-br from-orange-500 to-orange-700'} shadow-lg shadow-orange-500/40`}
+            style={{ top: '-48px', right: '-48px' }}
+            title={signalRConnected ? 'Toggle Inspector' : 'Start app to enable'}
           >
-            {isRunning ? `● Running on :${project.port}` : '○ Stopped'}
+            <Activity className="w-5 h-5 text-white" strokeWidth="2.5" />
+          </button>
+
+          {/* Browser Button (Appears when running) */}
+          {isRunning && (
+            <button
+              onClick={handleOpenBrowser}
+              className="absolute w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-all bg-gradient-to-br from-green-500 to-green-700 shadow-lg shadow-green-500/40"
+              style={{ top: '0', right: '-64px' }}
+              title="Open in Browser"
+            >
+              <Chrome className="w-4 h-4 text-white" strokeWidth="2.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Project Info */}
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
+          <div className="text-sm font-semibold text-white flex items-center gap-2">
+            <svg
+              className="w-4 h-4 text-cyan-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            {project.name}
           </div>
+          <div className="text-xs text-slate-500 mt-1">{project.path}</div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - File Tree */}
-        <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-700">
-            <h3 className="text-sm font-semibold text-gray-400">FILES</h3>
+      {/* File Browser Widget (Left) */}
+      {widgets.files.visible && (
+        <div className="floating-widget absolute left-6 top-32 w-72 h-[calc(100vh-220px)] rounded-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-0.5">
+                <div className="drag-handle"></div>
+                <div className="drag-handle"></div>
+              </div>
+              <span className="text-sm font-semibold text-slate-300">Files</span>
+            </div>
+            <div className="traffic-lights">
+              <div
+                className="traffic-light bg-red-500 cursor-pointer hover:opacity-100"
+                onClick={() => closeWidget('files')}
+                title="Close"
+              ></div>
+              <div
+                className="traffic-light bg-yellow-500 cursor-pointer hover:opacity-100"
+                onClick={() => minimizeWidget('files')}
+                title="Minimize"
+              ></div>
+              <div className="traffic-light bg-green-500 cursor-pointer hover:opacity-100" title="Maximize"></div>
+            </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
+
+          {/* File Tree Content */}
+          <div className="flex-1 overflow-y-auto p-2">
             <FileTree
               projectPath={project.path}
               onFileClick={handleFileClick}
@@ -275,15 +388,49 @@ export default function Dashboard() {
             />
           </div>
         </div>
+      )}
 
-        {/* Main Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Editor Area */}
-          <div className="flex-1 bg-gray-900 overflow-hidden">
+      {/* Editor Widget (Center) */}
+      {widgets.editor.visible && (
+        <div
+          className={`floating-widget active absolute left-80 top-32 ${widgets.inspector.visible ? 'right-[400px]' : 'right-80'} h-[calc(100vh-360px)] rounded-2xl flex flex-col overflow-hidden transition-all duration-300`}
+        >
+        {/* Header with Tabs */}
+        <div className="border-b border-slate-700 flex items-center">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <div className="flex flex-col gap-0.5">
+              <div className="drag-handle"></div>
+              <div className="drag-handle"></div>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center">
+            {selectedFile && (
+              <div className="px-4 py-2 flex items-center gap-2 text-xs bg-slate-700 bg-opacity-50 border-r border-slate-700">
+                <span className="text-slate-300">{selectedFile.name}</span>
+              </div>
+            )}
+          </div>
+          <div className="traffic-lights px-3">
+            <div
+              className="traffic-light bg-red-500 cursor-pointer hover:opacity-100"
+              onClick={() => closeWidget('editor')}
+              title="Close"
+            ></div>
+            <div
+              className="traffic-light bg-yellow-500 cursor-pointer hover:opacity-100"
+              onClick={() => minimizeWidget('editor')}
+              title="Minimize"
+            ></div>
+            <div className="traffic-light bg-green-500 cursor-pointer hover:opacity-100" title="Maximize"></div>
+          </div>
+        </div>
+
+          {/* Code Editor Content */}
+          <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-950 to-slate-900">
             {selectedFile ? (
               <CodeEditor filePath={selectedFile.path} onSave={handleFileSave} />
             ) : (
-              <div className="h-full flex items-center justify-center text-gray-500">
+              <div className="h-full flex items-center justify-center text-slate-500">
                 <div className="text-center">
                   <p className="text-lg mb-2">No file selected</p>
                   <p className="text-sm">Select a file from the tree to edit</p>
@@ -291,36 +438,156 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        </div>
+      )}
 
-          {/* Terminal Area */}
-          <div className="h-48 bg-black border-t border-gray-700">
-            <Terminal />
+      {/* Terminal Widget (Bottom Center) */}
+      {widgets.terminal.visible && (
+        <div
+          className={`floating-widget absolute left-80 ${widgets.inspector.visible ? 'right-[400px]' : 'right-80'} bottom-6 h-48 rounded-2xl flex flex-col overflow-hidden transition-all duration-300`}
+        >
+        {/* Header */}
+        <div className="px-4 py-2 border-b border-slate-700 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-0.5">
+              <div className="drag-handle"></div>
+              <div className="drag-handle"></div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500' : 'bg-slate-600'}`}
+              ></span>
+              <span className="text-xs font-semibold text-green-400 code-font">Terminal</span>
+            </div>
+          </div>
+          <div className="traffic-lights">
+            <div
+              className="traffic-light bg-red-500 cursor-pointer hover:opacity-100"
+              onClick={() => closeWidget('terminal')}
+              title="Close"
+            ></div>
+            <div
+              className="traffic-light bg-yellow-500 cursor-pointer hover:opacity-100"
+              onClick={() => minimizeWidget('terminal')}
+              title="Minimize"
+            ></div>
+            <div className="traffic-light bg-green-500 cursor-pointer hover:opacity-100" title="Maximize"></div>
           </div>
         </div>
 
-        {/* Right Sidebar - Component Inspector */}
-        {showInspector && signalRConnected && (
-          <div className="w-96 bg-gray-800 border-l border-gray-700 flex overflow-hidden">
-            {/* Component Tree */}
-            <div className="w-48 border-r border-gray-700 flex flex-col">
-              <div className="px-4 py-3 border-b border-gray-700">
-                <h3 className="text-xs font-semibold text-gray-400">COMPONENTS</h3>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <ComponentTree
-                  onComponentSelect={setSelectedComponentId}
-                  selectedComponentId={selectedComponentId}
-                />
-              </div>
-            </div>
+          {/* Terminal Content */}
+          <div className="flex-1 overflow-hidden">
+            <Terminal />
+          </div>
+        </div>
+      )}
 
-            {/* State Inspector */}
-            <div className="flex-1 overflow-hidden">
+      {/* Inspector Widget (Right Top) - Conditional */}
+      {widgets.inspector.visible && signalRConnected && (
+        <div className="floating-widget absolute right-6 top-32 w-80 h-96 rounded-2xl flex flex-col overflow-hidden floating-animation">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-0.5">
+                <div className="drag-handle"></div>
+                <div className="drag-handle"></div>
+              </div>
+              <span className="text-sm font-semibold text-slate-300">Inspector</span>
+            </div>
+            <div className="traffic-lights">
+              <div
+                className="traffic-light bg-red-500 cursor-pointer hover:opacity-100"
+                onClick={() => closeWidget('inspector')}
+                title="Close"
+              ></div>
+              <div
+                className="traffic-light bg-yellow-500 cursor-pointer hover:opacity-100"
+                onClick={() => minimizeWidget('inspector')}
+                title="Minimize"
+              ></div>
+              <div className="traffic-light bg-green-500 cursor-pointer hover:opacity-100" title="Maximize"></div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-slate-700">
+            <div className="flex-1 text-center py-2 text-xs bg-cyan-500 bg-opacity-10 border-b-2 border-cyan-500 text-cyan-400">
+              Components
+            </div>
+            <div className="flex-1 text-center py-2 text-xs text-slate-500 hover:text-slate-300 cursor-pointer">
+              State
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden flex">
+            <div className="w-32 border-r border-slate-700 overflow-y-auto">
+              <ComponentTree
+                onComponentSelect={setSelectedComponentId}
+                selectedComponentId={selectedComponentId}
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto">
               <StateInspector componentId={selectedComponentId} />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Metrics Widget (Right Bottom) */}
+      {widgets.metrics.visible && (
+        <div className="floating-widget absolute right-6 bottom-6 w-80 h-48 rounded-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="px-4 py-2 border-b border-slate-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-slate-300">Performance</span>
+            </div>
+            <div className="traffic-lights">
+              <div
+                className="traffic-light bg-red-500 cursor-pointer hover:opacity-100"
+                onClick={() => closeWidget('metrics')}
+                title="Close"
+              ></div>
+              <div
+                className="traffic-light bg-yellow-500 cursor-pointer hover:opacity-100"
+                onClick={() => minimizeWidget('metrics')}
+                title="Minimize"
+              ></div>
+              <div className="traffic-light bg-green-500 cursor-pointer hover:opacity-100" title="Maximize"></div>
+            </div>
+          </div>
+
+        {/* Metrics Content */}
+        <div className="flex-1 p-4 grid grid-cols-2 gap-3 text-xs">
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text">0ms</div>
+            <div className="text-slate-500 mt-1">Build Time</div>
+          </div>
+          <div className="text-center">
+            <div
+              className={`text-2xl font-bold ${isRunning ? 'text-green-400' : 'text-slate-600'}`}
+            >
+              {isRunning ? '●' : '○'}
+            </div>
+            <div className="text-slate-500 mt-1">Server Status</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-cyan-400">-</div>
+            <div className="text-slate-500 mt-1">Files</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-purple-400">-</div>
+            <div className="text-slate-500 mt-1">Components</div>
+          </div>
+        </div>
+        </div>
+      )}
+
+      {/* Dock */}
+      <Dock widgets={dockWidgets} onWidgetClick={handleDockWidgetClick} />
 
       {/* Add Page Modal */}
       <AddPageModal
@@ -329,7 +596,7 @@ export default function Dashboard() {
         projectPath={project?.path || ''}
         onPageCreated={() => {
           // Refresh file tree to show the new file
-          setFileTreeRefreshKey(prev => prev + 1)
+          setFileTreeRefreshKey((prev) => prev + 1)
           console.log('Page created successfully!')
         }}
       />

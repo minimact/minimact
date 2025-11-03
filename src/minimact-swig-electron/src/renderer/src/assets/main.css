@@ -2,12 +2,7 @@
 @import "tailwindcss";
 
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  background-image: url('./wavy-lines.svg');
-  background-size: cover;
   user-select: none;
 }
 
@@ -169,4 +164,145 @@ code {
   .actions {
     display: none;
   }
+}
+
+/* Floating Widget Design System */
+.floating-card {
+  background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.floating-widget {
+  background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+
+.floating-widget:hover {
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.floating-widget.active {
+  border-color: rgba(0, 217, 255, 0.3);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(0, 217, 255, 0.2);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.action-card {
+  background: linear-gradient(135deg, #00ff88 0%, #00d9ff 50%, #00ff88 100%);
+  background-size: 200% 100%;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.action-card:hover::before {
+  transform: translateX(100%);
+}
+
+.action-card:hover {
+  background-position: 100% 0;
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+}
+
+.action-card-blue {
+  background: linear-gradient(135deg, #2563eb 0%, #00d9ff 50%, #2563eb 100%);
+  background-size: 200% 100%;
+}
+
+.action-card-blue:hover {
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.4);
+}
+
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+}
+
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.sidebar-pill {
+  background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.drag-handle {
+  width: 20px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  margin: 2px 0;
+}
+
+.code-font {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.floating-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes fabPulse {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(0, 255, 136, 0.4);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(0, 255, 136, 0.6), 0 0 48px rgba(0, 255, 136, 0.3);
+  }
+}
+
+.fab {
+  background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+  animation: fabPulse 3s ease-in-out infinite;
 }
