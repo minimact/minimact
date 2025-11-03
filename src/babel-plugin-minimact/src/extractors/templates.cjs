@@ -13,6 +13,264 @@
 const t = require('@babel/types');
 
 /**
+ * Shared helper: Extract identifiers from expression (module-level for reuse)
+ */
+function extractIdentifiersShared(expr, result) {
+  if (t.isIdentifier(expr)) {
+    result.push(expr.name);
+  } else if (t.isBinaryExpression(expr) || t.isLogicalExpression(expr)) {
+    extractIdentifiersShared(expr.left, result);
+    extractIdentifiersShared(expr.right, result);
+  } else if (t.isUnaryExpression(expr)) {
+    extractIdentifiersShared(expr.argument, result);
+  } else if (t.isMemberExpression(expr)) {
+    result.push(buildMemberPathShared(expr));
+  }
+}
+
+/**
+ * Shared helper: Build member expression path
+ */
+function buildMemberPathShared(expr) {
+  const parts = [];
+  let current = expr;
+
+  while (t.isMemberExpression(current)) {
+    if (t.isIdentifier(current.property)) {
+      parts.unshift(current.property.name);
+    }
+    current = current.object;
+  }
+
+  if (t.isIdentifier(current)) {
+    parts.unshift(current.name);
+  }
+
+  return parts.join('.');
+}
+
+/**
+ * Shared helper: Extract method call binding
+ * Handles: price.toFixed(2), text.toLowerCase(), etc.
+ */
+function extractMethodCallBindingShared(expr) {
+  const callee = expr.callee;
+
+  if (!t.isMemberExpression(callee) && !t.isOptionalMemberExpression(callee)) {
+    return null;
+  }
+
+  const methodName = t.isIdentifier(callee.property) ? callee.property.name : null;
+  if (!methodName) return null;
+
+  const transformMethods = [
+    'toFixed', 'toString', 'toLowerCase', 'toUpperCase',
+    'trim', 'trimStart', 'trimEnd'
+  ];
+
+  if (!transformMethods.includes(methodName)) {
+    return null;
+  }
+
+  let binding = null;
+  if (t.isMemberExpression(callee.object)) {
+    binding = buildMemberPathShared(callee.object);
+  } else if (t.isIdentifier(callee.object)) {
+    binding = callee.object.name;
+  } else if (t.isBinaryExpression(callee.object)) {
+    const identifiers = [];
+    extractIdentifiersShared(callee.object, identifiers);
+    binding = `__expr__:${identifiers.join(',')}`;
+  }
+
+  if (!binding) return null;
+
+  const args = expr.arguments.map(arg => {
+    if (t.isNumericLiteral(arg)) return arg.value;
+    if (t.isStringLiteral(arg)) return arg.value;
+    if (t.isBooleanLiteral(arg)) return arg.value;
+    return null;
+  }).filter(v => v !== null);
+
+  return {
+    transform: methodName,
+    binding: binding,
+    args: args
+  };
+}
+
+/**
+ * Check if expression is a .map() call (including chained calls like .filter().map())
+ */
+function isMapCallExpression(expr) {
+  if (!t.isCallExpression(expr)) {
+    return false;
+  }
+
+  // Check if it's a direct .map() call
+  if (t.isMemberExpression(expr.callee) &&
+      t.isIdentifier(expr.callee.property) &&
+      expr.callee.property.name === 'map') {
+    return true;
+  }
+
+  // Check if it's a chained call ending in .map()
+  // e.g., items.filter(...).map(...), items.slice(0, 10).map(...)
+  let current = expr;
+  while (t.isCallExpression(current)) {
+    if (t.isMemberExpression(current.callee) &&
+        t.isIdentifier(current.callee.property) &&
+        current.callee.property.name === 'map') {
+      return true;
+    }
+    // Move to the next call in the chain
+    if (t.isMemberExpression(current.callee)) {
+      current = current.callee.object;
+    } else {
+      break;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Shared helper: Extract binding from expression
+ */
+function extractBindingShared(expr, component) {
+  if (t.isIdentifier(expr)) {
+    return expr.name;
+  } else if (t.isMemberExpression(expr)) {
+    return buildMemberPathShared(expr);
+  } else if (t.isCallExpression(expr)) {
+    // First try method call binding (toFixed, etc.)
+    const methodBinding = extractMethodCallBindingShared(expr);
+    if (methodBinding) {
+      return methodBinding;
+    }
+
+    // Otherwise, handle chained method calls: todo.text.substring(0, 10).toUpperCase()
+    return extractComplexCallExpression(expr);
+  } else if (t.isBinaryExpression(expr)) {
+    // Handle binary expressions: todo.priority + 1, price * quantity, etc.
+    return extractBinaryExpressionBinding(expr);
+  } else if (t.isLogicalExpression(expr)) {
+    // Handle logical expressions: todo.dueDate || 'No due date'
+    return extractLogicalExpressionBinding(expr);
+  } else if (t.isUnaryExpression(expr)) {
+    // Handle unary expressions: !todo.completed
+    return extractUnaryExpressionBinding(expr);
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Extract binding from binary expression
+ * Examples: todo.priority + 1, price * quantity, index * 2 + 1
+ */
+function extractBinaryExpressionBinding(expr) {
+  const identifiers = [];
+  extractIdentifiersShared(expr, identifiers);
+
+  // Use __expr__ prefix to indicate this is a computed expression
+  return `__expr__:${identifiers.join(',')}`;
+}
+
+/**
+ * Extract binding from logical expression
+ * Examples: todo.dueDate || 'No due date', condition && value
+ */
+function extractLogicalExpressionBinding(expr) {
+  const identifiers = [];
+  extractIdentifiersShared(expr, identifiers);
+
+  // Use __expr__ prefix to indicate this is a computed expression
+  return `__expr__:${identifiers.join(',')}`;
+}
+
+/**
+ * Extract binding from unary expression
+ * Examples: !todo.completed, -value
+ */
+function extractUnaryExpressionBinding(expr) {
+  const identifiers = [];
+  extractIdentifiersShared(expr, identifiers);
+
+  // Use __expr__ prefix to indicate this is a computed expression
+  return `__expr__:${identifiers.join(',')}`;
+}
+
+/**
+ * Extract binding from complex call expression (non-transform methods)
+ * Examples: todo.text.substring(0, 10).toUpperCase(), array.concat(other)
+ */
+function extractComplexCallExpression(expr) {
+  const identifiers = [];
+  extractIdentifiersShared(expr, identifiers);
+
+  if (identifiers.length === 0) {
+    return null;
+  }
+
+  // Use __expr__ prefix to indicate this is a computed expression
+  return `__expr__:${identifiers.join(',')}`;
+}
+
+/**
+ * Shared helper: Extract template literal (module-level for reuse)
+ */
+function extractTemplateLiteralShared(node, component) {
+  let templateStr = '';
+  const bindings = [];
+  const slots = [];
+  const transforms = [];
+  const conditionals = [];
+
+  for (let i = 0; i < node.quasis.length; i++) {
+    const quasi = node.quasis[i];
+    templateStr += quasi.value.raw;
+
+    if (i < node.expressions.length) {
+      const expr = node.expressions[i];
+      slots.push(templateStr.length);
+      templateStr += `{${i}}`;
+
+      const binding = extractBindingShared(expr, component);
+
+      if (binding && typeof binding === 'object' && binding.transform) {
+        bindings.push(binding.binding);
+        transforms.push({
+          slotIndex: i,
+          method: binding.transform,
+          args: binding.args
+        });
+      } else if (binding) {
+        bindings.push(binding);
+      } else {
+        bindings.push('__complex__');
+      }
+    }
+  }
+
+  const result = {
+    template: templateStr,
+    bindings,
+    slots,
+    type: 'attribute'
+  };
+
+  if (transforms.length > 0) {
+    result.transforms = transforms;
+  }
+  if (conditionals.length > 0) {
+    result.conditionals = conditionals;
+  }
+
+  return result;
+}
+
+/**
  * Extract all templates from JSX render body
  *
  * Returns a map of node paths to templates:
@@ -68,7 +326,7 @@ function extractTemplates(renderBody, component) {
           // Only create text template if this is actual text content, not structural JSX
           const expr = child.expression;
 
-          // Skip structural JSX (elements, fragments, conditionals with JSX, comments)
+          // Skip structural JSX (elements, fragments, conditionals with JSX, comments, .map() calls)
           const isStructural = t.isJSXElement(expr) ||
                                t.isJSXFragment(expr) ||
                                t.isJSXEmptyExpression(expr) || // Comments: {/* ... */}
@@ -76,7 +334,10 @@ function extractTemplates(renderBody, component) {
                                 (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right))) ||
                                (t.isConditionalExpression(expr) &&
                                 (t.isJSXElement(expr.consequent) || t.isJSXElement(expr.alternate) ||
-                                 t.isJSXFragment(expr.consequent) || t.isJSXFragment(expr.alternate)));
+                                 t.isJSXFragment(expr.consequent) || t.isJSXFragment(expr.alternate))) ||
+                               // Skip .map() calls - they return arrays of JSX elements
+                               // Also handles chained calls like .filter().map(), .slice().map()
+                               isMapCallExpression(expr);
 
           if (!isStructural) {
             // This is a text expression, extract template
@@ -123,6 +384,33 @@ function extractTemplates(renderBody, component) {
         templateStr += text;
       } else if (t.isJSXExpressionContainer(child)) {
         hasExpressions = true;
+
+        // Special case: Template literal inside JSX expression container
+        // Example: {`${(discount * 100).toFixed(0)}%`}
+        if (t.isTemplateLiteral(child.expression)) {
+          const templateResult = extractTemplateLiteralShared(child.expression, component);
+          if (templateResult) {
+            // Merge the template literal's content into the current template
+            templateStr += templateResult.template;
+            // Add the template literal's bindings
+            for (const binding of templateResult.bindings) {
+              bindings.push(binding);
+            }
+            // Store transforms and conditionals if present
+            if (templateResult.transforms && templateResult.transforms.length > 0) {
+              transformMetadata = templateResult.transforms[0]; // Simplified: take first transform
+            }
+            if (templateResult.conditionals && templateResult.conditionals.length > 0) {
+              conditionalTemplates = {
+                true: templateResult.conditionals[0].trueValue,
+                false: templateResult.conditionals[0].falseValue
+              };
+            }
+            paramIndex++;
+            continue; // Skip normal binding extraction
+          }
+        }
+
         const binding = extractBinding(child.expression, component);
 
         if (binding && typeof binding === 'object' && binding.conditional) {
@@ -334,6 +622,12 @@ function extractTemplates(renderBody, component) {
       binding = buildOptionalMemberPath(callee.object);
     } else if (t.isIdentifier(callee.object)) {
       binding = callee.object.name;
+    } else if (t.isBinaryExpression(callee.object)) {
+      // Handle expressions like (discount * 100).toFixed(0)
+      // Extract all identifiers from the binary expression
+      const identifiers = [];
+      extractIdentifiers(callee.object, identifiers);
+      binding = `__expr__:${identifiers.join(',')}`;
     }
 
     if (!binding) {
@@ -477,7 +771,7 @@ function extractAttributeTemplates(renderBody, component) {
 
           // Template literal: className={`count-${count}`}
           if (t.isTemplateLiteral(expr)) {
-            const template = extractTemplateLiteral(expr);
+            const template = extractTemplateLiteralShared(expr, component);
             if (template) {
               const attrPath = `${tagName}[${currentPath.join(',')}].@${attr.name.name}`;
               templates[attrPath] = {
@@ -497,36 +791,6 @@ function extractAttributeTemplates(renderBody, component) {
         }
       }
     }
-  }
-
-  function extractTemplateLiteral(node) {
-    let templateStr = '';
-    const bindings = [];
-    const slots = [];
-
-    for (let i = 0; i < node.quasis.length; i++) {
-      const quasi = node.quasis[i];
-      templateStr += quasi.value.raw;
-
-      if (i < node.expressions.length) {
-        const expr = node.expressions[i];
-        slots.push(templateStr.length);
-        templateStr += `{${i}}`;
-
-        if (t.isIdentifier(expr)) {
-          bindings.push(expr.name);
-        } else {
-          bindings.push('__complex__');
-        }
-      }
-    }
-
-    return {
-      template: templateStr,
-      bindings,
-      slots,
-      type: 'attribute'
-    };
   }
 
   if (renderBody) {

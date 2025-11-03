@@ -79,7 +79,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	/**
 	 * Convert TypeScript type annotation to C# type
 	 */
-	function tsTypeToCSharpType$3(tsType) {
+	function tsTypeToCSharpType$4(tsType) {
 	  if (!tsType) return 'dynamic';
 
 	  // TSStringKeyword -> string
@@ -96,7 +96,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	  // TSArrayType -> List<T>
 	  if (t$g.isTSArrayType(tsType)) {
-	    const elementType = tsTypeToCSharpType$3(tsType.elementType);
+	    const elementType = tsTypeToCSharpType$4(tsType.elementType);
 	    return `List<${elementType}>`;
 	  }
 
@@ -149,7 +149,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  if (!node) return 'dynamic';
 
 	  if (t$g.isStringLiteral(node)) return 'string';
-	  if (t$g.isNumericLiteral(node)) return 'int';
+	  if (t$g.isNumericLiteral(node)) {
+	    // Check if the number has a decimal point
+	    // If the value is a whole number, use int; otherwise use double
+	    const value = node.value;
+	    return Number.isInteger(value) ? 'int' : 'double';
+	  }
 	  if (t$g.isBooleanLiteral(node)) return 'bool';
 	  if (t$g.isNullLiteral(node)) return 'dynamic';
 	  if (t$g.isArrayExpression(node)) return 'List<dynamic>';
@@ -161,7 +166,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	var typeConversion = {
 	  inferType: inferType$2,
-	  tsTypeToCSharpType: tsTypeToCSharpType$3
+	  tsTypeToCSharpType: tsTypeToCSharpType$4
 	};
 
 	/**
@@ -368,6 +373,26 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      // Inline arrow function - extract to named method
 	      const handlerName = `Handle${component.eventHandlers.length}`;
 
+	      // Check if the function is async
+	      const isAsync = expr.async || false;
+
+	      // Detect curried functions (functions that return functions)
+	      // Pattern: (e) => (id) => action(id)
+	      // This is invalid for event handlers because the returned function is never called
+	      if (t$d.isArrowFunctionExpression(expr.body) || t$d.isFunctionExpression(expr.body)) {
+	        // Generate a handler that throws a helpful error
+	        component.eventHandlers.push({
+	          name: handlerName,
+	          body: null, // Will be handled specially in component generator
+	          params: expr.params,
+	          capturedParams: [],
+	          isAsync: false,
+	          isCurriedError: true // Flag to generate error throw
+	        });
+
+	        return handlerName;
+	      }
+
 	      // Simplify common pattern: (e) => func(e.target.value)
 	      // Transform to: (value) => func(value)
 	      let body = expr.body;
@@ -400,11 +425,68 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      // Check if we're inside a .map() context and capture those variables
 	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
 
+	      // Handle parameter destructuring
+	      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
+	      const hasDestructuring = params.some(p => t$d.isObjectPattern(p));
+	      let processedBody = body;
+	      let processedParams = params;
+
+	      if (hasDestructuring && params.length === 1 && t$d.isObjectPattern(params[0])) {
+	        // Extract destructured properties
+	        const destructuringStatements = [];
+	        const eventParam = t$d.identifier('e');
+
+	        function extractDestructured(pattern, path = []) {
+	          if (t$d.isObjectPattern(pattern)) {
+	            for (const prop of pattern.properties) {
+	              if (t$d.isObjectProperty(prop)) {
+	                const key = t$d.isIdentifier(prop.key) ? prop.key.name : null;
+	                if (key && t$d.isIdentifier(prop.value)) {
+	                  // Simple: { value } or { target: { value } }
+	                  const varName = prop.value.name;
+	                  const accessPath = [...path, key];
+	                  destructuringStatements.push({ varName, accessPath });
+	                } else if (key && t$d.isObjectPattern(prop.value)) {
+	                  // Nested: { target: { value } }
+	                  extractDestructured(prop.value, [...path, key]);
+	                }
+	              }
+	            }
+	          }
+	        }
+
+	        extractDestructured(params[0]);
+	        processedParams = [eventParam];
+
+	        // Prepend destructuring assignments to body
+	        if (destructuringStatements.length > 0) {
+	          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
+	            // Build e.Target.Value access chain
+	            let access = eventParam;
+	            for (const key of accessPath) {
+	              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+	              access = t$d.memberExpression(access, t$d.identifier(capitalizedKey));
+	            }
+	            return t$d.variableDeclaration('var', [
+	              t$d.variableDeclarator(t$d.identifier(varName), access)
+	            ]);
+	          });
+
+	          // Wrap body in block statement with destructuring
+	          if (t$d.isBlockStatement(body)) {
+	            processedBody = t$d.blockStatement([...assignments, ...body.body]);
+	          } else {
+	            processedBody = t$d.blockStatement([...assignments, t$d.expressionStatement(body)]);
+	          }
+	        }
+	      }
+
 	      component.eventHandlers.push({
 	        name: handlerName,
-	        body: body,
-	        params: params,
-	        capturedParams: capturedParams  // e.g., ['item', 'index']
+	        body: processedBody,
+	        params: processedParams,
+	        capturedParams: capturedParams,  // e.g., ['item', 'index']
+	        isAsync: isAsync  // Track if handler is async
 	      });
 
 	      // Return handler registration string
@@ -707,6 +789,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    return generateFragment(node, component, indent);
 		  }
 
+		  // Validate that this is actually a JSXElement
+		  if (!t.isJSXElement(node)) {
+		    console.error('[jsx.cjs] generateJSXElement called with non-JSX node:', node?.type || 'undefined');
+		    throw new Error(`generateJSXElement expects JSXElement or JSXFragment, received: ${node?.type || 'undefined'}`);
+		  }
+
 		  const tagName = node.openingElement.name.name;
 		  const attributes = node.openingElement.attributes;
 		  const children = node.children;
@@ -714,12 +802,15 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  // Check if this is a Plugin element
 		  if (tagName === 'Plugin') {
 		    const { generatePluginNode } = requirePlugin();
+
 		    // Find the matching plugin metadata from component.pluginUsages
-		    const pluginMetadata = component.pluginUsages.find(p => {
-		      // Match by finding the plugin in the same location in the tree
-		      // For now, just use the first match (simple case)
-		      return true; // TODO: Improve matching logic if multiple plugins
-		    });
+		    // Use the plugin index tracker to match plugins in order
+		    if (!component._pluginRenderIndex) {
+		      component._pluginRenderIndex = 0;
+		    }
+
+		    const pluginMetadata = component.pluginUsages[component._pluginRenderIndex];
+		    component._pluginRenderIndex++;
 
 		    if (pluginMetadata) {
 		      return generatePluginNode(pluginMetadata, component);
@@ -849,6 +940,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  const { generateJSXExpression } = requireExpressions();
 
 		  for (const child of children) {
+		    // Skip undefined/null children
+		    if (!child) {
+		      console.warn('[jsx.cjs] Skipping undefined child in children array');
+		      continue;
+		    }
+
 		    if (t.isJSXText(child)) {
 		      const text = child.value.trim();
 		      if (text) {
@@ -858,6 +955,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      result.push({ type: 'element', code: generateJSXElement(child, component, indent + 1) });
 		    } else if (t.isJSXExpressionContainer(child)) {
 		      result.push({ type: 'expression', code: generateJSXExpression(child.expression, component, indent) });
+		    } else if (t.isJSXFragment(child)) {
+		      result.push({ type: 'element', code: generateFragment(child, component, indent + 1) });
+		    } else {
+		      console.warn(`[jsx.cjs] Unknown child type: ${child.type}`);
 		    }
 		  }
 
@@ -1188,15 +1289,92 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  const indexParam = callback.params[1] ? callback.params[1].name : null;
 		  const body = callback.body;
 
-		  const itemCode = t.isJSXElement(body)
-		    ? generateJSXElement(body, component, indent + 1)
-		    : generateJSXElement(body.body, component, indent + 1);
+		  // Track map context for event handler closure capture (nested maps)
+		  const previousMapContext = component ? component.currentMapContext : null;
+		  const previousParams = previousMapContext ? previousMapContext.params : [];
+		  const currentParams = indexParam ? [itemParam, indexParam] : [itemParam];
+		  if (component) {
+		    component.currentMapContext = { params: [...previousParams, ...currentParams] };
+		  }
+
+		  let itemCode;
+		  let hasBlockStatements = false;
+
+		  if (t.isJSXElement(body)) {
+		    // Direct JSX return: item => <div>...</div>
+		    itemCode = generateJSXElement(body, component, indent + 1);
+		  } else if (t.isBlockStatement(body)) {
+		    // Block statement: item => { const x = ...; return <div>...</div>; }
+		    // Need to generate a statement lambda in C#
+		    hasBlockStatements = true;
+
+		    const statements = [];
+		    let returnJSX = null;
+
+		    // Process all statements in the block
+		    for (const stmt of body.body) {
+		      if (t.isReturnStatement(stmt) && t.isJSXElement(stmt.argument)) {
+		        returnJSX = stmt.argument;
+		        // Don't add return statement to statements array yet
+		      } else if (t.isVariableDeclaration(stmt)) {
+		        // Convert variable declarations: const displayValue = item[field];
+		        for (const decl of stmt.declarations) {
+		          const varName = decl.id.name;
+		          const init = decl.init ? generateCSharpExpression(decl.init) : 'null';
+		          statements.push(`var ${varName} = ${init};`);
+		        }
+		      } else {
+		        // Other statements - convert them
+		        statements.push(generateCSharpStatement(stmt));
+		      }
+		    }
+
+		    if (!returnJSX) {
+		      console.error('[generateMapExpression] Block statement has no JSX return');
+		      throw new Error('Map callback with block statement must return JSX element');
+		    }
+
+		    const jsxCode = generateJSXElement(returnJSX, component, indent + 1);
+		    statements.push(`return ${jsxCode};`);
+
+		    itemCode = statements.join(' ');
+		  } else {
+		    console.error('[generateMapExpression] Unsupported callback body type:', body?.type);
+		    throw new Error(`Unsupported map callback body type: ${body?.type}`);
+		  }
+
+		  // Restore previous context
+		  if (component) {
+		    component.currentMapContext = previousMapContext;
+		  }
+
+		  // Check if array is dynamic (likely from outer .map())
+		  const needsCast = arrayName.includes('.') && !arrayName.match(/^[A-Z]/); // Property access, not static class
+		  const castedArray = needsCast ? `((IEnumerable<dynamic>)${arrayName})` : arrayName;
 
 		  // C# Select supports (item, index) => ...
-		  if (indexParam) {
-		    return `${arrayName}.Select((${itemParam}, ${indexParam}) => ${itemCode}).ToArray()`;
+		  if (hasBlockStatements) {
+		    // Use statement lambda: item => { statements; return jsx; }
+		    if (indexParam) {
+		      const lambdaExpr = `(${itemParam}, ${indexParam}) => { ${itemCode} }`;
+		      const castedLambda = needsCast ? `(Func<dynamic, int, dynamic>)(${lambdaExpr})` : lambdaExpr;
+		      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+		    } else {
+		      const lambdaExpr = `${itemParam} => { ${itemCode} }`;
+		      const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+		      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+		    }
 		  } else {
-		    return `${arrayName}.Select(${itemParam} => ${itemCode}).ToArray()`;
+		    // Use expression lambda: item => jsx
+		    if (indexParam) {
+		      const lambdaExpr = `(${itemParam}, ${indexParam}) => ${itemCode}`;
+		      const castedLambda = needsCast ? `(Func<dynamic, int, dynamic>)(${lambdaExpr})` : lambdaExpr;
+		      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+		    } else {
+		      const lambdaExpr = `${itemParam} => ${itemCode}`;
+		      const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+		      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+		    }
 		  }
 		}
 
@@ -1211,6 +1389,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  }
 
 		  if (t.isReturnStatement(node)) {
+		    // Handle empty return statement: return; (not return null;)
+		    if (node.argument === null || node.argument === undefined) {
+		      return 'return;';
+		    }
 		    return `return ${generateCSharpExpression(node.argument)};`;
 		  }
 
@@ -1344,6 +1526,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    return `await ${generateCSharpExpression(node.argument, inInterpolation)}`;
 		  }
 
+		  // Handle TypeScript type assertions: (e.target as any) → e.target (strip the cast)
+		  // In C#, we rely on dynamic typing, so type casts are usually unnecessary
+		  if (t.isTSAsExpression(node)) {
+		    return generateCSharpExpression(node.expression, inInterpolation);
+		  }
+
+		  // Handle TypeScript type assertions (angle bracket syntax): <any>e.target → e.target
+		  if (t.isTSTypeAssertion(node)) {
+		    return generateCSharpExpression(node.expression, inInterpolation);
+		  }
+
 		  // Handle optional chaining: viewModel?.userEmail → viewModel?.UserEmail
 		  if (t.isOptionalMemberExpression(node)) {
 		    const object = generateCSharpExpression(node.object, inInterpolation);
@@ -1400,6 +1593,45 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  }
 
 		  if (t.isArrayExpression(node)) {
+		    // Check if array contains spread elements
+		    const hasSpread = node.elements.some(e => t.isSpreadElement(e));
+
+		    if (hasSpread) {
+		      // Handle spread operator: [...array, item] → array.Concat(new[] { item }).ToList()
+		      const parts = [];
+		      let currentLiteral = [];
+
+		      for (const element of node.elements) {
+		        if (t.isSpreadElement(element)) {
+		          // Flush current literal elements
+		          if (currentLiteral.length > 0) {
+		            const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
+		            parts.push(`new List<object> { ${literalCode} }`);
+		            currentLiteral = [];
+		          }
+		          // Add spread array
+		          parts.push(`((IEnumerable<object>)${generateCSharpExpression(element.argument)})`);
+		        } else {
+		          currentLiteral.push(element);
+		        }
+		      }
+
+		      // Flush remaining literals
+		      if (currentLiteral.length > 0) {
+		        const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
+		        parts.push(`new List<object> { ${literalCode} }`);
+		      }
+
+		      // Combine with Concat
+		      if (parts.length === 1) {
+		        return `${parts[0]}.ToList()`;
+		      } else {
+		        const concats = parts.slice(1).map(p => `.Concat(${p})`).join('');
+		        return `${parts[0]}${concats}.ToList()`;
+		      }
+		    }
+
+		    // No spread - simple array literal
 		    const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
 		    // Use List<dynamic> for empty arrays to be compatible with dynamic LINQ results
 		    const listType = elements.length === 0 ? 'dynamic' : 'object';
@@ -1414,8 +1646,38 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  }
 
 		  if (t.isBinaryExpression(node)) {
-		    const left = generateCSharpExpression(node.left);
-		    const right = generateCSharpExpression(node.right);
+		    // Helper function to get operator precedence (higher = tighter binding)
+		    const getPrecedence = (op) => {
+		      if (op === '*' || op === '/' || op === '%') return 3;
+		      if (op === '+' || op === '-') return 2;
+		      if (op === '==' || op === '!=' || op === '===' || op === '!==' ||
+		          op === '<' || op === '>' || op === '<=' || op === '>=') return 1;
+		      return 0;
+		    };
+
+		    const currentPrecedence = getPrecedence(node.operator);
+
+		    // Generate left side, wrap in parentheses if needed
+		    let left = generateCSharpExpression(node.left);
+		    if (t.isBinaryExpression(node.left)) {
+		      const leftPrecedence = getPrecedence(node.left.operator);
+		      // Wrap in parentheses if left has lower precedence
+		      if (leftPrecedence < currentPrecedence) {
+		        left = `(${left})`;
+		      }
+		    }
+
+		    // Generate right side, wrap in parentheses if needed
+		    let right = generateCSharpExpression(node.right);
+		    if (t.isBinaryExpression(node.right)) {
+		      const rightPrecedence = getPrecedence(node.right.operator);
+		      // Wrap in parentheses if right has lower or equal precedence
+		      // Equal precedence on right needs parens for left-associative operators
+		      if (rightPrecedence <= currentPrecedence) {
+		        right = `(${right})`;
+		      }
+		    }
+
 		    // Convert JavaScript operators to C# operators
 		    let operator = node.operator;
 		    if (operator === '===') operator = '==';
@@ -1506,10 +1768,42 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		      return `new HttpClient().GetAsync(${url})`;
 		    }
 
+		    // Handle Promise.resolve(value) → Task.FromResult(value)
+		    if (t.isMemberExpression(node.callee) &&
+		        t.isIdentifier(node.callee.object, { name: 'Promise' }) &&
+		        t.isIdentifier(node.callee.property, { name: 'resolve' })) {
+		      if (node.arguments.length > 0) {
+		        const value = generateCSharpExpression(node.arguments[0]);
+		        return `Task.FromResult(${value})`;
+		      }
+		      return `Task.CompletedTask`;
+		    }
+
+		    // Handle Promise.reject(error) → Task.FromException(error)
+		    if (t.isMemberExpression(node.callee) &&
+		        t.isIdentifier(node.callee.object, { name: 'Promise' }) &&
+		        t.isIdentifier(node.callee.property, { name: 'reject' })) {
+		      if (node.arguments.length > 0) {
+		        const error = generateCSharpExpression(node.arguments[0]);
+		        return `Task.FromException(new Exception(${error}))`;
+		      }
+		    }
+
 		    // Handle alert() → Console.WriteLine() (or custom alert implementation)
 		    if (t.isIdentifier(node.callee, { name: 'alert' })) {
 		      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
 		      return `Console.WriteLine(${args})`;
+		    }
+
+		    // Handle Object.keys() → dictionary.Keys or reflection for objects
+		    if (t.isMemberExpression(node.callee) &&
+		        t.isIdentifier(node.callee.object, { name: 'Object' }) &&
+		        t.isIdentifier(node.callee.property, { name: 'keys' })) {
+		      if (node.arguments.length > 0) {
+		        const obj = generateCSharpExpression(node.arguments[0]);
+		        // For dynamic objects, cast to IDictionary and get Keys
+		        return `((IDictionary<string, object>)${obj}).Keys`;
+		      }
 		    }
 
 		    // Handle console.log → Console.WriteLine
@@ -1528,7 +1822,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 		    // Handle .toFixed(n) → .ToString("Fn")
 		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toFixed' })) {
-		      const object = generateCSharpExpression(node.callee.object);
+		      let object = generateCSharpExpression(node.callee.object);
+
+		      // Preserve parentheses for complex expressions (binary operations, conditionals, etc.)
+		      // This ensures operator precedence is maintained: (price * quantity).toFixed(2) → (price * quantity).ToString("F2")
+		      if (t.isBinaryExpression(node.callee.object) ||
+		          t.isLogicalExpression(node.callee.object) ||
+		          t.isConditionalExpression(node.callee.object) ||
+		          t.isCallExpression(node.callee.object)) {
+		        object = `(${object})`;
+		      }
+
 		      const decimals = node.arguments.length > 0 && t.isNumericLiteral(node.arguments[0])
 		        ? node.arguments[0].value
 		        : 2;
@@ -1551,6 +1855,13 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toUpperCase' })) {
 		      const object = generateCSharpExpression(node.callee.object);
 		      return `${object}.ToUpper()`;
+		    }
+
+		    // Handle .substring(start, end) → .Substring(start, end)
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'substring' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+		      return `${object}.Substring(${args})`;
 		    }
 
 		    // Handle useState/useClientState setters → SetState calls
@@ -1586,9 +1897,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		          } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
 		            // JSX element - use generateJSXElement with currentComponent context
 		            // Store map context for event handler closure capture
+		            // For nested maps, we need to ACCUMULATE params, not replace them
 		            const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+		            const previousParams = previousMapContext ? previousMapContext.params : [];
 		            if (currentComponent) {
-		              currentComponent.currentMapContext = { params: paramNames };
+		              // Combine previous params with current params for nested map support
+		              currentComponent.currentMapContext = { params: [...previousParams, ...paramNames] };
 		            }
 		            body = generateJSXElement(callback.body, currentComponent, 0);
 		            // Restore previous context
@@ -1604,7 +1918,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		          const needsCast = object.includes('?.') || object.includes('?') || object.includes('.');
 		          const castedObject = needsCast ? `((IEnumerable<dynamic>)${object})` : object;
 
-		          return `${castedObject}.Select(${params} => ${body}).ToList()`;
+		          // If the object needs casting (is dynamic), we also need to cast the lambda
+		          // to prevent CS1977: "Cannot use a lambda expression as an argument to a dynamically dispatched operation"
+		          const lambdaExpr = `${params} => ${body}`;
+		          const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+
+		          return `${castedObject}.Select(${castedLambda}).ToList()`;
 		        }
 		      }
 		    }
@@ -1637,9 +1956,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		          } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
 		            // JSX element - use generateJSXElement with currentComponent context
 		            // Store map context for event handler closure capture
+		            // For nested maps, we need to ACCUMULATE params, not replace them
 		            const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+		            const previousParams = previousMapContext ? previousMapContext.params : [];
 		            if (currentComponent) {
-		              currentComponent.currentMapContext = { params: paramNames };
+		              // Combine previous params with current params for nested map support
+		              currentComponent.currentMapContext = { params: [...previousParams, ...paramNames] };
 		            }
 		            body = generateJSXElement(callback.body, currentComponent, 0);
 		            // Restore previous context
@@ -1702,6 +2024,30 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 		  }
 
 		  if (t.isNewExpression(node)) {
+		    // Handle new Promise(resolve => setTimeout(resolve, ms)) → Task.Delay(ms)
+		    if (t.isIdentifier(node.callee, { name: 'Promise' }) && node.arguments.length > 0) {
+		      const callback = node.arguments[0];
+
+		      // Check if it's the setTimeout pattern
+		      if (t.isArrowFunctionExpression(callback) && callback.params.length === 1) {
+		        const resolveParam = callback.params[0].name;
+		        const body = callback.body;
+
+		        // Check if body is: setTimeout(resolve, ms)
+		        if (t.isCallExpression(body) &&
+		            t.isIdentifier(body.callee, { name: 'setTimeout' }) &&
+		            body.arguments.length === 2 &&
+		            t.isIdentifier(body.arguments[0], { name: resolveParam })) {
+		          const delay = generateCSharpExpression(body.arguments[1]);
+		          return `Task.Delay(${delay})`;
+		        }
+		      }
+
+		      // Generic Promise constructor - not directly supported in C#
+		      // Return Task.CompletedTask as a fallback
+		      return `Task.CompletedTask`;
+		    }
+
 		    // Handle new Date() → DateTime.Parse()
 		    if (t.isIdentifier(node.callee, { name: 'Date' })) {
 		      if (node.arguments.length === 0) {
@@ -2225,7 +2571,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	const t$b = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$2 } = requireExpressions();
-	const { inferType, tsTypeToCSharpType: tsTypeToCSharpType$2 } = typeConversion;
+	const { inferType, tsTypeToCSharpType: tsTypeToCSharpType$3 } = typeConversion;
 	const { extractUseStateX } = useStateX;
 
 	/**
@@ -2320,17 +2666,23 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  const [stateVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
 
+	  // Handle read-only state (no setter): const [value] = useState(...)
+	  if (!stateVar) {
+	    console.log(`[useState] Skipping invalid destructuring (no state variable)`);
+	    return;
+	  }
+
 	  // Check if there's a generic type parameter (e.g., useState<decimal>(0))
 	  let explicitType = null;
 	  if (path.node.typeParameters && path.node.typeParameters.params.length > 0) {
 	    const typeParam = path.node.typeParameters.params[0];
-	    explicitType = tsTypeToCSharpType$2(typeParam);
+	    explicitType = tsTypeToCSharpType$3(typeParam);
 	    console.log(`[useState] Found explicit type parameter for '${stateVar.name}': ${explicitType}`);
 	  }
 
 	  const stateInfo = {
 	    name: stateVar.name,
-	    setter: setterVar.name,
+	    setter: setterVar ? setterVar.name : null, // Setter is optional (read-only state)
 	    initialValue: generateCSharpExpression$2(initialValue),
 	    type: explicitType || inferType(initialValue) // Prefer explicit type over inferred
 	  };
@@ -2952,7 +3304,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	  // Extract TypeScript generic type: useMvcState<string>('name')
 	  // But prefer the type from the ViewModel interface if available (more reliable)
 	  const typeParam = path.node.typeParameters?.params[0];
-	  let csharpType = typeParam ? tsTypeToCSharpType$2(typeParam) : 'dynamic';
+	  let csharpType = typeParam ? tsTypeToCSharpType$3(typeParam) : 'dynamic';
 
 	  // Try to find the actual type from the ViewModel interface
 	  const interfaceType = findViewModelPropertyType(path, propertyName);
@@ -3094,7 +3446,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        const typeAnnotation = member.typeAnnotation?.typeAnnotation;
 	        console.log(`[findViewModelPropertyType] Found property ${propertyName}, typeAnnotation:`, typeAnnotation);
 	        if (typeAnnotation) {
-	          const csharpType = tsTypeToCSharpType$2(typeAnnotation);
+	          const csharpType = tsTypeToCSharpType$3(typeAnnotation);
 	          console.log(`[findViewModelPropertyType] Mapped ${propertyName} type to: ${csharpType}`);
 	          return csharpType;
 	        }
@@ -3135,7 +3487,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	const t$a = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$1 } = requireExpressions();
-	const { tsTypeToCSharpType: tsTypeToCSharpType$1 } = typeConversion;
+	const { tsTypeToCSharpType: tsTypeToCSharpType$2 } = typeConversion;
 
 	/**
 	 * Check if an expression uses external libraries
@@ -3269,7 +3621,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      // Try to infer type from TypeScript annotation or initial value
 	      let varType = 'var'; // C# var for type inference
 	      if (declarator.id.typeAnnotation?.typeAnnotation) {
-	        varType = tsTypeToCSharpType$1(declarator.id.typeAnnotation.typeAnnotation);
+	        varType = tsTypeToCSharpType$2(declarator.id.typeAnnotation.typeAnnotation);
 	      }
 
 	      component.localVariables.push({
@@ -3523,6 +3875,264 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	const t$8 = globalThis.__BABEL_TYPES__;
 
 	/**
+	 * Shared helper: Extract identifiers from expression (module-level for reuse)
+	 */
+	function extractIdentifiersShared(expr, result) {
+	  if (t$8.isIdentifier(expr)) {
+	    result.push(expr.name);
+	  } else if (t$8.isBinaryExpression(expr) || t$8.isLogicalExpression(expr)) {
+	    extractIdentifiersShared(expr.left, result);
+	    extractIdentifiersShared(expr.right, result);
+	  } else if (t$8.isUnaryExpression(expr)) {
+	    extractIdentifiersShared(expr.argument, result);
+	  } else if (t$8.isMemberExpression(expr)) {
+	    result.push(buildMemberPathShared(expr));
+	  }
+	}
+
+	/**
+	 * Shared helper: Build member expression path
+	 */
+	function buildMemberPathShared(expr) {
+	  const parts = [];
+	  let current = expr;
+
+	  while (t$8.isMemberExpression(current)) {
+	    if (t$8.isIdentifier(current.property)) {
+	      parts.unshift(current.property.name);
+	    }
+	    current = current.object;
+	  }
+
+	  if (t$8.isIdentifier(current)) {
+	    parts.unshift(current.name);
+	  }
+
+	  return parts.join('.');
+	}
+
+	/**
+	 * Shared helper: Extract method call binding
+	 * Handles: price.toFixed(2), text.toLowerCase(), etc.
+	 */
+	function extractMethodCallBindingShared(expr) {
+	  const callee = expr.callee;
+
+	  if (!t$8.isMemberExpression(callee) && !t$8.isOptionalMemberExpression(callee)) {
+	    return null;
+	  }
+
+	  const methodName = t$8.isIdentifier(callee.property) ? callee.property.name : null;
+	  if (!methodName) return null;
+
+	  const transformMethods = [
+	    'toFixed', 'toString', 'toLowerCase', 'toUpperCase',
+	    'trim', 'trimStart', 'trimEnd'
+	  ];
+
+	  if (!transformMethods.includes(methodName)) {
+	    return null;
+	  }
+
+	  let binding = null;
+	  if (t$8.isMemberExpression(callee.object)) {
+	    binding = buildMemberPathShared(callee.object);
+	  } else if (t$8.isIdentifier(callee.object)) {
+	    binding = callee.object.name;
+	  } else if (t$8.isBinaryExpression(callee.object)) {
+	    const identifiers = [];
+	    extractIdentifiersShared(callee.object, identifiers);
+	    binding = `__expr__:${identifiers.join(',')}`;
+	  }
+
+	  if (!binding) return null;
+
+	  const args = expr.arguments.map(arg => {
+	    if (t$8.isNumericLiteral(arg)) return arg.value;
+	    if (t$8.isStringLiteral(arg)) return arg.value;
+	    if (t$8.isBooleanLiteral(arg)) return arg.value;
+	    return null;
+	  }).filter(v => v !== null);
+
+	  return {
+	    transform: methodName,
+	    binding: binding,
+	    args: args
+	  };
+	}
+
+	/**
+	 * Check if expression is a .map() call (including chained calls like .filter().map())
+	 */
+	function isMapCallExpression(expr) {
+	  if (!t$8.isCallExpression(expr)) {
+	    return false;
+	  }
+
+	  // Check if it's a direct .map() call
+	  if (t$8.isMemberExpression(expr.callee) &&
+	      t$8.isIdentifier(expr.callee.property) &&
+	      expr.callee.property.name === 'map') {
+	    return true;
+	  }
+
+	  // Check if it's a chained call ending in .map()
+	  // e.g., items.filter(...).map(...), items.slice(0, 10).map(...)
+	  let current = expr;
+	  while (t$8.isCallExpression(current)) {
+	    if (t$8.isMemberExpression(current.callee) &&
+	        t$8.isIdentifier(current.callee.property) &&
+	        current.callee.property.name === 'map') {
+	      return true;
+	    }
+	    // Move to the next call in the chain
+	    if (t$8.isMemberExpression(current.callee)) {
+	      current = current.callee.object;
+	    } else {
+	      break;
+	    }
+	  }
+
+	  return false;
+	}
+
+	/**
+	 * Shared helper: Extract binding from expression
+	 */
+	function extractBindingShared(expr, component) {
+	  if (t$8.isIdentifier(expr)) {
+	    return expr.name;
+	  } else if (t$8.isMemberExpression(expr)) {
+	    return buildMemberPathShared(expr);
+	  } else if (t$8.isCallExpression(expr)) {
+	    // First try method call binding (toFixed, etc.)
+	    const methodBinding = extractMethodCallBindingShared(expr);
+	    if (methodBinding) {
+	      return methodBinding;
+	    }
+
+	    // Otherwise, handle chained method calls: todo.text.substring(0, 10).toUpperCase()
+	    return extractComplexCallExpression(expr);
+	  } else if (t$8.isBinaryExpression(expr)) {
+	    // Handle binary expressions: todo.priority + 1, price * quantity, etc.
+	    return extractBinaryExpressionBinding(expr);
+	  } else if (t$8.isLogicalExpression(expr)) {
+	    // Handle logical expressions: todo.dueDate || 'No due date'
+	    return extractLogicalExpressionBinding(expr);
+	  } else if (t$8.isUnaryExpression(expr)) {
+	    // Handle unary expressions: !todo.completed
+	    return extractUnaryExpressionBinding(expr);
+	  } else {
+	    return null;
+	  }
+	}
+
+	/**
+	 * Extract binding from binary expression
+	 * Examples: todo.priority + 1, price * quantity, index * 2 + 1
+	 */
+	function extractBinaryExpressionBinding(expr) {
+	  const identifiers = [];
+	  extractIdentifiersShared(expr, identifiers);
+
+	  // Use __expr__ prefix to indicate this is a computed expression
+	  return `__expr__:${identifiers.join(',')}`;
+	}
+
+	/**
+	 * Extract binding from logical expression
+	 * Examples: todo.dueDate || 'No due date', condition && value
+	 */
+	function extractLogicalExpressionBinding(expr) {
+	  const identifiers = [];
+	  extractIdentifiersShared(expr, identifiers);
+
+	  // Use __expr__ prefix to indicate this is a computed expression
+	  return `__expr__:${identifiers.join(',')}`;
+	}
+
+	/**
+	 * Extract binding from unary expression
+	 * Examples: !todo.completed, -value
+	 */
+	function extractUnaryExpressionBinding(expr) {
+	  const identifiers = [];
+	  extractIdentifiersShared(expr, identifiers);
+
+	  // Use __expr__ prefix to indicate this is a computed expression
+	  return `__expr__:${identifiers.join(',')}`;
+	}
+
+	/**
+	 * Extract binding from complex call expression (non-transform methods)
+	 * Examples: todo.text.substring(0, 10).toUpperCase(), array.concat(other)
+	 */
+	function extractComplexCallExpression(expr) {
+	  const identifiers = [];
+	  extractIdentifiersShared(expr, identifiers);
+
+	  if (identifiers.length === 0) {
+	    return null;
+	  }
+
+	  // Use __expr__ prefix to indicate this is a computed expression
+	  return `__expr__:${identifiers.join(',')}`;
+	}
+
+	/**
+	 * Shared helper: Extract template literal (module-level for reuse)
+	 */
+	function extractTemplateLiteralShared(node, component) {
+	  let templateStr = '';
+	  const bindings = [];
+	  const slots = [];
+	  const transforms = [];
+	  const conditionals = [];
+
+	  for (let i = 0; i < node.quasis.length; i++) {
+	    const quasi = node.quasis[i];
+	    templateStr += quasi.value.raw;
+
+	    if (i < node.expressions.length) {
+	      const expr = node.expressions[i];
+	      slots.push(templateStr.length);
+	      templateStr += `{${i}}`;
+
+	      const binding = extractBindingShared(expr);
+
+	      if (binding && typeof binding === 'object' && binding.transform) {
+	        bindings.push(binding.binding);
+	        transforms.push({
+	          slotIndex: i,
+	          method: binding.transform,
+	          args: binding.args
+	        });
+	      } else if (binding) {
+	        bindings.push(binding);
+	      } else {
+	        bindings.push('__complex__');
+	      }
+	    }
+	  }
+
+	  const result = {
+	    template: templateStr,
+	    bindings,
+	    slots,
+	    type: 'attribute'
+	  };
+
+	  if (transforms.length > 0) {
+	    result.transforms = transforms;
+	  }
+	  if (conditionals.length > 0) {
+	    result.conditionals = conditionals;
+	  }
+
+	  return result;
+	}
+
+	/**
 	 * Extract all templates from JSX render body
 	 *
 	 * Returns a map of node paths to templates:
@@ -3577,7 +4187,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          // Only create text template if this is actual text content, not structural JSX
 	          const expr = child.expression;
 
-	          // Skip structural JSX (elements, fragments, conditionals with JSX, comments)
+	          // Skip structural JSX (elements, fragments, conditionals with JSX, comments, .map() calls)
 	          const isStructural = t$8.isJSXElement(expr) ||
 	                               t$8.isJSXFragment(expr) ||
 	                               t$8.isJSXEmptyExpression(expr) || // Comments: {/* ... */}
@@ -3585,7 +4195,10 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	                                (t$8.isJSXElement(expr.right) || t$8.isJSXFragment(expr.right))) ||
 	                               (t$8.isConditionalExpression(expr) &&
 	                                (t$8.isJSXElement(expr.consequent) || t$8.isJSXElement(expr.alternate) ||
-	                                 t$8.isJSXFragment(expr.consequent) || t$8.isJSXFragment(expr.alternate)));
+	                                 t$8.isJSXFragment(expr.consequent) || t$8.isJSXFragment(expr.alternate))) ||
+	                               // Skip .map() calls - they return arrays of JSX elements
+	                               // Also handles chained calls like .filter().map(), .slice().map()
+	                               isMapCallExpression(expr);
 
 	          if (!isStructural) {
 	            // This is a text expression, extract template
@@ -3632,6 +4245,33 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        templateStr += text;
 	      } else if (t$8.isJSXExpressionContainer(child)) {
 	        hasExpressions = true;
+
+	        // Special case: Template literal inside JSX expression container
+	        // Example: {`${(discount * 100).toFixed(0)}%`}
+	        if (t$8.isTemplateLiteral(child.expression)) {
+	          const templateResult = extractTemplateLiteralShared(child.expression);
+	          if (templateResult) {
+	            // Merge the template literal's content into the current template
+	            templateStr += templateResult.template;
+	            // Add the template literal's bindings
+	            for (const binding of templateResult.bindings) {
+	              bindings.push(binding);
+	            }
+	            // Store transforms and conditionals if present
+	            if (templateResult.transforms && templateResult.transforms.length > 0) {
+	              transformMetadata = templateResult.transforms[0]; // Simplified: take first transform
+	            }
+	            if (templateResult.conditionals && templateResult.conditionals.length > 0) {
+	              conditionalTemplates = {
+	                true: templateResult.conditionals[0].trueValue,
+	                false: templateResult.conditionals[0].falseValue
+	              };
+	            }
+	            paramIndex++;
+	            continue; // Skip normal binding extraction
+	          }
+	        }
+
 	        const binding = extractBinding(child.expression);
 
 	        if (binding && typeof binding === 'object' && binding.conditional) {
@@ -3843,6 +4483,12 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      binding = buildOptionalMemberPath(callee.object);
 	    } else if (t$8.isIdentifier(callee.object)) {
 	      binding = callee.object.name;
+	    } else if (t$8.isBinaryExpression(callee.object)) {
+	      // Handle expressions like (discount * 100).toFixed(0)
+	      // Extract all identifiers from the binary expression
+	      const identifiers = [];
+	      extractIdentifiers(callee.object, identifiers);
+	      binding = `__expr__:${identifiers.join(',')}`;
 	    }
 
 	    if (!binding) {
@@ -3986,7 +4632,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	          // Template literal: className={`count-${count}`}
 	          if (t$8.isTemplateLiteral(expr)) {
-	            const template = extractTemplateLiteral(expr);
+	            const template = extractTemplateLiteralShared(expr);
 	            if (template) {
 	              const attrPath = `${tagName}[${currentPath.join(',')}].@${attr.name.name}`;
 	              templates[attrPath] = {
@@ -4006,36 +4652,6 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        }
 	      }
 	    }
-	  }
-
-	  function extractTemplateLiteral(node) {
-	    let templateStr = '';
-	    const bindings = [];
-	    const slots = [];
-
-	    for (let i = 0; i < node.quasis.length; i++) {
-	      const quasi = node.quasis[i];
-	      templateStr += quasi.value.raw;
-
-	      if (i < node.expressions.length) {
-	        const expr = node.expressions[i];
-	        slots.push(templateStr.length);
-	        templateStr += `{${i}}`;
-
-	        if (t$8.isIdentifier(expr)) {
-	          bindings.push(expr.name);
-	        } else {
-	          bindings.push('__complex__');
-	        }
-	      }
-	    }
-
-	    return {
-	      template: templateStr,
-	      bindings,
-	      slots,
-	      type: 'attribute'
-	    };
 	  }
 
 	  if (renderBody) {
@@ -4259,14 +4875,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    }
 
 	    // Extract item template from JSX element
-	    const itemTemplate = extractElementTemplate(jsxElement, itemVar);
+	    const itemTemplate = extractElementTemplate(jsxElement, itemVar, indexVar);
 	    if (!itemTemplate) {
 	      console.warn('[Loop Template] Could not extract item template from JSX');
 	      return null;
 	    }
 
 	    // Extract key binding
-	    const keyBinding = extractKeyBinding(jsxElement, itemVar);
+	    const keyBinding = extractKeyBinding(jsxElement, itemVar, indexVar);
 
 	    return {
 	      stateKey: arrayBinding,  // For C# attribute: which state variable triggers this template
@@ -4353,7 +4969,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   *
 	   * Example: <li key={todo.id}> → "item.id"
 	   */
-	  function extractKeyBinding(jsxElement, itemVar) {
+	  function extractKeyBinding(jsxElement, itemVar, indexVar) {
 	    const keyAttr = jsxElement.openingElement.attributes.find(
 	      attr => t$7.isJSXAttribute(attr) &&
 	              t$7.isIdentifier(attr.name) &&
@@ -4364,7 +4980,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    const keyValue = keyAttr.value;
 	    if (t$7.isJSXExpressionContainer(keyValue)) {
-	      return buildBindingPath(keyValue.expression, itemVar);
+	      return buildBindingPath(keyValue.expression, itemVar, indexVar);
 	    } else if (t$7.isStringLiteral(keyValue)) {
 	      return null; // Static key (not based on item data)
 	    }
@@ -4390,12 +5006,16 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    // Extract prop templates
 	    const propsTemplates = extractPropTemplates(
 	      jsxElement.openingElement.attributes,
-	      itemVar);
+	      itemVar,
+	      indexVar
+	    );
 
 	    // Extract children templates
 	    const childrenTemplates = extractChildrenTemplates(
 	      jsxElement.children,
-	      itemVar);
+	      itemVar,
+	      indexVar
+	    );
 
 	    return {
 	      type: 'Element',
@@ -4443,7 +5063,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	        // Conditional: {todo.done ? 'active' : 'inactive'}
 	        if (t$7.isConditionalExpression(expr)) {
-	          const conditionalTemplate = extractConditionalTemplate(expr, itemVar);
+	          const conditionalTemplate = extractConditionalTemplate(expr, itemVar, indexVar);
 	          if (conditionalTemplate) {
 	            templates[propName] = conditionalTemplate;
 	            continue;
@@ -4452,7 +5072,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	        // Template literal: {`item-${todo.id}`}
 	        if (t$7.isTemplateLiteral(expr)) {
-	          const template = extractTemplateFromTemplateLiteral(expr, itemVar);
+	          const template = extractTemplateFromTemplateLiteral(expr, itemVar, indexVar);
 	          if (template) {
 	            templates[propName] = template;
 	            continue;
@@ -4460,7 +5080,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        }
 
 	        // Simple binding: {todo.text}, {todo.done}
-	        const binding = buildBindingPath(expr, itemVar);
+	        const binding = buildBindingPath(expr, itemVar, indexVar);
 	        if (binding) {
 	          templates[propName] = {
 	            template: '{0}',
@@ -4493,7 +5113,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const alternate = conditionalExpr.alternate;
 
 	    // Extract binding from test expression
-	    const binding = buildBindingPath(test, itemVar);
+	    const binding = buildBindingPath(test, itemVar, indexVar);
 	    if (!binding) return null;
 
 	    // Extract literal values from consequent and alternate
@@ -4540,7 +5160,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	      if (i < templateLiteral.expressions.length) {
 	        const expr = templateLiteral.expressions[i];
-	        const binding = buildBindingPath(expr, itemVar);
+	        const binding = buildBindingPath(expr, itemVar, indexVar);
 
 	        if (binding) {
 	          slots.push(templateStr.length);
@@ -4586,7 +5206,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	      // Expression: <li>{todo.text}</li>
 	      if (t$7.isJSXExpressionContainer(child)) {
-	        const template = extractTextTemplate(child.expression, itemVar);
+	        const template = extractTextTemplate(child.expression, itemVar, indexVar);
 	        if (template) {
 	          templates.push(template);
 	        }
@@ -4595,7 +5215,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	      // Nested element: <li><span>{todo.text}</span></li>
 	      if (t$7.isJSXElement(child)) {
-	        const elementTemplate = extractElementTemplate(child, itemVar);
+	        const elementTemplate = extractElementTemplate(child, itemVar, indexVar);
 	        if (elementTemplate) {
 	          templates.push(elementTemplate);
 	        }
@@ -4612,12 +5232,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * Handles:
 	   * - Simple binding: {todo.text} → { template: "{0}", bindings: ["item.text"] }
 	   * - Conditional: {todo.done ? '✓' : '○'} → conditional template
-	   * - Complex: {todo.count + 1} → transformation template (future)
+	   * - Binary expressions: {todo.count + 1} → expression template
+	   * - Method calls: {todo.text.toUpperCase()} → expression template
+	   * - Logical expressions: {todo.date || 'N/A'} → expression template
 	   */
 	  function extractTextTemplate(expr, itemVar, indexVar) {
 	    // Conditional expression: {todo.done ? '✓' : '○'}
 	    if (t$7.isConditionalExpression(expr)) {
-	      const conditionalTemplate = extractConditionalTemplate(expr, itemVar);
+	      const conditionalTemplate = extractConditionalTemplate(expr, itemVar, indexVar);
 	      if (conditionalTemplate) {
 	        return {
 	          type: 'Text',
@@ -4626,8 +5248,8 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      }
 	    }
 
-	    // Simple binding: {todo.text}
-	    const binding = buildBindingPath(expr, itemVar);
+	    // Try to extract binding (handles simple, binary, method calls, etc.)
+	    const binding = buildBindingPath(expr, itemVar, indexVar);
 	    if (binding) {
 	      return {
 	        type: 'Text',
@@ -4637,7 +5259,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      };
 	    }
 
-	    // TODO: Handle binary expressions (todo.count + 1), method calls (todo.text.toUpperCase()), etc.
+	    // No binding found
 	    return null;
 	  }
 
@@ -4649,15 +5271,18 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * - todo.text → "item.text"
 	   * - todo.author.name → "item.author.name"
 	   * - index → "index"
+	   * - todo.priority + 1 → "__expr__:item.priority"
+	   * - todo.text.toUpperCase() → "__expr__:item.text"
+	   * - index * 2 + 1 → "__expr__:index"
 	   */
-	  function buildBindingPath(expr, itemVar) {
+	  function buildBindingPath(expr, itemVar, indexVar) {
 	    if (t$7.isIdentifier(expr)) {
 	      // Just the item variable itself
 	      if (expr.name === itemVar) {
 	        return null; // Can't template the entire item object
 	      }
 	      // Index variable
-	      if (expr.name === 'index') {
+	      if (expr.name === 'index' || expr.name === indexVar) {
 	        return 'index';
 	      }
 	      // Other identifier (likely a closure variable)
@@ -4672,7 +5297,127 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      }
 	    }
 
+	    // Handle binary expressions: todo.priority + 1, price * quantity, etc.
+	    if (t$7.isBinaryExpression(expr)) {
+	      return extractLoopBinaryExpression(expr, itemVar, indexVar);
+	    }
+
+	    // Handle logical expressions: todo.dueDate || 'No due date'
+	    if (t$7.isLogicalExpression(expr)) {
+	      return extractLoopLogicalExpression(expr, itemVar, indexVar);
+	    }
+
+	    // Handle unary expressions: !todo.completed, -value
+	    if (t$7.isUnaryExpression(expr)) {
+	      return extractLoopUnaryExpression(expr, itemVar, indexVar);
+	    }
+
+	    // Handle call expressions: todo.text.toUpperCase(), array.concat()
+	    if (t$7.isCallExpression(expr)) {
+	      return extractLoopCallExpression(expr, itemVar, indexVar);
+	    }
+
 	    return null;
+	  }
+
+	  /**
+	   * Extract binding from binary expression in loop
+	   * Examples: todo.priority + 1, price * quantity, index * 2 + 1
+	   */
+	  function extractLoopBinaryExpression(expr, itemVar, indexVar) {
+	    const identifiers = [];
+	    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+	    if (identifiers.length === 0) {
+	      return null;
+	    }
+
+	    // Use __expr__ prefix to indicate this is a computed expression
+	    return `__expr__:${identifiers.join(',')}`;
+	  }
+
+	  /**
+	   * Extract binding from logical expression in loop
+	   * Examples: todo.dueDate || 'No due date', condition && value
+	   */
+	  function extractLoopLogicalExpression(expr, itemVar, indexVar) {
+	    const identifiers = [];
+	    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+	    if (identifiers.length === 0) {
+	      return null;
+	    }
+
+	    // Use __expr__ prefix to indicate this is a computed expression
+	    return `__expr__:${identifiers.join(',')}`;
+	  }
+
+	  /**
+	   * Extract binding from unary expression in loop
+	   * Examples: !todo.completed, -value
+	   */
+	  function extractLoopUnaryExpression(expr, itemVar, indexVar) {
+	    const identifiers = [];
+	    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+	    if (identifiers.length === 0) {
+	      return null;
+	    }
+
+	    // Use __expr__ prefix to indicate this is a computed expression
+	    return `__expr__:${identifiers.join(',')}`;
+	  }
+
+	  /**
+	   * Extract binding from call expression in loop
+	   * Examples: todo.text.toUpperCase(), todo.text.substring(0, 10)
+	   */
+	  function extractLoopCallExpression(expr, itemVar, indexVar) {
+	    const identifiers = [];
+	    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+	    if (identifiers.length === 0) {
+	      return null;
+	    }
+
+	    // Use __expr__ prefix to indicate this is a computed expression
+	    return `__expr__:${identifiers.join(',')}`;
+	  }
+
+	  /**
+	   * Extract identifiers from expression, converting item references to "item" prefix
+	   */
+	  function extractLoopIdentifiers(expr, result, itemVar, indexVar) {
+	    if (t$7.isIdentifier(expr)) {
+	      if (expr.name === itemVar) {
+	        // Don't add raw item variable
+	        return;
+	      } else if (expr.name === 'index' || expr.name === indexVar) {
+	        result.push('index');
+	      } else {
+	        result.push(expr.name);
+	      }
+	    } else if (t$7.isBinaryExpression(expr) || t$7.isLogicalExpression(expr)) {
+	      extractLoopIdentifiers(expr.left, result, itemVar, indexVar);
+	      extractLoopIdentifiers(expr.right, result, itemVar, indexVar);
+	    } else if (t$7.isUnaryExpression(expr)) {
+	      extractLoopIdentifiers(expr.argument, result, itemVar, indexVar);
+	    } else if (t$7.isMemberExpression(expr)) {
+	      const path = buildMemberExpressionPath(expr);
+	      if (path && path.startsWith(itemVar + '.')) {
+	        // Replace item variable with "item" prefix
+	        result.push('item' + path.substring(itemVar.length));
+	      } else {
+	        result.push(path);
+	      }
+	    } else if (t$7.isCallExpression(expr)) {
+	      // Extract from callee
+	      extractLoopIdentifiers(expr.callee, result, itemVar, indexVar);
+	      // Extract from arguments
+	      for (const arg of expr.arguments) {
+	        extractLoopIdentifiers(arg, result, itemVar, indexVar);
+	      }
+	    }
 	  }
 
 	  /**
@@ -5401,10 +6146,26 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * }
 	   */
 	  function extractMemberExpressionTemplate(memberExpr, component, path) {
+	    // Check for computed property access: item[field]
+	    if (memberExpr.computed) {
+	      console.warn('[Minimact Warning] Computed property access detected - skipping template optimization (requires runtime evaluation)');
+
+	      // Return a special marker indicating this needs runtime evaluation
+	      // The C# generator will handle this as dynamic property access
+	      return {
+	        type: 'computedMemberExpression',
+	        isComputed: true,
+	        requiresRuntimeEval: true,
+	        object: memberExpr.object,
+	        property: memberExpr.property,
+	        path
+	      };
+	    }
+
 	    const binding = buildMemberPath(memberExpr);
 	    if (!binding) return null;
 
-	    // Get property name
+	    // Get property name (only for non-computed properties)
 	    const propertyName = memberExpr.property.name;
 
 	    // Check if it's a supported property
@@ -5883,7 +6644,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	const t$3 = globalThis.__BABEL_TYPES__;
 	const { getComponentName } = helpers;
-	const { tsTypeToCSharpType } = typeConversion;
+	const { tsTypeToCSharpType: tsTypeToCSharpType$1 } = typeConversion;
 	const { extractHook } = hooks;
 	const { extractLocalVariables } = localVariables;
 	const { inferPropTypes } = propTypeInference;
@@ -5984,7 +6745,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	                     member.key.name === propName
 	          );
 	          if (tsProperty && tsProperty.typeAnnotation) {
-	            propType = tsTypeToCSharpType(tsProperty.typeAnnotation.typeAnnotation);
+	            propType = tsTypeToCSharpType$1(tsProperty.typeAnnotation.typeAnnotation);
 	          }
 	        }
 
@@ -6030,7 +6791,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          if (t$3.isIdentifier(param)) {
 	            // Simple parameter: (name)
 	            const paramType = param.typeAnnotation?.typeAnnotation
-	              ? tsTypeToCSharpType(param.typeAnnotation.typeAnnotation)
+	              ? tsTypeToCSharpType$1(param.typeAnnotation.typeAnnotation)
 	              : 'dynamic';
 	            return { name: param.name, type: paramType };
 	          }
@@ -6038,7 +6799,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        });
 
 	        const returnType = funcPath.node.returnType?.typeAnnotation
-	          ? tsTypeToCSharpType(funcPath.node.returnType.typeAnnotation)
+	          ? tsTypeToCSharpType$1(funcPath.node.returnType.typeAnnotation)
 	          : 'void';
 
 	        const isAsync = funcPath.node.async;
@@ -6106,11 +6867,13 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      console.log(`[Minimact Expression Templates] Extracted ${expressionTemplates.length} expression templates from ${componentName}:`);
 	      expressionTemplates.forEach(et => {
 	        if (et.method) {
-	          console.log(`  - ${et.binding}.${et.method}(${et.args.join(', ')})`);
+	          console.log(`  - ${et.binding}.${et.method}(${et.args?.join(', ') || ''})`);
 	        } else if (et.operator) {
 	          console.log(`  - ${et.operator}${et.binding}`);
-	        } else {
+	        } else if (et.bindings) {
 	          console.log(`  - ${et.bindings.join(', ')}`);
+	        } else {
+	          console.log(`  - ${JSON.stringify(et)}`);
 	        }
 	      });
 	    }
@@ -6127,6 +6890,40 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      pluginUsages.forEach(plugin => {
 	        const versionInfo = plugin.version ? ` v${plugin.version}` : '';
 	        console.log(`  - <Plugin name="${plugin.pluginName}"${versionInfo} state={${plugin.stateBinding.binding}} />`);
+	      });
+	    }
+	  }
+
+	  // Detect which top-level helper functions are referenced by this component
+	  if (state.file.topLevelFunctions && state.file.topLevelFunctions.length > 0) {
+	    const referencedFunctionNames = new Set();
+
+	    // Traverse the component to find all function calls
+	    path.traverse({
+	      CallExpression(callPath) {
+	        if (t$3.isIdentifier(callPath.node.callee)) {
+	          const funcName = callPath.node.callee.name;
+	          // Check if this matches a top-level function
+	          const helperFunc = state.file.topLevelFunctions.find(f => f.name === funcName);
+	          if (helperFunc) {
+	            referencedFunctionNames.add(funcName);
+	          }
+	        }
+	      }
+	    });
+
+	    // Add referenced functions to component's topLevelHelperFunctions array
+	    component.topLevelHelperFunctions = state.file.topLevelFunctions
+	      .filter(f => referencedFunctionNames.has(f.name))
+	      .map(f => ({
+	        name: f.name,
+	        node: f.node
+	      }));
+
+	    if (component.topLevelHelperFunctions.length > 0) {
+	      console.log(`[Minimact Helpers] Component '${componentName}' references ${component.topLevelHelperFunctions.length} helper function(s):`);
+	      component.topLevelHelperFunctions.forEach(f => {
+	        console.log(`  - ${f.name}()`);
 	      });
 	    }
 	  }
@@ -7437,11 +8234,22 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	    const paramStr = paramList.join(', ');
 
 	    // Event handlers must be public so SignalR hub can call them
-	    lines.push(`    public void ${handler.name}(${paramStr})`);
+	    // Use async Task if handler contains await
+	    const returnType = handler.isAsync ? 'async Task' : 'void';
+	    lines.push(`    public ${returnType} ${handler.name}(${paramStr})`);
 	    lines.push('    {');
 
+	    // Check if this is a curried function error
+	    if (handler.isCurriedError) {
+	      lines.push(`        throw new InvalidOperationException(`);
+	      lines.push(`            "Event handler '${handler.name}' returns a function instead of executing an action. " +`);
+	      lines.push(`            "This is a curried function pattern (e.g., (e) => (id) => action(id)) which is invalid for event handlers. " +`);
+	      lines.push(`            "The returned function is never called by the event system. " +`);
+	      lines.push(`            "Fix: Use (e) => action(someValue) or create a properly bound handler."`);
+	      lines.push(`        );`);
+	    }
 	    // Generate method body
-	    if (handler.body) {
+	    else if (handler.body) {
 	      if (t.isBlockStatement(handler.body)) {
 	        // Block statement: { ... }
 	        for (const statement of handler.body.body) {
@@ -7565,7 +8373,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        ? (func.returnType === 'void' ? 'async Task' : `async Task<${func.returnType}>`)
 	        : func.returnType;
 
-	      const params = func.params.map(p => `${p.type} ${p.name}`).join(', ');
+	      const params = (func.params || []).map(p => `${p.type} ${p.name}`).join(', ');
 
 	      lines.push(`    private ${returnType} ${func.name}(${params})`);
 	      lines.push('    {');
@@ -7576,6 +8384,50 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          const stmtCode = generateCSharpStatement(statement, 2);
 	          lines.push(stmtCode);
 	        }
+	      }
+
+	      lines.push('    }');
+	    }
+	  }
+
+	  // Helper functions (standalone functions referenced by component)
+	  if (component.topLevelHelperFunctions && component.topLevelHelperFunctions.length > 0) {
+	    for (const helper of component.topLevelHelperFunctions) {
+	      lines.push('');
+	      lines.push(`    // Helper function: ${helper.name}`);
+
+	      // Generate the function signature
+	      const func = helper.node;
+	      const params = (func.params || []).map(p => {
+	        // Get parameter type from TypeScript annotation
+	        let paramType = 'dynamic';
+	        if (p.typeAnnotation && p.typeAnnotation.typeAnnotation) {
+	          paramType = tsTypeToCSharpType(p.typeAnnotation.typeAnnotation);
+	        }
+	        return `${paramType} ${p.name}`;
+	      }).join(', ');
+
+	      // Get return type from TypeScript annotation
+	      let returnType = 'dynamic';
+	      if (func.returnType && func.returnType.typeAnnotation) {
+	        returnType = tsTypeToCSharpType(func.returnType.typeAnnotation);
+	      }
+
+	      lines.push(`    private static ${returnType} ${helper.name}(${params})`);
+	      lines.push('    {');
+
+	      // Generate function body
+	      if (t.isBlockStatement(func.body)) {
+	        for (const statement of func.body.body) {
+	          const csharpStmt = generateCSharpStatement(statement);
+	          if (csharpStmt) {
+	            lines.push(`        ${csharpStmt}`);
+	          }
+	        }
+	      } else {
+	        // Expression body (arrow function)
+	        const csharpExpr = generateCSharpExpression(func.body);
+	        lines.push(`        return ${csharpExpr};`);
 	      }
 
 	      lines.push('    }');
@@ -7746,6 +8598,28 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 
 	    visitor: {
 	      Program: {
+	        enter(path, state) {
+	          // Collect all top-level function declarations for potential inclusion as helpers
+	          state.file.topLevelFunctions = [];
+
+	          path.traverse({
+	            FunctionDeclaration(funcPath) {
+	              // Only collect top-level functions (not nested inside components)
+	              if (funcPath.parent.type === 'Program' || funcPath.parent.type === 'ExportNamedDeclaration') {
+	                const funcName = funcPath.node.id ? funcPath.node.id.name : null;
+	                // Skip if it's a component (starts with uppercase)
+	                if (funcName && funcName[0] === funcName[0].toLowerCase()) {
+	                  state.file.topLevelFunctions.push({
+	                    name: funcName,
+	                    node: funcPath.node,
+	                    path: funcPath
+	                  });
+	                }
+	              }
+	            }
+	          });
+	        },
+
 	        exit(path, state) {
 	          if (state.file.minimactComponents && state.file.minimactComponents.length > 0) {
 	            const csharpCode = generateCSharpFile(state.file.minimactComponents, state);

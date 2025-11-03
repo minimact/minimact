@@ -1,7 +1,7 @@
 {
   "component": "ComplexLoopExpressions",
   "version": "1.0",
-  "generatedAt": 1762139015309,
+  "generatedAt": 1762145597443,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Complex Loop Expression Tests",
@@ -37,20 +37,6 @@
       ],
       "type": "static"
     },
-    "[0].[1].ul[0].text[0]": {
-      "template": "{0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        0,
-        0
-      ],
-      "type": "dynamic"
-    },
     "[0].[1].p[0].text[0]": {
       "template": "Expected: All text in UPPERCASE",
       "bindings": [],
@@ -62,19 +48,6 @@
         0
       ],
       "type": "static"
-    },
-    "[0].div[1].text[0]": {
-      "template": "{0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        0
-      ],
-      "type": "dynamic"
     },
     "[0].[1].h2[0].text[0]": {
       "template": "✅ Guaranteed Working Workarounds",
@@ -100,20 +73,6 @@
         0
       ],
       "type": "static"
-    },
-    "[0].[1].div[2].text[0]": {
-      "template": "{0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        2,
-        0
-      ],
-      "type": "dynamic"
     }
   }
 }

@@ -151,7 +151,7 @@ function extractLoopTemplates(renderBody, component) {
     }
 
     // Extract key binding
-    const keyBinding = extractKeyBinding(jsxElement, itemVar);
+    const keyBinding = extractKeyBinding(jsxElement, itemVar, indexVar);
 
     return {
       stateKey: arrayBinding,  // For C# attribute: which state variable triggers this template
@@ -238,7 +238,7 @@ function extractLoopTemplates(renderBody, component) {
    *
    * Example: <li key={todo.id}> → "item.id"
    */
-  function extractKeyBinding(jsxElement, itemVar) {
+  function extractKeyBinding(jsxElement, itemVar, indexVar) {
     const keyAttr = jsxElement.openingElement.attributes.find(
       attr => t.isJSXAttribute(attr) &&
               t.isIdentifier(attr.name) &&
@@ -249,7 +249,7 @@ function extractLoopTemplates(renderBody, component) {
 
     const keyValue = keyAttr.value;
     if (t.isJSXExpressionContainer(keyValue)) {
-      return buildBindingPath(keyValue.expression, itemVar);
+      return buildBindingPath(keyValue.expression, itemVar, indexVar);
     } else if (t.isStringLiteral(keyValue)) {
       return null; // Static key (not based on item data)
     }
@@ -349,7 +349,7 @@ function extractLoopTemplates(renderBody, component) {
         }
 
         // Simple binding: {todo.text}, {todo.done}
-        const binding = buildBindingPath(expr, itemVar);
+        const binding = buildBindingPath(expr, itemVar, indexVar);
         if (binding) {
           templates[propName] = {
             template: '{0}',
@@ -382,7 +382,7 @@ function extractLoopTemplates(renderBody, component) {
     const alternate = conditionalExpr.alternate;
 
     // Extract binding from test expression
-    const binding = buildBindingPath(test, itemVar);
+    const binding = buildBindingPath(test, itemVar, indexVar);
     if (!binding) return null;
 
     // Extract literal values from consequent and alternate
@@ -429,7 +429,7 @@ function extractLoopTemplates(renderBody, component) {
 
       if (i < templateLiteral.expressions.length) {
         const expr = templateLiteral.expressions[i];
-        const binding = buildBindingPath(expr, itemVar);
+        const binding = buildBindingPath(expr, itemVar, indexVar);
 
         if (binding) {
           slots.push(templateStr.length);
@@ -501,7 +501,9 @@ function extractLoopTemplates(renderBody, component) {
    * Handles:
    * - Simple binding: {todo.text} → { template: "{0}", bindings: ["item.text"] }
    * - Conditional: {todo.done ? '✓' : '○'} → conditional template
-   * - Complex: {todo.count + 1} → transformation template (future)
+   * - Binary expressions: {todo.count + 1} → expression template
+   * - Method calls: {todo.text.toUpperCase()} → expression template
+   * - Logical expressions: {todo.date || 'N/A'} → expression template
    */
   function extractTextTemplate(expr, itemVar, indexVar) {
     // Conditional expression: {todo.done ? '✓' : '○'}
@@ -515,8 +517,8 @@ function extractLoopTemplates(renderBody, component) {
       }
     }
 
-    // Simple binding: {todo.text}
-    const binding = buildBindingPath(expr, itemVar);
+    // Try to extract binding (handles simple, binary, method calls, etc.)
+    const binding = buildBindingPath(expr, itemVar, indexVar);
     if (binding) {
       return {
         type: 'Text',
@@ -526,7 +528,7 @@ function extractLoopTemplates(renderBody, component) {
       };
     }
 
-    // TODO: Handle binary expressions (todo.count + 1), method calls (todo.text.toUpperCase()), etc.
+    // No binding found
     return null;
   }
 
@@ -538,15 +540,18 @@ function extractLoopTemplates(renderBody, component) {
    * - todo.text → "item.text"
    * - todo.author.name → "item.author.name"
    * - index → "index"
+   * - todo.priority + 1 → "__expr__:item.priority"
+   * - todo.text.toUpperCase() → "__expr__:item.text"
+   * - index * 2 + 1 → "__expr__:index"
    */
-  function buildBindingPath(expr, itemVar) {
+  function buildBindingPath(expr, itemVar, indexVar) {
     if (t.isIdentifier(expr)) {
       // Just the item variable itself
       if (expr.name === itemVar) {
         return null; // Can't template the entire item object
       }
       // Index variable
-      if (expr.name === 'index') {
+      if (expr.name === 'index' || expr.name === indexVar) {
         return 'index';
       }
       // Other identifier (likely a closure variable)
@@ -561,7 +566,127 @@ function extractLoopTemplates(renderBody, component) {
       }
     }
 
+    // Handle binary expressions: todo.priority + 1, price * quantity, etc.
+    if (t.isBinaryExpression(expr)) {
+      return extractLoopBinaryExpression(expr, itemVar, indexVar);
+    }
+
+    // Handle logical expressions: todo.dueDate || 'No due date'
+    if (t.isLogicalExpression(expr)) {
+      return extractLoopLogicalExpression(expr, itemVar, indexVar);
+    }
+
+    // Handle unary expressions: !todo.completed, -value
+    if (t.isUnaryExpression(expr)) {
+      return extractLoopUnaryExpression(expr, itemVar, indexVar);
+    }
+
+    // Handle call expressions: todo.text.toUpperCase(), array.concat()
+    if (t.isCallExpression(expr)) {
+      return extractLoopCallExpression(expr, itemVar, indexVar);
+    }
+
     return null;
+  }
+
+  /**
+   * Extract binding from binary expression in loop
+   * Examples: todo.priority + 1, price * quantity, index * 2 + 1
+   */
+  function extractLoopBinaryExpression(expr, itemVar, indexVar) {
+    const identifiers = [];
+    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+    if (identifiers.length === 0) {
+      return null;
+    }
+
+    // Use __expr__ prefix to indicate this is a computed expression
+    return `__expr__:${identifiers.join(',')}`;
+  }
+
+  /**
+   * Extract binding from logical expression in loop
+   * Examples: todo.dueDate || 'No due date', condition && value
+   */
+  function extractLoopLogicalExpression(expr, itemVar, indexVar) {
+    const identifiers = [];
+    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+    if (identifiers.length === 0) {
+      return null;
+    }
+
+    // Use __expr__ prefix to indicate this is a computed expression
+    return `__expr__:${identifiers.join(',')}`;
+  }
+
+  /**
+   * Extract binding from unary expression in loop
+   * Examples: !todo.completed, -value
+   */
+  function extractLoopUnaryExpression(expr, itemVar, indexVar) {
+    const identifiers = [];
+    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+    if (identifiers.length === 0) {
+      return null;
+    }
+
+    // Use __expr__ prefix to indicate this is a computed expression
+    return `__expr__:${identifiers.join(',')}`;
+  }
+
+  /**
+   * Extract binding from call expression in loop
+   * Examples: todo.text.toUpperCase(), todo.text.substring(0, 10)
+   */
+  function extractLoopCallExpression(expr, itemVar, indexVar) {
+    const identifiers = [];
+    extractLoopIdentifiers(expr, identifiers, itemVar, indexVar);
+
+    if (identifiers.length === 0) {
+      return null;
+    }
+
+    // Use __expr__ prefix to indicate this is a computed expression
+    return `__expr__:${identifiers.join(',')}`;
+  }
+
+  /**
+   * Extract identifiers from expression, converting item references to "item" prefix
+   */
+  function extractLoopIdentifiers(expr, result, itemVar, indexVar) {
+    if (t.isIdentifier(expr)) {
+      if (expr.name === itemVar) {
+        // Don't add raw item variable
+        return;
+      } else if (expr.name === 'index' || expr.name === indexVar) {
+        result.push('index');
+      } else {
+        result.push(expr.name);
+      }
+    } else if (t.isBinaryExpression(expr) || t.isLogicalExpression(expr)) {
+      extractLoopIdentifiers(expr.left, result, itemVar, indexVar);
+      extractLoopIdentifiers(expr.right, result, itemVar, indexVar);
+    } else if (t.isUnaryExpression(expr)) {
+      extractLoopIdentifiers(expr.argument, result, itemVar, indexVar);
+    } else if (t.isMemberExpression(expr)) {
+      const path = buildMemberExpressionPath(expr);
+      if (path && path.startsWith(itemVar + '.')) {
+        // Replace item variable with "item" prefix
+        result.push('item' + path.substring(itemVar.length));
+      } else {
+        result.push(path);
+      }
+    } else if (t.isCallExpression(expr)) {
+      // Extract from callee
+      extractLoopIdentifiers(expr.callee, result, itemVar, indexVar);
+      // Extract from arguments
+      for (const arg of expr.arguments) {
+        extractLoopIdentifiers(arg, result, itemVar, indexVar);
+      }
+    }
   }
 
   /**

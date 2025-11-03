@@ -1,7 +1,7 @@
 {
   "component": "ComplexTemplateLiterals",
   "version": "1.0",
-  "generatedAt": 1762133076034,
+  "generatedAt": 1762145579906,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Complex Template Literal Tests",
@@ -39,9 +39,9 @@
       "type": "static"
     },
     "[0].[1].p[0].text[1]": {
-      "template": "Discount: {0}",
+      "template": "Discount: {0}%",
       "bindings": [
-        "__complex__"
+        "__expr__:discount"
       ],
       "slots": [],
       "path": [
@@ -50,7 +50,14 @@
         0,
         1
       ],
-      "type": "dynamic"
+      "type": "transform",
+      "transform": {
+        "slotIndex": 0,
+        "method": "toFixed",
+        "args": [
+          0
+        ]
+      }
     }
   }
 }

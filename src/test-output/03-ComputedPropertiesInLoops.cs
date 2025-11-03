@@ -14,7 +14,7 @@ namespace MinimactTest.Components
 [LoopTemplate("Object", @"{""stateKey"":""Object"",""arrayBinding"":""Object"",""itemVar"":""key"",""indexVar"":null,""keyBinding"":null,""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":"":"",""bindings"":[],""slots"":[]}]}}")]
 [LoopTemplate("items", @"{""stateKey"":""items"",""arrayBinding"":""items"",""itemVar"":""item"",""indexVar"":null,""keyBinding"":null,""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""Value:"",""bindings"":[],""slots"":[]}]}}")]
 [LoopTemplate("items", @"{""stateKey"":""items"",""arrayBinding"":""items"",""itemVar"":""item"",""indexVar"":null,""keyBinding"":null,""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""Value:"",""bindings"":[],""slots"":[]}]}}")]
-[LoopTemplate("items", @"{""stateKey"":""items"",""arrayBinding"":""items"",""itemVar"":""item"",""indexVar"":null,""keyBinding"":null,""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""Value:"",""bindings"":[],""slots"":[]}]}}")]
+[LoopTemplate("items", @"{""stateKey"":""items"",""arrayBinding"":""items"",""itemVar"":""item"",""indexVar"":null,""keyBinding"":null,""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""Value:"",""bindings"":[],""slots"":[]},{""type"":""Text"",""template"":""{0}"",""bindings"":[""__expr__:getFieldValue,selectedField""],""slots"":[0]}]}}")]
 [LoopTemplate("items", @"{""stateKey"":""items"",""arrayBinding"":""items"",""itemVar"":""item"",""indexVar"":null,""keyBinding"":null,""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""Value:"",""bindings"":[],""slots"":[]},{""type"":""Text"",""template"":""{0}"",""bindings"":[""item.displayValue""],""slots"":[0]}]}}")]
 [Component]
 public partial class ComputedPropertiesInLoops : MinimactComponent
@@ -124,12 +124,12 @@ public partial class ComputedPropertiesInLoops : MinimactComponent
 
     public void Handle0(dynamic e)
     {
-        SetState(nameof(selectedField), null);
+        SetState(nameof(selectedField), e.Target.Value);
     }
 
     public void Handle1(dynamic e)
     {
-        SetState(nameof(sortBy), null);
+        SetState(nameof(sortBy), e.Target.Value);
     }
 
     // Helper function: getFieldValue

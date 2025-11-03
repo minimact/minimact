@@ -30,7 +30,7 @@ public partial class ComplexTemplateLiterals : MinimactComponent
 
         var totalSimple = $"${(price * quantity).ToString("F2")}";
         var totalComplex = $"Price: ${price.ToString("F2")} x {quantity} = ${(price * quantity).ToString("F2")}";
-        var withDiscount = $"Original: ${(price * quantity).ToString("F2")}, After {(discount * 100).ToString("F0")}% off: ${(price * quantity * 1 - discount).ToString("F2")}";
+        var withDiscount = $"Original: ${(price * quantity).ToString("F2")}, After {(discount * 100).ToString("F0")}% off: ${(price * quantity * (1 - discount)).ToString("F2")}";
         var status = $"Status: {((quantity > 0) ? "In Stock" : "Out of Stock")} - {quantity} available";
         var productInfo = $"{product.name} - ${product.price.ToString("F2")} each";
         var summary = $"Total: {$"${(price * quantity).ToString("F2")}"}";

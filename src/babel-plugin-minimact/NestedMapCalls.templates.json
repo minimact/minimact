@@ -1,7 +1,7 @@
 {
   "component": "NestedMapCalls",
   "version": "1.0",
-  "generatedAt": 1762129751758,
+  "generatedAt": 1762145581131,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Nested .map() Test Cases",
@@ -25,33 +25,6 @@
         0
       ],
       "type": "static"
-    },
-    "[0].[1].div[2].text[0]": {
-      "template": "{0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        2,
-        0
-      ],
-      "type": "dynamic"
-    },
-    "[0].div[1].text[0]": {
-      "template": "{0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        0
-      ],
-      "type": "dynamic"
     }
   }
 }

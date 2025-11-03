@@ -1,7 +1,7 @@
 {
   "component": "EventHandlerEdgeCases",
   "version": "1.0",
-  "generatedAt": 1762143003126,
+  "generatedAt": 1762145598659,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Event Handler Edge Cases",
@@ -91,19 +91,6 @@
         1,
         0,
         1
-      ],
-      "type": "dynamic"
-    },
-    "[0].div[1].text[0]": {
-      "template": "{0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        0
       ],
       "type": "dynamic"
     },
