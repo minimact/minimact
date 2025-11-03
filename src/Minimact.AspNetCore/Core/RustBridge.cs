@@ -17,7 +17,7 @@ public static class RustBridge
     private static extern IntPtr minimact_predictor_new();
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void minimact_predictor_free(IntPtr predictor);
+    private static extern void minimact_predictor_destroy(IntPtr predictor);
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr minimact_reconcile(
@@ -257,7 +257,7 @@ public static class RustBridge
             {
                 if (_handle != IntPtr.Zero)
                 {
-                    minimact_predictor_free(_handle);
+                    minimact_predictor_destroy(_handle);
                     _handle = IntPtr.Zero;
                 }
                 _disposed = true;
