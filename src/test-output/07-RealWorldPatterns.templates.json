@@ -1,10 +1,10 @@
 {
-  "component": "ComplexTemplateLiterals",
+  "component": "RealWorldPatterns",
   "version": "1.0",
-  "generatedAt": 1762146074948,
+  "generatedAt": 1762146082213,
   "templates": {
     "[0].h1[0].text[0]": {
-      "template": "Complex Template Literal Tests",
+      "template": "Real-World Common Patterns",
       "bindings": [],
       "slots": [],
       "path": [
@@ -15,7 +15,7 @@
       "type": "static"
     },
     "[0].[1].h3[0].text[0]": {
-      "template": "Inline Template Literals in JSX",
+      "template": "Pattern 18: String Truncation",
       "bindings": [],
       "slots": [],
       "path": [
@@ -27,7 +27,7 @@
       "type": "static"
     },
     "[0].[1].p[0].text[0]": {
-      "template": "Discount:",
+      "template": "Expected: Count: 42, Next: 43, User #1, User #2",
       "bindings": [],
       "slots": [],
       "path": [
@@ -39,25 +39,20 @@
       "type": "static"
     },
     "[0].[1].p[0].text[1]": {
-      "template": "Discount: {0}%",
+      "template": "Next: {0}",
       "bindings": [
-        "__expr__:discount"
+        "count"
       ],
-      "slots": [],
+      "slots": [
+        6
+      ],
       "path": [
         0,
         1,
         0,
         1
       ],
-      "type": "transform",
-      "transform": {
-        "slotIndex": 0,
-        "method": "toFixed",
-        "args": [
-          0
-        ]
-      }
+      "type": "dynamic"
     }
   }
 }

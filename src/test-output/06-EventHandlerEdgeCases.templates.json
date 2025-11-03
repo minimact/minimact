@@ -1,7 +1,7 @@
 {
   "component": "EventHandlerEdgeCases",
   "version": "1.0",
-  "generatedAt": 1762145598659,
+  "generatedAt": 1762146080979,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Event Handler Edge Cases",

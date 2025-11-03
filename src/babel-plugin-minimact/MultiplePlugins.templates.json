@@ -1,7 +1,7 @@
 {
   "component": "MultiplePlugins",
   "version": "1.0",
-  "generatedAt": 1762145609028,
+  "generatedAt": 1762146078564,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Multiple Plugin Test Cases",

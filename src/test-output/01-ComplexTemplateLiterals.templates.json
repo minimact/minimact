@@ -1,7 +1,7 @@
 {
   "component": "ComplexTemplateLiterals",
   "version": "1.0",
-  "generatedAt": 1762145579906,
+  "generatedAt": 1762146074948,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Complex Template Literal Tests",

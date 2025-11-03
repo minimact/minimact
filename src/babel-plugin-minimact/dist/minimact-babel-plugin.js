@@ -5237,6 +5237,17 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	   * - Logical expressions: {todo.date || 'N/A'} → expression template
 	   */
 	  function extractTextTemplate(expr, itemVar, indexVar) {
+	    // Template literal: {`${user.firstName} ${user.lastName}`}
+	    if (t$7.isTemplateLiteral(expr)) {
+	      const templateLiteralResult = extractTemplateFromTemplateLiteral(expr, itemVar, indexVar);
+	      if (templateLiteralResult) {
+	        return {
+	          type: 'Text',
+	          ...templateLiteralResult
+	        };
+	      }
+	    }
+
 	    // Conditional expression: {todo.done ? '✓' : '○'}
 	    if (t$7.isConditionalExpression(expr)) {
 	      const conditionalTemplate = extractConditionalTemplate(expr, itemVar, indexVar);
@@ -5404,11 +5415,20 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      extractLoopIdentifiers(expr.argument, result, itemVar, indexVar);
 	    } else if (t$7.isMemberExpression(expr)) {
 	      const path = buildMemberExpressionPath(expr);
-	      if (path && path.startsWith(itemVar + '.')) {
-	        // Replace item variable with "item" prefix
-	        result.push('item' + path.substring(itemVar.length));
+	      if (path) {
+	        if (path.startsWith(itemVar + '.')) {
+	          // Replace item variable with "item" prefix
+	          result.push('item' + path.substring(itemVar.length));
+	        } else {
+	          result.push(path);
+	        }
 	      } else {
-	        result.push(path);
+	        // Complex member expression (e.g., (a + b).toFixed())
+	        // Extract from both object and property
+	        extractLoopIdentifiers(expr.object, result, itemVar, indexVar);
+	        if (t$7.isIdentifier(expr.property)) {
+	          result.push(expr.property.name);
+	        }
 	      }
 	    } else if (t$7.isCallExpression(expr)) {
 	      // Extract from callee

@@ -1,7 +1,7 @@
 {
   "component": "ComputedPropertiesInLoops",
   "version": "1.0",
-  "generatedAt": 1762145582363,
+  "generatedAt": 1762146077375,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "Computed Properties in Loops (EXPECTED TO FAIL)",
