@@ -254,6 +254,40 @@ function processComponent(path, state) {
     }
   }
 
+  // Detect which top-level helper functions are referenced by this component
+  if (state.file.topLevelFunctions && state.file.topLevelFunctions.length > 0) {
+    const referencedFunctionNames = new Set();
+
+    // Traverse the component to find all function calls
+    path.traverse({
+      CallExpression(callPath) {
+        if (t.isIdentifier(callPath.node.callee)) {
+          const funcName = callPath.node.callee.name;
+          // Check if this matches a top-level function
+          const helperFunc = state.file.topLevelFunctions.find(f => f.name === funcName);
+          if (helperFunc) {
+            referencedFunctionNames.add(funcName);
+          }
+        }
+      }
+    });
+
+    // Add referenced functions to component's topLevelHelperFunctions array
+    component.topLevelHelperFunctions = state.file.topLevelFunctions
+      .filter(f => referencedFunctionNames.has(f.name))
+      .map(f => ({
+        name: f.name,
+        node: f.node
+      }));
+
+    if (component.topLevelHelperFunctions.length > 0) {
+      console.log(`[Minimact Helpers] Component '${componentName}' references ${component.topLevelHelperFunctions.length} helper function(s):`);
+      component.topLevelHelperFunctions.forEach(f => {
+        console.log(`  - ${f.name}()`);
+      });
+    }
+  }
+
   // Now replace JSX to prevent @babel/preset-react from transforming it
   path.traverse({
     ReturnStatement(returnPath) {

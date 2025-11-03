@@ -136,9 +136,51 @@ function generateMapExpression(node, component, indent) {
     component.currentMapContext = { params: [...previousParams, ...currentParams] };
   }
 
-  const itemCode = t.isJSXElement(body)
-    ? generateJSXElement(body, component, indent + 1)
-    : generateJSXElement(body.body, component, indent + 1);
+  let itemCode;
+  let hasBlockStatements = false;
+
+  if (t.isJSXElement(body)) {
+    // Direct JSX return: item => <div>...</div>
+    itemCode = generateJSXElement(body, component, indent + 1);
+  } else if (t.isBlockStatement(body)) {
+    // Block statement: item => { const x = ...; return <div>...</div>; }
+    // Need to generate a statement lambda in C#
+    hasBlockStatements = true;
+
+    const statements = [];
+    let returnJSX = null;
+
+    // Process all statements in the block
+    for (const stmt of body.body) {
+      if (t.isReturnStatement(stmt) && t.isJSXElement(stmt.argument)) {
+        returnJSX = stmt.argument;
+        // Don't add return statement to statements array yet
+      } else if (t.isVariableDeclaration(stmt)) {
+        // Convert variable declarations: const displayValue = item[field];
+        for (const decl of stmt.declarations) {
+          const varName = decl.id.name;
+          const init = decl.init ? generateCSharpExpression(decl.init) : 'null';
+          statements.push(`var ${varName} = ${init};`);
+        }
+      } else {
+        // Other statements - convert them
+        statements.push(generateCSharpStatement(stmt));
+      }
+    }
+
+    if (!returnJSX) {
+      console.error('[generateMapExpression] Block statement has no JSX return');
+      throw new Error('Map callback with block statement must return JSX element');
+    }
+
+    const jsxCode = generateJSXElement(returnJSX, component, indent + 1);
+    statements.push(`return ${jsxCode};`);
+
+    itemCode = statements.join(' ');
+  } else {
+    console.error('[generateMapExpression] Unsupported callback body type:', body?.type);
+    throw new Error(`Unsupported map callback body type: ${body?.type}`);
+  }
 
   // Restore previous context
   if (component) {
@@ -150,14 +192,28 @@ function generateMapExpression(node, component, indent) {
   const castedArray = needsCast ? `((IEnumerable<dynamic>)${arrayName})` : arrayName;
 
   // C# Select supports (item, index) => ...
-  if (indexParam) {
-    const lambdaExpr = `(${itemParam}, ${indexParam}) => ${itemCode}`;
-    const castedLambda = needsCast ? `(Func<dynamic, int, dynamic>)(${lambdaExpr})` : lambdaExpr;
-    return `${castedArray}.Select(${castedLambda}).ToArray()`;
+  if (hasBlockStatements) {
+    // Use statement lambda: item => { statements; return jsx; }
+    if (indexParam) {
+      const lambdaExpr = `(${itemParam}, ${indexParam}) => { ${itemCode} }`;
+      const castedLambda = needsCast ? `(Func<dynamic, int, dynamic>)(${lambdaExpr})` : lambdaExpr;
+      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+    } else {
+      const lambdaExpr = `${itemParam} => { ${itemCode} }`;
+      const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+    }
   } else {
-    const lambdaExpr = `${itemParam} => ${itemCode}`;
-    const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
-    return `${castedArray}.Select(${castedLambda}).ToArray()`;
+    // Use expression lambda: item => jsx
+    if (indexParam) {
+      const lambdaExpr = `(${itemParam}, ${indexParam}) => ${itemCode}`;
+      const castedLambda = needsCast ? `(Func<dynamic, int, dynamic>)(${lambdaExpr})` : lambdaExpr;
+      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+    } else {
+      const lambdaExpr = `${itemParam} => ${itemCode}`;
+      const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+      return `${castedArray}.Select(${castedLambda}).ToArray()`;
+    }
   }
 }
 
@@ -471,6 +527,17 @@ function generateCSharpExpression(node, inInterpolation = false) {
     if (t.isIdentifier(node.callee, { name: 'alert' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
       return `Console.WriteLine(${args})`;
+    }
+
+    // Handle Object.keys() → dictionary.Keys or reflection for objects
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Object' }) &&
+        t.isIdentifier(node.callee.property, { name: 'keys' })) {
+      if (node.arguments.length > 0) {
+        const obj = generateCSharpExpression(node.arguments[0]);
+        // For dynamic objects, cast to IDictionary and get Keys
+        return `((IDictionary<string, object>)${obj}).Keys`;
+      }
     }
 
     // Handle console.log → Console.WriteLine

@@ -520,7 +520,7 @@ function generateComponent(component) {
         ? (func.returnType === 'void' ? 'async Task' : `async Task<${func.returnType}>`)
         : func.returnType;
 
-      const params = func.params.map(p => `${p.type} ${p.name}`).join(', ');
+      const params = (func.params || []).map(p => `${p.type} ${p.name}`).join(', ');
 
       lines.push(`    private ${returnType} ${func.name}(${params})`);
       lines.push('    {');
@@ -531,6 +531,50 @@ function generateComponent(component) {
           const stmtCode = generateCSharpStatement(statement, 2);
           lines.push(stmtCode);
         }
+      }
+
+      lines.push('    }');
+    }
+  }
+
+  // Helper functions (standalone functions referenced by component)
+  if (component.topLevelHelperFunctions && component.topLevelHelperFunctions.length > 0) {
+    for (const helper of component.topLevelHelperFunctions) {
+      lines.push('');
+      lines.push(`    // Helper function: ${helper.name}`);
+
+      // Generate the function signature
+      const func = helper.node;
+      const params = (func.params || []).map(p => {
+        // Get parameter type from TypeScript annotation
+        let paramType = 'dynamic';
+        if (p.typeAnnotation && p.typeAnnotation.typeAnnotation) {
+          paramType = tsTypeToCSharpType(p.typeAnnotation.typeAnnotation);
+        }
+        return `${paramType} ${p.name}`;
+      }).join(', ');
+
+      // Get return type from TypeScript annotation
+      let returnType = 'dynamic';
+      if (func.returnType && func.returnType.typeAnnotation) {
+        returnType = tsTypeToCSharpType(func.returnType.typeAnnotation);
+      }
+
+      lines.push(`    private static ${returnType} ${helper.name}(${params})`);
+      lines.push('    {');
+
+      // Generate function body
+      if (t.isBlockStatement(func.body)) {
+        for (const statement of func.body.body) {
+          const csharpStmt = generateCSharpStatement(statement);
+          if (csharpStmt) {
+            lines.push(`        ${csharpStmt}`);
+          }
+        }
+      } else {
+        // Expression body (arrow function)
+        const csharpExpr = generateCSharpExpression(func.body);
+        lines.push(`        return ${csharpExpr};`);
       }
 
       lines.push('    }');

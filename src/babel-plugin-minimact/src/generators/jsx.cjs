@@ -30,6 +30,12 @@ function generateJSXElement(node, component, indent) {
     return generateFragment(node, component, indent);
   }
 
+  // Validate that this is actually a JSXElement
+  if (!t.isJSXElement(node)) {
+    console.error('[jsx.cjs] generateJSXElement called with non-JSX node:', node?.type || 'undefined');
+    throw new Error(`generateJSXElement expects JSXElement or JSXFragment, received: ${node?.type || 'undefined'}`);
+  }
+
   const tagName = node.openingElement.name.name;
   const attributes = node.openingElement.attributes;
   const children = node.children;
@@ -172,6 +178,12 @@ function generateChildren(children, component, indent) {
   const { generateJSXExpression } = require('./expressions.cjs');
 
   for (const child of children) {
+    // Skip undefined/null children
+    if (!child) {
+      console.warn('[jsx.cjs] Skipping undefined child in children array');
+      continue;
+    }
+
     if (t.isJSXText(child)) {
       const text = child.value.trim();
       if (text) {
@@ -181,6 +193,10 @@ function generateChildren(children, component, indent) {
       result.push({ type: 'element', code: generateJSXElement(child, component, indent + 1) });
     } else if (t.isJSXExpressionContainer(child)) {
       result.push({ type: 'expression', code: generateJSXExpression(child.expression, component, indent) });
+    } else if (t.isJSXFragment(child)) {
+      result.push({ type: 'element', code: generateFragment(child, component, indent + 1) });
+    } else {
+      console.warn(`[jsx.cjs] Unknown child type: ${child.type}`);
     }
   }
 

@@ -28,6 +28,28 @@ module.exports = function(babel) {
 
     visitor: {
       Program: {
+        enter(path, state) {
+          // Collect all top-level function declarations for potential inclusion as helpers
+          state.file.topLevelFunctions = [];
+
+          path.traverse({
+            FunctionDeclaration(funcPath) {
+              // Only collect top-level functions (not nested inside components)
+              if (funcPath.parent.type === 'Program' || funcPath.parent.type === 'ExportNamedDeclaration') {
+                const funcName = funcPath.node.id ? funcPath.node.id.name : null;
+                // Skip if it's a component (starts with uppercase)
+                if (funcName && funcName[0] === funcName[0].toLowerCase()) {
+                  state.file.topLevelFunctions.push({
+                    name: funcName,
+                    node: funcPath.node,
+                    path: funcPath
+                  });
+                }
+              }
+            }
+          });
+        },
+
         exit(path, state) {
           if (state.file.minimactComponents && state.file.minimactComponents.length > 0) {
             const csharpCode = generateCSharpFile(state.file.minimactComponents, state);

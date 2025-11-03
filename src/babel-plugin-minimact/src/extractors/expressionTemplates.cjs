@@ -311,10 +311,26 @@ function extractExpressionTemplates(renderBody, component) {
    * }
    */
   function extractMemberExpressionTemplate(memberExpr, component, path) {
+    // Check for computed property access: item[field]
+    if (memberExpr.computed) {
+      console.warn('[Minimact Warning] Computed property access detected - skipping template optimization (requires runtime evaluation)');
+
+      // Return a special marker indicating this needs runtime evaluation
+      // The C# generator will handle this as dynamic property access
+      return {
+        type: 'computedMemberExpression',
+        isComputed: true,
+        requiresRuntimeEval: true,
+        object: memberExpr.object,
+        property: memberExpr.property,
+        path
+      };
+    }
+
     const binding = buildMemberPath(memberExpr);
     if (!binding) return null;
 
-    // Get property name
+    // Get property name (only for non-computed properties)
     const propertyName = memberExpr.property.name;
 
     // Check if it's a supported property
