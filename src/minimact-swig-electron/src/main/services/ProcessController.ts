@@ -19,23 +19,54 @@ export class ProcessController {
    */
   async build(projectPath: string): Promise<BuildResult> {
     const startTime = Date.now();
+    let fullOutput = '';
 
     try {
-      const result = await execa('dotnet', ['build'], {
+      // Stream build output to terminal
+      this.notifyOutputListeners('\x1b[1;36m● Building project...\x1b[0m\n');
+
+      const buildProcess = execa('dotnet', ['build'], {
         cwd: projectPath,
-        all: true
+        all: true,
+        buffer: false
       });
 
+      // Stream stdout
+      if (buildProcess.stdout) {
+        buildProcess.stdout.on('data', (data) => {
+          const text = data.toString();
+          fullOutput += text;
+          this.notifyOutputListeners(text);
+        });
+      }
+
+      // Stream stderr
+      if (buildProcess.stderr) {
+        buildProcess.stderr.on('data', (data) => {
+          const text = data.toString();
+          fullOutput += text;
+          this.notifyOutputListeners(text);
+        });
+      }
+
+      // Wait for completion
+      const result = await buildProcess;
       const duration = Date.now() - startTime;
 
       // Parse output for errors/warnings
-      const output = result.all || '';
-      const errors = this.parseErrors(output);
-      const warnings = this.parseWarnings(output);
+      const errors = this.parseErrors(fullOutput);
+      const warnings = this.parseWarnings(fullOutput);
+
+      const success = result.exitCode === 0;
+      this.notifyOutputListeners(
+        success
+          ? `\x1b[1;32m✓ Build succeeded in ${duration}ms\x1b[0m\n\n`
+          : `\x1b[1;31m✗ Build failed in ${duration}ms\x1b[0m\n\n`
+      );
 
       return {
-        success: result.exitCode === 0,
-        output,
+        success,
+        output: fullOutput,
         errors,
         warnings,
         duration
@@ -43,9 +74,14 @@ export class ProcessController {
     } catch (error: any) {
       const duration = Date.now() - startTime;
 
+      const errorOutput = error.all || error.message || '';
+      fullOutput += errorOutput;
+
+      this.notifyOutputListeners(`\x1b[1;31m✗ Build failed: ${error.message}\x1b[0m\n\n`);
+
       return {
         success: false,
-        output: error.all || error.message || '',
+        output: fullOutput,
         errors: [error.message || 'Build failed'],
         warnings: [],
         duration
@@ -60,6 +96,9 @@ export class ProcessController {
     if (this.currentProcess) {
       throw new Error('A process is already running. Stop it first.');
     }
+
+    // Notify terminal that app is starting
+    this.notifyOutputListeners(`\x1b[1;36m● Starting app on port ${port}...\x1b[0m\n`);
 
     this.currentProcess = execa('dotnet', ['run', '--urls', `http://localhost:${port}`], {
       cwd: projectPath,
@@ -84,7 +123,10 @@ export class ProcessController {
 
     // Handle process exit
     this.currentProcess.on('exit', (code) => {
-      this.notifyOutputListeners(`\nProcess exited with code ${code}\n`);
+      const exitMessage = code === 0
+        ? `\x1b[1;32m✓ Process exited cleanly (code ${code})\x1b[0m\n\n`
+        : `\x1b[1;31m✗ Process exited with code ${code}\x1b[0m\n\n`;
+      this.notifyOutputListeners(exitMessage);
       this.currentProcess = null;
     });
   }

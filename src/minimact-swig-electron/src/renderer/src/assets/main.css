@@ -270,6 +270,7 @@ code {
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 50;
 }
 
 .drag-handle {
@@ -305,4 +306,14 @@ code {
 .fab {
   background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
   animation: fabPulse 3s ease-in-out infinite;
+}
+
+.header-title {
+  margin-bottom: 1rem !important;
+  padding-bottom: 0.25rem !important;
+  line-height: 1.1 !important;
+}
+
+.header-subtitle {
+  margin-bottom: 1rem !important;
 }

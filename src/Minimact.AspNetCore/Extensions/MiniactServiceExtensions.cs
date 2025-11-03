@@ -102,8 +102,11 @@ public static class MinimactServiceExtensions
     /// <summary>
     /// Map Minimact SignalR hub, auto-discover pages, and configure middleware
     /// </summary>
-    public static IApplicationBuilder UseMinimact(this IApplicationBuilder app, string manifestPath = "./Generated/routes.json")
+    public static IApplicationBuilder UseMinimact(this IApplicationBuilder app, Action<MinimactMiddlewareOptions>? configure = null, string manifestPath = "./Generated/routes.json")
     {
+        var middlewareOptions = new MinimactMiddlewareOptions();
+        configure?.Invoke(middlewareOptions);
+
         // Initialize global predictor from DI
         var predictor = app.ApplicationServices.GetRequiredService<RustBridge.Predictor>();
         MinimactComponent.GlobalPredictor = predictor;
@@ -114,6 +117,12 @@ public static class MinimactServiceExtensions
 
         // Add context cache middleware (cleanup after each request)
         app.UseMiddleware<Middleware.ContextCacheMiddleware>();
+
+        // Add welcome page middleware (if enabled)
+        if (middlewareOptions.UseWelcomePage)
+        {
+            app.UseMiddleware<Middleware.WelcomePageMiddleware>();
+        }
 
         // Add plugin asset serving middleware
         var options = app.ApplicationServices.GetService<MinimactOptions>();
@@ -226,4 +235,15 @@ public class PluginAssetOptions
     /// Cache duration for plugin assets (in seconds, default: 86400 = 24 hours)
     /// </summary>
     public int CacheDuration { get; set; } = 86400;
+}
+
+/// <summary>
+/// Configuration options for Minimact middleware
+/// </summary>
+public class MinimactMiddlewareOptions
+{
+    /// <summary>
+    /// Display a helpful welcome page at the root URL when no route is configured (default: false)
+    /// </summary>
+    public bool UseWelcomePage { get; set; } = false;
 }

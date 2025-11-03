@@ -121,15 +121,24 @@ export function HookLibrarySlideout({
   if (!isOpen) return null;
 
   return (
-    <>
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-8">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+        className="absolute inset-0 bg-black/70 transition-opacity"
         onClick={onClose}
       />
 
-      {/* Slideout Panel */}
-      <div className="fixed right-0 top-0 bottom-0 w-[600px] bg-gray-900 border-l border-gray-700 z-50 flex flex-col shadow-2xl">
+      {/* Modal Panel */}
+      <div
+        className="bg-gray-900 border border-gray-700 z-50 flex flex-col shadow-2xl rounded-3xl max-w-4xl w-full max-h-[85vh] relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Traffic Lights */}
+        <div className="traffic-lights absolute top-6 left-6 z-10">
+          <div className="traffic-light bg-red-500 cursor-pointer hover:opacity-100" onClick={onClose}></div>
+          <div className="traffic-light bg-yellow-500 opacity-50"></div>
+          <div className="traffic-light bg-green-500 opacity-50"></div>
+        </div>
         {/* Header */}
         <div className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -439,6 +448,6 @@ export function HookLibrarySlideout({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

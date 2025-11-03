@@ -36,7 +36,9 @@ export default function Terminal({ onData }: TerminalProps) {
         brightBlue: '#3b8eea',
         brightMagenta: '#d670d6',
         brightCyan: '#29b8db',
-        brightWhite: '#e5e5e5'
+        brightWhite: '#e5e5e5',
+        selectionBackground: '#264f78',
+        selectionForeground: '#ffffff'
       },
       fontFamily: '"Cascadia Code", "Courier New", monospace',
       fontSize: 13,
@@ -45,7 +47,8 @@ export default function Terminal({ onData }: TerminalProps) {
       cursorStyle: 'block',
       scrollback: 10000,
       tabStopWidth: 4,
-      allowProposedApi: true
+      allowProposedApi: true,
+      allowTransparency: false
     })
 
     // Create fit addon
@@ -108,8 +111,8 @@ export default function Terminal({ onData }: TerminalProps) {
   }, [])
 
   return (
-    <div className="h-full w-full bg-black">
-      <div ref={terminalRef} className="h-full w-full" />
+    <div className="h-full w-full bg-black" style={{ userSelect: 'text' }}>
+      <div ref={terminalRef} className="h-full w-full" style={{ userSelect: 'text' }} />
     </div>
   )
 }

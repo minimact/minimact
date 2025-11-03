@@ -4,7 +4,12 @@ import { ArrowLeft, FolderOpen, BookOpen, Sparkles, Check } from 'lucide-react'
 import { HookLibrarySlideout } from '../components/create-project/HookLibrarySlideout'
 import { HOOK_LIBRARY, getDefaultHooks } from '../../../main/data/hook-library'
 
-export default function CreateProject() {
+interface CreateProjectProps {
+  onBack?: () => void
+  embedded?: boolean
+}
+
+export default function CreateProject({ onBack, embedded = false }: CreateProjectProps = {}) {
   const navigate = useNavigate()
   const [projectName, setProjectName] = useState('')
   const [targetDir, setTargetDir] = useState('')
@@ -17,6 +22,8 @@ export default function CreateProject() {
   const [hookLibraryOpen, setHookLibraryOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
+  const [infoCardVisible, setInfoCardVisible] = useState(true)
+  const [infoCardMinimized, setInfoCardMinimized] = useState(false)
 
   const handleSelectDirectory = async () => {
     const result = await window.api.project.selectDirectory()
@@ -25,8 +32,8 @@ export default function CreateProject() {
     }
   }
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreate = async (e?: React.FormEvent | React.MouseEvent) => {
+    e?.preventDefault()
 
     if (!projectName || !targetDir) {
       setError('Please provide project name and directory')
@@ -75,20 +82,93 @@ export default function CreateProject() {
     }
   ]
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack()
+    } else {
+      navigate('/')
+    }
+  }
+
   return (
-    <div className="h-screen flex items-center justify-center p-8 relative">
+    <div className={embedded ? 'p-4' : 'h-screen flex items-center justify-center p-8 relative'}>
       {/* Back Button */}
-      <button
-        onClick={() => navigate('/')}
-        className="absolute top-8 left-8 w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 flex items-center justify-center transition-all hover:scale-110 shadow-lg"
-      >
-        <ArrowLeft className="w-5 h-5 text-slate-300" />
-      </button>
+      {!embedded && (
+        <button
+          onClick={handleBack}
+          className="absolute top-8 left-8 w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 flex items-center justify-center transition-all hover:scale-110 shadow-lg"
+        >
+          <ArrowLeft className="w-5 h-5 text-slate-300" />
+        </button>
+      )}
+
+      {embedded && (
+        <>
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-10 bg-gradient-to-b from-gray-900 to-transparent pb-4 mb-4 flex items-center justify-between">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back to Home</span>
+            </button>
+
+            {/* FAB - Create Project Button */}
+            <button
+              onClick={handleCreate}
+              disabled={!projectName || !targetDir || creating}
+              className="px-6 py-3 bg-gradient-to-br from-green-500 to-cyan-500 hover:from-green-400 hover:to-cyan-400 disabled:from-slate-700 disabled:to-slate-800 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50 hover:scale-105 flex items-center gap-2"
+            >
+              {creating ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Create Project
+                </>
+              )}
+            </button>
+          </div>
+        </>
+      )}
+
+      {!embedded && (
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-6"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back to Home</span>
+        </button>
+      )}
 
       {/* Main Content */}
       <div className="max-w-4xl w-full">
         {/* Hero Section */}
-        <div className="text-center mb-8">
+        <div className={embedded ? 'text-center mb-6' : 'text-center mb-8'}>
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
               <Sparkles className="w-6 h-6 text-white" />
@@ -101,15 +181,17 @@ export default function CreateProject() {
         </div>
 
         {/* Main Form Card */}
-        <div className="floating-card rounded-3xl p-8 relative mb-6">
+        <div className={embedded ? 'mb-6' : 'floating-card rounded-3xl p-8 relative mb-6'}>
           {/* Traffic Lights */}
-          <div className="traffic-lights absolute top-6 left-6">
-            <div className="traffic-light bg-red-500"></div>
-            <div className="traffic-light bg-yellow-500"></div>
-            <div className="traffic-light bg-green-500"></div>
-          </div>
+          {!embedded && (
+            <div className="traffic-lights absolute top-6 left-6">
+              <div className="traffic-light bg-red-500"></div>
+              <div className="traffic-light bg-yellow-500"></div>
+              <div className="traffic-light bg-green-500"></div>
+            </div>
+          )}
 
-          <form onSubmit={handleCreate} className="space-y-6 mt-4">
+          <form onSubmit={handleCreate} className={embedded ? 'space-y-6' : 'space-y-6 mt-4'}>
             {/* Project Name */}
             <div>
               <label className="block text-sm font-semibold text-slate-300 mb-2">
@@ -277,12 +359,13 @@ export default function CreateProject() {
               </div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={!projectName || !targetDir || creating}
-              className="w-full px-6 py-4 bg-gradient-to-br from-green-500 to-cyan-500 hover:from-green-400 hover:to-cyan-400 disabled:from-slate-700 disabled:to-slate-800 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50 hover:scale-[1.02] text-lg"
-            >
+            {/* Submit Button - Hidden when embedded (FAB is used instead) */}
+            {!embedded && (
+              <button
+                type="submit"
+                disabled={!projectName || !targetDir || creating}
+                className="w-full px-6 py-4 bg-gradient-to-br from-green-500 to-cyan-500 hover:from-green-400 hover:to-cyan-400 disabled:from-slate-700 disabled:to-slate-800 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50 hover:scale-[1.02] text-lg"
+              >
               {creating ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg
@@ -310,13 +393,28 @@ export default function CreateProject() {
               ) : (
                 'Create Project'
               )}
-            </button>
+              </button>
+            )}
           </form>
         </div>
 
         {/* Info Card */}
-        <div className="floating-card rounded-2xl p-6">
-          <div className="flex items-start gap-3">
+        {infoCardVisible && !infoCardMinimized && (
+          <div className="floating-card rounded-2xl p-6 relative">
+            {/* Traffic Lights */}
+            <div className="traffic-lights absolute top-3 right-3 scale-75">
+              <div
+                className="traffic-light bg-red-500 cursor-pointer hover:opacity-100"
+                onClick={() => setInfoCardVisible(false)}
+              ></div>
+              <div
+                className="traffic-light bg-yellow-500 cursor-pointer hover:opacity-100"
+                onClick={() => setInfoCardMinimized(true)}
+              ></div>
+              <div className="traffic-light bg-green-500 cursor-pointer hover:opacity-100"></div>
+            </div>
+
+            <div className="flex items-start gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
               <svg
                 className="w-4 h-4 text-white"
@@ -398,7 +496,8 @@ export default function CreateProject() {
               </ul>
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Hook Library Slideout */}
@@ -409,6 +508,43 @@ export default function CreateProject() {
         isOpen={hookLibraryOpen}
         onClose={() => setHookLibraryOpen(false)}
       />
+
+      {/* Fancy Loading Overlay */}
+      {creating && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[200]">
+          <div className="text-center">
+            {/* Animated Minimact Logo */}
+            <div className="relative mb-8">
+              <svg
+                className="w-24 h-24 text-cyan-400 animate-pulse mx-auto"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              {/* Spinning Ring */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-32 h-32 border-4 border-transparent border-t-cyan-400 border-r-cyan-400 rounded-full animate-spin"></div>
+              </div>
+            </div>
+
+            {/* Status Text */}
+            <div className="space-y-3">
+              <h3 className="text-2xl font-bold gradient-text">Creating Your Project</h3>
+              <div className="flex items-center justify-center gap-2 text-slate-400">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+              <p className="text-sm text-slate-500">Setting up {projectName}...</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
