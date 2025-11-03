@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Play, Square, Hammer, Chrome, Activity, Zap, FilePlus, BarChart3, FileText, Terminal as TerminalIcon, Home as HomeIcon, BookOpen, Layers, Settings, User, ArrowLeft, Copy, Check } from 'lucide-react'
+import { Play, Square, Hammer, Chrome, Activity, Zap, BarChart3, FileText, Terminal as TerminalIcon, Home as HomeIcon, BookOpen, Settings, User, ArrowLeft, Copy, Check } from 'lucide-react'
 import FileTree, { type ProjectFile } from '../components/editor/FileTree'
 import CodeEditor from '../components/editor/CodeEditor'
 import Terminal from '../components/terminal/Terminal'
@@ -29,7 +29,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null)
   const [selectedComponentId, setSelectedComponentId] = useState<string | undefined>(undefined)
-  const [showInspector, setShowInspector] = useState(false)
   const [signalRConnected, setSignalRConnected] = useState(false)
   const [showAddPageModal, setShowAddPageModal] = useState(false)
   const [showHooksLibrary, setShowHooksLibrary] = useState(false)
@@ -55,15 +54,31 @@ export default function Dashboard() {
   }, [projectPath])
 
   useEffect(() => {
-    // Connect to SignalR when app is running
+    // Connect to SignalR when app is running (with retry for server startup)
     const connectSignalR = async () => {
       if (isRunning && project) {
-        try {
-          await window.api.signalr.connect(`http://localhost:${project.port}/minimacthub`)
-          setSignalRConnected(true)
-        } catch (error) {
-          console.error('Failed to connect to SignalR:', error)
-          setSignalRConnected(false)
+        // Retry connection up to 10 times with increasing delays
+        const maxRetries = 10
+        const baseDelay = 500 // Start with 500ms
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+          try {
+            console.log(`[Dashboard] SignalR connection attempt ${attempt + 1}/${maxRetries}`)
+            await window.api.signalr.connect(`http://localhost:${project.port}/minimact`)
+            setSignalRConnected(true)
+            console.log('[Dashboard] SignalR connected successfully')
+            return
+          } catch (error) {
+            if (attempt < maxRetries - 1) {
+              // Exponential backoff: 500ms, 1s, 2s, 4s, etc.
+              const delay = baseDelay * Math.pow(2, attempt)
+              console.log(`[Dashboard] Connection failed, retrying in ${delay}ms...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
+            } else {
+              console.error('[Dashboard] Failed to connect to SignalR after all retries:', error)
+              setSignalRConnected(false)
+            }
+          }
         }
       } else {
         await window.api.signalr.disconnect()

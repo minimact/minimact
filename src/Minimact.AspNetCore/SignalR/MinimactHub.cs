@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.Abstractions;
+using Minimact.AspNetCore.Models;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Reflection;
@@ -220,7 +221,7 @@ public class MinimactHub : Hub
     /// Update DOM element state from client useDomElementState hook
     /// Keeps server aware of DOM changes for accurate rendering
     /// </summary>
-    public async Task UpdateDomElementState(string componentId, string stateKey, DomElementStateSnapshot snapshot)
+    public async Task UpdateDomElementState(string componentId, string stateKey, Abstractions.DomElementStateSnapshot snapshot)
     {
         var component = _registry.GetComponent(componentId);
         if (component == null)
@@ -1269,18 +1270,18 @@ public class MinimactHub : Hub
     /// <summary>
     /// Get component tree for hierarchical view in State Inspector
     /// </summary>
-    public List<Models.ComponentTreeNode> GetComponentTree()
+    public List<ComponentTreeNode> GetComponentTree()
     {
         // For now, return flat list (component hierarchy not tracked yet)
         // TODO: Track parent-child relationships in ComponentRegistry
         var components = _registry.GetAllComponentIds()
             .Select(id => _registry.GetComponent(id))
             .Where(c => c != null)
-            .Select(c => new Models.ComponentTreeNode
+            .Select(c => new ComponentTreeNode
             {
                 ComponentId = c!.ComponentId,
                 ComponentName = c.GetType().Name,
-                Children = new List<Models.ComponentTreeNode>()
+                Children = new List<ComponentTreeNode>()
             })
             .ToList();
 
@@ -1290,7 +1291,7 @@ public class MinimactHub : Hub
     /// <summary>
     /// Get complete state snapshot for a component
     /// </summary>
-    public Models.ComponentStateSnapshot? GetComponentState(string componentId)
+    public ComponentStateSnapshot? GetComponentState(string componentId)
     {
         var component = _registry.GetComponent(componentId);
         if (component == null)
