@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSS - Minimact Swig Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #1a1d29 0%, #0f1419 100%);
+      background-attachment: fixed;
+    }
+
+    .code-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .noise-bg::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .floating-widget {
+      background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .floating-widget:hover {
+      box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.5),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .floating-widget.active {
+      border-color: rgba(0, 217, 255, 0.3);
+      box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.5),
+        0 0 24px rgba(0, 217, 255, 0.2);
+    }
+
+    .widget-header {
+      cursor: move;
+      user-select: none;
+    }
+
+    .widget-header:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .drag-handle {
+      width: 20px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      margin: 2px 0;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .glow-green {
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.4);
+    }
+
+    .glow-blue {
+      box-shadow: 0 0 24px rgba(0, 217, 255, 0.4);
+    }
+
+    .glow-purple {
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.4);
+    }
+
+    .glow-orange {
+      box-shadow: 0 0 24px rgba(255, 140, 66, 0.4);
+    }
+
+    .action-orb {
+      position: relative;
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+      transition: all 0.3s ease;
+    }
+
+    .action-orb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 32px rgba(0, 255, 136, 0.5);
+    }
+
+    .action-button {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .action-button:hover {
+      transform: scale(1.1);
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 8px;
+    }
+
+    .traffic-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .traffic-light:hover {
+      opacity: 1;
+    }
+
+    .tab {
+      background: rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tab.active {
+      background: rgba(0, 217, 255, 0.1);
+      border-bottom: 2px solid #00d9ff;
+    }
+
+    .minimize-widget {
+      width: 64px !important;
+      height: 64px !important;
+      overflow: hidden;
+    }
+
+    .minimize-widget .widget-content {
+      display: none;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .floating-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="overflow-hidden noise-bg relative">
+
+  <div class="h-screen p-6 relative">
+
+    <!-- Action Orb (Center Top) -->
+    <div class="absolute top-8 left-1/2 -translate-x-1/2 z-50">
+      <div class="relative">
+        <!-- Center Orb -->
+        <div class="action-orb w-16 h-16 rounded-full flex items-center justify-center cursor-pointer group">
+          <svg class="w-8 h-8 text-white group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+
+        <!-- Transpile Button (Purple) -->
+        <div class="action-button glow-purple" style="top: -60px; left: 8px; background: linear-gradient(135deg, #a855f7, #bf40bf);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+
+        <!-- Build Button (Blue) -->
+        <div class="action-button glow-blue" style="top: -48px; left: -48px; background: linear-gradient(135deg, #2563eb, #00d9ff);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+
+        <!-- Inspector Button (Orange) -->
+        <div class="action-button glow-orange" style="top: -48px; right: -48px; background: linear-gradient(135deg, #ff8c42, #fb923c);">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Project Info -->
+      <div class="absolute top-20 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
+        <div class="text-sm font-semibold text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          SSS
+        </div>
+        <div class="text-xs text-slate-500 mt-1">J:\examples\sss</div>
+      </div>
+    </div>
+
+    <!-- File Browser Widget (Left) -->
+    <div class="floating-widget absolute left-6 top-32 w-72 h-[calc(100vh-220px)] rounded-2xl flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="widget-header px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="flex flex-col gap-0.5">
+            <div class="drag-handle"></div>
+            <div class="drag-handle"></div>
+          </div>
+          <span class="text-sm font-semibold text-slate-300">Files</span>
+        </div>
+        <div class="traffic-lights">
+          <div class="traffic-light bg-red-500 cursor-pointer"></div>
+          <div class="traffic-light bg-yellow-500 cursor-pointer"></div>
+          <div class="traffic-light bg-green-500 cursor-pointer"></div>
+        </div>
+      </div>
+
+      <!-- File Tree Content -->
+      <div class="widget-content flex-1 overflow-y-auto p-2 text-sm">
+
+        <!-- Pages Folder -->
+        <details open class="mb-1">
+          <summary class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-700 cursor-pointer">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+            </svg>
+            <span class="text-slate-300">Pages</span>
+          </summary>
+
+          <!-- Examples Subfolder -->
+          <div class="ml-6">
+            <details open class="mb-1">
+              <summary class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-700 cursor-pointer">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+                <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                </svg>
+                <span class="text-slate-300 text-xs">Examples</span>
+              </summary>
+              <div class="ml-6 space-y-0.5">
+                <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-700 cursor-pointer group">
+                  <svg class="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                  </svg>
+                  <span class="text-slate-400 text-xs group-hover:text-slate-300">Index.tsx</span>
+                </div>
+                <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-slate-700 cursor-pointer">
+                  <svg class="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                  </svg>
+                  <span class="text-cyan-400 text-xs">UseStateExample.tsx</span>
+                </div>
+                <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-700 cursor-pointer group">
+                  <svg class="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                  </svg>
+                  <span class="text-slate-400 text-xs group-hover:text-slate-300">UseEffectExample.tsx</span>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <!-- Controllers Folder -->
+        <details class="mb-1">
+          <summary class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-700 cursor-pointer">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+            </svg>
+            <span class="text-slate-300">Controllers</span>
+          </summary>
+        </details>
+
+        <!-- ViewModels Folder -->
+        <details class="mb-1">
+          <summary class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-700 cursor-pointer">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+            </svg>
+            <span class="text-slate-300">ViewModels</span>
+          </summary>
+        </details>
+
+      </div>
+    </div>
+
+    <!-- Editor Widget (Center) -->
+    <div class="floating-widget active absolute left-80 top-32 right-80 h-[calc(100vh-360px)] rounded-2xl flex flex-col overflow-hidden">
+      <!-- Header with Tabs -->
+      <div class="widget-header border-b border-slate-700 flex items-center">
+        <div class="flex items-center gap-2 px-3 py-2">
+          <div class="flex flex-col gap-0.5">
+            <div class="drag-handle"></div>
+            <div class="drag-handle"></div>
+          </div>
+        </div>
+        <div class="flex-1 flex items-center">
+          <div class="tab active px-4 py-2 flex items-center gap-2 text-xs">
+            <svg class="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+            </svg>
+            <span class="text-slate-300">UseStateExample.tsx</span>
+            <svg class="w-3 h-3 text-slate-500 hover:text-slate-300 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </div>
+        </div>
+        <div class="traffic-lights px-3">
+          <div class="traffic-light bg-red-500 cursor-pointer"></div>
+          <div class="traffic-light bg-yellow-500 cursor-pointer"></div>
+          <div class="traffic-light bg-green-500 cursor-pointer"></div>
+        </div>
+      </div>
+
+      <!-- Code Editor Content -->
+      <div class="widget-content flex-1 overflow-hidden bg-gradient-to-br from-slate-950 to-slate-900 p-6 code-font text-xs">
+        <div class="space-y-1 text-slate-400">
+          <div><span class="text-purple-400">import</span> <span class="text-slate-300">{ useState }</span> <span class="text-purple-400">from</span> <span class="text-green-400">'minimact'</span>;</div>
+          <div class="mt-3"></div>
+          <div><span class="text-blue-400">export function</span> <span class="text-yellow-300">UseStateExample</span><span class="text-slate-300">() {</span></div>
+          <div class="pl-4"><span class="text-purple-400">const</span> [count, setCount] = <span class="text-blue-400">useState</span>(<span class="text-orange-400">0</span>);</div>
+          <div class="mt-3 pl-4"><span class="text-purple-400">return</span> (</div>
+          <div class="pl-8"><span class="text-slate-300">&lt;</span><span class="text-green-300">div</span> <span class="text-cyan-400">className</span>=<span class="text-green-400">"container"</span><span class="text-slate-300">&gt;</span></div>
+          <div class="pl-12"><span class="text-slate-300">&lt;</span><span class="text-green-300">h1</span><span class="text-slate-300">&gt;</span>useState Example<span class="text-slate-300">&lt;/</span><span class="text-green-300">h1</span><span class="text-slate-300">&gt;</span></div>
+          <div class="pl-12"><span class="text-slate-300">&lt;</span><span class="text-green-300">p</span><span class="text-slate-300">&gt;</span>Count: {<span class="text-cyan-300">count</span>}<span class="text-slate-300">&lt;/</span><span class="text-green-300">p</span><span class="text-slate-300">&gt;</span></div>
+          <div class="pl-12"><span class="text-slate-300">&lt;</span><span class="text-green-300">button</span> <span class="text-cyan-400">onClick</span>={() =&gt; <span class="text-blue-400">setCount</span>(count + <span class="text-orange-400">1</span>)}<span class="text-slate-300">&gt;</span></div>
+          <div class="pl-16">Increment</div>
+          <div class="pl-12"><span class="text-slate-300">&lt;/</span><span class="text-green-300">button</span><span class="text-slate-300">&gt;</span></div>
+          <div class="pl-8"><span class="text-slate-300">&lt;/</span><span class="text-green-300">div</span><span class="text-slate-300">&gt;</span></div>
+          <div class="pl-4">);</div>
+          <div>}</div>
+        </div>
+
+        <!-- Minimap Strip -->
+        <div class="absolute right-0 top-12 bottom-0 w-16 bg-slate-900 bg-opacity-50 border-l border-slate-800 p-2">
+          <div class="space-y-0.5">
+            <div class="h-1 bg-purple-400 opacity-30"></div>
+            <div class="h-1 bg-slate-600 opacity-30"></div>
+            <div class="h-1 bg-blue-400 opacity-30"></div>
+            <div class="h-1 bg-slate-600 opacity-30"></div>
+            <div class="h-1 bg-green-400 opacity-30"></div>
+            <div class="h-1 bg-cyan-400 opacity-30"></div>
+            <div class="h-2 bg-cyan-500 opacity-50"></div>
+            <div class="h-1 bg-slate-600 opacity-30"></div>
+            <div class="h-1 bg-slate-600 opacity-30"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Widget (Bottom) -->
+    <div class="floating-widget absolute left-80 right-80 bottom-6 h-48 rounded-2xl flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="widget-header px-4 py-2 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="flex flex-col gap-0.5">
+            <div class="drag-handle"></div>
+            <div class="drag-handle"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+            <span class="text-xs font-semibold text-green-400 code-font">Terminal</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="text-slate-500 hover:text-white transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+          </button>
+          <button class="text-slate-500 hover:text-white transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+          <div class="traffic-lights ml-2">
+            <div class="traffic-light bg-red-500 cursor-pointer"></div>
+            <div class="traffic-light bg-yellow-500 cursor-pointer"></div>
+            <div class="traffic-light bg-green-500 cursor-pointer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal Content -->
+      <div class="widget-content flex-1 overflow-y-auto p-4 code-font text-xs bg-slate-950">
+        <div class="text-green-400">$ dotnet build</div>
+        <div class="text-slate-500 mt-2">Build succeeded.</div>
+        <div class="text-slate-500 ml-4">0 Warning(s)</div>
+        <div class="text-slate-500 ml-4">0 Error(s)</div>
+        <div class="text-slate-400 mt-4">
+          <span class="text-cyan-400">$</span>
+          <span class="animate-pulse ml-1">_</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inspector Widget (Right) -->
+    <div class="floating-widget absolute right-6 top-32 w-80 h-96 rounded-2xl flex flex-col overflow-hidden floating-animation">
+      <!-- Header -->
+      <div class="widget-header px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="flex flex-col gap-0.5">
+            <div class="drag-handle"></div>
+            <div class="drag-handle"></div>
+          </div>
+          <span class="text-sm font-semibold text-slate-300">Inspector</span>
+        </div>
+        <div class="traffic-lights">
+          <div class="traffic-light bg-red-500 cursor-pointer"></div>
+          <div class="traffic-light bg-yellow-500 cursor-pointer"></div>
+          <div class="traffic-light bg-green-500 cursor-pointer"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-slate-700">
+        <div class="tab active flex-1 text-center py-2 text-xs">Preview</div>
+        <div class="tab flex-1 text-center py-2 text-xs text-slate-500">State</div>
+        <div class="tab flex-1 text-center py-2 text-xs text-slate-500">Templates</div>
+      </div>
+
+      <!-- Preview Content -->
+      <div class="widget-content flex-1 p-4 bg-gradient-to-br from-slate-900 to-slate-950">
+        <div class="text-center text-slate-500 text-xs">
+          <svg class="w-12 h-12 mx-auto mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <p>Start server to preview</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics Widget (Right Bottom) -->
+    <div class="floating-widget absolute right-6 bottom-6 w-80 h-48 rounded-2xl flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="widget-header px-4 py-2 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-300">Performance</span>
+        </div>
+        <div class="traffic-lights">
+          <div class="traffic-light bg-yellow-500 cursor-pointer"></div>
+        </div>
+      </div>
+
+      <!-- Metrics Content -->
+      <div class="widget-content flex-1 p-4 grid grid-cols-2 gap-3 text-xs">
+        <div class="text-center">
+          <div class="text-2xl font-bold gradient-text">0ms</div>
+          <div class="text-slate-500 mt-1">Build Time</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold gradient-text">-</div>
+          <div class="text-slate-500 mt-1">Server Status</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-cyan-400">12</div>
+          <div class="text-slate-500 mt-1">Files</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-purple-400">3</div>
+          <div class="text-slate-500 mt-1">Components</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

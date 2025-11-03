@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimact Swig - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #1a1d29 0%, #0f1419 100%);
+      background-attachment: fixed;
+    }
+
+    .noise-bg::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .floating-card {
+      background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .floating-card:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.5),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .action-card {
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 50%, #00ff88 100%);
+      background-size: 200% 100%;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .action-card:hover::before {
+      transform: translateX(100%);
+    }
+
+    .action-card:hover {
+      background-position: 100% 0;
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+    }
+
+    .action-card-blue {
+      background: linear-gradient(135deg, #2563eb 0%, #00d9ff 50%, #2563eb 100%);
+      background-size: 200% 100%;
+    }
+
+    .action-card-blue:hover {
+      box-shadow: 0 0 40px rgba(37, 99, 235, 0.4);
+    }
+
+    .glow-green {
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.3);
+    }
+
+    .glow-blue {
+      box-shadow: 0 0 24px rgba(0, 217, 255, 0.3);
+    }
+
+    .glow-purple {
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.3);
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 8px;
+    }
+
+    .traffic-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+
+    .sidebar-pill {
+      background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .sidebar-icon {
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .sidebar-icon.active::before {
+      content: '';
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 217, 255, 0.2);
+      border-radius: 50%;
+      z-index: -1;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.5;
+      }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      transform: rotate(-1deg);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:nth-child(2) {
+      transform: rotate(1deg);
+    }
+
+    .stat-card:hover {
+      transform: rotate(0deg) translateY(-4px);
+    }
+
+    .fab {
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+      box-shadow: 0 8px 24px rgba(0, 255, 136, 0.4);
+      animation: fabPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes fabPulse {
+      0%, 100% {
+        box-shadow: 0 8px 24px rgba(0, 255, 136, 0.4);
+      }
+      50% {
+        box-shadow: 0 8px 32px rgba(0, 255, 136, 0.6), 0 0 48px rgba(0, 255, 136, 0.3);
+      }
+    }
+
+    .gradient-ring {
+      background: linear-gradient(135deg, #00ff88, #00d9ff, #a855f7);
+      padding: 3px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body class="overflow-hidden noise-bg">
+
+  <div class="h-screen flex items-center justify-center p-8 relative">
+
+    <!-- Sidebar Pill -->
+    <div class="sidebar-pill absolute left-8 top-1/2 -translate-y-1/2 rounded-full p-3 flex flex-col items-center gap-6">
+
+      <!-- Home Icon (Active) -->
+      <div class="sidebar-icon active cursor-pointer">
+        <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+      </div>
+
+      <!-- Projects Icon -->
+      <div class="sidebar-icon cursor-pointer">
+        <svg class="w-6 h-6 text-slate-500 hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+        </svg>
+      </div>
+
+      <!-- Templates Icon -->
+      <div class="sidebar-icon cursor-pointer">
+        <svg class="w-6 h-6 text-slate-500 hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+        </svg>
+      </div>
+
+      <!-- Settings Icon -->
+      <div class="sidebar-icon cursor-pointer">
+        <svg class="w-6 h-6 text-slate-500 hover:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+
+      <!-- Spacer -->
+      <div class="flex-1 min-h-[100px]"></div>
+
+      <!-- Profile Avatar -->
+      <div class="gradient-ring cursor-pointer">
+        <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+          JD
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="max-w-5xl w-full space-y-8">
+
+      <!-- Main Hero Card -->
+      <div class="floating-card rounded-3xl p-10 relative">
+
+        <!-- Traffic Lights -->
+        <div class="traffic-lights absolute top-6 left-6">
+          <div class="traffic-light bg-red-500"></div>
+          <div class="traffic-light bg-yellow-500"></div>
+          <div class="traffic-light bg-green-500"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8 mt-4">
+          <div class="flex items-center justify-center gap-3 mb-4">
+            <svg class="w-8 h-8 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+            <span class="text-lg font-semibold text-slate-300">Minimact Swig</span>
+          </div>
+          <h1 class="text-6xl font-bold gradient-text mb-3">
+            Start Building
+          </h1>
+          <p class="text-slate-400 text-lg">Server-side React for ASP.NET Core</p>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="flex gap-6 mb-6">
+
+          <!-- Create New Project -->
+          <div class="action-card flex-1 rounded-2xl p-8 cursor-pointer group">
+            <div class="flex flex-col items-center gap-4 relative z-10">
+              <div class="bg-white bg-opacity-20 p-4 rounded-2xl group-hover:scale-110 transition-transform">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 11v6m-3-3h6"/>
+                </svg>
+              </div>
+              <div class="text-center">
+                <h3 class="text-2xl font-bold text-white mb-1">Create New Project</h3>
+                <p class="text-white text-opacity-80 text-sm">Start from scratch or choose a template</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Open Project -->
+          <div class="action-card action-card-blue flex-1 rounded-2xl p-8 cursor-pointer group">
+            <div class="flex flex-col items-center gap-4 relative z-10">
+              <div class="bg-white bg-opacity-20 p-4 rounded-2xl group-hover:scale-110 transition-transform">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+              </div>
+              <div class="text-center">
+                <h3 class="text-2xl font-bold text-white mb-1">Open Project</h3>
+                <p class="text-white text-opacity-80 text-sm">Browse for existing Minimact app</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- No Recent Projects -->
+        <div class="text-center text-slate-500 text-sm">
+          <p>No recent projects</p>
+          <p class="text-xs text-slate-600 mt-1">Create a new project to get started</p>
+        </div>
+
+      </div>
+
+      <!-- Floating Stat Cards -->
+      <div class="flex gap-6">
+
+        <!-- Recent Projects Card -->
+        <div class="stat-card flex-1 rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-300">Recent Projects</h3>
+              <p class="text-xs text-slate-500">Last 7 days</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">No projects yet</span>
+              <span class="text-slate-600">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Card -->
+        <div class="stat-card flex-1 rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-300">Quick Stats</h3>
+              <p class="text-xs text-slate-500">Overview</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="text-center">
+              <div class="text-2xl font-bold gradient-text">0</div>
+              <div class="text-xs text-slate-500 mt-1">Projects</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold gradient-text">0</div>
+              <div class="text-xs text-slate-500 mt-1">Components</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Templates Card -->
+        <div class="stat-card flex-1 rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-300">Templates</h3>
+              <p class="text-xs text-slate-500">Ready to use</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-center h-12">
+            <span class="text-3xl font-bold gradient-text">5</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab fixed bottom-8 right-8 w-16 h-16 rounded-full cursor-pointer flex items-center justify-center group hover:scale-110 transition-transform">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      <div class="absolute -top-12 right-0 bg-slate-800 text-white text-xs py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+        Create New Project
+        <div class="absolute bottom-0 right-6 transform translate-y-1/2 rotate-45 w-2 h-2 bg-slate-800"></div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hook Library - Minimact Swig</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #1a1d29 0%, #0f1419 100%);
+      background-attachment: fixed;
+    }
+
+    .noise-bg::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .floating-widget {
+      background: linear-gradient(135deg, #2a2e3a 0%, #1e2329 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .floating-widget:hover {
+      box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.5),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .widget-header {
+      cursor: move;
+      user-select: none;
+    }
+
+    .drag-handle {
+      width: 20px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      margin: 2px 0;
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 8px;
+    }
+
+    .traffic-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .traffic-light:hover {
+      opacity: 1;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hook-card {
+      background: linear-gradient(135deg, rgba(42, 46, 58, 0.5) 0%, rgba(30, 35, 41, 0.5) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .hook-card:hover {
+      border-color: rgba(0, 217, 255, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 217, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .hook-card.selected {
+      border-color: rgba(0, 255, 136, 0.4);
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 217, 255, 0.1) 100%);
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.2);
+    }
+
+    .checkbox-custom {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .checkbox-custom:checked {
+      background: linear-gradient(135deg, #00ff88 0%, #00d9ff 100%);
+      border-color: transparent;
+    }
+
+    .checkbox-custom:checked::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 6px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .category-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-core {
+      background: rgba(0, 255, 136, 0.2);
+      color: #00ff88;
+    }
+
+    .badge-extension {
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+    }
+
+    .badge-advanced {
+      background: rgba(255, 140, 66, 0.2);
+      color: #ff8c42;
+    }
+
+    .search-bar {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .search-bar:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(0, 217, 255, 0.3);
+      outline: none;
+    }
+
+    .overlay {
+      background: rgba(10, 14, 25, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="overflow-hidden noise-bg">
+
+  <!-- Overlay -->
+  <div class="overlay fixed inset-0 z-10"></div>
+
+  <!-- Hook Library Widget (Center) -->
+  <div class="floating-widget fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[700px] rounded-3xl flex flex-col overflow-hidden z-20">
+
+    <!-- Header -->
+    <div class="widget-header px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex flex-col gap-0.5">
+          <div class="drag-handle"></div>
+          <div class="drag-handle"></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-cyan-500 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-white">Hook Library</h2>
+            <p class="text-xs text-slate-500">Select hooks to include example code</p>
+          </div>
+        </div>
+      </div>
+      <div class="traffic-lights">
+        <div class="traffic-light bg-red-500 cursor-pointer"></div>
+        <div class="traffic-light bg-yellow-500 cursor-pointer"></div>
+        <div class="traffic-light bg-green-500 cursor-pointer"></div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="px-6 py-4 border-b border-slate-700">
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search hooks..."
+          class="search-bar w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-white"
+        />
+      </div>
+    </div>
+
+    <!-- Hook Grid -->
+    <div class="flex-1 overflow-y-auto px-6 py-4">
+
+      <!-- Core Hooks Section -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="category-badge badge-core">Core</span>
+          <span class="text-sm font-semibold text-slate-300">Essential Hooks</span>
+          <span class="text-xs text-slate-500">(3 hooks)</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+
+          <!-- useState Card -->
+          <div class="hook-card selected rounded-xl p-4 cursor-pointer">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" checked class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="text-sm font-semibold text-white">useState</h3>
+                  <button class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-3.5 h-3.5 text-slate-400 hover:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0-4h.01"/>
+                    </svg>
+                  </button>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Manage component state with instant updates and template prediction
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useEffect Card -->
+          <div class="hook-card selected rounded-xl p-4 cursor-pointer">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" checked class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="text-sm font-semibold text-white">useEffect</h3>
+                  <button class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-3.5 h-3.5 text-slate-400 hover:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0-4h.01"/>
+                    </svg>
+                  </button>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Run side effects after component renders (timers, subscriptions, etc.)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useRef Card -->
+          <div class="hook-card selected rounded-xl p-4 cursor-pointer">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" checked class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="text-sm font-semibold text-white">useRef</h3>
+                  <button class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-3.5 h-3.5 text-slate-400 hover:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0-4h.01"/>
+                    </svg>
+                  </button>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Create mutable refs that persist across renders without triggering updates
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Extension Hooks Section -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="category-badge badge-extension">Extensions</span>
+          <span class="text-sm font-semibold text-slate-300">Minimact Extensions</span>
+          <span class="text-xs text-slate-500">(5 hooks)</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+
+          <!-- useDomElementState Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-white">useDomElementState</h3>
+                </div>
+                <div class="flex items-center gap-1.5 mb-2">
+                  <span class="text-xs text-cyan-400">@minimact/punch</span>
+                  <span class="px-1.5 py-0.5 bg-cyan-900 bg-opacity-30 text-cyan-400 text-[10px] rounded font-semibold">MES SILVER</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Make the DOM queryable like a database with 80+ reactive properties
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useDomQuery Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-white">useDomQuery</h3>
+                </div>
+                <div class="mb-2">
+                  <span class="text-xs text-cyan-400">@minimact/query</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Query the DOM with SQL semantics - SELECT, WHERE, ORDER BY
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useDynamicState Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-white">useDynamicState</h3>
+                </div>
+                <div class="mb-2">
+                  <span class="text-xs text-cyan-400">@minimact/dynamic</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Separate DOM structure from value binding for sub-millisecond updates
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useArea Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-white">useArea</h3>
+                </div>
+                <div class="mb-2">
+                  <span class="text-xs text-cyan-400">@minimact/spatial</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Query spatial regions of the viewport as a 2D database
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useBundle Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-white">useBundle</h3>
+                </div>
+                <div class="mb-2">
+                  <span class="text-xs text-cyan-400">@minimact/bundle</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Declarative DOM selector primitives for applying attributes
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Advanced Hooks Section -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="category-badge badge-advanced">Advanced</span>
+          <span class="text-sm font-semibold text-slate-300">Server Integration</span>
+          <span class="text-xs text-slate-500">(3 hooks)</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+
+          <!-- useMarkdown Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-white">useMarkdown</h3>
+                </div>
+                <div class="mb-2">
+                  <span class="text-xs text-cyan-400">@minimact/md</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Markdown content parsed to HTML on server (GFM, tables, syntax highlighting)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useContext Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="text-sm font-semibold text-white">useContext</h3>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Redis-like server cache with scoped lifetimes (session, request, URL)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- useReducer Card -->
+          <div class="hook-card rounded-xl p-4 cursor-pointer group">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox-custom mt-1" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="text-sm font-semibold text-white">useReducer</h3>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Complex state logic with action dispatching and predictive rendering
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-slate-700 flex items-center justify-between">
+      <div>
+        <div class="text-sm font-semibold gradient-text">3 hooks selected</div>
+        <div class="text-xs text-slate-500 mt-0.5">
+          Example code will be generated in <span class="code-font text-cyan-400">Pages/Examples/</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+          Cancel
+        </button>
+        <button class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl">
+          Done
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
