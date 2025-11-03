@@ -65,6 +65,35 @@ export default function CodeEditor({ filePath, onSave }: CodeEditorProps) {
     }
   }
 
+  const loadMinimactTypes = async (monaco: Monaco) => {
+    // Get project root from file path
+    const projectRoot = filePath.split(/[\\\/]Components[\\\/]/)[0]
+    if (!projectRoot) return
+
+    // List of @minimact packages to load
+    const packages = ['core', 'punch', 'mvc', 'md', 'query', 'trees', 'quantum', 'charts', 'powered']
+
+    for (const pkg of packages) {
+      try {
+        // Try to read type definition from project's node_modules
+        const typeDefPath = `${projectRoot}/node_modules/@minimact/${pkg}/dist/index.d.ts`
+        const result = await window.api.file.readFile(typeDefPath)
+
+        if (result.success && result.data) {
+          // Add type definitions to Monaco
+          monaco.languages.typescript.typescriptDefaults.addExtraLib(
+            result.data,
+            `file:///node_modules/@minimact/${pkg}/index.d.ts`
+          )
+          console.log(`[CodeEditor] Loaded type definitions for @minimact/${pkg}`)
+        }
+      } catch (err) {
+        // Package not installed or no type definitions - silently skip
+        // This is expected for packages not used in the project
+      }
+    }
+  }
+
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
     // Configure TypeScript compiler options for JSX
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -234,6 +263,9 @@ export default function CodeEditor({ filePath, onSave }: CodeEditorProps) {
       reactTypes,
       'file:///node_modules/@types/react/index.d.ts'
     )
+
+    // Load @minimact package type definitions
+    loadMinimactTypes(monaco)
 
     // Add Ctrl+S / Cmd+S save shortcut
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {

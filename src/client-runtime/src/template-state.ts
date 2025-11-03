@@ -62,7 +62,17 @@ export class TemplateStateManager {
 
     for (const [nodePath, template] of Object.entries(templateMap.templates)) {
       const key = `${componentId}:${nodePath}`;
-      this.templates.set(key, template);
+
+      // Normalize: Server sends 'templateString', client expects 'template'
+      const normalized: Template = {
+        template: (template as any).templateString || (template as any).template,
+        bindings: template.bindings,
+        slots: template.slots,
+        path: template.path,
+        type: template.type
+      };
+
+      this.templates.set(key, normalized);
     }
 
     // Initialize component state tracking
@@ -178,8 +188,15 @@ export class TemplateStateManager {
   applyTemplatePatch(patch: TemplatePatch): { text: string; path: number[] } | null {
     const { componentId, path, template, params, bindings, slots, attribute } = patch;
 
-    // Render template with params
-    const text = this.renderWithParams(template, params);
+    // Get current state values from client (not stale params from server!)
+    const currentParams: any[] = [];
+    for (const binding of bindings) {
+      const value = this.getStateValue(componentId, binding);
+      currentParams.push(value !== undefined ? value : params[currentParams.length]);
+    }
+
+    // Render template with current client state
+    const text = this.renderWithParams(template, currentParams);
 
     // Build node path key
     const nodePath = this.buildNodePathKey(path);
@@ -256,10 +273,10 @@ export class TemplateStateManager {
     // Estimate memory usage (rough estimate)
     let memoryBytes = 0;
     for (const template of this.templates.values()) {
-      memoryBytes += template.template.length * 2; // UTF-16
-      memoryBytes += template.bindings.length * 20; // Rough estimate
-      memoryBytes += template.slots.length * 4; // 4 bytes per number
-      memoryBytes += template.path.length * 4;
+      memoryBytes += (template.template?.length || 0) * 2; // UTF-16
+      memoryBytes += (template.bindings?.length || 0) * 20; // Rough estimate
+      memoryBytes += (template.slots?.length || 0) * 4; // 4 bytes per number
+      memoryBytes += (template.path?.length || 0) * 4;
     }
 
     return {

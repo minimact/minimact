@@ -74,6 +74,27 @@ export class SignalMManager {
       this.emit('error', { message });
     });
 
+    // Handle hot reload messages
+    this.connection.on('HotReload:TemplateMap', (data: any) => {
+      this.log('HotReload:TemplateMap', data);
+      this.emit('HotReload:TemplateMap', data);
+    });
+
+    this.connection.on('HotReload:TemplatePatch', (data: any) => {
+      this.log('HotReload:TemplatePatch', data);
+      this.emit('HotReload:TemplatePatch', data);
+    });
+
+    this.connection.on('HotReload:FileChange', (data: any) => {
+      this.log('HotReload:FileChange', data);
+      this.emit('HotReload:FileChange', data);
+    });
+
+    this.connection.on('HotReload:Error', (data: any) => {
+      console.error('[Minimact Hot Reload] Error:', data.error);
+      this.emit('HotReload:Error', data);
+    });
+
     // Handle reconnection
     this.connection.onReconnecting(() => {
       this.log('Reconnecting...');

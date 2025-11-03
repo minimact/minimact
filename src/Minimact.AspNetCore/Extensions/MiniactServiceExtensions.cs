@@ -48,15 +48,30 @@ public static class MinimactServiceExtensions
             });
 
         // Register hot reload services (development only)
-        services.AddSingleton<HotReloadFileWatcher>();
-        services.AddSingleton(sp =>
+        // Register hot reload services as eager singletons
+        services.AddSingleton<HotReloadFileWatcher>(sp =>
+        {
+            var hubContext = sp.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<MinimactHub>>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<HotReloadFileWatcher>>();
+            var configuration = sp.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+            var watcher = new HotReload.HotReloadFileWatcher(hubContext, logger, configuration);
+            // Force instantiation by returning it
+            return watcher;
+        });
+
+        services.AddSingleton<TemplateHotReloadManager>(sp =>
         {
             var hubContext = sp.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<MinimactHub>>();
             var registry = sp.GetRequiredService<ComponentRegistry>();
             var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TemplateHotReloadManager>>();
             var watchPath = System.IO.Directory.GetCurrentDirectory();
-            return new TemplateHotReloadManager(hubContext, registry, logger, watchPath);
+            var manager = new TemplateHotReloadManager(hubContext, registry, logger, watchPath);
+            // Force instantiation by returning it
+            return manager;
         });
+
+        // Register hosted service to eagerly instantiate hot reload services
+        services.AddHostedService<HotReloadInitializationService>();
 
         // Register memory monitoring background service
         services.AddHostedService<PredictorMemoryMonitor>();

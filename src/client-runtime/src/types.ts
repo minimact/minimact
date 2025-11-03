@@ -113,6 +113,8 @@ export interface MinimactOptions {
   hubUrl?: string;
   enableDebugLogging?: boolean;
   reconnectInterval?: number;
+  enableHotReload?: boolean;
+  hotReloadWsUrl?: string;
 }
 
 export interface ComponentMetadata {

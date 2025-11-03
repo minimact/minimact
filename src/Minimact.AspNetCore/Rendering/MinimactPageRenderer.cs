@@ -62,7 +62,7 @@ public class MinimactPageRenderer
         var html = vnode.ToHtml();
 
         // 6. Serialize ViewModel for client
-        var viewModelJson = SerializeViewModel(viewModel, mutability);
+        var viewModelJson = SerializeViewModel(component, viewModel, mutability);
 
         // 7. Generate complete HTML page
         var pageHtml = GeneratePageHtml(component, html, pageTitle, viewModelJson, options);
@@ -97,12 +97,14 @@ public class MinimactPageRenderer
     /// <summary>
     /// Serialize ViewModel and mutability metadata to JSON.
     /// </summary>
-    private string SerializeViewModel(object viewModel, Dictionary<string, bool> mutability)
+    private string SerializeViewModel(MinimactComponent component, object viewModel, Dictionary<string, bool> mutability)
     {
         var wrapper = new
         {
             data = viewModel,
-            _mutability = mutability
+            _mutability = mutability,
+            _componentType = component.GetType().Name,
+            _componentId = component.ComponentId
         };
 
         return JsonSerializer.Serialize(wrapper, new JsonSerializerOptions

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.Abstractions;
 using Minimact.AspNetCore.Models;
+using Minimact.AspNetCore.HotReload;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Reflection;
@@ -18,13 +19,15 @@ public class MinimactHub : Hub
     private readonly IHubContext<MinimactHub> _hubContext;
     private readonly SignalRPatchSender _patchSender;
     private readonly IContextCache _contextCache;
+    private readonly TemplateHotReloadManager _templateHotReloadManager;
 
-    public MinimactHub(ComponentRegistry registry, IHubContext<MinimactHub> hubContext, IContextCache contextCache)
+    public MinimactHub(ComponentRegistry registry, IHubContext<MinimactHub> hubContext, IContextCache contextCache, TemplateHotReloadManager templateHotReloadManager)
     {
         _registry = registry;
         _hubContext = hubContext;
         _patchSender = new SignalRPatchSender(hubContext, registry);
         _contextCache = contextCache;
+        _templateHotReloadManager = templateHotReloadManager;
     }
 
     /// <summary>
@@ -40,6 +43,11 @@ public class MinimactHub : Hub
             Console.WriteLine($"[MinimactHub] Component found! Assigning connection ID: {Context.ConnectionId}");
             component.ConnectionId = Context.ConnectionId;
             component.PatchSender = _patchSender;
+
+            // Send initial template map for this component type
+            var componentType = component.GetType().Name;
+            Console.WriteLine($"[MinimactHub] Sending initial template map for component type: {componentType}");
+            await _templateHotReloadManager.SendTemplateMapToClientAsync(componentType, Context.ConnectionId);
         }
         else
         {
