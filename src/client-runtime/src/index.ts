@@ -109,7 +109,9 @@ export class Minimact {
     this.hydration.hydrateAll();
 
     // Register hydrated components in registry
+    console.log('[Minimact] 🔍 Registering hydrated components...');
     this.registerHydratedComponents();
+    console.log('[Minimact] 📊 Registry stats:', this.componentRegistry.getStats());
 
     // Setup event delegation
     this.eventDelegation = new EventDelegation(

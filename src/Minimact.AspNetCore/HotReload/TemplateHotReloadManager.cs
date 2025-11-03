@@ -52,6 +52,39 @@ public class TemplateHotReloadManager : IDisposable
         _watcher.Renamed += OnTemplateFileRenamed;
 
         _logger.LogInformation("[Minimact Templates] 📦 Watching {WatchPath} for *.templates.json changes", watchPath);
+
+        // Preload all existing template files
+        Task.Run(() => PreloadExistingTemplates(watchPath));
+    }
+
+    /// <summary>
+    /// Preload all existing .templates.json files on startup
+    /// </summary>
+    private async Task PreloadExistingTemplates(string watchPath)
+    {
+        try
+        {
+            var templateFiles = Directory.GetFiles(watchPath, "*.templates.json", SearchOption.AllDirectories);
+            _logger.LogInformation("[Minimact Templates] 🔍 Found {Count} template files to preload", templateFiles.Length);
+
+            foreach (var filePath in templateFiles)
+            {
+                var fileName = Path.GetFileName(filePath);
+                var componentId = Path.GetFileNameWithoutExtension(fileName).Replace(".templates", "");
+
+                var templateMap = await LoadTemplateMapAsync(filePath);
+                if (templateMap != null)
+                {
+                    _templateMaps[componentId] = templateMap;
+                    _logger.LogInformation("[Minimact Templates] ✅ Preloaded {Count} templates for {ComponentId}",
+                        templateMap.Templates.Count, componentId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[Minimact Templates] Failed to preload templates");
+        }
     }
 
     /// <summary>

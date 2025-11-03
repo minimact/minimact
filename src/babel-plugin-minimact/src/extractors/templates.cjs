@@ -312,6 +312,7 @@ function extractTemplates(renderBody, component) {
           if (text) {
             // Static text - create template without bindings
             const textPath = `${pathKey}.text[${textNodeIndex}]`;
+            console.log(`[Template Extractor] Found static text in <${tagName}>: "${text}" (path: ${textPath})`);
             templates[textPath] = {
               template: text,
               bindings: [],
