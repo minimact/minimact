@@ -431,8 +431,38 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isBinaryExpression(node)) {
-    const left = generateCSharpExpression(node.left);
-    const right = generateCSharpExpression(node.right);
+    // Helper function to get operator precedence (higher = tighter binding)
+    const getPrecedence = (op) => {
+      if (op === '*' || op === '/' || op === '%') return 3;
+      if (op === '+' || op === '-') return 2;
+      if (op === '==' || op === '!=' || op === '===' || op === '!==' ||
+          op === '<' || op === '>' || op === '<=' || op === '>=') return 1;
+      return 0;
+    };
+
+    const currentPrecedence = getPrecedence(node.operator);
+
+    // Generate left side, wrap in parentheses if needed
+    let left = generateCSharpExpression(node.left);
+    if (t.isBinaryExpression(node.left)) {
+      const leftPrecedence = getPrecedence(node.left.operator);
+      // Wrap in parentheses if left has lower precedence
+      if (leftPrecedence < currentPrecedence) {
+        left = `(${left})`;
+      }
+    }
+
+    // Generate right side, wrap in parentheses if needed
+    let right = generateCSharpExpression(node.right);
+    if (t.isBinaryExpression(node.right)) {
+      const rightPrecedence = getPrecedence(node.right.operator);
+      // Wrap in parentheses if right has lower or equal precedence
+      // Equal precedence on right needs parens for left-associative operators
+      if (rightPrecedence <= currentPrecedence) {
+        right = `(${right})`;
+      }
+    }
+
     // Convert JavaScript operators to C# operators
     let operator = node.operator;
     if (operator === '===') operator = '==';
@@ -589,6 +619,13 @@ function generateCSharpExpression(node, inInterpolation = false) {
     if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toUpperCase' })) {
       const object = generateCSharpExpression(node.callee.object);
       return `${object}.ToUpper()`;
+    }
+
+    // Handle .substring(start, end) → .Substring(start, end)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'substring' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `${object}.Substring(${args})`;
     }
 
     // Handle useState/useClientState setters → SetState calls
