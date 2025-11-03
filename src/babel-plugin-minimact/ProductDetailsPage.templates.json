@@ -1,7 +1,7 @@
 {
   "component": "ProductDetailsPage",
   "version": "1.0",
-  "generatedAt": 1762205216018,
+  "generatedAt": 1762206861175,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "{0}950040830",
@@ -176,7 +176,43 @@
       ],
       "type": "static"
     },
+    "[0].[3].h3[0].text[0]": {
+      "template": "Admin Controls",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "type": "static"
+    },
     "[0].[3].button[0].text[0]": {
+      "template": "Edit Product",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[3].button[1].text[0]": {
+      "template": "Delete Product",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        3,
+        1,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[4].button[0].text[0]": {
       "template": "{0} Details",
       "bindings": [
         "isExpanded"
@@ -186,7 +222,7 @@
       ],
       "path": [
         0,
-        3,
+        4,
         0,
         0
       ],
@@ -196,7 +232,33 @@
         "false": "Show"
       }
     },
-    "[0].[4].strong[0].text[0]": {
+    "[0].[4].[0].h3[0].text[0]": {
+      "template": "Product Specifications",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        4,
+        0,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[4].[0].p[0].text[0]": {
+      "template": "This is where detailed product information would go.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        4,
+        0,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[5].strong[0].text[0]": {
       "template": "Total: ${0}",
       "bindings": [
         "cartTotal"
@@ -206,7 +268,7 @@
       ],
       "path": [
         0,
-        4,
+        5,
         0,
         0
       ],
@@ -228,6 +290,276 @@
         0
       ],
       "type": "static"
+    },
+    "div[0].@style": {
+      "template": "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].div[0].@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[0].div[0].@style": {
+      "template": "font-size: 32px; font-weight: bold; color: #2563eb",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[0].div[1].@style": {
+      "template": "color: #6b7280; font-size: 14px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0,
+        1
+      ],
+      "type": "attribute-static"
+    },
+    "[0].div[1].@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[1].label[0].@style": {
+      "template": "display: block; margin-bottom: 8px; font-weight: 500",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[1].div[0].@style": {
+      "template": "display: flex; gap: 10px; align-items: center",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[1].[0].button[0].@style": {
+      "template": "padding: 8px 16px; background-color: #e5e7eb; border: none; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[1].[0].span[0].@style": {
+      "template": "font-size: 20px; font-weight: bold; min-width: 40px; text-align: center",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[1].[0].button[1].@style": {
+      "template": "padding: 8px 16px; background-color: #e5e7eb; border: none; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "type": "attribute-static"
+    },
+    "[0].div[2].@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[2].label[0].@style": {
+      "template": "display: block; margin-bottom: 8px; font-weight: 500",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[2].select[0].@value": {
+      "template": "{0}",
+      "bindings": [
+        "color"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        0,
+        2,
+        0
+      ],
+      "type": "attribute-dynamic"
+    },
+    "[0].[2].select[0].@style": {
+      "template": "padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[2].[0].option[0].@value": {
+      "template": "Black",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[2].[0].option[1].@value": {
+      "template": "White",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2,
+        0,
+        1
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[2].[0].option[2].@value": {
+      "template": "Red",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2,
+        0,
+        2
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[2].[0].option[3].@value": {
+      "template": "Blue",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        2,
+        0,
+        3
+      ],
+      "type": "attribute-static"
+    },
+    "[0].div[3].@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        3
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[3].button[0].@style": {
+      "template": "padding: 8px 16px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        3,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].div[4].@style": {
+      "template": "padding: 16px; background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        4
+      ],
+      "type": "attribute-static"
+    },
+    "[0].[4].strong[0].@style": {
+      "template": "font-size: 18px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        4,
+        0
+      ],
+      "type": "attribute-static"
+    },
+    "[0].button[0].@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleAddToCart"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        0,
+        0
+      ],
+      "type": "attribute-dynamic"
+    },
+    "[0].button[0].@style": {
+      "template": "padding: 12px 24px; background-color: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0
+      ],
+      "type": "attribute-static"
     }
   }
 }
