@@ -22,6 +22,23 @@ function extractEventHandler(value, component) {
       // Check if the function is async
       const isAsync = expr.async || false;
 
+      // Detect curried functions (functions that return functions)
+      // Pattern: (e) => (id) => action(id)
+      // This is invalid for event handlers because the returned function is never called
+      if (t.isArrowFunctionExpression(expr.body) || t.isFunctionExpression(expr.body)) {
+        // Generate a handler that throws a helpful error
+        component.eventHandlers.push({
+          name: handlerName,
+          body: null, // Will be handled specially in component generator
+          params: expr.params,
+          capturedParams: [],
+          isAsync: false,
+          isCurriedError: true // Flag to generate error throw
+        });
+
+        return handlerName;
+      }
+
       // Simplify common pattern: (e) => func(e.target.value)
       // Transform to: (value) => func(value)
       let body = expr.body;

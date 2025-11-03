@@ -397,8 +397,17 @@ function generateComponent(component) {
     lines.push(`    public ${returnType} ${handler.name}(${paramStr})`);
     lines.push('    {');
 
+    // Check if this is a curried function error
+    if (handler.isCurriedError) {
+      lines.push(`        throw new InvalidOperationException(`);
+      lines.push(`            "Event handler '${handler.name}' returns a function instead of executing an action. " +`);
+      lines.push(`            "This is a curried function pattern (e.g., (e) => (id) => action(id)) which is invalid for event handlers. " +`);
+      lines.push(`            "The returned function is never called by the event system. " +`);
+      lines.push(`            "Fix: Use (e) => action(someValue) or create a properly bound handler."`);
+      lines.push(`        );`);
+    }
     // Generate method body
-    if (handler.body) {
+    else if (handler.body) {
       if (t.isBlockStatement(handler.body)) {
         // Block statement: { ... }
         for (const statement of handler.body.body) {

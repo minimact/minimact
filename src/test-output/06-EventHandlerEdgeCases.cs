@@ -168,7 +168,7 @@ public partial class EventHandlerEdgeCases : MinimactComponent
                 new VElement("button", new Dictionary<string, string> { ["onclick"] = "Handle12" }, "Optional Chaining Test")
             }),
             new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Test 16: Curried Handler (Double Arrow)"), tasks.Select(task => new VElement("button", new Dictionary<string, string> { ["key"] = $"{task.id}", ["onclick"] = "Handle13:{task}" }, new VNode[]
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Test 16: Curried Handler (Double Arrow)"), tasks.Select(task => new VElement("button", new Dictionary<string, string> { ["key"] = $"{task.id}", ["onclick"] = "Handle13" }, new VNode[]
                 {
                     new VText($"{(task.title)}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "warning" }, "⚠️ Curried functions may not transpile correctly"))
@@ -259,9 +259,14 @@ public partial class EventHandlerEdgeCases : MinimactComponent
         SetState(nameof(text), value);
     }
 
-    public void Handle13(dynamic e, dynamic task)
+    public void Handle13(dynamic e)
     {
-        id => handleComplexLogic(id);
+        throw new InvalidOperationException(
+            "Event handler 'Handle13' returns a function instead of executing an action. " +
+            "This is a curried function pattern (e.g., (e) => (id) => action(id)) which is invalid for event handlers. " +
+            "The returned function is never called by the event system. " +
+            "Fix: Use (e) => action(someValue) or create a properly bound handler."
+        );
     }
 
     private void handleSimpleClick()
