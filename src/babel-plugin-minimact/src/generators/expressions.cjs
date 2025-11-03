@@ -128,15 +128,36 @@ function generateMapExpression(node, component, indent) {
   const indexParam = callback.params[1] ? callback.params[1].name : null;
   const body = callback.body;
 
+  // Track map context for event handler closure capture (nested maps)
+  const previousMapContext = component ? component.currentMapContext : null;
+  const previousParams = previousMapContext ? previousMapContext.params : [];
+  const currentParams = indexParam ? [itemParam, indexParam] : [itemParam];
+  if (component) {
+    component.currentMapContext = { params: [...previousParams, ...currentParams] };
+  }
+
   const itemCode = t.isJSXElement(body)
     ? generateJSXElement(body, component, indent + 1)
     : generateJSXElement(body.body, component, indent + 1);
 
+  // Restore previous context
+  if (component) {
+    component.currentMapContext = previousMapContext;
+  }
+
+  // Check if array is dynamic (likely from outer .map())
+  const needsCast = arrayName.includes('.') && !arrayName.match(/^[A-Z]/); // Property access, not static class
+  const castedArray = needsCast ? `((IEnumerable<dynamic>)${arrayName})` : arrayName;
+
   // C# Select supports (item, index) => ...
   if (indexParam) {
-    return `${arrayName}.Select((${itemParam}, ${indexParam}) => ${itemCode}).ToArray()`;
+    const lambdaExpr = `(${itemParam}, ${indexParam}) => ${itemCode}`;
+    const castedLambda = needsCast ? `(Func<dynamic, int, dynamic>)(${lambdaExpr})` : lambdaExpr;
+    return `${castedArray}.Select(${castedLambda}).ToArray()`;
   } else {
-    return `${arrayName}.Select(${itemParam} => ${itemCode}).ToArray()`;
+    const lambdaExpr = `${itemParam} => ${itemCode}`;
+    const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+    return `${castedArray}.Select(${castedLambda}).ToArray()`;
   }
 }
 
@@ -536,9 +557,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
           } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
             // JSX element - use generateJSXElement with currentComponent context
             // Store map context for event handler closure capture
+            // For nested maps, we need to ACCUMULATE params, not replace them
             const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+            const previousParams = previousMapContext ? previousMapContext.params : [];
             if (currentComponent) {
-              currentComponent.currentMapContext = { params: paramNames };
+              // Combine previous params with current params for nested map support
+              currentComponent.currentMapContext = { params: [...previousParams, ...paramNames] };
             }
             body = generateJSXElement(callback.body, currentComponent, 0);
             // Restore previous context
@@ -554,7 +578,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
           const needsCast = object.includes('?.') || object.includes('?') || object.includes('.');
           const castedObject = needsCast ? `((IEnumerable<dynamic>)${object})` : object;
 
-          return `${castedObject}.Select(${params} => ${body}).ToList()`;
+          // If the object needs casting (is dynamic), we also need to cast the lambda
+          // to prevent CS1977: "Cannot use a lambda expression as an argument to a dynamically dispatched operation"
+          const lambdaExpr = `${params} => ${body}`;
+          const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
+
+          return `${castedObject}.Select(${castedLambda}).ToList()`;
         }
       }
     }
@@ -587,9 +616,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
           } else if (t.isJSXElement(callback.body) || t.isJSXFragment(callback.body)) {
             // JSX element - use generateJSXElement with currentComponent context
             // Store map context for event handler closure capture
+            // For nested maps, we need to ACCUMULATE params, not replace them
             const previousMapContext = currentComponent ? currentComponent.currentMapContext : null;
+            const previousParams = previousMapContext ? previousMapContext.params : [];
             if (currentComponent) {
-              currentComponent.currentMapContext = { params: paramNames };
+              // Combine previous params with current params for nested map support
+              currentComponent.currentMapContext = { params: [...previousParams, ...paramNames] };
             }
             body = generateJSXElement(callback.body, currentComponent, 0);
             // Restore previous context

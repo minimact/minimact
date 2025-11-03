@@ -41,10 +41,10 @@ public partial class NestedMapCalls : MinimactComponent
                         {
                             new VText($"{(category.name)}")
                         }),
-                        MinimactHelpers.createElement("ul", null, category.items.Select(item => new VElement("li", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
+                        MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)category.items).Select((Func<dynamic, dynamic>)(item => new VElement("li", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
                             {
                                 new VText($"{(item.name)}")
-                            })).ToArray())
+                            }))).ToArray())
                     })).ToArray())
             }),
             new VText($"{(null)}"),
@@ -54,17 +54,17 @@ public partial class NestedMapCalls : MinimactComponent
                 MinimactHelpers.createElement("div", new { className = "departments" }, departments.Select(dept => MinimactHelpers.createElement("div", new { key = dept.id, className = "department" }, new VElement("h3", new Dictionary<string, string>(), new VNode[]
                         {
                             new VText($"{(dept.name)}")
-                        }), dept.categories.Select(cat => new VElement("div", new Dictionary<string, string> { ["key"] = $"{cat.id}", ["class"] = "category" }, new VNode[]
+                        }), ((IEnumerable<dynamic>)dept.categories).Select((Func<dynamic, dynamic>)(cat => new VElement("div", new Dictionary<string, string> { ["key"] = $"{cat.id}", ["class"] = "category" }, new VNode[]
                         {
                             new VElement("h4", new Dictionary<string, string>(), new VNode[]
                             {
                                 new VText($"{(cat.name)}")
                             }),
-                            MinimactHelpers.createElement("ul", null, cat.items.Select(item => new VElement("li", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
+                            MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)cat.items).Select((Func<dynamic, dynamic>)(item => new VElement("li", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
                                 {
                                     new VText($"{(item.name)}")
-                                })).ToArray())
-                        })).ToArray())).ToArray())
+                                }))).ToArray())
+                        }))).ToArray())).ToArray())
             }),
             new VText($"{(null)}"),
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Test 3: Nested with Index Parameters"), categories.Select((category, catIndex) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{category.id}" }, new VNode[]
@@ -75,32 +75,32 @@ public partial class NestedMapCalls : MinimactComponent
                         new VText("."),
                         new VText($"{(category.name)}")
                     }),
-                    MinimactHelpers.createElement("ul", null, category.items.Select((item, itemIndex) => new VElement("li", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
+                    MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)category.items).Select((Func<dynamic, int, dynamic>)((item, itemIndex) => new VElement("li", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
                         {
                             new VText($"{(catIndex + 1)}"),
                             new VText("."),
                             new VText($"{(itemIndex + 1)}"),
                             new VText("-"),
                             new VText($"{(item.name)}")
-                        })).ToArray())
+                        }))).ToArray())
                 })).ToArray()),
             new VText($"{(null)}"),
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Test 4: Nested with Event Handlers"), categories.Select(category => new VElement("div", new Dictionary<string, string> { ["key"] = $"{category.id}" }, new VNode[]
                 {
-                    new VElement("button", new Dictionary<string, string> { ["onclick"] = "Handle0" }, new VNode[]
+                    new VElement("button", new Dictionary<string, string> { ["onclick"] = "Handle0:{category}" }, new VNode[]
                     {
                         new VText($"{(category.name)}")
                     }),
-                    MinimactHelpers.createElement("div", null, category.items.Select(item => new VElement("button", new Dictionary<string, string> { ["key"] = $"{item.id}", ["onclick"] = "Handle1" }, new VNode[]
+                    MinimactHelpers.createElement("div", null, ((IEnumerable<dynamic>)category.items).Select((Func<dynamic, dynamic>)(item => new VElement("button", new Dictionary<string, string> { ["key"] = $"{item.id}", ["onclick"] = "Handle1:{category}:{item}" }, new VNode[]
                         {
                             new VText($"{(item.name)}")
-                        })).ToArray())
+                        }))).ToArray())
                 })).ToArray()),
             new VText($"{(null)}"),
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Test 5: Nested with Conditionals"), categories.Select(category => MinimactHelpers.createElement("div", new { key = category.id }, new VElement("h4", new Dictionary<string, string>(), new VNode[]
                     {
                         new VText($"{(category.name)}")
-                    }), (category.items.Count > 0) ? MinimactHelpers.createElement("ul", null, category.items.Select(item => MinimactHelpers.createElement("li", new { key = item.id }, item.name, (item.id > 200) ? new VElement("span", new Dictionary<string, string>(), "(New!)") : null)).ToArray()) : null, (category.items.Count == 0) ? new VElement("p", new Dictionary<string, string>(), "No items") : null)).ToArray()),
+                    }), (category.items.Count > 0) ? MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)category.items).Select((Func<dynamic, dynamic>)(item => MinimactHelpers.createElement("li", new { key = item.id }, item.name, (item.id > 200) ? new VElement("span", new Dictionary<string, string>(), "(New!)") : null))).ToArray()) : null, (category.items.Count == 0) ? new VElement("p", new Dictionary<string, string>(), "No items") : null)).ToArray()),
             new VText($"{(null)}"),
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Test 6: Nested with Inline Calculations"), categories.Select((category, catIdx) => MinimactHelpers.createElement("div", new { key = category.id }, new VElement("h4", new Dictionary<string, string>(), new VNode[]
                     {
@@ -112,7 +112,7 @@ public partial class NestedMapCalls : MinimactComponent
                     {
                         new VText("Total Items:"),
                         new VText($"{(category.items.Count)}")
-                    }), category.items.Select((item, itemIdx) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
+                    }), ((IEnumerable<dynamic>)category.items).Select((Func<dynamic, int, dynamic>)((item, itemIdx) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{item.id}" }, new VNode[]
                     {
                         new VText("Item #"),
                         new VText($"{(itemIdx + 1)}"),
@@ -120,16 +120,16 @@ public partial class NestedMapCalls : MinimactComponent
                         new VText($"{(category.items.Count)}"),
                         new VText(":"),
                         new VText($"{(item.name)}")
-                    })).ToArray())).ToArray())
+                    }))).ToArray())).ToArray())
         });
     }
 
-    public void Handle0()
+    public void Handle0(dynamic category)
     {
         Console.WriteLine($"Category: {category.name}");
     }
 
-    public void Handle1()
+    public void Handle1(dynamic category, dynamic item)
     {
         Console.WriteLine($"Item: {item.name}");
     }
