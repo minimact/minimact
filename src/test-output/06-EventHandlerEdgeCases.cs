@@ -188,8 +188,9 @@ public partial class EventHandlerEdgeCases : MinimactComponent
         SetState(nameof(loading), false);
     }
 
-    public void Handle2(dynamic arg)
+    public void Handle2(dynamic e)
     {
+        var value = e.Target.Value;
         SetState(nameof(text), value);
     }
 
@@ -241,7 +242,7 @@ public partial class EventHandlerEdgeCases : MinimactComponent
     {
         if (count >= 10) {
     Console.WriteLine("Count limit reached!");
-    return null;
+    return;
 }
         SetState(nameof(count), count + 1);
     }
@@ -249,12 +250,12 @@ public partial class EventHandlerEdgeCases : MinimactComponent
     public void Handle11()
     {
         var newTask = new { id = tasks.Count + 1, title = $"Task {tasks.Count + 1}", completed = false };
-        SetState(nameof(tasks), new List<object> { null, newTask });
+        SetState(nameof(tasks), ((IEnumerable<object>)tasks).Concat(new List<object> { newTask }).ToList());
     }
 
     public void Handle12(dynamic e)
     {
-        var value = (null.Value?.ToString()) ?? ("No value");
+        var value = (e.Target.Value?.ToString()) ?? ("No value");
         SetState(nameof(text), value);
     }
 

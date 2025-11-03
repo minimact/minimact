@@ -228,6 +228,10 @@ function generateCSharpStatement(node) {
   }
 
   if (t.isReturnStatement(node)) {
+    // Handle empty return statement: return; (not return null;)
+    if (node.argument === null || node.argument === undefined) {
+      return 'return;';
+    }
     return `return ${generateCSharpExpression(node.argument)};`;
   }
 
@@ -361,6 +365,17 @@ function generateCSharpExpression(node, inInterpolation = false) {
     return `await ${generateCSharpExpression(node.argument, inInterpolation)}`;
   }
 
+  // Handle TypeScript type assertions: (e.target as any) → e.target (strip the cast)
+  // In C#, we rely on dynamic typing, so type casts are usually unnecessary
+  if (t.isTSAsExpression(node)) {
+    return generateCSharpExpression(node.expression, inInterpolation);
+  }
+
+  // Handle TypeScript type assertions (angle bracket syntax): <any>e.target → e.target
+  if (t.isTSTypeAssertion(node)) {
+    return generateCSharpExpression(node.expression, inInterpolation);
+  }
+
   // Handle optional chaining: viewModel?.userEmail → viewModel?.UserEmail
   if (t.isOptionalMemberExpression(node)) {
     const object = generateCSharpExpression(node.object, inInterpolation);
@@ -417,6 +432,45 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isArrayExpression(node)) {
+    // Check if array contains spread elements
+    const hasSpread = node.elements.some(e => t.isSpreadElement(e));
+
+    if (hasSpread) {
+      // Handle spread operator: [...array, item] → array.Concat(new[] { item }).ToList()
+      const parts = [];
+      let currentLiteral = [];
+
+      for (const element of node.elements) {
+        if (t.isSpreadElement(element)) {
+          // Flush current literal elements
+          if (currentLiteral.length > 0) {
+            const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
+            parts.push(`new List<object> { ${literalCode} }`);
+            currentLiteral = [];
+          }
+          // Add spread array
+          parts.push(`((IEnumerable<object>)${generateCSharpExpression(element.argument)})`);
+        } else {
+          currentLiteral.push(element);
+        }
+      }
+
+      // Flush remaining literals
+      if (currentLiteral.length > 0) {
+        const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
+        parts.push(`new List<object> { ${literalCode} }`);
+      }
+
+      // Combine with Concat
+      if (parts.length === 1) {
+        return `${parts[0]}.ToList()`;
+      } else {
+        const concats = parts.slice(1).map(p => `.Concat(${p})`).join('');
+        return `${parts[0]}${concats}.ToList()`;
+      }
+    }
+
+    // No spread - simple array literal
     const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
     // Use List<dynamic> for empty arrays to be compatible with dynamic LINQ results
     const listType = elements.length === 0 ? 'dynamic' : 'object';
