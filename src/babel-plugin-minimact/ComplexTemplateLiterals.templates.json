@@ -1,0 +1,56 @@
+{
+  "component": "ComplexTemplateLiterals",
+  "version": "1.0",
+  "generatedAt": 1762128446679,
+  "templates": {
+    "[0].h1[0].text[0]": {
+      "template": "Complex Template Literal Tests",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].h3[0].text[0]": {
+      "template": "Inline Template Literals in JSX",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].p[0].text[0]": {
+      "template": "Discount:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].p[0].text[1]": {
+      "template": "Discount: {0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "type": "dynamic"
+    }
+  }
+}
