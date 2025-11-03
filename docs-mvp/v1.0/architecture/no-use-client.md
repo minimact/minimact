@@ -25,8 +25,6 @@ Minimact rejected these taxes entirely:
 
 This is the **Posthydrationist Manifesto** in action - we've moved beyond the hydration era entirely.
 
----
-
 ## The Problem with 'use client'
 
 In React Server Components (RSC), you must manually declare which components run on the client:
