@@ -1,206 +1,204 @@
 # Predictive Rendering
 
-Minimact's predictive rendering system is powered by Rust and achieves 95-98% cache hit rates, making interactions feel instant.
+Minimact's predictive rendering system uses **parameterized templates** generated at build time by Babel, achieving **100% coverage** of all possible state values.
 
 ## How It Works
 
 Traditional server-rendered apps have a problem: network latency. Every click requires a round-trip to the server.
 
-Minimact solves this by **predicting what will happen** before you click.
+Minimact solves this by **pre-generating parameterized templates** at build time that can handle any state value.
 
-### The Prediction Pipeline
+### The Template Pipeline
 
-1. **Pattern Detection** - Rust engine analyzes state changes
-2. **Template Extraction** - Identifies repeating patterns
-3. **Prediction Generation** - Pre-generates likely next states
-4. **Patch Pre-sending** - Sends predicted DOM patches to client
-5. **Client Caching** - Browser caches patches with hint IDs
-6. **Instant Apply** - User clicks → cached patch applies instantly
-7. **Server Verification** - Server confirms (or corrects) in background
+1. **Build Time** - Babel analyzes JSX and extracts parameterized templates
+2. **Template Metadata** - Templates stored in `.templates.json` files
+3. **Runtime Loading** - Server reads template metadata on startup
+4. **State Change** - User clicks button, state changes on server
+5. **Template Application** - Server fills template slots with new state values
+6. **Patch Sending** - Server sends DOM patches to client
+7. **Instant Apply** - Client applies patches (typically 1-3ms)
 
 ## Example: Counter
 
 ```tsx
+import { useState } from '@minimact/core';
+
 function Counter() {
     const [count, setCount] = useState(0);
     return <button onClick={() => setCount(count + 1)}>{count}</button>;
 }
 ```
 
-### What Happens
+### Build Time - Template Generation
 
-1. User clicks at count=0
-2. Server increments to 1, sends patch
-3. **Rust engine notices pattern**: "count always increments by 1"
-4. **Prediction sent**: "When count=1, next will be 2" → sends patch for count=2
-5. User sees count=1, patch for count=2 is cached
-6. User clicks again → **instant update to 2 (0ms)**
-7. Server confirms, was correct ✅
+Babel analyzes this and generates `Counter.templates.json`:
 
-### Confidence Scores
-
-Predictions have confidence scores (0.0 to 1.0):
-
-- **0.9+** - Very confident, apply immediately
-- **0.7-0.9** - Confident, apply optimistically
-- **0.5-0.7** - Uncertain, wait for server
-- **<0.5** - Don't cache
-
-```csharp
-// In your component
-[PredictNext(confidence: 0.95)]
-public int GetNextCount(int current)
+```json
 {
-    return current + 1;
+  "component": "Counter",
+  "templates": {
+    "button[0].text[0]": {
+      "template": "{0}",
+      "bindings": ["count"],
+      "slots": [0],
+      "type": "dynamic"
+    }
+  }
 }
 ```
 
-## Template System
+### Runtime - Template Application
 
-For a deep dive into how templates are generated, stored, and applied, see the [Template Patch System](/v1.0/architecture/template-patch-system).
+1. User clicks button → `onClick` triggers SignalR call
+2. Server executes `setCount(count + 1)` → `count` becomes 1
+3. Server looks up template: `"template": "{0}"`
+4. Server fills slot `{0}` with count value: `"1"`
+5. Server generates patch: `{ type: 'text', path: [0, 0], value: '1' }`
+6. Client receives patch and updates DOM (**~1-3ms**)
 
-The Rust reconciliation engine extracts templates from your renders:
+**Key advantage**: This template works for **any count value** (0, 1, 100, 999, etc.) - no runtime prediction needed!
 
-### Phase 1: Simple Templates
+## Template Types
+
+For a deep dive, see the [Template Patch System](/v1.0/architecture/template-patch-system).
+
+Babel generates different template types based on your JSX:
+
+### 1. Static Templates
+
+No dynamic values:
+
+```tsx
+<h1>Welcome to Minimact</h1>
+```
+
+Template: `"Welcome to Minimact"` (no slots needed)
+
+### 2. Dynamic Templates
+
+Simple slot filling:
 
 ```tsx
 <p>Count: {count}</p>
 ```
 
-Template: `<p>Count: {{count}}</p>`
+Template: `"Count: {0}"` with bindings: `["count"]`
 
-### Phase 2: Conditional Templates
+### 3. Conditional Templates
 
-```tsx
-{count > 10 ? <span>High</span> : <span>Low</span>}
-```
-
-Template:
-```
-IF count > 10:
-  <span>High</span>
-ELSE:
-  <span>Low</span>
-```
-
-### Phase 3: Loop Templates
+Ternary expressions:
 
 ```tsx
-{items.map(item => <li key={item.id}>{item.name}</li>)}
+<span>{count > 10 ? 'High' : 'Low'}</span>
 ```
 
-Template:
+Template: `"{0}"` with conditional map:
+```json
+{
+  "true": "High",
+  "false": "Low"
+}
 ```
-LOOP items AS item:
-  <li key={{item.id}}>{{item.name}}</li>
+
+### 4. Loop Templates
+
+Array rendering:
+
+```tsx
+{todos.map(todo => (
+  <li key={todo.id}>{todo.text}</li>
+))}
 ```
+
+Loop template with per-item structure and bindings.
 
 ## Performance
 
-The Rust engine is **extremely fast**:
+The template system is **extremely efficient**:
 
-- Template extraction: ~50µs per component
-- Prediction generation: ~20µs per state change
-- Memory overhead: ~2KB per component (98% reduction vs storing full HTML)
+- **Build time**: Babel analysis ~50ms per component
+- **Template loading**: ~10µs per component at server startup
+- **Template application**: ~20µs per state change
+- **Memory overhead**: ~2KB per component (vs ~100KB for full VNode trees)
+- **Network**: Only send minimal patches (typically <1KB)
 
-## Prediction Strategies
+## Advantages Over Runtime Prediction
 
-### 1. Incremental Patterns
+### 100% Coverage
 
-Best for: Counters, pagination, sliders
+Traditional prediction systems learn patterns at runtime:
+- Need "warm-up" period to learn patterns
+- Only predict values they've seen before
+- Miss rate on new/unusual values
 
-```csharp
-[IncrementalPredictor]
-public class Counter : MinimactComponent
-{
-    // Rust detects +1 pattern automatically
-}
+**Minimact templates work for ALL values immediately**:
+- `count` can be 0, 1, 999, -5, etc. - same template
+- No learning phase needed
+- No cache misses due to unexpected values
+
+### Memory Efficiency
+
+Traditional approach:
+```
+Store patches for: count=0, count=1, count=2, ..., count=100
+= 100 cached patches × 500 bytes = 50KB
 ```
 
-### 2. Toggle Patterns
-
-Best for: Checkboxes, dropdowns, tabs
-
-```csharp
-[TogglePredictor(states: new[] { "open", "closed" })]
-public class Dropdown : MinimactComponent
-{
-    // Predicts open <-> closed
-}
+Template approach:
+```
+Store one template: "{0}" with binding: "count"
+= 1 template × 50 bytes = 50 bytes
 ```
 
-### 3. State Machine Patterns
+**1000x memory reduction!**
 
-Best for: Multi-step forms, wizards
+## Debugging Templates
 
-```csharp
-[StateMachinePredictor]
-public class Wizard : MinimactComponent
-{
-    // Predicts next step in flow
-}
+### View Generated Templates
+
+After transpiling, check the `.templates.json` files next to your `.tsx` files:
+
+```bash
+Pages/
+├── HomePage.tsx
+├── HomePage.cs
+└── HomePage.templates.json  ← Template metadata
 ```
 
-### 4. Custom Predictors
-
-For complex scenarios:
-
-```csharp
-public class CustomComponent : MinimactComponent
-{
-    [PredictNext]
-    public async Task<List<Patch>> PredictNextState(StateChange change)
-    {
-        // Your custom prediction logic
-        if (change.Key == "searchTerm")
-        {
-            var results = await SearchAsync(change.Value);
-            return GeneratePatches(results);
-        }
-        return null;
-    }
-}
-```
-
-## Cache Hit Rates
-
-In production:
-
-- **Simple counters**: 99.9% hit rate
-- **Form inputs**: 95-98% hit rate
-- **Dropdowns/toggles**: 97-99% hit rate
-- **Complex UIs**: 85-95% hit rate
-
-Even an 85% hit rate means **85% of interactions are instant**.
-
-## Debugging Predictions
-
-Enable prediction logging:
+### Enable Template Logging
 
 ```csharp
 builder.Services.AddMinimact(options =>
 {
-    options.EnablePredictionLogging = true;
+    options.EnableTemplateLogging = true;
 });
 ```
 
 In browser console:
 
 ```
-[Minimact] Prediction HIT: increment (confidence: 0.98, latency: 0ms)
-[Minimact] Prediction MISS: complex-update (fell back to server, latency: 45ms)
+[Minimact] Applied template for button[0].text[0]: "5" (1.2ms)
+[Minimact] Loop template applied: 3 items (2.8ms)
 ```
+
+### Swig Template Inspector
+
+Use **Minimact Swig** IDE's Template Inspector to visualize:
+- All templates for each component
+- Template types (static, dynamic, conditional, loop)
+- Bindings and slots
+- Real-time template application
 
 ## Best Practices
 
-1. **Keep state changes predictable** - Rust engine learns patterns
-2. **Use semantic state updates** - Clear patterns predict better
-3. **Avoid random values** - `Math.random()` can't be predicted
-4. **Batch related updates** - Helps template extraction
-5. **Monitor hit rates** - Optimize low-performing components
+1. **Keep JSX simple** - Simpler JSX → better templates
+2. **Use ternaries for conditionals** - Generates optimal conditional templates
+3. **Stable keys in loops** - Ensures efficient list reconciliation
+4. **Avoid complex expressions in JSX** - Move to variables or `useComputed`
+5. **Check template output** - Review `.templates.json` files
 
 ## Next Steps
 
 - See it in action: [Examples](/examples)
-- API details: [Hooks](/api/hooks)
-- Advanced: [Custom Predictors](/api/custom-predictors)
+- API details: [Hooks API](/api/hooks)
+- Deep dive: [Template Patch System](/v1.0/architecture/template-patch-system)

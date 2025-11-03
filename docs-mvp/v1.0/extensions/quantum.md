@@ -31,7 +31,7 @@ npm install minimact-quantum
 ## Quick Start
 
 ```typescript
-import { createQuantumManager } from 'minimact-quantum';
+import { createQuantumManager } from '@minimact/quantum';
 
 // Create quantum manager
 const quantum = createQuantumManager({

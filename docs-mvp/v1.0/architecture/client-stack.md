@@ -109,7 +109,7 @@ npm install minimact-punch
 ### Example
 
 ```tsx
-import { useDomElementState } from 'minimact-punch';
+import { useDomElementState } from '@minimact/punch';
 
 function AdaptiveHeader() {
   const scrollContainer = useDomElementState('#main-content');
@@ -147,7 +147,7 @@ npm install minimact-query
 ### Example
 
 ```tsx
-import { useDomQuery } from 'minimact-query';
+import { useDomQuery } from '@minimact/query';
 
 function PerformanceMonitor() {
   const unstableComponents = useDomQuery()
@@ -191,7 +191,7 @@ npm install minimact-dynamic
 ### Example
 
 ```tsx
-import { dynamic } from 'minimact-dynamic';
+import { dynamic } from '@minimact/dynamic';
 
 function PricingCard({ product, user }) {
   // Structure ONCE
@@ -233,7 +233,7 @@ npm install minimact-spatial
 ### Example
 
 ```tsx
-import { useArea } from 'minimact-spatial';
+import { useArea } from '@minimact/spatial';
 
 function AdaptiveLayout() {
   const header = useArea({ top: 0, height: 80 });
@@ -276,7 +276,7 @@ npm install minimact-trees
 ### Example
 
 ```tsx
-import { useDecisionTree } from 'minimact-trees';
+import { useDecisionTree } from '@minimact/trees';
 
 function PricingEngine({ user, cartSize }) {
   const price = useDecisionTree({
@@ -317,7 +317,7 @@ npm install minimact-quantum
 ### Example
 
 ```tsx
-import { quantum } from 'minimact-quantum';
+import { quantum } from '@minimact/quantum';
 
 async function CollaborativeSlider() {
   const slider = document.querySelector('#volume-slider');

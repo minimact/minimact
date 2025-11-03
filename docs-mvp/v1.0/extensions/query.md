@@ -46,7 +46,7 @@ npm install minimact-query minimact-punch
 ## Quick Start
 
 ```typescript
-import { useDomQuery } from 'minimact-query';
+import { useDomQuery } from '@minimact/query';
 
 function MyComponent() {
   // Query the DOM with SQL-like syntax

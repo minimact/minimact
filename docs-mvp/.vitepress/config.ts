@@ -219,12 +219,12 @@ export default defineConfig({
         {
           text: 'Quantum Stack',
           items: [
-            { text: 'minimact-punch 🥊', link: '/v1.0/extensions/punch' },
-            { text: 'minimact-query 🗃️', link: '/v1.0/extensions/query' },
-            { text: 'minimact-quantum 🌌', link: '/v1.0/extensions/quantum' },
-            { text: 'minimact-bundle 🎯', link: '/v1.0/extensions/bundle' },
-            { text: 'minimact-spatial 📐', link: '/v1.0/extensions/spatial' },
-            { text: 'minimact-trees 🌳', link: '/v1.0/extensions/trees' }
+            { text: '@minimact/punch 🥊', link: '/v1.0/extensions/punch' },
+            { text: '@minimact/query 🗃️', link: '/v1.0/extensions/query' },
+            { text: '@minimact/quantum 🌌', link: '/v1.0/extensions/quantum' },
+            { text: '@minimact/bundle 🎯', link: '/v1.0/extensions/bundle' },
+            { text: '@minimact/spatial 📐', link: '/v1.0/extensions/spatial' },
+            { text: '@minimact/trees 🌳', link: '/v1.0/extensions/trees' }
           ]
         },
         {

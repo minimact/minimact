@@ -53,7 +53,7 @@ npm install minimact-bundle
 ## Quick Start
 
 ```typescript
-import { registerBundle, useBundle } from 'minimact-bundle';
+import { registerBundle, useBundle } from '@minimact/bundle';
 
 function MyComponent() {
   const [visible, setVisible] = useState(false);
@@ -189,7 +189,7 @@ const bundle = useBundle("hero-animation", {
 For use without Minimact/hooks.
 
 ```typescript
-import { Bundle, registerBundle } from 'minimact-bundle';
+import { Bundle, registerBundle } from '@minimact/bundle';
 
 registerBundle("hero", ".hero h1, .hero p");
 

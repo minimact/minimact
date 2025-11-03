@@ -39,7 +39,7 @@ npm install minimact-spatial
 ## Quick Start
 
 ```typescript
-import { useArea } from 'minimact-spatial';
+import { useArea } from '@minimact/spatial';
 
 function Dashboard() {
   // Define spatial areas

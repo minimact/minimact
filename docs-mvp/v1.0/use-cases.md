@@ -386,7 +386,7 @@ Query DOM state reactively without manual event listeners.
 **Hooks:** [useDomElementState](/api/hooks#usedomelementstate) (minimact-punch)
 
 ```tsx
-import { useDomElementState } from 'minimact-punch';
+import { useDomElementState } from '@minimact/punch';
 
 function LazyAd() {
   const ad = useDomElementState('#ad-container');
@@ -426,7 +426,7 @@ Query DOM like a relational database.
 **Hooks:** [useDomQuery](/api/hooks#usedomquery) (minimact-query)
 
 ```tsx
-import { useDomQuery } from 'minimact-query';
+import { useDomQuery } from '@minimact/query';
 
 function PerformanceMonitor() {
   const slowComponents = useDomQuery()
@@ -459,7 +459,7 @@ Separate structure from content for sub-millisecond updates.
 **Hooks:** [useDynamicState](/api/hooks#usedynamicstate) (minimact-dynamic)
 
 ```tsx
-import { useDynamicState } from 'minimact-dynamic';
+import { useDynamicState } from '@minimact/dynamic';
 
 function PriceDisplay() {
   const [price, setPrice] = useState(100);
@@ -491,7 +491,7 @@ Query viewport regions as a 2D database.
 **Hooks:** [useArea](/api/hooks#usearea) (minimact-spatial)
 
 ```tsx
-import { useArea } from 'minimact-spatial';
+import { useArea } from '@minimact/spatial';
 
 function AdaptiveLayout() {
   const header = useArea({ top: 0, height: 80 });
@@ -525,7 +525,7 @@ XState-like decision trees with predictive transitions.
 **Hooks:** [useDecisionTree](/api/hooks#usedecisiontree) (minimact-trees)
 
 ```tsx
-import { useDecisionTree } from 'minimact-trees';
+import { useDecisionTree } from '@minimact/trees';
 
 function DynamicPricing({ role, itemCount }) {
   const price = useDecisionTree({

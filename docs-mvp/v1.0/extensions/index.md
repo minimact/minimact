@@ -264,11 +264,11 @@ if (hint) {
 Combining multiple extensions:
 
 ```typescript
-import { useDomElementState } from 'minimact-punch';
-import { useDomQuery } from 'minimact-query';
-import { createQuantumManager } from 'minimact-quantum';
-import { useArea } from 'minimact-spatial';
-import { useDecisionTree } from 'minimact-trees';
+import { useDomElementState } from '@minimact/punch';
+import { useDomQuery } from '@minimact/query';
+import { createQuantumManager } from '@minimact/quantum';
+import { useArea } from '@minimact/spatial';
+import { useDecisionTree } from '@minimact/trees';
 
 function Dashboard() {
   // Track viewport visibility

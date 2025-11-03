@@ -40,7 +40,7 @@ npm install minimact-punch
 ### Integrated with Minimact (Recommended)
 
 ```tsx
-import { useDomElementState } from 'minimact-punch';
+import { useDomElementState } from '@minimact/punch';
 
 export function Gallery() {
   const section = useDomElementState();
@@ -67,7 +67,7 @@ export function Gallery() {
 ### Standalone Mode (No Minimact)
 
 ```typescript
-import { DomElementState } from 'minimact-punch';
+import { DomElementState } from '@minimact/punch';
 
 const box = new DomElementState(document.querySelector('.box'));
 

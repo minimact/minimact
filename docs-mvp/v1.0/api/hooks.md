@@ -573,7 +573,7 @@ function Dashboard() {
 Make the DOM queryable like a database with 80+ reactive properties.
 
 ```tsx
-import { useDomElementState } from 'minimact-punch';
+import { useDomElementState } from '@minimact/punch';
 
 function AdBanner() {
   const banner = useDomElementState('#ad-banner');
@@ -605,7 +605,7 @@ function AdBanner() {
 Query the DOM with SQL semantics.
 
 ```tsx
-import { useDomQuery } from 'minimact-query';
+import { useDomQuery } from '@minimact/query';
 
 const unstableComponents = useDomQuery()
   .from('.component')
@@ -619,7 +619,7 @@ const unstableComponents = useDomQuery()
 Separate DOM structure from value binding for sub-millisecond updates.
 
 ```tsx
-import { useDynamicState } from 'minimact-dynamic';
+import { useDynamicState } from '@minimact/dynamic';
 
 const [state, setState] = useState({ price: 100, isPremium: false });
 
@@ -639,7 +639,7 @@ useDynamicState('.price', (s) =>
 Query spatial regions of the viewport as a 2D database.
 
 ```tsx
-import { useArea } from 'minimact-spatial';
+import { useArea } from '@minimact/spatial';
 
 const header = useArea({ top: 0, height: 80 });
 const sidebar = useArea('#sidebar');
@@ -658,7 +658,7 @@ return (
 Declarative state machines with predictive transitions.
 
 ```tsx
-import { useDecisionTree } from 'minimact-trees';
+import { useDecisionTree } from '@minimact/trees';
 
 const price = useDecisionTree({
   roleAdmin: 0,
@@ -677,7 +677,7 @@ const price = useDecisionTree({
 Declarative DOM selector primitives for applying attributes without wrapper pollution.
 
 ```tsx
-import { registerBundle, useBundle } from 'minimact-bundle';
+import { registerBundle, useBundle } from '@minimact/bundle';
 
 function Hero() {
   const [visible, setVisible] = useState(false);

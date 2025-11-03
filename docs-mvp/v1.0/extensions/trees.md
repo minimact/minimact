@@ -53,7 +53,7 @@ npm install minimact-trees
 ### Client-Side (Browser)
 
 ```typescript
-import { useDecisionTree } from 'minimact-trees';
+import { useDecisionTree } from '@minimact/trees';
 
 // Runs in browser after server sends initial HTML
 const price = useDecisionTree({
@@ -456,7 +456,7 @@ const result = useDecisionTree(
 **Standalone function** (no component context needed).
 
 ```typescript
-import { evaluateTree } from 'minimact-trees';
+import { evaluateTree } from '@minimact/trees';
 
 const result = evaluateTree(
   { roleAdmin: 0, roleBasic: 10 },
@@ -472,7 +472,7 @@ const result = evaluateTree(
 Debug helper to see how keys are parsed.
 
 ```typescript
-import { debugParseKey } from 'minimact-trees';
+import { debugParseKey } from '@minimact/trees';
 
 debugParseKey('roleAdmin');
 // → stateName: "role", expectedValue: "admin" (string)
