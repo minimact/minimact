@@ -151,6 +151,7 @@ export default defineConfig({
             { text: 'Key Insights', link: '/v1.0/architecture/key-insights' },
             { text: 'What Makes Minimact Different', link: '/v1.0/architecture/what-makes-minimact-different' },
             { text: 'Benefits Over React', link: '/v1.0/architecture/benefits-over-react' },
+            { text: 'Why No \'use client\'?', link: '/v1.0/architecture/no-use-client' },
             { text: 'Predictive Rendering 101', link: '/v1.0/architecture/predictive-rendering-101' },
             { text: 'Client Stack Overview', link: '/v1.0/architecture/client-stack' },
             { text: 'Template Patch System', link: '/v1.0/architecture/template-patch-system' },
