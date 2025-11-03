@@ -295,10 +295,16 @@ function extractTemplates(renderBody, component) {
   /**
    * Traverse JSX tree and extract text templates
    */
-  function traverseJSX(node, parentPath = []) {
+  function traverseJSX(node, parentPath = [], siblingCounts = {}) {
     if (t.isJSXElement(node)) {
       const tagName = node.openingElement.name.name;
-      const elementIndex = pathStack.filter(p => p.tag === tagName).length;
+
+      // Track sibling indices properly
+      if (!siblingCounts[tagName]) {
+        siblingCounts[tagName] = 0;
+      }
+      const elementIndex = siblingCounts[tagName]++;
+
       const currentPath = [...parentPath, elementIndex];
       const pathKey = buildPathKey(tagName, elementIndex, parentPath);
 
@@ -306,60 +312,100 @@ function extractTemplates(renderBody, component) {
 
       // Process children
       let textNodeIndex = 0;
+
+      // First pass: Identify text/expression children and check for mixed content
+      const textChildren = [];
+      let hasTextNodes = false;
+      let hasExpressionNodes = false;
+
       for (const child of node.children) {
         if (t.isJSXText(child)) {
           const text = child.value.trim();
           if (text) {
-            // Static text - create template without bindings
-            const textPath = `${pathKey}.text[${textNodeIndex}]`;
-            console.log(`[Template Extractor] Found static text in <${tagName}>: "${text}" (path: ${textPath})`);
-            templates[textPath] = {
-              template: text,
-              bindings: [],
-              slots: [],
-              path: [...currentPath, textNodeIndex],
-              type: 'static'
-            };
-            textNodeIndex++;
+            textChildren.push(child);
+            hasTextNodes = true;
           }
         } else if (t.isJSXExpressionContainer(child)) {
-          // Expression in text position: <h1>{count}</h1>
-          // Only create text template if this is actual text content, not structural JSX
           const expr = child.expression;
 
-          // Skip structural JSX (elements, fragments, conditionals with JSX, comments, .map() calls)
+          // Skip structural JSX
           const isStructural = t.isJSXElement(expr) ||
                                t.isJSXFragment(expr) ||
-                               t.isJSXEmptyExpression(expr) || // Comments: {/* ... */}
+                               t.isJSXEmptyExpression(expr) ||
                                (t.isLogicalExpression(expr) &&
                                 (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right))) ||
                                (t.isConditionalExpression(expr) &&
                                 (t.isJSXElement(expr.consequent) || t.isJSXElement(expr.alternate) ||
                                  t.isJSXFragment(expr.consequent) || t.isJSXFragment(expr.alternate))) ||
-                               // Skip .map() calls - they return arrays of JSX elements
-                               // Also handles chained calls like .filter().map(), .slice().map()
                                isMapCallExpression(expr);
 
           if (!isStructural) {
-            // This is a text expression, extract template
-            const template = extractTextTemplate(node.children, currentPath, textNodeIndex);
-            if (template) {
-              const textPath = `${pathKey}.text[${textNodeIndex}]`;
-              templates[textPath] = template;
-              textNodeIndex++;
+            textChildren.push(child);
+            hasExpressionNodes = true;
+          }
+        }
+      }
+
+      // Second pass: Process text content
+      if (textChildren.length > 0) {
+        // Check if this is mixed content (text + expressions together)
+        const isMixedContent = hasTextNodes && hasExpressionNodes;
+
+        if (isMixedContent) {
+          // Mixed content: process all children together as one template
+          const template = extractTextTemplate(node.children, currentPath, textNodeIndex);
+          if (template) {
+            const textPath = `${pathKey}.text[${textNodeIndex}]`;
+            console.log(`[Template Extractor] Found mixed content in <${tagName}>: "${template.template.substring(0, 50)}" (path: ${textPath})`);
+            templates[textPath] = template;
+            textNodeIndex++;
+          }
+        } else {
+          // Pure text or pure expressions: process each separately
+          for (const child of textChildren) {
+            if (t.isJSXText(child)) {
+              const text = child.value.trim();
+              if (text) {
+                const textPath = `${pathKey}.text[${textNodeIndex}]`;
+                console.log(`[Template Extractor] Found static text in <${tagName}>: "${text}" (path: ${textPath})`);
+                templates[textPath] = {
+                  template: text,
+                  bindings: [],
+                  slots: [],
+                  path: [...currentPath, textNodeIndex],
+                  type: 'static'
+                };
+                textNodeIndex++;
+              }
+            } else if (t.isJSXExpressionContainer(child)) {
+              // Pure expression: extract template for this child only
+              const template = extractTextTemplate([child], currentPath, textNodeIndex);
+              if (template) {
+                const textPath = `${pathKey}.text[${textNodeIndex}]`;
+                console.log(`[Template Extractor] Found dynamic expression in <${tagName}>: "${template.template}" (path: ${textPath})`);
+                templates[textPath] = template;
+                textNodeIndex++;
+              }
             }
           }
-        } else if (t.isJSXElement(child)) {
-          traverseJSX(child, currentPath);
+        }
+      }
+
+      // Third pass: Traverse JSXElement children
+      const childSiblingCounts = {}; // Fresh sibling counts for children
+      for (const child of node.children) {
+        if (t.isJSXElement(child)) {
+          traverseJSX(child, currentPath, childSiblingCounts);
         }
       }
 
       pathStack.pop();
     } else if (t.isJSXFragment(node)) {
       // Handle fragments
+      const childSiblingCounts = {}; // Fresh sibling counts for fragment children
       for (const child of node.children) {
         if (t.isJSXElement(child)) {
-          traverseJSX(child, parentPath);
+          traverseJSX(child, parentPath, childSiblingCounts);
         }
       }
     }
