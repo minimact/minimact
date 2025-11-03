@@ -13,13 +13,13 @@ namespace MinimactTest.Components
 public partial class ComplexTemplateLiterals : MinimactComponent
 {
     [State]
-    private int price = 99.99;
+    private double price = 99.99;
 
     [State]
     private int quantity = 2;
 
     [State]
-    private int discount = 0.15;
+    private double discount = 0.15;
 
     [State]
     private dynamic product = new { name = "Widget", price = 49.99, quantity = 5, discount = 0.1 };
@@ -28,12 +28,12 @@ public partial class ComplexTemplateLiterals : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        var totalSimple = $"${price * quantity.ToString("F2")}";
-        var totalComplex = $"Price: ${price.ToString("F2")} x {quantity} = ${price * quantity.ToString("F2")}";
-        var withDiscount = $"Original: ${price * quantity.ToString("F2")}, After {discount * 100.ToString("F0")}% off: ${price * quantity * 1 - discount.ToString("F2")}";
+        var totalSimple = $"${(price * quantity).ToString("F2")}";
+        var totalComplex = $"Price: ${price.ToString("F2")} x {quantity} = ${(price * quantity).ToString("F2")}";
+        var withDiscount = $"Original: ${(price * quantity).ToString("F2")}, After {(discount * 100).ToString("F0")}% off: ${(price * quantity * 1 - discount).ToString("F2")}";
         var status = $"Status: {((quantity > 0) ? "In Stock" : "Out of Stock")} - {quantity} available";
         var productInfo = $"{product.name} - ${product.price.ToString("F2")} each";
-        var summary = $"Total: {$"${price * quantity.ToString("F2")}"}";
+        var summary = $"Total: {$"${(price * quantity).ToString("F2")}"}";
         var formatted = $"Product: {product.name.ToUpper()} at ${product.price.ToString("F2")}";
 
         return new VElement("div", new Dictionary<string, string>(), new VNode[]
@@ -109,7 +109,7 @@ public partial class ComplexTemplateLiterals : MinimactComponent
                 new VElement("p", new Dictionary<string, string>(), new VNode[]
                 {
                     new VText("Total:"),
-                    new VText($"{($"${price * quantity.ToString("F2")}")}")
+                    new VText($"{($"${(price * quantity).ToString("F2")}")}")
                 }),
                 new VElement("p", new Dictionary<string, string>(), new VNode[]
                 {
@@ -119,7 +119,7 @@ public partial class ComplexTemplateLiterals : MinimactComponent
                 new VElement("p", new Dictionary<string, string>(), new VNode[]
                 {
                     new VText("Discount:"),
-                    new VText($"{($"{discount * 100.ToString("F0")}%")}")
+                    new VText($"{($"{(discount * 100).ToString("F0")}%")}")
                 })
             })
         });

@@ -1,10 +1,10 @@
 {
-  "component": "ComplexTemplateLiterals",
+  "component": "NestedMapCalls",
   "version": "1.0",
-  "generatedAt": 1762128774722,
+  "generatedAt": 1762128997239,
   "templates": {
     "[0].h1[0].text[0]": {
-      "template": "Complex Template Literal Tests",
+      "template": "Nested .map() Test Cases",
       "bindings": [],
       "slots": [],
       "path": [
@@ -15,7 +15,7 @@
       "type": "static"
     },
     "[0].[1].h3[0].text[0]": {
-      "template": "Inline Template Literals in JSX",
+      "template": "Test 6: Nested with Inline Calculations",
       "bindings": [],
       "slots": [],
       "path": [
@@ -26,20 +26,8 @@
       ],
       "type": "static"
     },
-    "[0].[1].p[0].text[0]": {
-      "template": "Discount:",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        0,
-        1,
-        0,
-        0
-      ],
-      "type": "static"
-    },
-    "[0].[1].p[0].text[1]": {
-      "template": "Discount: {0}",
+    "[0].[1].div[2].text[0]": {
+      "template": "{0}",
       "bindings": [
         "__complex__"
       ],
@@ -47,8 +35,21 @@
       "path": [
         0,
         1,
+        2,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "[0].div[1].text[0]": {
+      "template": "{0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [],
+      "path": [
         0,
-        1
+        1,
+        0
       ],
       "type": "dynamic"
     }

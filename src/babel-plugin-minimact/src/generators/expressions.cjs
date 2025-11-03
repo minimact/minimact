@@ -468,7 +468,17 @@ function generateCSharpExpression(node, inInterpolation = false) {
 
     // Handle .toFixed(n) → .ToString("Fn")
     if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toFixed' })) {
-      const object = generateCSharpExpression(node.callee.object);
+      let object = generateCSharpExpression(node.callee.object);
+
+      // Preserve parentheses for complex expressions (binary operations, conditionals, etc.)
+      // This ensures operator precedence is maintained: (price * quantity).toFixed(2) → (price * quantity).ToString("F2")
+      if (t.isBinaryExpression(node.callee.object) ||
+          t.isLogicalExpression(node.callee.object) ||
+          t.isConditionalExpression(node.callee.object) ||
+          t.isCallExpression(node.callee.object)) {
+        object = `(${object})`;
+      }
+
       const decimals = node.arguments.length > 0 && t.isNumericLiteral(node.arguments[0])
         ? node.arguments[0].value
         : 2;

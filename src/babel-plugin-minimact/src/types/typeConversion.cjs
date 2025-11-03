@@ -77,7 +77,12 @@ function inferType(node) {
   if (!node) return 'dynamic';
 
   if (t.isStringLiteral(node)) return 'string';
-  if (t.isNumericLiteral(node)) return 'int';
+  if (t.isNumericLiteral(node)) {
+    // Check if the number has a decimal point
+    // If the value is a whole number, use int; otherwise use double
+    const value = node.value;
+    return Number.isInteger(value) ? 'int' : 'double';
+  }
   if (t.isBooleanLiteral(node)) return 'bool';
   if (t.isNullLiteral(node)) return 'dynamic';
   if (t.isArrayExpression(node)) return 'List<dynamic>';

@@ -99,6 +99,12 @@ function extractUseState(path, component, hookType) {
   const [stateVar, setterVar] = parent.id.elements;
   const initialValue = path.node.arguments[0];
 
+  // Handle read-only state (no setter): const [value] = useState(...)
+  if (!stateVar) {
+    console.log(`[useState] Skipping invalid destructuring (no state variable)`);
+    return;
+  }
+
   // Check if there's a generic type parameter (e.g., useState<decimal>(0))
   let explicitType = null;
   if (path.node.typeParameters && path.node.typeParameters.params.length > 0) {
@@ -109,7 +115,7 @@ function extractUseState(path, component, hookType) {
 
   const stateInfo = {
     name: stateVar.name,
-    setter: setterVar.name,
+    setter: setterVar ? setterVar.name : null, // Setter is optional (read-only state)
     initialValue: generateCSharpExpression(initialValue),
     type: explicitType || inferType(initialValue) // Prefer explicit type over inferred
   };
