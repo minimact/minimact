@@ -47,58 +47,50 @@ public partial class RealWorldPatterns : MinimactComponent
         return new VElement("div", new Dictionary<string, string>(), new VNode[]
         {
             new VElement("h1", new Dictionary<string, string>(), "Real-World Common Patterns"),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 1: Template Literals with Multiple Expressions"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
                 {
                     new VText($"{($"{user.firstName} {user.lastName}")}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: John Doe, Jane Smith")),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 2: Template Literals + Method Calls"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
                 {
                     new VText($"{($"Name: {user.firstName.ToUpper()}")}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: Name: JOHN, Name: JANE")),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 3: Template Literals + Calculations"), products.Select(product => new VElement("div", new Dictionary<string, string> { ["key"] = $"{product.id}" }, new VNode[]
                 {
                     new VText($"{($"{product.name}: ${product.price} x {product.quantity} = ${product.price * product.quantity}")}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: Widget: $29.99 x 5 = $149.95")),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 4: Template Literals + toFixed()"), products.Select(product => new VElement("div", new Dictionary<string, string> { ["key"] = $"{product.id}" }, new VNode[]
                 {
                     new VText($"{($"Total: ${(product.price * product.quantity).ToString("F2")}")}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: Total: $149.95, Total: $149.97")),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 5: Ternary in Template Literal"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
                 {
                     new VText($"{($"{user.firstName} ({((user.isActive) ? "Active" : "Inactive")})")}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: John (Active), Jane (Inactive)")),
-            new VText($"{(null)}"),
+            null,
             new VElement("div", new Dictionary<string, string> { ["class"] = "test-case" }, new VNode[]
             {
                 new VElement("h3", new Dictionary<string, string>(), "Pattern 6: Array.length Property"),
-                new VElement("p", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText("Total users:"),
-                    new VText($"{(users.Count)}")
-                }),
-                new VElement("p", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText("Total products:"),
-                    new VText($"{(products.Count)}")
-                }),
+                new VElement("p", new Dictionary<string, string>(), $"Total users:{(users.Count)}"),
+                new VElement("p", new Dictionary<string, string>(), $"Total products:{(products.Count)}"),
                 new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: 2, 2")
             }),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 7: Comparison in Ternary"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
                 {
                     new VText($"{((user.age >= 30) ? "Senior" : "Junior")}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: Senior, Junior")),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 8: Property Concatenation"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
                 {
                     new VText($"{(user.firstName + " " + user.lastName)}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: John Doe, Jane Smith")),
-            new VText($"{(null)}"),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 9: Nullish Coalescing"), new VElement("p", new Dictionary<string, string>(), new VNode[]
                 {
                     new VText($"{((searchTerm) ?? ("No search term"))}")
@@ -106,76 +98,27 @@ public partial class RealWorldPatterns : MinimactComponent
                 {
                     new VText($"{((user.email) ?? ("No email"))}")
                 })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: No search term, john@example.com, jane@example.com")),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 10: String + Number"), new VElement("p", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText("Count:"),
-                    new VText($"{(count)}")
-                }), new VElement("p", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText("Next:"),
-                    new VText($"{(count + 1)}")
-                }), users.Select((user, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
-                {
-                    new VText("User #"),
-                    new VText($"{(index + 1)}")
-                })).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: Count: 42, Next: 43, User #1, User #2")),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 11: Percentage Display"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
-                {
-                    new VText("Age:"),
-                    new VText($"{(user.age)}"),
-                    new VText("("),
-                    new VText($"{((user.age / 100 * 100).ToString("F0"))}"),
-                    new VText("%)")
-                })).ToArray()),
-            new VText($"{(null)}"),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 10: String + Number"), new VElement("p", new Dictionary<string, string>(), $"Count:{(count)}"), new VElement("p", new Dictionary<string, string>(), $"Next:{(count + 1)}"), users.Select((user, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, $"User #{(index + 1)}")).ToArray(), new VElement("p", new Dictionary<string, string> { ["class"] = "expected" }, "Expected: Count: 42, Next: 43, User #1, User #2")),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 11: Percentage Display"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, $"Age:{(user.age)}({((user.age / 100 * 100).ToString("F0"))}%)")).ToArray()),
+            null,
             MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 12: Template with Fallback"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
                 {
                     new VText($"{($"Email: {(user.email) ?? ("N/A")}")}")
                 })).ToArray()),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 13: Nested/Multiple Ternaries"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
-                {
-                    new VText("Status:"),
-                    new VText($"{((new MObject(user.isActive)) ? (user.age >= 30) ? "Senior Active" : "Junior Active" : "Inactive")}")
-                })).ToArray()),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 14: Array Index Access"), (users.Count > 0) ? new VElement("p", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText("First user:"),
-                    new VText($"{(users[0].firstName)}")
-                }) : null, (users.Count > 1) ? new VElement("p", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText("Second user:"),
-                    new VText($"{(users[1].firstName)}")
-                }) : null),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 15: Math Operations"), products.Select(product => new VElement("div", new Dictionary<string, string> { ["key"] = $"{product.id}" }, new VNode[]
-                {
-                    new VText($"{(product.name)}"),
-                    new VText(": $"),
-                    new VText($"{((int)Math.Round(product.price))}")
-                })).ToArray()),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 16: Padded Numbers"), users.Select((user, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
-                {
-                    new VText("ID:"),
-                    new VText($"{(String(index + 1).padStart(3, "0"))}")
-                })).ToArray()),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 17: Boolean Display"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
-                {
-                    new VText($"{(user.firstName)}"),
-                    new VText(":"),
-                    new VText($"{(String(user.isActive))}")
-                })).ToArray()),
-            new VText($"{(null)}"),
-            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 18: String Truncation"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, new VNode[]
-                {
-                    new VText($"{(user.email.Substring(0, 10))}"),
-                    new VText("...")
-                })).ToArray())
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 13: Nested/Multiple Ternaries"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, $"Status:{((new MObject(user.isActive)) ? (user.age >= 30) ? "Senior Active" : "Junior Active" : "Inactive")}")).ToArray()),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 14: Array Index Access"), (users.Count > 0) ? new VElement("p", new Dictionary<string, string>(), $"First user:{(users[0].firstName)}") : null, (users.Count > 1) ? new VElement("p", new Dictionary<string, string>(), $"Second user:{(users[1].firstName)}") : null),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 15: Math Operations"), products.Select(product => new VElement("div", new Dictionary<string, string> { ["key"] = $"{product.id}" }, $"{(product.name)}: ${((int)Math.Round(product.price))}")).ToArray()),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 16: Padded Numbers"), users.Select((user, index) => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, $"ID:{((index + 1).ToString().PadLeft(3, '0'))}")).ToArray()),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 17: Boolean Display"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, $"{(user.firstName)}:{((user.isActive).ToString())}")).ToArray()),
+            null,
+            MinimactHelpers.createElement("div", new { className = "test-case" }, new VElement("h3", new Dictionary<string, string>(), "Pattern 18: String Truncation"), users.Select(user => new VElement("div", new Dictionary<string, string> { ["key"] = $"{user.id}" }, $"{(user.email.Substring(0, 10))}...")).ToArray())
         });
     }
 }

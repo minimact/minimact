@@ -48,22 +48,10 @@ public partial class ProductDetailsPage : MinimactComponent
         var color = GetState<string>("initialSelectedColor");
         var isExpanded = GetState<bool>("initialIsExpanded");
 
-        return MinimactHelpers.createElement("div", new { style = "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto" }, new VElement("h1", new Dictionary<string, string>(), new VNode[]
+        return MinimactHelpers.createElement("div", new { style = "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto" }, new VElement("h1", new Dictionary<string, string>(), $"{(productName)}950040830"), new VElement("div", new Dictionary<string, string> { ["style"] = "margin-bottom: 20px" }, new VNode[]
             {
-                new VText($"{(productName)}"),
-                new VText("950040830")
-            }), new VElement("div", new Dictionary<string, string> { ["style"] = "margin-bottom: 20px" }, new VNode[]
-            {
-                new VElement("div", new Dictionary<string, string> { ["style"] = "font-size: 32px; font-weight: bold; color: #2563eb" }, new VNode[]
-                {
-                    new VText("$"),
-                    new VText($"{(price.ToString("F2"))}")
-                }),
-                new VElement("div", new Dictionary<string, string> { ["style"] = "color: #6b7280; font-size: 14px" }, new VNode[]
-                {
-                    new VText("Logged in as:"),
-                    new VText($"{(viewModel?.UserEmail)}")
-                })
+                new VElement("div", new Dictionary<string, string> { ["style"] = "font-size: 32px; font-weight: bold; color: #2563eb" }, $"${(price.ToString("F2"))}"),
+                new VElement("div", new Dictionary<string, string> { ["style"] = "color: #6b7280; font-size: 14px" }, $"Logged in as:{(viewModel?.UserEmail)}")
             }), null, new VElement("div", new Dictionary<string, string> { ["style"] = "margin-bottom: 20px" }, new VNode[]
             {
                 new VElement("label", new Dictionary<string, string> { ["style"] = "display: block; margin-bottom: 8px; font-weight: 500" }, "Quantity11:"),
@@ -91,21 +79,13 @@ public partial class ProductDetailsPage : MinimactComponent
                 new VElement("h3", new Dictionary<string, string> { ["style"] = "margin-top: 0px" }, "Admin Controls"),
                 new VElement("button", new Dictionary<string, string> { ["style"] = "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px" }, "Edit Product"),
                 new VElement("button", new Dictionary<string, string> { ["style"] = "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer" }, "Delete Product")
-            }) : null, null, MinimactHelpers.createElement("div", new { style = "margin-bottom: 20px" }, new VElement("button", new Dictionary<string, string> { ["style"] = "padding: 8px 16px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer", ["onclick"] = "Handle5" }, new VNode[]
-                {
-                    new VText($"{((new MObject(isExpanded)) ? "Hide" : "Show")}"),
-                    new VText("Details")
-                }), (new MObject(isExpanded)) ? new VElement("div", new Dictionary<string, string> { ["style"] = "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px" }, new VNode[]
+            }) : null, null, MinimactHelpers.createElement("div", new { style = "margin-bottom: 20px" }, new VElement("button", new Dictionary<string, string> { ["style"] = "padding: 8px 16px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer", ["onclick"] = "Handle5" }, $"{((new MObject(isExpanded)) ? "Hide" : "Show")}Details"), (new MObject(isExpanded)) ? new VElement("div", new Dictionary<string, string> { ["style"] = "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px" }, new VNode[]
                 {
                     new VElement("h3", new Dictionary<string, string>(), "Product Specifications"),
                     new VElement("p", new Dictionary<string, string>(), "This is where detailed product information would go.")
                 }) : null), null, new VElement("div", new Dictionary<string, string> { ["style"] = "padding: 16px; background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; margin-bottom: 20px" }, new VNode[]
             {
-                new VElement("strong", new Dictionary<string, string> { ["style"] = "font-size: 18px" }, new VNode[]
-                {
-                    new VText("Total: $"),
-                    new VText($"{(cartTotal.ToString("F2"))}")
-                })
+                new VElement("strong", new Dictionary<string, string> { ["style"] = "font-size: 18px" }, $"Total: ${(cartTotal.ToString("F2"))}")
             }), null, new VElement("button", new Dictionary<string, string> { ["style"] = "padding: 12px 24px; background-color: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%", ["onclick"] = "handleAddToCart" }, "Add to Cart"));
     }
 

@@ -634,6 +634,15 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `Console.WriteLine(${args})`;
     }
 
+    // Handle String(value) → value.ToString()
+    if (t.isIdentifier(node.callee, { name: 'String' })) {
+      if (node.arguments.length > 0) {
+        const arg = generateCSharpExpression(node.arguments[0]);
+        return `(${arg}).ToString()`;
+      }
+      return '""';
+    }
+
     // Handle Object.keys() → dictionary.Keys or reflection for objects
     if (t.isMemberExpression(node.callee) &&
         t.isIdentifier(node.callee.object, { name: 'Object' }) &&
@@ -701,6 +710,34 @@ function generateCSharpExpression(node, inInterpolation = false) {
       const object = generateCSharpExpression(node.callee.object);
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
       return `${object}.Substring(${args})`;
+    }
+
+    // Handle .padStart(length, char) → .PadLeft(length, char)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'padStart' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const length = node.arguments[0] ? generateCSharpExpression(node.arguments[0]) : '0';
+      let padChar = node.arguments[1] ? generateCSharpExpression(node.arguments[1]) : '" "';
+
+      // Convert string literal "0" to char literal '0'
+      if (t.isStringLiteral(node.arguments[1]) && node.arguments[1].value.length === 1) {
+        padChar = `'${node.arguments[1].value}'`;
+      }
+
+      return `${object}.PadLeft(${length}, ${padChar})`;
+    }
+
+    // Handle .padEnd(length, char) → .PadRight(length, char)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'padEnd' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const length = node.arguments[0] ? generateCSharpExpression(node.arguments[0]) : '0';
+      let padChar = node.arguments[1] ? generateCSharpExpression(node.arguments[1]) : '" "';
+
+      // Convert string literal "0" to char literal '0'
+      if (t.isStringLiteral(node.arguments[1]) && node.arguments[1].value.length === 1) {
+        padChar = `'${node.arguments[1].value}'`;
+      }
+
+      return `${object}.PadRight(${length}, ${padChar})`;
     }
 
     // Handle useState/useClientState setters → SetState calls

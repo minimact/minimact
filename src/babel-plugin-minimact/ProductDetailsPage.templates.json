@@ -1,7 +1,7 @@
 {
   "component": "ProductDetailsPage",
   "version": "1.0",
-  "generatedAt": 1762206861175,
+  "generatedAt": 1762207374425,
   "templates": {
     "[0].h1[0].text[0]": {
       "template": "{0}950040830",

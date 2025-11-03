@@ -151,7 +151,7 @@ function generateJSXElement(node, component, indent) {
   // Build VElement construction
   if (childrenCode.length === 0) {
     return `new VElement("${tagName}", ${propsStr})`;
-  } else if (childrenCode.length === 1 && childrenCode[0].type === 'text') {
+  } else if (childrenCode.length === 1 && (childrenCode[0].type === 'text' || childrenCode[0].type === 'mixed')) {
     return `new VElement("${tagName}", ${propsStr}, ${childrenCode[0].code})`;
   } else {
     // Wrap children appropriately for VNode array
@@ -162,6 +162,9 @@ function generateJSXElement(node, component, indent) {
       } else if (c.type === 'expression') {
         // Expression needs string interpolation wrapper with extra parentheses for complex expressions
         return `new VText($"{(${c.code})}")`;
+      } else if (c.type === 'mixed') {
+        // Mixed content is already an interpolated string, wrap in VText
+        return `new VText(${c.code})`;
       } else {
         // Element is already a VNode
         return c.code;
@@ -180,6 +183,8 @@ function generateChildren(children, component, indent) {
   // Lazy load to avoid circular dependency
   const { generateJSXExpression } = require('./expressions.cjs');
 
+  // First pass: collect all children with their types
+  const childList = [];
   for (const child of children) {
     // Skip undefined/null children
     if (!child) {
@@ -190,17 +195,71 @@ function generateChildren(children, component, indent) {
     if (t.isJSXText(child)) {
       const text = child.value.trim();
       if (text) {
-        result.push({ type: 'text', code: `"${escapeCSharpString(text)}"` });
+        childList.push({ type: 'text', code: `"${escapeCSharpString(text)}"`, raw: text, node: child });
       }
     } else if (t.isJSXElement(child)) {
-      result.push({ type: 'element', code: generateJSXElement(child, component, indent + 1) });
+      childList.push({ type: 'element', code: generateJSXElement(child, component, indent + 1), node: child });
     } else if (t.isJSXExpressionContainer(child)) {
-      result.push({ type: 'expression', code: generateJSXExpression(child.expression, component, indent) });
+      const expr = child.expression;
+      // Skip structural JSX
+      const isStructural = t.isJSXElement(expr) ||
+                           t.isJSXFragment(expr) ||
+                           t.isJSXEmptyExpression(expr) ||
+                           (t.isLogicalExpression(expr) && (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right))) ||
+                           (t.isConditionalExpression(expr) &&
+                            (t.isJSXElement(expr.consequent) || t.isJSXElement(expr.alternate) ||
+                             t.isJSXFragment(expr.consequent) || t.isJSXFragment(expr.alternate)));
+
+      if (!isStructural) {
+        childList.push({ type: 'expression', code: generateJSXExpression(expr, component, indent), node: child });
+      } else {
+        childList.push({ type: 'element', code: generateJSXExpression(expr, component, indent), node: child });
+      }
     } else if (t.isJSXFragment(child)) {
-      result.push({ type: 'element', code: generateFragment(child, component, indent + 1) });
+      childList.push({ type: 'element', code: generateFragment(child, component, indent + 1), node: child });
     } else {
       console.warn(`[jsx.cjs] Unknown child type: ${child.type}`);
     }
+  }
+
+  // Second pass: merge consecutive text/expression children into mixed content
+  let i = 0;
+  while (i < childList.length) {
+    const current = childList[i];
+
+    // Check if this starts a mixed content sequence (text or expression followed by text or expression)
+    if ((current.type === 'text' || current.type === 'expression') && i + 1 < childList.length) {
+      const next = childList[i + 1];
+
+      if (next.type === 'text' || next.type === 'expression') {
+        // Found mixed content! Merge consecutive text/expression children
+        const mixedChildren = [current];
+        let j = i + 1;
+
+        while (j < childList.length && (childList[j].type === 'text' || childList[j].type === 'expression')) {
+          mixedChildren.push(childList[j]);
+          j++;
+        }
+
+        // Build a single interpolated string
+        let interpolatedCode = '';
+        for (const child of mixedChildren) {
+          if (child.type === 'text') {
+            interpolatedCode += escapeCSharpString(child.raw);
+          } else {
+            interpolatedCode += `{(${child.code})}`;
+          }
+        }
+
+        result.push({ type: 'mixed', code: `$"${interpolatedCode}"` });
+        i = j; // Skip merged children
+        continue;
+      }
+    }
+
+    // Not mixed content, add as-is
+    result.push(current);
+    i++;
   }
 
   return result;
