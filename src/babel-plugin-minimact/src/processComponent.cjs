@@ -229,11 +229,13 @@ function processComponent(path, state) {
       console.log(`[Minimact Expression Templates] Extracted ${expressionTemplates.length} expression templates from ${componentName}:`);
       expressionTemplates.forEach(et => {
         if (et.method) {
-          console.log(`  - ${et.binding}.${et.method}(${et.args.join(', ')})`);
+          console.log(`  - ${et.binding}.${et.method}(${et.args?.join(', ') || ''})`);
         } else if (et.operator) {
           console.log(`  - ${et.operator}${et.binding}`);
-        } else {
+        } else if (et.bindings) {
           console.log(`  - ${et.bindings.join(', ')}`);
+        } else {
+          console.log(`  - ${JSON.stringify(et)}`);
         }
       });
     }

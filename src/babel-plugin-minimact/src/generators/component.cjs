@@ -392,7 +392,9 @@ function generateComponent(component) {
     const paramStr = paramList.join(', ');
 
     // Event handlers must be public so SignalR hub can call them
-    lines.push(`    public void ${handler.name}(${paramStr})`);
+    // Use async Task if handler contains await
+    const returnType = handler.isAsync ? 'async Task' : 'void';
+    lines.push(`    public ${returnType} ${handler.name}(${paramStr})`);
     lines.push('    {');
 
     // Generate method body

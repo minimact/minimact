@@ -135,7 +135,7 @@ export function EventHandlerEdgeCases() {
             Alert: {task.title}
           </button>
         ))}
-        <p className="success">✅ Should capture task and taskIndex as: Handle0:{task}:{taskIndex}</p>
+        <p className="success">✅ Should capture task and taskIndex in event handler closure</p>
       </div>
 
       {/* Test Case 9: preventDefault/stopPropagation */}

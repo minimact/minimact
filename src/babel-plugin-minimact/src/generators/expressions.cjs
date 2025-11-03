@@ -553,6 +553,27 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `new HttpClient().GetAsync(${url})`;
     }
 
+    // Handle Promise.resolve(value) → Task.FromResult(value)
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Promise' }) &&
+        t.isIdentifier(node.callee.property, { name: 'resolve' })) {
+      if (node.arguments.length > 0) {
+        const value = generateCSharpExpression(node.arguments[0]);
+        return `Task.FromResult(${value})`;
+      }
+      return `Task.CompletedTask`;
+    }
+
+    // Handle Promise.reject(error) → Task.FromException(error)
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Promise' }) &&
+        t.isIdentifier(node.callee.property, { name: 'reject' })) {
+      if (node.arguments.length > 0) {
+        const error = generateCSharpExpression(node.arguments[0]);
+        return `Task.FromException(new Exception(${error}))`;
+      }
+    }
+
     // Handle alert() → Console.WriteLine() (or custom alert implementation)
     if (t.isIdentifier(node.callee, { name: 'alert' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
@@ -788,6 +809,30 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isNewExpression(node)) {
+    // Handle new Promise(resolve => setTimeout(resolve, ms)) → Task.Delay(ms)
+    if (t.isIdentifier(node.callee, { name: 'Promise' }) && node.arguments.length > 0) {
+      const callback = node.arguments[0];
+
+      // Check if it's the setTimeout pattern
+      if (t.isArrowFunctionExpression(callback) && callback.params.length === 1) {
+        const resolveParam = callback.params[0].name;
+        const body = callback.body;
+
+        // Check if body is: setTimeout(resolve, ms)
+        if (t.isCallExpression(body) &&
+            t.isIdentifier(body.callee, { name: 'setTimeout' }) &&
+            body.arguments.length === 2 &&
+            t.isIdentifier(body.arguments[0], { name: resolveParam })) {
+          const delay = generateCSharpExpression(body.arguments[1]);
+          return `Task.Delay(${delay})`;
+        }
+      }
+
+      // Generic Promise constructor - not directly supported in C#
+      // Return Task.CompletedTask as a fallback
+      return `Task.CompletedTask`;
+    }
+
     // Handle new Date() → DateTime.Parse()
     if (t.isIdentifier(node.callee, { name: 'Date' })) {
       if (node.arguments.length === 0) {

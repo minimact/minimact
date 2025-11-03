@@ -19,6 +19,9 @@ function extractEventHandler(value, component) {
       // Inline arrow function - extract to named method
       const handlerName = `Handle${component.eventHandlers.length}`;
 
+      // Check if the function is async
+      const isAsync = expr.async || false;
+
       // Simplify common pattern: (e) => func(e.target.value)
       // Transform to: (value) => func(value)
       let body = expr.body;
@@ -55,7 +58,8 @@ function extractEventHandler(value, component) {
         name: handlerName,
         body: body,
         params: params,
-        capturedParams: capturedParams  // e.g., ['item', 'index']
+        capturedParams: capturedParams,  // e.g., ['item', 'index']
+        isAsync: isAsync  // Track if handler is async
       });
 
       // Return handler registration string
