@@ -87,7 +87,7 @@ useEffect(() => {
 }, [userId]);
 ```
 
-**Note:** useEffect runs on the server, not the client. For client-side effects, use `useClientState` with event handlers.
+**Note:** useEffect runs on the server during the render cycle. For client-side DOM interactions, use event handlers (`onClick`, `onInput`, etc.) which trigger server methods via SignalR.
 
 ### useRef
 
@@ -492,33 +492,6 @@ function ThemeToggle() {
 - Changes propagate to all components using the same context
 
 ## Minimact-Specific Hooks
-
-### useClientState
-
-Client-only reactive state that never syncs to the server. Perfect for UI state like mouse position, scroll position, or animations.
-
-```tsx
-import { useClientState } from '@minimact/core';
-
-const [mousePos, setMousePos] = useClientState({ x: 0, y: 0 });
-const [isHovered, setIsHovered] = useClientState(false);
-
-// Client-only - no server round-trip
-<div
-  onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-  onMouseEnter={() => setIsHovered(true)}
-  onMouseLeave={() => setIsHovered(false)}
->
-  Mouse: {mousePos.x}, {mousePos.y}
-  {isHovered && <Tooltip />}
-</div>
-```
-
-**Benefits:**
-- Zero network latency (instant updates)
-- No server load
-- Perfect for high-frequency events
-- Integrates with external libraries (lodash, moment.js, etc.)
 
 ### usePredictHint
 

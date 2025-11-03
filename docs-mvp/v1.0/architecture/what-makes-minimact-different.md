@@ -157,7 +157,6 @@ The best of both worlds:
 ```tsx
 function SearchBox() {
   // Client-only - instant, no network
-  const [query, setQuery] = useClientState('');
 
   // Server-managed - secure, persistent
   const [results, setResults] = useState([]);

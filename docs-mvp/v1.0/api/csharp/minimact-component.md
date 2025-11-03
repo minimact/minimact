@@ -191,7 +191,6 @@ Get client-computed value with type safety. Used when the client computes values
 
 ```tsx
 // TSX (client side)
-const sortedUsers = useClientState('sortedUsers', () => {
   return _.sortBy(users, 'name'); // Using lodash
 });
 

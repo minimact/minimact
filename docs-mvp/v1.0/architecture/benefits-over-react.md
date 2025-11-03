@@ -431,8 +431,8 @@ const state = useSelector(state => state.cart);
 // Simple: Server manages state
 const [cart, setCart] = useState([]);
 
-// Fast: Client manages UI state
-const [isOpen, setIsOpen] = useClientState(false);
+// Fast: Instant updates with predictive rendering
+const [isOpen, setIsOpen] = useState(false);
 
 // Powerful: Server tasks for heavy lifting
 const [data, process] = useServerTask(async () => {
@@ -440,7 +440,7 @@ const [data, process] = useServerTask(async () => {
 });
 ```
 
-**Best of both worlds** - server for persistence, client for responsiveness.
+**Best of both worlds** - server for state management, predictive rendering for instant UI updates.
 
 ### "What about existing React libraries?"
 

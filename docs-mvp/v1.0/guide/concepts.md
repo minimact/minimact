@@ -36,16 +36,6 @@ public void SetCount(int value)
 }
 ```
 
-### Client State
-
-For truly client-only state (like mouse position), use `useClientState`:
-
-```tsx
-const [mousePos, setMousePos] = useClientState({ x: 0, y: 0 });
-```
-
-This state never goes to the server and updates instantly.
-
 ## Component Lifecycle
 
 Minimact components follow a simplified lifecycle:
@@ -80,7 +70,6 @@ Minimact supports most React hooks:
 - ✅ `useRef` - References
 - ✅ `useContext` - Context API
 - 🆕 `useServerTask` - Long-running server tasks
-- 🆕 `useClientState` - Client-only state
 
 ## Event Handlers
 

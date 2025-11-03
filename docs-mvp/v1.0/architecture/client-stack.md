@@ -73,7 +73,6 @@ npm install minimact
 const [count, setCount] = useState(0);
 
 // Client-only state (no server round-trip)
-const [isOpen, setIsOpen] = useClientState(false);
 
 // Long-running server tasks with progress
 const [task, startTask] = useServerTask(async (updateProgress) => {

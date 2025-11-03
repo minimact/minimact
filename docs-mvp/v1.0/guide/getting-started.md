@@ -306,30 +306,13 @@ export function UserProfile() {
 }
 ```
 
-### Client State (useClientState)
+**When to use `useState`:**
+- All interactive state (buttons, inputs, toggles)
+- Data from server/database
+- State that needs to persist across renders
+- Any state that affects rendering logic
 
-State managed entirely on the client (no server round-trip):
-
-```tsx
-import { useClientState } from '@minimact/core';
-
-export function SearchBox() {
-  // Runs on client only — instant updates
-  const [query, setQuery] = useClientState('');
-
-  return (
-    <input
-      value={query}
-      onInput={(e) => setQuery(e.target.value)}
-      placeholder="Search..."
-    />
-  );
-}
-```
-
-**When to use:**
-- **`useState`** — Persisted state, server logic, data from database
-- **`useClientState`** — Ephemeral UI state (search query, open/closed, hover)
+**Note:** All state in Minimact is server-managed and synced to the client. This ensures consistent rendering and prevents stale data issues.
 
 ---
 

@@ -550,25 +550,24 @@ function DynamicPricing({ role, itemCount }) {
 
 ## Core Reactive Patterns
 
-### Client-Only State
+### Interactive UI State
 
-High-frequency updates without server round-trips.
+High-frequency updates with predictive rendering for instant feedback.
 
 **Use Cases:**
 - Mouse position tracking
 - Scroll position
 - Animation state
-- UI-only toggles (dropdowns, modals)
-- Integration with external libraries (lodash, moment.js)
+- UI toggles (dropdowns, modals)
+- Interactive elements with instant visual feedback
 
-**Hooks:** [useClientState](/api/hooks#useclientstate)
 
 ```tsx
-import { useClientState } from '@minimact/core';
+import { useState } from '@minimact/core';
 
 function MouseTracker() {
-  const [pos, setPos] = useClientState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useClientState(false);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
@@ -584,8 +583,8 @@ function MouseTracker() {
 ```
 
 **Benefits:**
-- Zero network latency (instant updates)
-- No server load
+- Predictive rendering provides instant visual updates
+- State synced to server for consistency
 - Perfect for animations and high-frequency events
 
 ### Server State
