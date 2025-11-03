@@ -164,25 +164,40 @@ export function MultiplePlugins() {
         )}
       </div>
 
-      {/* Test Case 5: Plugins in .map() */}
+      {/* Test Case 5: Multiple Plugins with Static Names (not dynamic) */}
       <div className="test-case">
-        <h3>Test 5: Plugins Inside .map()</h3>
-        {[
-          { type: 'BarChart', data: salesData, title: 'Sales' },
-          { type: 'BarChart', data: revenueData, title: 'Revenue' },
-          { type: 'BarChart', data: productMix, title: 'Products' }
-        ].map((config, index) => (
-          <div key={index} className="chart">
-            <h4>{config.title}</h4>
-            <Plugin name={config.type} state={{
-              data: config.data,
+        <h3>Test 5: Multiple Same-Type Plugins with Different Data</h3>
+        <p className="note">
+          ℹ️ Note: Plugin names must be static string literals. Dynamic names like name={"{config.type}"} are not supported.
+        </p>
+        <div className="charts-row">
+          <div className="chart">
+            <h4>Sales</h4>
+            <Plugin name="BarChart" state={{
+              data: salesData,
               width: 400,
               height: 250
             }} />
           </div>
-        ))}
+          <div className="chart">
+            <h4>Revenue</h4>
+            <Plugin name="BarChart" state={{
+              data: revenueData,
+              width: 400,
+              height: 250
+            }} />
+          </div>
+          <div className="chart">
+            <h4>Products</h4>
+            <Plugin name="BarChart" state={{
+              data: productMix,
+              width: 400,
+              height: 250
+            }} />
+          </div>
+        </div>
         <p className="expected">
-          Expected: Each chart shows different data based on config.data
+          Expected: Each chart shows different data (Sales, Revenue, Products)
         </p>
       </div>
 

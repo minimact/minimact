@@ -43,12 +43,15 @@ function generateJSXElement(node, component, indent) {
   // Check if this is a Plugin element
   if (tagName === 'Plugin') {
     const { generatePluginNode } = require('./plugin.cjs');
+
     // Find the matching plugin metadata from component.pluginUsages
-    const pluginMetadata = component.pluginUsages.find(p => {
-      // Match by finding the plugin in the same location in the tree
-      // For now, just use the first match (simple case)
-      return true; // TODO: Improve matching logic if multiple plugins
-    });
+    // Use the plugin index tracker to match plugins in order
+    if (!component._pluginRenderIndex) {
+      component._pluginRenderIndex = 0;
+    }
+
+    const pluginMetadata = component.pluginUsages[component._pluginRenderIndex];
+    component._pluginRenderIndex++;
 
     if (pluginMetadata) {
       return generatePluginNode(pluginMetadata, component);
