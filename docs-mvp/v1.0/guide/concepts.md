@@ -61,15 +61,26 @@ export function MyComponent() {
 
 ## Hooks
 
-Minimact supports most React hooks:
+Minimact provides a comprehensive set of hooks:
 
-- ✅ `useState` - Server-side state
-- ✅ `useEffect` - Side effects
-- ✅ `useMemo` - Memoized values
-- ✅ `useCallback` - Memoized callbacks
-- ✅ `useRef` - References
-- ✅ `useContext` - Context API
-- 🆕 `useServerTask` - Long-running server tasks
+**Core React Hooks:**
+- ✅ `useState` - Reactive state management
+- ✅ `useEffect` - Lifecycle and side effects
+- ✅ `useRef` - Mutable references
+- ✅ `useContext` / `createContext` - Context API
+- ✅ `useComputed` - Computed/derived values
+
+**Server-Side Hooks:**
+- 🆕 `useServerTask` - Long-running async operations
+- 🆕 `usePaginatedServerTask` - Paginated data loading
+- 🆕 `useServerReducer` - Complex state patterns
+
+**Utility Hooks:**
+- 🆕 `usePub` / `useSub` - Pub/sub messaging
+- 🆕 `useMicroTask` / `useMacroTask` - Task scheduling
+- 🆕 `useAnimationFrame` / `useIdleCallback` - Timing control
+- 🆕 `useSignalR` - Custom SignalR hub connections
+- 🆕 `useMarkdown` - Server-side markdown rendering
 
 ## Event Handlers
 
