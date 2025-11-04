@@ -1,0 +1,132 @@
+{
+  "type": "Component",
+  "componentName": "SimpleCounter",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [
+          {
+            "type": "StaticAttribute",
+            "name": "className",
+            "value": "counter",
+            "path": "10000000.@className",
+            "pathSegments": [
+              "10000000",
+              "@className"
+            ]
+          }
+        ],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Counter"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "Count:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "Identifier",
+                "path": "10000000.20000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "20000000"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  }
+                ],
+                "template": "{0}"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "onClick",
+                "expressionType": "ArrowFunctionExpression",
+                "path": "10000000.30000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "@onClick"
+                ],
+                "raw": "<complex>"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "content": "Increment"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@minimact/transpiler-babel",
+  "version": "0.1.0",
+  "description": "Babel plugin for Minimact - Phase 1: JSX to JSON AST conversion",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "babel-plugin",
+    "minimact",
+    "jsx",
+    "transpiler",
+    "ast"
+  ],
+  "author": "Minimact Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@babel/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/plugin-syntax-jsx": "^7.27.1",
+    "@babel/preset-typescript": "^7.28.5",
+    "@babel/types": "^7.28.5"
+  }
+}

@@ -1,0 +1,286 @@
+{
+  "type": "Component",
+  "componentName": "ConditionalTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": false,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Conditional Test"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "raw": "<complex>"
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "operator": "&&",
+            "condition": "<complex>",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.40000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "10000000"
+                    ],
+                    "content": "Never shown"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "raw": "<complex>"
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "operator": "&&",
+            "condition": "isVisible",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.70000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "10000000"
+                    ],
+                    "content": "Conditionally visible"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "raw": "<complex>"
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "content": "Always shown"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.a0000000",
+            "pathSegments": [
+              "10000000",
+              "a0000000"
+            ],
+            "raw": "<complex>"
+          },
+          {
+            "type": "Expression",
+            "expressionType": "ConditionalExpression",
+            "path": "10000000.b0000000",
+            "pathSegments": [
+              "10000000",
+              "b0000000"
+            ],
+            "condition": {
+              "left": "count",
+              "operator": ">",
+              "right": "5"
+            },
+            "consequent": {
+              "type": "JSXElement",
+              "tag": "span",
+              "path": "10000000.c0000000",
+              "pathSegments": [
+                "10000000",
+                "c0000000"
+              ],
+              "isStructural": true,
+              "attributes": [],
+              "children": [
+                {
+                  "type": "StaticText",
+                  "path": "10000000.c0000000.10000000",
+                  "pathSegments": [
+                    "10000000",
+                    "c0000000",
+                    "10000000"
+                  ],
+                  "content": "High"
+                }
+              ]
+            },
+            "alternate": {
+              "type": "JSXElement",
+              "tag": "span",
+              "path": "10000000.d0000000",
+              "pathSegments": [
+                "10000000",
+                "d0000000"
+              ],
+              "isStructural": true,
+              "attributes": [],
+              "children": [
+                {
+                  "type": "StaticText",
+                  "path": "10000000.d0000000.10000000",
+                  "pathSegments": [
+                    "10000000",
+                    "d0000000",
+                    "10000000"
+                  ],
+                  "content": "Low"
+                }
+              ]
+            }
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.e0000000",
+            "pathSegments": [
+              "10000000",
+              "e0000000"
+            ],
+            "raw": "<complex>"
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.f0000000",
+            "pathSegments": [
+              "10000000",
+              "f0000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "onClick",
+                "expressionType": "ArrowFunctionExpression",
+                "path": "10000000.f0000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "f0000000",
+                  "@onClick"
+                ],
+                "raw": "<complex>"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.f0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "f0000000",
+                  "10000000"
+                ],
+                "content": "Toggle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}
