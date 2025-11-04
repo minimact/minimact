@@ -456,7 +456,45 @@ export class HotReloadManager {
     console.log(`[HotReload] 🔧 Applying template patch to ${componentType}:`, patch);
 
     try {
-      // Apply template patch to template state
+      // Handle UpdateAttributeStatic separately (no template rendering needed)
+      if (patch.type === 'UpdateAttributeStatic') {
+        const attrName = (patch as any).attrName;
+        const value = (patch as any).value;
+
+        if (!attrName || value === undefined) {
+          console.warn(`[HotReload] ⚠️ UpdateAttributeStatic missing attrName or value:`, patch);
+          return;
+        }
+
+        // Get all instances of this component type
+        const instances = this.minimact.componentRegistry.getByType(componentType);
+        console.log(`[HotReload] 🔍 Found ${instances.length} instance(s) to update`);
+
+        if (instances.length === 0) {
+          console.warn(`[HotReload] ⚠️ No instances found for type "${componentType}"`);
+          return;
+        }
+
+        // Apply to each instance
+        for (const instance of instances) {
+          const element = this.findElementByPath(instance.element, patch.path);
+          if (element && element.nodeType === Node.ELEMENT_NODE) {
+            (element as HTMLElement).setAttribute(attrName, value);
+
+            const latency = performance.now() - startTime;
+            console.log(`[HotReload] 🚀 INSTANT! Updated static attribute ${attrName}="${value}" in ${latency.toFixed(1)}ms`);
+            this.log('info', `🚀 INSTANT! Static attribute updated in ${latency.toFixed(1)}ms`);
+            this.metrics.cacheHits++;
+            this.showToast(`⚡ ${latency.toFixed(0)}ms`, 'success', 800);
+            this.flashComponent(instance.element);
+          } else {
+            console.warn(`[HotReload] ⚠️ Element not found at path:`, patch.path);
+          }
+        }
+        return;
+      }
+
+      // Apply template patch to template state (for dynamic templates)
       const result = templateState.applyTemplatePatch(patch);
 
       if (result) {
@@ -483,7 +521,7 @@ export class HotReloadManager {
                 element.textContent = result.text;
               }
             } else if (patch.type === 'UpdatePropTemplate' && patch.attribute) {
-              // Update attribute
+              // Update attribute (dynamic)
               (element as HTMLElement).setAttribute(patch.attribute, result.text);
             }
 

@@ -244,6 +244,57 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
                 get_node_at_path(tree, path)?;
             }
         }
+
+        // Attribute template patches (hot reload + predictive rendering)
+        Patch::UpdateAttributeStatic { path, attr_name, value: _ } => {
+            validate_path(path, config)?;
+
+            // Validate attribute name is not empty
+            if attr_name.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Attribute name cannot be empty".to_string()
+                ));
+            }
+
+            // Value can be empty (e.g., className="")
+            if config.validate_applicability {
+                let node = get_node_at_path(tree, path)?;
+                if !node.is_element() {
+                    return Err(MinimactError::PatchTypeMismatch {
+                        expected: "Element",
+                        found: node.node_type(),
+                    });
+                }
+            }
+        }
+
+        Patch::UpdateAttributeDynamic { path, attr_name, template_patch } => {
+            validate_path(path, config)?;
+
+            // Validate attribute name is not empty
+            if attr_name.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Attribute name cannot be empty".to_string()
+                ));
+            }
+
+            // Validate template string is not empty
+            if template_patch.template.is_empty() {
+                return Err(MinimactError::InvalidVNode(
+                    "Template string cannot be empty".to_string()
+                ));
+            }
+
+            if config.validate_applicability {
+                let node = get_node_at_path(tree, path)?;
+                if !node.is_element() {
+                    return Err(MinimactError::PatchTypeMismatch {
+                        expected: "Element",
+                        found: node.node_type(),
+                    });
+                }
+            }
+        }
     }
 
     Ok(())

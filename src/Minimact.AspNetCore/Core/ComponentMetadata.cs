@@ -38,4 +38,12 @@ public class ComponentMetadata
     /// Used for pre-computing projected patches with 100% coverage.
     /// </summary>
     public List<Models.StateXProjectionInfo> StateXProjections { get; set; } = new();
+
+    /// <summary>
+    /// Templates extracted by Babel plugin from JSX (text and attributes).
+    /// Key: Template path (e.g., "[0].h1[0].text[0]" or "[0].button[0].@style")
+    /// Value: Template metadata (template string, bindings, type, etc.)
+    /// Used for predictive rendering with 100% coverage.
+    /// </summary>
+    public Dictionary<string, Models.TemplateInfo>? Templates { get; set; }
 }

@@ -832,16 +832,19 @@ function extractAttributeTemplates(renderBody, component) {
   const templates = {};
 
   // Track sibling counts for proper path generation
-  function traverseJSX(node, parentPath = [], siblingCounts = {}) {
+  function traverseJSX(node, parentPath = [], siblingIndex = 0, parentTagCounts = {}) {
     if (t.isJSXElement(node)) {
       const tagName = node.openingElement.name.name;
 
-      // Track sibling indices properly (same as text templates)
-      if (!siblingCounts[tagName]) {
-        siblingCounts[tagName] = 0;
-      }
-      const elementIndex = siblingCounts[tagName]++;
+      // Use actual sibling position, NOT tag-specific counter
+      const elementIndex = siblingIndex;
       const currentPath = [...parentPath, elementIndex];
+
+      // Track tag-specific index for path key building only (per-parent level)
+      if (!parentTagCounts[tagName]) {
+        parentTagCounts[tagName] = 0;
+      }
+      const tagIndex = parentTagCounts[tagName]++;
 
       // Check attributes for template expressions
       for (const attr of node.openingElement.attributes) {
@@ -853,7 +856,7 @@ function extractAttributeTemplates(renderBody, component) {
           if (t.isJSXExpressionContainer(attrValue) && t.isTemplateLiteral(attrValue.expression)) {
             const template = extractTemplateLiteralShared(attrValue.expression, component);
             if (template) {
-              const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, attrName);
+              const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, attrName);
               console.log(`[Attribute Template] Found template literal in ${attrName}: "${template.template}" (path: ${attrPath})`);
               templates[attrPath] = {
                 ...template,
@@ -865,16 +868,16 @@ function extractAttributeTemplates(renderBody, component) {
           }
           // 2. Style object: style={{ fontSize: '32px', opacity: isVisible ? 1 : 0.5 }}
           else if (attrName === 'style' && t.isJSXExpressionContainer(attrValue) && t.isObjectExpression(attrValue.expression)) {
-            const styleTemplate = extractStyleObjectTemplate(attrValue.expression, tagName, elementIndex, parentPath, currentPath, component);
+            const styleTemplate = extractStyleObjectTemplate(attrValue.expression, tagName, tagIndex, parentPath, currentPath, component);
             if (styleTemplate) {
-              const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, 'style');
+              const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, 'style');
               console.log(`[Attribute Template] Found style object: "${styleTemplate.template.substring(0, 60)}..." (path: ${attrPath})`);
               templates[attrPath] = styleTemplate;
             }
           }
           // 3. Static string attribute: className="btn-primary", placeholder="Enter name"
           else if (t.isStringLiteral(attrValue)) {
-            const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, attrName);
+            const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, attrName);
             console.log(`[Attribute Template] Found static attribute ${attrName}: "${attrValue.value}" (path: ${attrPath})`);
             templates[attrPath] = {
               template: attrValue.value,
@@ -891,7 +894,7 @@ function extractAttributeTemplates(renderBody, component) {
             // Check if it's a simple binding (identifier or member expression)
             if (t.isIdentifier(expr) || t.isMemberExpression(expr)) {
               const binding = t.isIdentifier(expr) ? expr.name : buildMemberPathShared(expr);
-              const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, attrName);
+              const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, attrName);
               console.log(`[Attribute Template] Found dynamic attribute ${attrName}: binding="${binding}" (path: ${attrPath})`);
               templates[attrPath] = {
                 template: '{0}',
@@ -906,11 +909,13 @@ function extractAttributeTemplates(renderBody, component) {
         }
       }
 
-      // Traverse children with fresh sibling counts
-      const childSiblingCounts = {};
+      // Traverse children with correct sibling indices
+      let childIndex = 0;
+      const childTagCounts = {}; // Fresh tag counts for this parent's children
       for (const child of node.children) {
         if (t.isJSXElement(child)) {
-          traverseJSX(child, currentPath, childSiblingCounts);
+          traverseJSX(child, currentPath, childIndex, childTagCounts);
+          childIndex++;
         }
       }
     }

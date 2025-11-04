@@ -1409,12 +1409,123 @@ impl Predictor {
         Some(prediction)
     }
 
+    /// Generate patches from ComponentMetadata templates (build-time templates from Babel)
+    /// This provides 100% coverage from the start, no learning phase needed!
+    fn generate_patches_from_metadata(
+        &self,
+        state_change: &StateChange,
+        metadata: &ComponentMetadata,
+    ) -> Option<Vec<Patch>> {
+        // Find all templates that bind to this state key
+        let templates = metadata.get_templates_for_state(&state_change.state_key);
+
+        if templates.is_empty() {
+            return None;
+        }
+
+        let mut patches = Vec::new();
+
+        for (path_key, template_info) in templates {
+            eprintln!("[DEBUG] Processing template: path_key={}, type={}, attribute={:?}",
+                path_key, template_info.template_type, template_info.attribute);
+
+            // Convert to TemplatePatch
+            let template_patch = template_info.to_template_patch();
+
+            // Generate the appropriate patch type based on template_type
+            let patch = match template_info.template_type.as_str() {
+                "static" | "dynamic" => {
+                    eprintln!("[DEBUG] → Generating UpdateTextTemplate");
+                    // Text template
+                    Patch::UpdateTextTemplate {
+                        path: template_info.path.clone(),
+                        template_patch,
+                    }
+                }
+                "attribute-static" => {
+                    eprintln!("[DEBUG] → Attempting UpdateAttributeStatic");
+                    // Static attribute (no bindings)
+                    if let Some(attr_name) = template_info.get_attribute_name() {
+                        eprintln!("[DEBUG] → ✓ Got attribute name: {}", attr_name);
+                        Patch::UpdateAttributeStatic {
+                            path: template_info.path.clone(),
+                            attr_name: attr_name.to_string(),
+                            value: template_info.template.clone(),
+                        }
+                    } else {
+                        eprintln!("[DEBUG] → ✗ No attribute name! Skipping.");
+                        continue; // Skip if no attribute name
+                    }
+                }
+                "attribute-dynamic" => {
+                    eprintln!("[DEBUG] → Attempting UpdateAttributeDynamic");
+                    // Dynamic attribute (has bindings)
+                    if let Some(attr_name) = template_info.get_attribute_name() {
+                        eprintln!("[DEBUG] → ✓ Got attribute name: {}", attr_name);
+                        Patch::UpdateAttributeDynamic {
+                            path: template_info.path.clone(),
+                            attr_name: attr_name.to_string(),
+                            template_patch,
+                        }
+                    } else {
+                        eprintln!("[DEBUG] → ✗ No attribute name! Skipping.");
+                        continue; // Skip if no attribute name
+                    }
+                }
+                _ => {
+                    eprintln!("[DEBUG] → Unknown template type, skipping");
+                    crate::log_warn!("Unknown template type: {}", template_info.template_type);
+                    continue;
+                }
+            };
+
+            patches.push(patch);
+        }
+
+        if patches.is_empty() {
+            None
+        } else {
+            Some(patches)
+        }
+    }
+
     /// Predict patches for a given state change
     pub fn predict(&mut self, state_change: &StateChange, current_tree: &VNode) -> Option<Prediction> {
+        self.predict_with_metadata(state_change, current_tree, None)
+    }
+
+    /// Predict patches with optional ComponentMetadata (for build-time templates)
+    pub fn predict_with_metadata(
+        &mut self,
+        state_change: &StateChange,
+        current_tree: &VNode,
+        metadata: Option<&ComponentMetadata>,
+    ) -> Option<Prediction> {
         let start = std::time::Instant::now();
         let pattern_key = self.make_pattern_key(state_change);
 
-        // Try template predictions first (100% coverage!)
+        // FIRST: Try build-time templates from Babel (if metadata provided)
+        // This gives us 100% coverage from the start!
+        if let Some(meta) = metadata {
+            if let Some(patches) = self.generate_patches_from_metadata(state_change, meta) {
+                crate::log_info!(
+                    "📐 Generated {} patches from build-time templates for state key '{}'",
+                    patches.len(),
+                    state_change.state_key
+                );
+
+                crate::metrics::METRICS.record_prediction(start.elapsed(), true);
+
+                return Some(Prediction {
+                    state_change: state_change.clone(),
+                    predicted_patches: patches,
+                    confidence: 1.0, // 100% confidence - these are build-time extracted!
+                    predicted_tree: None,
+                });
+            }
+        }
+
+        // FALLBACK: Try learned template predictions (runtime extraction)
         if let Some(template_pred) = self.template_predictions.get_mut(&pattern_key) {
             template_pred.usage_count += 1;
             let confidence = template_pred.hit_rate();

@@ -24,6 +24,7 @@ public static class MinimactServiceExtensions
         // Register core services
         services.AddSingleton<ComponentRegistry>();
         services.AddSingleton<RustBridge.Predictor>();
+        services.AddSingleton<TemplateLoader>(); // Template loader for attribute template support
 
         // Register context cache (for useContext hook)
         services.AddSingleton<IContextCache, InMemoryContextCache>();
@@ -125,6 +126,10 @@ public static class MinimactServiceExtensions
         // Initialize global predictor from DI
         var predictor = app.ApplicationServices.GetRequiredService<RustBridge.Predictor>();
         MinimactComponent.GlobalPredictor = predictor;
+
+        // Set global template loader
+        var templateLoader = app.ApplicationServices.GetService<TemplateLoader>();
+        MinimactComponent.GlobalTemplateLoader = templateLoader;
         Console.WriteLine("[Minimact] Predictive rendering enabled");
 
         // Add session middleware (required for session-scoped contexts)

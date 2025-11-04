@@ -100,6 +100,21 @@ public class TemplateHotReloadManager : IDisposable
                 PropertyNameCaseInsensitive = true
             });
 
+            // Post-process: Extract attribute names from node paths like "div[0].@style"
+            if (templateMap != null)
+            {
+                foreach (var (nodePath, template) in templateMap.Templates)
+                {
+                    // Check if node path contains attribute marker (@)
+                    var atIndex = nodePath.LastIndexOf("@");
+                    if (atIndex >= 0 && (template.Type == "attribute-static" || template.Type == "attribute-dynamic"))
+                    {
+                        // Extract attribute name after @ (e.g., "@style" -> "style")
+                        template.Attribute = nodePath.Substring(atIndex + 1);
+                    }
+                }
+            }
+
             return templateMap;
         }
         catch (Exception ex)
@@ -315,17 +330,39 @@ public class TemplateHotReloadManager : IDisposable
             .Select(binding => currentState.TryGetValue(binding, out var value) ? value : null)
             .ToList();
 
-        return new TemplatePatch
+        // Map template type to patch type
+        var patchType = template.Type switch
         {
-            Type = template.Attribute != null ? "UpdatePropTemplate" : "UpdateTextTemplate",
+            "static" => "UpdateTextTemplate",
+            "dynamic" => "UpdateTextTemplate",
+            "attribute-static" => "UpdateAttributeStatic",
+            "attribute-dynamic" => "UpdatePropTemplate",
+            "attribute" => "UpdatePropTemplate", // Legacy support
+            "loop" => "UpdateListTemplate",
+            _ => template.Attribute != null ? "UpdatePropTemplate" : "UpdateTextTemplate"
+        };
+
+        var patch = new TemplatePatch
+        {
+            Type = patchType,
             ComponentId = componentId,
             Path = template.Path,
             Template = template.TemplateString,
             Params = params_,
             Bindings = template.Bindings,
             Slots = template.Slots,
-            Attribute = template.Attribute
+            Attribute = template.Attribute,
+            LoopTemplate = template.LoopTemplate
         };
+
+        // For UpdateAttributeStatic, populate attrName and value fields (client expects these)
+        if (patchType == "UpdateAttributeStatic" && template.Attribute != null)
+        {
+            patch.AttrName = template.Attribute;
+            patch.Value = template.TemplateString; // Static value (no params to substitute)
+        }
+
+        return patch;
     }
 
     /// <summary>

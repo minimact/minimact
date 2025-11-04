@@ -37,7 +37,7 @@ public class Template
     public List<int> Path { get; set; } = new();
 
     /// <summary>
-    /// Template type: static | dynamic | attribute
+    /// Template type: static | dynamic | attribute | loop
     /// </summary>
     [JsonPropertyName("type")]
     public string Type { get; set; } = "dynamic";
@@ -47,6 +47,12 @@ public class Template
     /// </summary>
     [JsonPropertyName("attribute")]
     public string? Attribute { get; set; }
+
+    /// <summary>
+    /// Loop template data (only for loop templates)
+    /// </summary>
+    [JsonPropertyName("loopTemplate")]
+    public object? LoopTemplate { get; set; }
 }
 
 /// <summary>
@@ -133,6 +139,24 @@ public class TemplatePatch
     /// </summary>
     [JsonPropertyName("attribute")]
     public string? Attribute { get; set; }
+
+    /// <summary>
+    /// Attribute name for UpdateAttributeStatic (client expects this field name)
+    /// </summary>
+    [JsonPropertyName("attrName")]
+    public string? AttrName { get; set; }
+
+    /// <summary>
+    /// Static value for UpdateAttributeStatic (client expects this field name)
+    /// </summary>
+    [JsonPropertyName("value")]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// Loop template data (only for UpdateListTemplate)
+    /// </summary>
+    [JsonPropertyName("loopTemplate")]
+    public object? LoopTemplate { get; set; }
 }
 
 /// <summary>

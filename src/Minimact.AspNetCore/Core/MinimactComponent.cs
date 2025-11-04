@@ -84,6 +84,17 @@ public abstract class MinimactComponent
     /// </summary>
     private Dictionary<string, bool>? _mvcMutability;
 
+    /// <summary>
+    /// Component metadata with Babel-extracted templates
+    /// Used by predictor for 100% coverage predictive rendering
+    /// </summary>
+    internal ComponentMetadata? Metadata { get; set; }
+
+    /// <summary>
+    /// Global template loader instance (shared across all components)
+    /// </summary>
+    internal static Services.TemplateLoader? GlobalTemplateLoader { get; set; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
@@ -91,6 +102,36 @@ public abstract class MinimactComponent
         PreviousState = new Dictionary<string, object>();
         ClientState = new Dictionary<string, object>();
         DynamicBindings = new DynamicValueCompiler();
+
+        // Load templates for this component type
+        if (GlobalTemplateLoader != null)
+        {
+            var componentName = this.GetType().Name;
+            Console.WriteLine($"[DEBUG C#] Loading templates for component: {componentName}");
+            var manifest = GlobalTemplateLoader.LoadTemplates(componentName);
+            if (manifest != null)
+            {
+                Metadata = GlobalTemplateLoader.ToComponentMetadata(ComponentId, manifest);
+                Console.WriteLine($"[DEBUG C#] ✓ Loaded {Metadata.Templates?.Count ?? 0} templates for {componentName}");
+
+                // Debug: Print each template
+                if (Metadata.Templates != null)
+                {
+                    foreach (var kvp in Metadata.Templates)
+                    {
+                        Console.WriteLine($"[DEBUG C#]   Template: key={kvp.Key}, type={kvp.Value.Type}, attribute={kvp.Value.Attribute}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG C#] ✗ No templates found for {componentName}");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[DEBUG C#] ✗ GlobalTemplateLoader is null!");
+        }
     }
 
     /// <summary>
@@ -541,7 +582,10 @@ public abstract class MinimactComponent
                 NewValue = State[key]
             };
 
-            prediction = GlobalPredictor.Predict(stateChange, CurrentVNode);
+            // Use PredictWithMetadata if we have templates, otherwise fall back to learned patterns
+            prediction = Metadata != null
+                ? GlobalPredictor.PredictWithMetadata(stateChange, CurrentVNode, Metadata)
+                : GlobalPredictor.Predict(stateChange, CurrentVNode);
 
             if (prediction != null && prediction.Confidence >= 0.7)
             {

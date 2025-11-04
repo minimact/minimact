@@ -187,6 +187,99 @@ pub unsafe extern "C" fn minimact_predictor_learn(
     }
 }
 
+/// Predict patches for a state change with metadata (Babel-extracted templates)
+/// Returns JSON string with prediction or null if no prediction available
+///
+/// # Safety
+/// - All JSON pointers must be valid null-terminated UTF-8 strings
+/// - The returned pointer must be freed using minimact_free_string
+#[no_mangle]
+pub unsafe extern "C" fn minimact_predictor_predict_with_metadata(
+    handle: PredictorHandle,
+    state_change_json: *const c_char,
+    current_tree_json: *const c_char,
+    metadata_json: *const c_char,
+) -> *mut c_char {
+    let state_change_str = match CStr::from_ptr(state_change_json).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let current_tree_str = match CStr::from_ptr(current_tree_json).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let metadata_str = match CStr::from_ptr(metadata_json).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let state_change: StateChange = match serde_json::from_str(state_change_str) {
+        Ok(sc) => sc,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let validation_config = crate::validation::ValidationConfig::default();
+
+    let current_tree: VNode = match crate::validation::deserialize_vnode_safe(current_tree_str, &validation_config) {
+        Ok(t) => t,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let metadata: crate::vdom::ComponentMetadata = match serde_json::from_str(metadata_str) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("[Minimact] Failed to parse metadata: {}", e);
+            return std::ptr::null_mut();
+        }
+    };
+
+    if let Some(mut predictor) = PREDICTORS.get_mut(&handle) {
+        // Try to predict with metadata first (100% coverage from Babel templates)
+        if let Some(prediction) = predictor.predict_with_metadata(&state_change, &current_tree, Some(&metadata)) {
+            let result = serde_json::json!({
+                "ok": true,
+                "data": prediction
+            });
+            match serde_json::to_string(&result) {
+                Ok(json) => CString::new(json).unwrap().into_raw(),
+                Err(_) => std::ptr::null_mut(),
+            }
+        } else {
+            // Fallback to learned patterns if metadata doesn't have templates
+            if let Some(prediction) = predictor.predict(&state_change, &current_tree) {
+                let result = serde_json::json!({
+                    "ok": true,
+                    "data": prediction
+                });
+                match serde_json::to_string(&result) {
+                    Ok(json) => CString::new(json).unwrap().into_raw(),
+                    Err(_) => std::ptr::null_mut(),
+                }
+            } else {
+                let error_response = serde_json::json!({
+                    "ok": false,
+                    "error": "No prediction available"
+                });
+                match serde_json::to_string(&error_response) {
+                    Ok(json) => CString::new(json).unwrap().into_raw(),
+                    Err(_) => std::ptr::null_mut(),
+                }
+            }
+        }
+    } else {
+        let error_response = serde_json::json!({
+            "ok": false,
+            "error": "Invalid predictor handle"
+        });
+        match serde_json::to_string(&error_response) {
+            Ok(json) => CString::new(json).unwrap().into_raw(),
+            Err(_) => std::ptr::null_mut(),
+        }
+    }
+}
+
 /// Predict patches for a state change
 /// Returns JSON string with prediction or null if no prediction available
 ///

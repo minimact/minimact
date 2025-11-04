@@ -66,7 +66,7 @@ var helpers = {
  * Type Conversion
  */
 
-const t$g = globalThis.__BABEL_TYPES__;
+const t$f = globalThis.__BABEL_TYPES__;
 
 /**
  * Convert TypeScript type annotation to C# type
@@ -75,30 +75,30 @@ function tsTypeToCSharpType$4(tsType) {
   if (!tsType) return 'dynamic';
 
   // TSStringKeyword -> string
-  if (t$g.isTSStringKeyword(tsType)) return 'string';
+  if (t$f.isTSStringKeyword(tsType)) return 'string';
 
   // TSNumberKeyword -> double
-  if (t$g.isTSNumberKeyword(tsType)) return 'double';
+  if (t$f.isTSNumberKeyword(tsType)) return 'double';
 
   // TSBooleanKeyword -> bool
-  if (t$g.isTSBooleanKeyword(tsType)) return 'bool';
+  if (t$f.isTSBooleanKeyword(tsType)) return 'bool';
 
   // TSAnyKeyword -> dynamic
-  if (t$g.isTSAnyKeyword(tsType)) return 'dynamic';
+  if (t$f.isTSAnyKeyword(tsType)) return 'dynamic';
 
   // TSArrayType -> List<T>
-  if (t$g.isTSArrayType(tsType)) {
+  if (t$f.isTSArrayType(tsType)) {
     const elementType = tsTypeToCSharpType$4(tsType.elementType);
     return `List<${elementType}>`;
   }
 
   // TSTypeLiteral (object type) -> dynamic
-  if (t$g.isTSTypeLiteral(tsType)) return 'dynamic';
+  if (t$f.isTSTypeLiteral(tsType)) return 'dynamic';
 
   // TSTypeReference (custom types, interfaces)
-  if (t$g.isTSTypeReference(tsType)) {
+  if (t$f.isTSTypeReference(tsType)) {
     // Handle @minimact/mvc type mappings
-    if (t$g.isIdentifier(tsType.typeName)) {
+    if (t$f.isIdentifier(tsType.typeName)) {
       const typeName = tsType.typeName.name;
 
       // Map @minimact/mvc types to C# types
@@ -140,17 +140,17 @@ function tsTypeToCSharpType$4(tsType) {
 function inferType$2(node) {
   if (!node) return 'dynamic';
 
-  if (t$g.isStringLiteral(node)) return 'string';
-  if (t$g.isNumericLiteral(node)) {
+  if (t$f.isStringLiteral(node)) return 'string';
+  if (t$f.isNumericLiteral(node)) {
     // Check if the number has a decimal point
     // If the value is a whole number, use int; otherwise use double
     const value = node.value;
     return Number.isInteger(value) ? 'int' : 'double';
   }
-  if (t$g.isBooleanLiteral(node)) return 'bool';
-  if (t$g.isNullLiteral(node)) return 'dynamic';
-  if (t$g.isArrayExpression(node)) return 'List<dynamic>';
-  if (t$g.isObjectExpression(node)) return 'dynamic';
+  if (t$f.isBooleanLiteral(node)) return 'bool';
+  if (t$f.isNullLiteral(node)) return 'dynamic';
+  if (t$f.isArrayExpression(node)) return 'List<dynamic>';
+  if (t$f.isObjectExpression(node)) return 'dynamic';
 
   return 'dynamic';
 }
@@ -165,7 +165,7 @@ var typeConversion = {
  * Dependency Analyzer
  */
 
-const t$f = globalThis.__BABEL_TYPES__;
+const t$e = globalThis.__BABEL_TYPES__;
 
 /**
  * Analyze dependencies in JSX expressions
@@ -178,7 +178,7 @@ function analyzeDependencies(jsxExpr, component) {
     if (!node) return;
 
     // Check if this is an identifier that's a state variable
-    if (t$f.isIdentifier(node)) {
+    if (t$e.isIdentifier(node)) {
       const name = node.name;
       if (component.stateTypes.has(name)) {
         deps.add({
@@ -189,25 +189,25 @@ function analyzeDependencies(jsxExpr, component) {
     }
 
     // Recursively walk the tree
-    if (t$f.isConditionalExpression(node)) {
+    if (t$e.isConditionalExpression(node)) {
       walk(node.test);
       walk(node.consequent);
       walk(node.alternate);
-    } else if (t$f.isLogicalExpression(node)) {
+    } else if (t$e.isLogicalExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$f.isMemberExpression(node)) {
+    } else if (t$e.isMemberExpression(node)) {
       walk(node.object);
       walk(node.property);
-    } else if (t$f.isCallExpression(node)) {
+    } else if (t$e.isCallExpression(node)) {
       walk(node.callee);
       node.arguments.forEach(walk);
-    } else if (t$f.isBinaryExpression(node)) {
+    } else if (t$e.isBinaryExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$f.isUnaryExpression(node)) {
+    } else if (t$e.isUnaryExpression(node)) {
       walk(node.argument);
-    } else if (t$f.isArrowFunctionExpression(node) || t$f.isFunctionExpression(node)) {
+    } else if (t$e.isArrowFunctionExpression(node) || t$e.isFunctionExpression(node)) {
       walk(node.body);
     }
   }
@@ -266,14 +266,14 @@ var classification = {
  * Pattern Detection
  */
 
-const t$e = globalThis.__BABEL_TYPES__;
+const t$d = globalThis.__BABEL_TYPES__;
 
 
 /**
  * Detect if attributes contain spread operators
  */
 function hasSpreadProps(attributes) {
-  return attributes.some(attr => t$e.isJSXSpreadAttribute(attr));
+  return attributes.some(attr => t$d.isJSXSpreadAttribute(attr));
 }
 
 /**
@@ -281,35 +281,35 @@ function hasSpreadProps(attributes) {
  */
 function hasDynamicChildren(children) {
   return children.some(child => {
-    if (!t$e.isJSXExpressionContainer(child)) return false;
+    if (!t$d.isJSXExpressionContainer(child)) return false;
     const expr = child.expression;
 
     // Check for .map() calls
-    if (t$e.isCallExpression(expr) &&
-        t$e.isMemberExpression(expr.callee) &&
-        t$e.isIdentifier(expr.callee.property, { name: 'map' })) {
+    if (t$d.isCallExpression(expr) &&
+        t$d.isMemberExpression(expr.callee) &&
+        t$d.isIdentifier(expr.callee.property, { name: 'map' })) {
       return true;
     }
 
     // Check for array expressions from LINQ/Select
-    if (t$e.isCallExpression(expr) &&
-        t$e.isMemberExpression(expr.callee) &&
-        (t$e.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-         t$e.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+    if (t$d.isCallExpression(expr) &&
+        t$d.isMemberExpression(expr.callee) &&
+        (t$d.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+         t$d.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
       return true;
     }
 
     // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-    if (t$e.isConditionalExpression(expr)) {
-      if (t$e.isJSXElement(expr.consequent) || t$e.isJSXFragment(expr.consequent) ||
-          t$e.isJSXElement(expr.alternate) || t$e.isJSXFragment(expr.alternate)) {
+    if (t$d.isConditionalExpression(expr)) {
+      if (t$d.isJSXElement(expr.consequent) || t$d.isJSXFragment(expr.consequent) ||
+          t$d.isJSXElement(expr.alternate) || t$d.isJSXFragment(expr.alternate)) {
         return true;
       }
     }
 
     // Check for logical expressions with JSX: {condition && <Element/>}
-    if (t$e.isLogicalExpression(expr)) {
-      if (t$e.isJSXElement(expr.right) || t$e.isJSXFragment(expr.right)) {
+    if (t$d.isLogicalExpression(expr)) {
+      if (t$d.isJSXElement(expr.right) || t$d.isJSXFragment(expr.right)) {
         return true;
       }
     }
@@ -323,14 +323,14 @@ function hasDynamicChildren(children) {
  */
 function hasComplexProps(attributes) {
   return attributes.some(attr => {
-    if (!t$e.isJSXAttribute(attr)) return false;
+    if (!t$d.isJSXAttribute(attr)) return false;
     const value = attr.value;
 
-    if (!t$e.isJSXExpressionContainer(value)) return false;
+    if (!t$d.isJSXExpressionContainer(value)) return false;
     const expr = value.expression;
 
     // Check for conditional spread: {...(condition && { prop: value })}
-    if (t$e.isConditionalExpression(expr) || t$e.isLogicalExpression(expr)) {
+    if (t$d.isConditionalExpression(expr) || t$d.isLogicalExpression(expr)) {
       return true;
     }
 
@@ -348,187 +348,195 @@ var detection = {
  * Event Handlers Extractor
  */
 
-const t$d = globalThis.__BABEL_TYPES__;
+var eventHandlers;
+var hasRequiredEventHandlers;
 
-/**
- * Extract event handler name
- */
-function extractEventHandler(value, component) {
-  if (t$d.isStringLiteral(value)) {
-    return value.value;
-  }
+function requireEventHandlers () {
+	if (hasRequiredEventHandlers) return eventHandlers;
+	hasRequiredEventHandlers = 1;
+	const t = globalThis.__BABEL_TYPES__;
 
-  if (t$d.isJSXExpressionContainer(value)) {
-    const expr = value.expression;
+	/**
+	 * Extract event handler name
+	 */
+	function extractEventHandler(value, component) {
+	  if (t.isStringLiteral(value)) {
+	    return value.value;
+	  }
 
-    if (t$d.isArrowFunctionExpression(expr) || t$d.isFunctionExpression(expr)) {
-      // Inline arrow function - extract to named method
-      const handlerName = `Handle${component.eventHandlers.length}`;
+	  if (t.isJSXExpressionContainer(value)) {
+	    const expr = value.expression;
 
-      // Check if the function is async
-      const isAsync = expr.async || false;
+	    if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) {
+	      // Inline arrow function - extract to named method
+	      const handlerName = `Handle${component.eventHandlers.length}`;
 
-      // Detect curried functions (functions that return functions)
-      // Pattern: (e) => (id) => action(id)
-      // This is invalid for event handlers because the returned function is never called
-      if (t$d.isArrowFunctionExpression(expr.body) || t$d.isFunctionExpression(expr.body)) {
-        // Generate a handler that throws a helpful error
-        component.eventHandlers.push({
-          name: handlerName,
-          body: null, // Will be handled specially in component generator
-          params: expr.params,
-          capturedParams: [],
-          isAsync: false,
-          isCurriedError: true // Flag to generate error throw
-        });
+	      // Check if the function is async
+	      const isAsync = expr.async || false;
 
-        return handlerName;
-      }
+	      // Detect curried functions (functions that return functions)
+	      // Pattern: (e) => (id) => action(id)
+	      // This is invalid for event handlers because the returned function is never called
+	      if (t.isArrowFunctionExpression(expr.body) || t.isFunctionExpression(expr.body)) {
+	        // Generate a handler that throws a helpful error
+	        component.eventHandlers.push({
+	          name: handlerName,
+	          body: null, // Will be handled specially in component generator
+	          params: expr.params,
+	          capturedParams: [],
+	          isAsync: false,
+	          isCurriedError: true // Flag to generate error throw
+	        });
 
-      // Simplify common pattern: (e) => func(e.target.value)
-      // Transform to: (value) => func(value)
-      let body = expr.body;
-      let params = expr.params;
+	        return handlerName;
+	      }
 
-      if (t$d.isCallExpression(body) && params.length === 1 && t$d.isIdentifier(params[0])) {
-        const eventParam = params[0].name; // e.g., "e"
-        const args = body.arguments;
+	      // Simplify common pattern: (e) => func(e.target.value)
+	      // Transform to: (value) => func(value)
+	      let body = expr.body;
+	      let params = expr.params;
 
-        // Check if any argument is e.target.value
-        const transformedArgs = args.map(arg => {
-          if (t$d.isMemberExpression(arg) &&
-              t$d.isMemberExpression(arg.object) &&
-              t$d.isIdentifier(arg.object.object, { name: eventParam }) &&
-              t$d.isIdentifier(arg.object.property, { name: 'target' }) &&
-              t$d.isIdentifier(arg.property, { name: 'value' })) {
-            // Replace e.target.value with direct value parameter
-            return t$d.identifier('value');
-          }
-          return arg;
-        });
+	      if (t.isCallExpression(body) && params.length === 1 && t.isIdentifier(params[0])) {
+	        const eventParam = params[0].name; // e.g., "e"
+	        const args = body.arguments;
 
-        // If we transformed any args, update the body and param name
-        if (transformedArgs.some((arg, i) => arg !== args[i])) {
-          body = t$d.callExpression(body.callee, transformedArgs);
-          params = [t$d.identifier('value')];
-        }
-      }
+	        // Check if any argument is e.target.value
+	        const transformedArgs = args.map(arg => {
+	          if (t.isMemberExpression(arg) &&
+	              t.isMemberExpression(arg.object) &&
+	              t.isIdentifier(arg.object.object, { name: eventParam }) &&
+	              t.isIdentifier(arg.object.property, { name: 'target' }) &&
+	              t.isIdentifier(arg.property, { name: 'value' })) {
+	            // Replace e.target.value with direct value parameter
+	            return t.identifier('value');
+	          }
+	          return arg;
+	        });
 
-      // Check if we're inside a .map() context and capture those variables
-      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+	        // If we transformed any args, update the body and param name
+	        if (transformedArgs.some((arg, i) => arg !== args[i])) {
+	          body = t.callExpression(body.callee, transformedArgs);
+	          params = [t.identifier('value')];
+	        }
+	      }
 
-      // Handle parameter destructuring
-      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
-      const hasDestructuring = params.some(p => t$d.isObjectPattern(p));
-      let processedBody = body;
-      let processedParams = params;
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
 
-      if (hasDestructuring && params.length === 1 && t$d.isObjectPattern(params[0])) {
-        // Extract destructured properties
-        const destructuringStatements = [];
-        const eventParam = t$d.identifier('e');
+	      // Handle parameter destructuring
+	      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
+	      const hasDestructuring = params.some(p => t.isObjectPattern(p));
+	      let processedBody = body;
+	      let processedParams = params;
 
-        function extractDestructured(pattern, path = []) {
-          if (t$d.isObjectPattern(pattern)) {
-            for (const prop of pattern.properties) {
-              if (t$d.isObjectProperty(prop)) {
-                const key = t$d.isIdentifier(prop.key) ? prop.key.name : null;
-                if (key && t$d.isIdentifier(prop.value)) {
-                  // Simple: { value } or { target: { value } }
-                  const varName = prop.value.name;
-                  const accessPath = [...path, key];
-                  destructuringStatements.push({ varName, accessPath });
-                } else if (key && t$d.isObjectPattern(prop.value)) {
-                  // Nested: { target: { value } }
-                  extractDestructured(prop.value, [...path, key]);
-                }
-              }
-            }
-          }
-        }
+	      if (hasDestructuring && params.length === 1 && t.isObjectPattern(params[0])) {
+	        // Extract destructured properties
+	        const destructuringStatements = [];
+	        const eventParam = t.identifier('e');
 
-        extractDestructured(params[0]);
-        processedParams = [eventParam];
+	        function extractDestructured(pattern, path = []) {
+	          if (t.isObjectPattern(pattern)) {
+	            for (const prop of pattern.properties) {
+	              if (t.isObjectProperty(prop)) {
+	                const key = t.isIdentifier(prop.key) ? prop.key.name : null;
+	                if (key && t.isIdentifier(prop.value)) {
+	                  // Simple: { value } or { target: { value } }
+	                  const varName = prop.value.name;
+	                  const accessPath = [...path, key];
+	                  destructuringStatements.push({ varName, accessPath });
+	                } else if (key && t.isObjectPattern(prop.value)) {
+	                  // Nested: { target: { value } }
+	                  extractDestructured(prop.value, [...path, key]);
+	                }
+	              }
+	            }
+	          }
+	        }
 
-        // Prepend destructuring assignments to body
-        if (destructuringStatements.length > 0) {
-          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
-            // Build e.Target.Value access chain
-            let access = eventParam;
-            for (const key of accessPath) {
-              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-              access = t$d.memberExpression(access, t$d.identifier(capitalizedKey));
-            }
-            return t$d.variableDeclaration('var', [
-              t$d.variableDeclarator(t$d.identifier(varName), access)
-            ]);
-          });
+	        extractDestructured(params[0]);
+	        processedParams = [eventParam];
 
-          // Wrap body in block statement with destructuring
-          if (t$d.isBlockStatement(body)) {
-            processedBody = t$d.blockStatement([...assignments, ...body.body]);
-          } else {
-            processedBody = t$d.blockStatement([...assignments, t$d.expressionStatement(body)]);
-          }
-        }
-      }
+	        // Prepend destructuring assignments to body
+	        if (destructuringStatements.length > 0) {
+	          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
+	            // Build e.Target.Value access chain
+	            let access = eventParam;
+	            for (const key of accessPath) {
+	              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+	              access = t.memberExpression(access, t.identifier(capitalizedKey));
+	            }
+	            return t.variableDeclaration('var', [
+	              t.variableDeclarator(t.identifier(varName), access)
+	            ]);
+	          });
 
-      component.eventHandlers.push({
-        name: handlerName,
-        body: processedBody,
-        params: processedParams,
-        capturedParams: capturedParams,  // e.g., ['item', 'index']
-        isAsync: isAsync  // Track if handler is async
-      });
+	          // Wrap body in block statement with destructuring
+	          if (t.isBlockStatement(body)) {
+	            processedBody = t.blockStatement([...assignments, ...body.body]);
+	          } else {
+	            processedBody = t.blockStatement([...assignments, t.expressionStatement(body)]);
+	          }
+	        }
+	      }
 
-      // Return handler registration string
-      // If there are captured params, append them as colon-separated interpolations
-      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-      if (capturedParams.length > 0) {
-        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-        return `${handlerName}:${capturedRefs}`;
-      }
+	      component.eventHandlers.push({
+	        name: handlerName,
+	        body: processedBody,
+	        params: processedParams,
+	        capturedParams: capturedParams,  // e.g., ['item', 'index']
+	        isAsync: isAsync  // Track if handler is async
+	      });
 
-      return handlerName;
-    }
+	      // Return handler registration string
+	      // If there are captured params, append them as colon-separated interpolations
+	      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	      if (capturedParams.length > 0) {
+	        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	        return `${handlerName}:${capturedRefs}`;
+	      }
 
-    if (t$d.isIdentifier(expr)) {
-      return expr.name;
-    }
+	      return handlerName;
+	    }
 
-    if (t$d.isCallExpression(expr)) {
-      // () => someMethod() - extract
-      const handlerName = `Handle${component.eventHandlers.length}`;
+	    if (t.isIdentifier(expr)) {
+	      return expr.name;
+	    }
 
-      // Check if we're inside a .map() context and capture those variables
-      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+	    if (t.isCallExpression(expr)) {
+	      // () => someMethod() - extract
+	      const handlerName = `Handle${component.eventHandlers.length}`;
 
-      component.eventHandlers.push({
-        name: handlerName,
-        body: expr,
-        capturedParams: capturedParams  // e.g., ['item', 'index']
-      });
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
 
-      // Return handler registration string
-      // If there are captured params, append them as colon-separated interpolations
-      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-      if (capturedParams.length > 0) {
-        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-        return `${handlerName}:${capturedRefs}`;
-      }
+	      component.eventHandlers.push({
+	        name: handlerName,
+	        body: expr,
+	        capturedParams: capturedParams  // e.g., ['item', 'index']
+	      });
 
-      return handlerName;
-    }
-  }
+	      // Return handler registration string
+	      // If there are captured params, append them as colon-separated interpolations
+	      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	      if (capturedParams.length > 0) {
+	        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	        return `${handlerName}:${capturedRefs}`;
+	      }
 
-  return 'UnknownHandler';
+	      return handlerName;
+	    }
+	  }
+
+	  return 'UnknownHandler';
+	}
+
+
+
+	eventHandlers = {
+	  extractEventHandler
+	};
+	return eventHandlers;
 }
-
-
-
-var eventHandlers = {
-  extractEventHandler
-};
 
 /**
  * Generate C# code for Plugin elements
@@ -756,7 +764,7 @@ function requireJsx () {
 	const t = globalThis.__BABEL_TYPES__;
 	const { escapeCSharpString } = helpers;
 	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
-	const { extractEventHandler } = eventHandlers;
+	const { extractEventHandler } = requireEventHandlers();
 	// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
 	/**
@@ -902,7 +910,7 @@ function requireJsx () {
 	  // Build VElement construction
 	  if (childrenCode.length === 0) {
 	    return `new VElement("${tagName}", ${propsStr})`;
-	  } else if (childrenCode.length === 1 && childrenCode[0].type === 'text') {
+	  } else if (childrenCode.length === 1 && (childrenCode[0].type === 'text' || childrenCode[0].type === 'mixed')) {
 	    return `new VElement("${tagName}", ${propsStr}, ${childrenCode[0].code})`;
 	  } else {
 	    // Wrap children appropriately for VNode array
@@ -913,6 +921,9 @@ function requireJsx () {
 	      } else if (c.type === 'expression') {
 	        // Expression needs string interpolation wrapper with extra parentheses for complex expressions
 	        return `new VText($"{(${c.code})}")`;
+	      } else if (c.type === 'mixed') {
+	        // Mixed content is already an interpolated string, wrap in VText
+	        return `new VText(${c.code})`;
 	      } else {
 	        // Element is already a VNode
 	        return c.code;
@@ -931,6 +942,8 @@ function requireJsx () {
 	  // Lazy load to avoid circular dependency
 	  const { generateJSXExpression } = requireExpressions();
 
+	  // First pass: collect all children with their types
+	  const childList = [];
 	  for (const child of children) {
 	    // Skip undefined/null children
 	    if (!child) {
@@ -941,17 +954,71 @@ function requireJsx () {
 	    if (t.isJSXText(child)) {
 	      const text = child.value.trim();
 	      if (text) {
-	        result.push({ type: 'text', code: `"${escapeCSharpString(text)}"` });
+	        childList.push({ type: 'text', code: `"${escapeCSharpString(text)}"`, raw: text, node: child });
 	      }
 	    } else if (t.isJSXElement(child)) {
-	      result.push({ type: 'element', code: generateJSXElement(child, component, indent + 1) });
+	      childList.push({ type: 'element', code: generateJSXElement(child, component, indent + 1), node: child });
 	    } else if (t.isJSXExpressionContainer(child)) {
-	      result.push({ type: 'expression', code: generateJSXExpression(child.expression, component, indent) });
+	      const expr = child.expression;
+	      // Skip structural JSX
+	      const isStructural = t.isJSXElement(expr) ||
+	                           t.isJSXFragment(expr) ||
+	                           t.isJSXEmptyExpression(expr) ||
+	                           (t.isLogicalExpression(expr) && (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right))) ||
+	                           (t.isConditionalExpression(expr) &&
+	                            (t.isJSXElement(expr.consequent) || t.isJSXElement(expr.alternate) ||
+	                             t.isJSXFragment(expr.consequent) || t.isJSXFragment(expr.alternate)));
+
+	      if (!isStructural) {
+	        childList.push({ type: 'expression', code: generateJSXExpression(expr, component, indent), node: child });
+	      } else {
+	        childList.push({ type: 'element', code: generateJSXExpression(expr, component, indent), node: child });
+	      }
 	    } else if (t.isJSXFragment(child)) {
-	      result.push({ type: 'element', code: generateFragment(child, component, indent + 1) });
+	      childList.push({ type: 'element', code: generateFragment(child, component, indent + 1), node: child });
 	    } else {
 	      console.warn(`[jsx.cjs] Unknown child type: ${child.type}`);
 	    }
+	  }
+
+	  // Second pass: merge consecutive text/expression children into mixed content
+	  let i = 0;
+	  while (i < childList.length) {
+	    const current = childList[i];
+
+	    // Check if this starts a mixed content sequence (text or expression followed by text or expression)
+	    if ((current.type === 'text' || current.type === 'expression') && i + 1 < childList.length) {
+	      const next = childList[i + 1];
+
+	      if (next.type === 'text' || next.type === 'expression') {
+	        // Found mixed content! Merge consecutive text/expression children
+	        const mixedChildren = [current];
+	        let j = i + 1;
+
+	        while (j < childList.length && (childList[j].type === 'text' || childList[j].type === 'expression')) {
+	          mixedChildren.push(childList[j]);
+	          j++;
+	        }
+
+	        // Build a single interpolated string
+	        let interpolatedCode = '';
+	        for (const child of mixedChildren) {
+	          if (child.type === 'text') {
+	            interpolatedCode += escapeCSharpString(child.raw);
+	          } else {
+	            interpolatedCode += `{(${child.code})}`;
+	          }
+	        }
+
+	        result.push({ type: 'mixed', code: `$"${interpolatedCode}"` });
+	        i = j; // Skip merged children
+	        continue;
+	      }
+	    }
+
+	    // Not mixed content, add as-is
+	    result.push(current);
+	    i++;
 	  }
 
 	  return result;
@@ -1787,6 +1854,15 @@ function requireExpressions () {
 	      return `Console.WriteLine(${args})`;
 	    }
 
+	    // Handle String(value) → value.ToString()
+	    if (t.isIdentifier(node.callee, { name: 'String' })) {
+	      if (node.arguments.length > 0) {
+	        const arg = generateCSharpExpression(node.arguments[0]);
+	        return `(${arg}).ToString()`;
+	      }
+	      return '""';
+	    }
+
 	    // Handle Object.keys() → dictionary.Keys or reflection for objects
 	    if (t.isMemberExpression(node.callee) &&
 	        t.isIdentifier(node.callee.object, { name: 'Object' }) &&
@@ -1854,6 +1930,34 @@ function requireExpressions () {
 	      const object = generateCSharpExpression(node.callee.object);
 	      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
 	      return `${object}.Substring(${args})`;
+	    }
+
+	    // Handle .padStart(length, char) → .PadLeft(length, char)
+	    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'padStart' })) {
+	      const object = generateCSharpExpression(node.callee.object);
+	      const length = node.arguments[0] ? generateCSharpExpression(node.arguments[0]) : '0';
+	      let padChar = node.arguments[1] ? generateCSharpExpression(node.arguments[1]) : '" "';
+
+	      // Convert string literal "0" to char literal '0'
+	      if (t.isStringLiteral(node.arguments[1]) && node.arguments[1].value.length === 1) {
+	        padChar = `'${node.arguments[1].value}'`;
+	      }
+
+	      return `${object}.PadLeft(${length}, ${padChar})`;
+	    }
+
+	    // Handle .padEnd(length, char) → .PadRight(length, char)
+	    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'padEnd' })) {
+	      const object = generateCSharpExpression(node.callee.object);
+	      const length = node.arguments[0] ? generateCSharpExpression(node.arguments[0]) : '0';
+	      let padChar = node.arguments[1] ? generateCSharpExpression(node.arguments[1]) : '" "';
+
+	      // Convert string literal "0" to char literal '0'
+	      if (t.isStringLiteral(node.arguments[1]) && node.arguments[1].value.length === 1) {
+	        padChar = `'${node.arguments[1].value}'`;
+	      }
+
+	      return `${object}.PadRight(${length}, ${padChar})`;
 	    }
 
 	    // Handle useState/useClientState setters → SetState calls
@@ -4244,6 +4348,28 @@ function extractTemplates$1(renderBody, component) {
       for (const child of node.children) {
         if (t$8.isJSXElement(child)) {
           traverseJSX(child, currentPath, childSiblingCounts);
+        } else if (t$8.isJSXExpressionContainer(child)) {
+          const expr = child.expression;
+
+          // Traverse conditional JSX branches to extract templates from their content
+          // This handles: {condition && <div>...</div>} and {condition ? <A/> : <B/>}
+          if (t$8.isLogicalExpression(expr) && expr.operator === '&&') {
+            // Logical AND: {isAdmin && <div>Admin Panel</div>}
+            if (t$8.isJSXElement(expr.right)) {
+              console.log(`[Template Extractor] Traversing conditional branch (&&) in <${tagName}>`);
+              traverseJSX(expr.right, currentPath, childSiblingCounts);
+            }
+          } else if (t$8.isConditionalExpression(expr)) {
+            // Ternary: {isAdmin ? <AdminPanel/> : <UserPanel/>}
+            if (t$8.isJSXElement(expr.consequent)) {
+              console.log(`[Template Extractor] Traversing conditional branch (? consequent) in <${tagName}>`);
+              traverseJSX(expr.consequent, currentPath, childSiblingCounts);
+            }
+            if (t$8.isJSXElement(expr.alternate)) {
+              console.log(`[Template Extractor] Traversing conditional branch (? alternate) in <${tagName}>`);
+              traverseJSX(expr.alternate, currentPath, childSiblingCounts);
+            }
+          }
         }
       }
     } else if (t$8.isJSXFragment(node)) {
@@ -4647,43 +4773,185 @@ function extractTemplates$1(renderBody, component) {
 
 /**
  * Extract templates for attributes (props)
- * Example: <div className={`count-${count}`} />
+ * Supports:
+ * - Template literals: className={`count-${count}`}
+ * - Style objects: style={{ fontSize: '32px', color: isActive ? 'red' : 'blue' }}
+ * - Static string attributes: className="btn-primary"
  */
 function extractAttributeTemplates$1(renderBody, component) {
   const templates = {};
 
-  function traverseJSX(node, parentPath = []) {
+  // Track sibling counts for proper path generation
+  function traverseJSX(node, parentPath = [], siblingCounts = {}) {
     if (t$8.isJSXElement(node)) {
       const tagName = node.openingElement.name.name;
-      const currentPath = [...parentPath, 0]; // Simplified
+
+      // Track sibling indices properly (same as text templates)
+      if (!siblingCounts[tagName]) {
+        siblingCounts[tagName] = 0;
+      }
+      const elementIndex = siblingCounts[tagName]++;
+      const currentPath = [...parentPath, elementIndex];
 
       // Check attributes for template expressions
       for (const attr of node.openingElement.attributes) {
-        if (t$8.isJSXAttribute(attr) && t$8.isJSXExpressionContainer(attr.value)) {
-          const expr = attr.value.expression;
+        if (t$8.isJSXAttribute(attr)) {
+          const attrName = attr.name.name;
+          const attrValue = attr.value;
 
-          // Template literal: className={`count-${count}`}
-          if (t$8.isTemplateLiteral(expr)) {
-            const template = extractTemplateLiteralShared(expr);
+          // 1. Template literal: className={`count-${count}`}
+          if (t$8.isJSXExpressionContainer(attrValue) && t$8.isTemplateLiteral(attrValue.expression)) {
+            const template = extractTemplateLiteralShared(attrValue.expression);
             if (template) {
-              const attrPath = `${tagName}[${currentPath.join(',')}].@${attr.name.name}`;
+              const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, attrName);
+              console.log(`[Attribute Template] Found template literal in ${attrName}: "${template.template}" (path: ${attrPath})`);
               templates[attrPath] = {
                 ...template,
                 path: currentPath,
-                attribute: attr.name.name
+                attribute: attrName,
+                type: template.bindings.length > 0 ? 'attribute-dynamic' : 'attribute-static'
+              };
+            }
+          }
+          // 2. Style object: style={{ fontSize: '32px', opacity: isVisible ? 1 : 0.5 }}
+          else if (attrName === 'style' && t$8.isJSXExpressionContainer(attrValue) && t$8.isObjectExpression(attrValue.expression)) {
+            const styleTemplate = extractStyleObjectTemplate(attrValue.expression, tagName, elementIndex, parentPath, currentPath);
+            if (styleTemplate) {
+              const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, 'style');
+              console.log(`[Attribute Template] Found style object: "${styleTemplate.template.substring(0, 60)}..." (path: ${attrPath})`);
+              templates[attrPath] = styleTemplate;
+            }
+          }
+          // 3. Static string attribute: className="btn-primary", placeholder="Enter name"
+          else if (t$8.isStringLiteral(attrValue)) {
+            const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, attrName);
+            console.log(`[Attribute Template] Found static attribute ${attrName}: "${attrValue.value}" (path: ${attrPath})`);
+            templates[attrPath] = {
+              template: attrValue.value,
+              bindings: [],
+              slots: [],
+              path: currentPath,
+              attribute: attrName,
+              type: 'attribute-static'
+            };
+          }
+          // 4. Simple expression (for future dynamic attribute support)
+          else if (t$8.isJSXExpressionContainer(attrValue)) {
+            const expr = attrValue.expression;
+            // Check if it's a simple binding (identifier or member expression)
+            if (t$8.isIdentifier(expr) || t$8.isMemberExpression(expr)) {
+              const binding = t$8.isIdentifier(expr) ? expr.name : buildMemberPathShared(expr);
+              const attrPath = buildAttributePathKey(tagName, elementIndex, parentPath, attrName);
+              console.log(`[Attribute Template] Found dynamic attribute ${attrName}: binding="${binding}" (path: ${attrPath})`);
+              templates[attrPath] = {
+                template: '{0}',
+                bindings: [binding],
+                slots: [0],
+                path: currentPath,
+                attribute: attrName,
+                type: 'attribute-dynamic'
               };
             }
           }
         }
       }
 
-      // Traverse children
+      // Traverse children with fresh sibling counts
+      const childSiblingCounts = {};
       for (const child of node.children) {
         if (t$8.isJSXElement(child)) {
-          traverseJSX(child, currentPath);
+          traverseJSX(child, currentPath, childSiblingCounts);
         }
       }
     }
+  }
+
+  /**
+   * Build attribute path key
+   * Example: div[0].@style or div[1].@className
+   */
+  function buildAttributePathKey(tagName, index, parentPath, attrName) {
+    const parentKeys = [];
+    for (let i = 0; i < parentPath.length; i++) {
+      parentKeys.push(`[${parentPath[i]}]`);
+    }
+    return `${parentKeys.join('.')}.${tagName}[${index}].@${attrName}`.replace(/^\./, '');
+  }
+
+  /**
+   * Extract template from style object
+   * Handles: { fontSize: '32px', opacity: isVisible ? 1 : 0.5 }
+   */
+  function extractStyleObjectTemplate(objectExpr, tagName, elementIndex, parentPath, currentPath, component) {
+    requireStyleConverter();
+
+    let hasBindings = false;
+    const cssProperties = [];
+    const bindings = [];
+    const slots = [];
+    let slotIndex = 0;
+
+    // Check each property for dynamic values
+    for (const prop of objectExpr.properties) {
+      if (t$8.isObjectProperty(prop) && !prop.computed) {
+        const key = t$8.isIdentifier(prop.key) ? prop.key.name : String(prop.key.value);
+        const cssKey = camelToKebabShared(key);
+        const value = prop.value;
+
+        // Check if value is dynamic (expression, conditional, etc.)
+        if (t$8.isConditionalExpression(value) || t$8.isIdentifier(value) || t$8.isMemberExpression(value)) {
+          // Dynamic value - extract binding
+          hasBindings = true;
+          const binding = extractBindingShared(value);
+          if (binding) {
+            bindings.push(typeof binding === 'object' ? binding.binding || binding.conditional : binding);
+            cssProperties.push(`${cssKey}: {${slotIndex}}`);
+            slots.push(cssProperties.join('; ').lastIndexOf('{'));
+            slotIndex++;
+          } else {
+            // Complex expression - fall back to static
+            const cssValue = convertStyleValueShared(value);
+            cssProperties.push(`${cssKey}: ${cssValue}`);
+          }
+        } else {
+          // Static value
+          const cssValue = convertStyleValueShared(value);
+          cssProperties.push(`${cssKey}: ${cssValue}`);
+        }
+      }
+    }
+
+    const cssString = cssProperties.join('; ');
+
+    return {
+      template: cssString,
+      bindings: bindings,
+      slots: slots,
+      path: currentPath,
+      attribute: 'style',
+      type: hasBindings ? 'attribute-dynamic' : 'attribute-static'
+    };
+  }
+
+  /**
+   * Convert camelCase to kebab-case (shared helper)
+   */
+  function camelToKebabShared(str) {
+    return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+  }
+
+  /**
+   * Convert style value to CSS string (shared helper)
+   */
+  function convertStyleValueShared(value) {
+    if (t$8.isStringLiteral(value)) {
+      return value.value;
+    } else if (t$8.isNumericLiteral(value)) {
+      return `${value.value}px`;
+    } else if (t$8.isIdentifier(value)) {
+      return value.name;
+    }
+    return String(value);
   }
 
   if (renderBody) {

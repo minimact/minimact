@@ -103,7 +103,10 @@ export type Patch =
   | { type: 'UpdateTextTemplate'; path: number[]; templatePatch: TemplatePatch }
   | { type: 'UpdatePropsTemplate'; path: number[]; propName: string; templatePatch: TemplatePatch }
   // Loop template patch for array rendering (.map patterns)
-  | { type: 'UpdateListTemplate'; path: number[]; loopTemplate: LoopTemplate };
+  | { type: 'UpdateListTemplate'; path: number[]; loopTemplate: LoopTemplate }
+  // Attribute template patches for static and dynamic attributes (className, style, etc.)
+  | { type: 'UpdateAttributeStatic'; path: number[]; attrName: string; value: string }
+  | { type: 'UpdateAttributeDynamic'; path: number[]; attrName: string; templatePatch: TemplatePatch };
 
 export interface ComponentState {
   [key: string]: any;

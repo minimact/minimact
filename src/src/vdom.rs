@@ -191,6 +191,23 @@ pub enum Patch {
         #[serde(rename = "structuralTemplate")]
         structural_template: StructuralTemplate,
     },
+    /// Update attribute with static value (extracted from className="static", style={...}, etc.)
+    /// Enables hot reload for static attributes without re-compilation
+    UpdateAttributeStatic {
+        path: Vec<usize>,
+        #[serde(rename = "attrName")]
+        attr_name: String,
+        value: String,
+    },
+    /// Update attribute using template (extracted from className={var}, className={`text-${size}`}, etc.)
+    /// Enables predictive rendering for dynamic attributes with 100% coverage
+    UpdateAttributeDynamic {
+        path: Vec<usize>,
+        #[serde(rename = "attrName")]
+        attr_name: String,
+        #[serde(rename = "templatePatch")]
+        template_patch: TemplatePatch,
+    },
 }
 
 impl VNode {
@@ -310,6 +327,75 @@ impl StateXProjection {
     }
 }
 
+/// Template metadata extracted by Babel plugin
+/// Describes a single template (text, attribute, etc.) for hot reload and prediction
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemplateInfo {
+    /// Template string with {0}, {1} placeholders
+    pub template: String,
+    /// State bindings (e.g., ["count", "isActive"])
+    pub bindings: Vec<String>,
+    /// Slot positions in template string
+    pub slots: Vec<usize>,
+    /// Path to the node in the VNode tree
+    pub path: Vec<usize>,
+    /// Template type: "static", "dynamic", "conditional", "attribute-static", "attribute-dynamic", etc.
+    #[serde(rename = "type")]
+    pub template_type: String,
+    /// For attribute templates: the attribute name (e.g., "className", "style")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attribute: Option<String>,
+    /// For conditional templates: map of condition values to template strings
+    #[serde(rename = "conditionalTemplates", skip_serializing_if = "Option::is_none")]
+    pub conditional_templates: Option<HashMap<String, String>>,
+    /// For transform templates: transform metadata
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transform: Option<TransformInfo>,
+    /// For nullable templates: whether the binding can be null/undefined
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nullable: Option<bool>,
+}
+
+/// Transform metadata for templates with method calls (e.g., toFixed(2))
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransformInfo {
+    /// Transform method name (e.g., "toFixed")
+    pub method: String,
+    /// Transform arguments (e.g., [2] for toFixed(2))
+    #[serde(default)]
+    pub args: Vec<serde_json::Value>,
+}
+
+impl TemplateInfo {
+    /// Check if this is an attribute template
+    pub fn is_attribute_template(&self) -> bool {
+        self.template_type == "attribute-static" || self.template_type == "attribute-dynamic"
+    }
+
+    /// Check if this is a text template
+    pub fn is_text_template(&self) -> bool {
+        matches!(self.template_type.as_str(), "static" | "dynamic" | "conditional" | "transform" | "nullable")
+    }
+
+    /// Get the attribute name if this is an attribute template
+    /// Returns None if this is not an attribute template
+    pub fn get_attribute_name(&self) -> Option<&str> {
+        self.attribute.as_deref()
+    }
+
+    /// Create a TemplatePatch from this TemplateInfo
+    pub fn to_template_patch(&self) -> TemplatePatch {
+        TemplatePatch {
+            template: self.template.clone(),
+            bindings: self.bindings.clone(),
+            bindings_with_transforms: None, // TODO: Map transform to Binding struct
+            slots: self.slots.clone(),
+            conditional_templates: self.conditional_templates.clone(),
+            conditional_binding_index: None, // TODO: Detect from bindings
+        }
+    }
+}
+
 /// Component metadata from Babel plugin
 /// Contains compile-time generated loop templates for predictive rendering
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -325,6 +411,10 @@ pub struct ComponentMetadata {
     /// Enables "CSS for State Logic" with 100% template coverage
     #[serde(default)]
     pub state_x_projections: Vec<StateXProjection>,
+    /// All templates (text, attribute, etc.) keyed by path
+    /// Maps path string (e.g., "[0].h1[0].text[0]", "[0].button[0].@style") to template info
+    #[serde(default)]
+    pub templates: HashMap<String, TemplateInfo>,
 }
 
 impl ComponentMetadata {
@@ -335,6 +425,7 @@ impl ComponentMetadata {
             component_name: component_name.into(),
             loop_templates: HashMap::new(),
             state_x_projections: Vec::new(),
+            templates: HashMap::new(),
         }
     }
 
@@ -370,6 +461,24 @@ impl ComponentMetadata {
     /// Check if there are any StateX projections for a state key
     pub fn has_state_x_projections(&self, state_key: &str) -> bool {
         self.state_x_projections.iter().any(|p| p.state_key == state_key)
+    }
+
+    /// Find all templates that reference a specific state key
+    pub fn get_templates_for_state(&self, state_key: &str) -> Vec<(&String, &TemplateInfo)> {
+        self.templates
+            .iter()
+            .filter(|(_, template)| template.bindings.contains(&state_key.to_string()))
+            .collect()
+    }
+
+    /// Add a template
+    pub fn add_template(&mut self, path_key: impl Into<String>, template: TemplateInfo) {
+        self.templates.insert(path_key.into(), template);
+    }
+
+    /// Get a template by path key
+    pub fn get_template(&self, path_key: &str) -> Option<&TemplateInfo> {
+        self.templates.get(path_key)
     }
 }
 

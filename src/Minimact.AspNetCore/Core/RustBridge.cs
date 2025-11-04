@@ -52,6 +52,14 @@ public static class RustBridge
     );
 
     [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr minimact_predictor_predict_with_metadata(
+        IntPtr predictor,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string state_change_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string current_tree_json,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string metadata_json
+    );
+
+    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr minimact_predictor_predict_hint(
         IntPtr predictor,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string hint_id,
@@ -181,6 +189,36 @@ public static class RustBridge
             var treeJson = JsonConvert.SerializeObject(currentTree);
 
             var resultPtr = minimact_predictor_predict(_handle, stateJson, treeJson);
+            var resultJson = MarshalAndFreeString(resultPtr);
+
+            if (string.IsNullOrEmpty(resultJson))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<Prediction>(resultJson);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Predict patches for a state change with Babel-extracted template metadata
+        /// Prioritizes build-time templates over runtime learned patterns for 100% coverage
+        /// </summary>
+        public Prediction? PredictWithMetadata(StateChange stateChange, VNode currentTree, ComponentMetadata metadata)
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(Predictor));
+
+            var stateJson = JsonConvert.SerializeObject(stateChange);
+            var treeJson = JsonConvert.SerializeObject(currentTree);
+            var metadataJson = JsonConvert.SerializeObject(metadata);
+
+            var resultPtr = minimact_predictor_predict_with_metadata(_handle, stateJson, treeJson, metadataJson);
             var resultJson = MarshalAndFreeString(resultPtr);
 
             if (string.IsNullOrEmpty(resultJson))
