@@ -12,6 +12,7 @@
  */
 
 const { createJSXElement, createStaticText } = require('./nodes');
+const { processChildren: processChildrenHelper } = require('../processors/children');
 const { isStructuralExpression: isStructuralExpressionHelper } = require('../processors/jsx');
 
 /**
