@@ -325,6 +325,32 @@ public class TemplateHotReloadManager : IDisposable
 
         var template = change.NewTemplate;
 
+        // Get component's current VNode for path adjustment
+        var component = _registry.GetComponent(componentId);
+        if (component?.CurrentVNode == null)
+        {
+            _logger.LogWarning(
+                "[Minimact Templates] Cannot adjust path for {ComponentId} - no CurrentVNode available",
+                componentId);
+
+            // Fall back to unadjusted path (may break with conditionals)
+            return CreatePatchWithUnadjustedPath(template, componentId, currentState);
+        }
+
+        // Adjust VNode path to DOM path
+        List<int> domPath;
+        try
+        {
+            domPath = PatchPathAdjuster.VNodePathToDomPath(template.Path.ToArray(), component.CurrentVNode).ToList();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogDebug(ex,
+                "[Minimact Templates] Failed to adjust path for {ComponentId} - element may not be visible",
+                componentId);
+            return null; // Skip this patch - element not in DOM
+        }
+
         // Get parameter values from current state
         var params_ = template.Bindings
             .Select(binding => currentState.TryGetValue(binding, out var value) ? value : null)
@@ -346,7 +372,7 @@ public class TemplateHotReloadManager : IDisposable
         {
             Type = patchType,
             ComponentId = componentId,
-            Path = template.Path,
+            Path = domPath,  // ✅ DOM-adjusted path!
             Template = template.TemplateString,
             Params = params_,
             Bindings = template.Bindings,
@@ -360,6 +386,51 @@ public class TemplateHotReloadManager : IDisposable
         {
             patch.AttrName = template.Attribute;
             patch.Value = template.TemplateString; // Static value (no params to substitute)
+        }
+
+        return patch;
+    }
+
+    /// <summary>
+    /// Create patch with unadjusted path (fallback when CurrentVNode not available)
+    /// </summary>
+    private TemplatePatch CreatePatchWithUnadjustedPath(
+        Template template,
+        string componentId,
+        Dictionary<string, object> currentState)
+    {
+        var params_ = template.Bindings
+            .Select(binding => currentState.TryGetValue(binding, out var value) ? value : null)
+            .ToList();
+
+        var patchType = template.Type switch
+        {
+            "static" => "UpdateTextTemplate",
+            "dynamic" => "UpdateTextTemplate",
+            "attribute-static" => "UpdateAttributeStatic",
+            "attribute-dynamic" => "UpdatePropTemplate",
+            "attribute" => "UpdatePropTemplate",
+            "loop" => "UpdateListTemplate",
+            _ => template.Attribute != null ? "UpdatePropTemplate" : "UpdateTextTemplate"
+        };
+
+        var patch = new TemplatePatch
+        {
+            Type = patchType,
+            ComponentId = componentId,
+            Path = template.Path, // Unadjusted VNode path
+            Template = template.TemplateString,
+            Params = params_,
+            Bindings = template.Bindings,
+            Slots = template.Slots,
+            Attribute = template.Attribute,
+            LoopTemplate = template.LoopTemplate
+        };
+
+        if (patchType == "UpdateAttributeStatic" && template.Attribute != null)
+        {
+            patch.AttrName = template.Attribute;
+            patch.Value = template.TemplateString;
         }
 
         return patch;

@@ -302,16 +302,24 @@ public class VNodeConverter : JsonConverter
                 {
                     foreach (var childToken in childrenArray)
                     {
-                        var childObj = childToken as Newtonsoft.Json.Linq.JObject;
-                        if (childObj != null)
+                        // Check if the token is null (for conditional rendering)
+                        if (childToken.Type == Newtonsoft.Json.Linq.JTokenType.Null)
                         {
-                            // Recursively deserialize child VNodes - they'll use this converter
-                            using (var childReader = childObj.CreateReader())
+                            children.Add(null!); // Preserve null for conditional rendering
+                        }
+                        else
+                        {
+                            var childObj = childToken as Newtonsoft.Json.Linq.JObject;
+                            if (childObj != null)
                             {
-                                var child = serializer.Deserialize<VNode>(childReader);
-                                if (child != null)
+                                // Recursively deserialize child VNodes - they'll use this converter
+                                using (var childReader = childObj.CreateReader())
                                 {
-                                    children.Add(child);
+                                    var child = serializer.Deserialize<VNode>(childReader);
+                                    if (child != null)
+                                    {
+                                        children.Add(child);
+                                    }
                                 }
                             }
                         }
@@ -338,15 +346,23 @@ public class VNodeConverter : JsonConverter
                 {
                     foreach (var childToken in fragChildrenArray)
                     {
-                        var childObj = childToken as Newtonsoft.Json.Linq.JObject;
-                        if (childObj != null)
+                        // Check if the token is null (for conditional rendering)
+                        if (childToken.Type == Newtonsoft.Json.Linq.JTokenType.Null)
                         {
-                            using (var childReader = childObj.CreateReader())
+                            fragChildren.Add(null!); // Preserve null for conditional rendering
+                        }
+                        else
+                        {
+                            var childObj = childToken as Newtonsoft.Json.Linq.JObject;
+                            if (childObj != null)
                             {
-                                var child = serializer.Deserialize<VNode>(childReader);
-                                if (child != null)
+                                using (var childReader = childObj.CreateReader())
                                 {
-                                    fragChildren.Add(child);
+                                    var child = serializer.Deserialize<VNode>(childReader);
+                                    if (child != null)
+                                    {
+                                        fragChildren.Add(child);
+                                    }
                                 }
                             }
                         }
@@ -376,7 +392,20 @@ public class VNodeConverter : JsonConverter
             writer.WritePropertyName("props");
             serializer.Serialize(writer, element.Props);
             writer.WritePropertyName("children");
-            serializer.Serialize(writer, element.Children);
+            // Manually serialize children to preserve nulls
+            writer.WriteStartArray();
+            foreach (var child in element.Children)
+            {
+                if (child == null)
+                {
+                    writer.WriteNull();
+                }
+                else
+                {
+                    serializer.Serialize(writer, child);
+                }
+            }
+            writer.WriteEndArray();
             if (element.Key != null)
             {
                 writer.WritePropertyName("key");
@@ -399,7 +428,20 @@ public class VNodeConverter : JsonConverter
             writer.WritePropertyName("type");
             writer.WriteValue("Fragment");
             writer.WritePropertyName("children");
-            serializer.Serialize(writer, fragment.Children);
+            // Manually serialize children to preserve nulls
+            writer.WriteStartArray();
+            foreach (var child in fragment.Children)
+            {
+                if (child == null)
+                {
+                    writer.WriteNull();
+                }
+                else
+                {
+                    serializer.Serialize(writer, child);
+                }
+            }
+            writer.WriteEndArray();
             writer.WriteEndObject();
         }
         else if (value is DivRawHtml rawHtml)

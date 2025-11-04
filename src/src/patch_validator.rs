@@ -120,11 +120,11 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
                     });
                 }
 
-                // Verify all keys in order exist in children
+                // Verify all keys in order exist in children (skip nulls)
                 let existing_keys: std::collections::HashSet<String> = node
                     .children()
                     .iter()
-                    .filter_map(|c| c.key().map(String::from))
+                    .filter_map(|opt_c| opt_c.as_ref().and_then(|c| c.key().map(String::from)))
                     .collect();
 
                 for key in order {
@@ -374,7 +374,15 @@ fn get_node_at_path<'a>(tree: &'a VNode, path: &[usize]) -> Result<&'a VNode> {
                         path: path[..=depth].to_vec(),
                     });
                 }
-                current = &element.children[index];
+                // Navigate through the child (which may be None)
+                if let Some(child) = &element.children[index] {
+                    current = child;
+                } else {
+                    // Path points to a null child (conditional rendering)
+                    return Err(MinimactError::InvalidPatchPath {
+                        path: path[..=depth].to_vec(),
+                    });
+                }
             }
             VNode::Text(_) => {
                 return Err(MinimactError::InvalidPatchPath {

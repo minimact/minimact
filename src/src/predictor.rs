@@ -979,25 +979,28 @@ impl Predictor {
         // Extract children templates
         let mut children_templates = Vec::new();
 
-        for child in &element.children {
-            match child {
-                VNode::Text(text_node) => {
-                    if let Some(text_template) = self.extract_text_item_template(
-                        &text_node.content,
-                        array_items
-                    ) {
-                        children_templates.push(text_template);
+        for opt_child in &element.children {
+            if let Some(child) = opt_child {
+                match child {
+                    VNode::Text(text_node) => {
+                        if let Some(text_template) = self.extract_text_item_template(
+                            &text_node.content,
+                            array_items
+                        ) {
+                            children_templates.push(text_template);
+                        }
                     }
-                }
-                VNode::Element(child_element) => {
-                    if let Some(element_template) = self.extract_element_item_template(
-                        child_element,
-                        array_items
-                    ) {
-                        children_templates.push(element_template);
+                    VNode::Element(child_element) => {
+                        if let Some(element_template) = self.extract_element_item_template(
+                            child_element,
+                            array_items
+                        ) {
+                            children_templates.push(element_template);
+                        }
                     }
                 }
             }
+            // Skip null children
         }
 
         // Extract key binding if element has key
@@ -1132,13 +1135,15 @@ impl Predictor {
                     return Some((path.clone(), element));
                 }
 
-                // Recursively search children
-                for (i, child) in element.children.iter().enumerate() {
-                    path.push(i);
-                    if let Some(result) = self.find_element_by_selector(child, selector, path) {
-                        return Some(result);
+                // Recursively search children (skip nulls)
+                for (i, opt_child) in element.children.iter().enumerate() {
+                    if let Some(child) = opt_child {
+                        path.push(i);
+                        if let Some(result) = self.find_element_by_selector(child, selector, path) {
+                            return Some(result);
+                        }
+                        path.pop();
                     }
-                    path.pop();
                 }
 
                 None
@@ -1694,11 +1699,13 @@ impl Predictor {
                 }
             }
             VNode::Element(element) => {
-                // Recursively check children
-                for (i, child) in element.children.iter().enumerate() {
-                    path.push(i);
-                    Self::find_text_patches_recursive(child, old_text, new_text, path, patches);
-                    path.pop();
+                // Recursively check children (skip nulls)
+                for (i, opt_child) in element.children.iter().enumerate() {
+                    if let Some(child) = opt_child {
+                        path.push(i);
+                        Self::find_text_patches_recursive(child, old_text, new_text, path, patches);
+                        path.pop();
+                    }
                 }
             }
         }

@@ -14,7 +14,10 @@ pub enum VNode {
 pub struct VElement {
     pub tag: String,
     pub props: HashMap<String, String>,
-    pub children: Vec<VNode>,
+    /// Children can be null (for conditional rendering with false conditions)
+    /// This preserves VNode indices so paths match the original JSX structure
+    /// Example: [<h1/>, null, <p/>] where null represents {false && <div>}
+    pub children: Vec<Option<VNode>>,
     /// Optional key for reconciliation optimization
     pub key: Option<String>,
 }
@@ -212,7 +215,7 @@ pub enum Patch {
 
 impl VNode {
     /// Create a new element node
-    pub fn element(tag: impl Into<String>, props: HashMap<String, String>, children: Vec<VNode>) -> Self {
+    pub fn element(tag: impl Into<String>, props: HashMap<String, String>, children: Vec<Option<VNode>>) -> Self {
         VNode::Element(VElement {
             tag: tag.into(),
             props,
@@ -226,7 +229,7 @@ impl VNode {
         tag: impl Into<String>,
         key: impl Into<String>,
         props: HashMap<String, String>,
-        children: Vec<VNode>,
+        children: Vec<Option<VNode>>,
     ) -> Self {
         VNode::Element(VElement {
             tag: tag.into(),
@@ -270,17 +273,25 @@ impl VNode {
     }
 
     /// Get the children of this node (empty vec for text nodes)
-    pub fn children(&self) -> &[VNode] {
+    pub fn children(&self) -> &[Option<VNode>] {
         match self {
             VNode::Element(el) => &el.children,
             VNode::Text(_) => &[],
         }
     }
 
-    /// Get the number of children
+    /// Get the number of children (including nulls)
     pub fn children_count(&self) -> usize {
         match self {
             VNode::Element(el) => el.children.len(),
+            VNode::Text(_) => 0,
+        }
+    }
+
+    /// Get the number of non-null children (for DOM node count)
+    pub fn non_null_children_count(&self) -> usize {
+        match self {
+            VNode::Element(el) => el.children.iter().filter(|c| c.is_some()).count(),
             VNode::Text(_) => 0,
         }
     }
@@ -492,7 +503,7 @@ mod tests {
         props.insert("class".to_string(), "container".to_string());
 
         let node = VNode::element("div", props, vec![
-            VNode::text("Hello, world!")
+            Some(VNode::text("Hello, world!"))
         ]);
 
         match node {

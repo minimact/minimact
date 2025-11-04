@@ -60,8 +60,10 @@ impl VNode {
 
         match self {
             VNode::Element(el) => {
-                for child in &el.children {
-                    child.validate_depth(current_depth + 1, config)?;
+                for opt_child in &el.children {
+                    if let Some(child) = opt_child {
+                        child.validate_depth(current_depth + 1, config)?;
+                    }
                 }
             }
             VNode::Text(_) => {}
@@ -82,12 +84,14 @@ impl VNode {
         Ok(())
     }
 
-    /// Count total nodes in tree
+    /// Count total nodes in tree (including nulls as placeholders)
     pub fn count_nodes(&self) -> usize {
         match self {
             VNode::Text(_) => 1,
             VNode::Element(el) => {
-                1 + el.children.iter().map(|c| c.count_nodes()).sum::<usize>()
+                1 + el.children.iter()
+                    .map(|opt_c| opt_c.as_ref().map_or(0, |c| c.count_nodes()))
+                    .sum::<usize>()
             }
         }
     }
@@ -130,9 +134,11 @@ impl VNode {
                     }
                 }
 
-                // Recursively validate children
-                for child in &el.children {
-                    child.validate_content_sizes(config)?;
+                // Recursively validate children (skip nulls)
+                for opt_child in &el.children {
+                    if let Some(child) = opt_child {
+                        child.validate_content_sizes(config)?;
+                    }
                 }
             }
         }
@@ -154,7 +160,7 @@ impl VNode {
                     .map(|(k, v)| k.capacity() + v.capacity())
                     .sum();
                 let children: usize = el.children.iter()
-                    .map(|c| c.estimate_size())
+                    .map(|opt_c| opt_c.as_ref().map_or(0, |c| c.estimate_size()))
                     .sum();
 
                 base + tag + key + props + children

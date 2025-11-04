@@ -5,6 +5,14 @@
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Allow test project to access internal members -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Minimact.AspNetCore.Test" />
+  </ItemGroup>
+
+  <PropertyGroup>
 
     <!-- NuGet Package Metadata -->
     <PackageId>Minimact.AspNetCore</PackageId>

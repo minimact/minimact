@@ -14,7 +14,7 @@ public abstract class MinimactComponent
     /// <summary>
     /// Unique identifier for this component instance
     /// </summary>
-    public string ComponentId { get; protected set; }
+    public string ComponentId { get; internal set; }
 
     /// <summary>
     /// SignalR connection ID for real-time updates
@@ -192,7 +192,8 @@ public abstract class MinimactComponent
     /// <summary>
     /// Update state and trigger re-render
     /// </summary>
-    protected void SetState(string key, object value)
+    // Internal version for testing
+    internal void SetStateInternal(string key, object value)
     {
         // Store previous value
         if (State.ContainsKey(key))
@@ -209,6 +210,9 @@ public abstract class MinimactComponent
         // Trigger render cycle
         TriggerRender();
     }
+
+    // Protected version for generated components
+    protected void SetState(string key, object value) => SetStateInternal(key, value);
 
     /// <summary>
     /// Get current state value
@@ -620,6 +624,9 @@ public abstract class MinimactComponent
 
         // Compute actual patches using Rust reconciliation engine
         var actualPatches = RustBridge.Reconcile(CurrentVNode, newVNode);
+
+        // ✅ Adjust VNode paths to DOM paths (for conditional rendering support)
+        PatchPathAdjuster.AdjustPatchPaths(actualPatches, newVNode);
 
         if (actualPatches.Count > 0)
         {

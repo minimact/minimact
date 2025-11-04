@@ -98,16 +98,21 @@ fn reconcile_children(
     let new_children = &new_el.children;
 
     // Check if we can use keyed reconciliation
+    // Skip null children when building keyed maps
     let old_keyed: HashMap<&str, (usize, &VNode)> = old_children
         .iter()
         .enumerate()
-        .filter_map(|(i, node)| node.key().map(|k| (k, (i, node))))
+        .filter_map(|(i, opt_node)| {
+            opt_node.as_ref().and_then(|node| node.key().map(|k| (k, (i, node))))
+        })
         .collect();
 
     let new_keyed: HashMap<&str, (usize, &VNode)> = new_children
         .iter()
         .enumerate()
-        .filter_map(|(i, node)| node.key().map(|k| (k, (i, node))))
+        .filter_map(|(i, opt_node)| {
+            opt_node.as_ref().and_then(|node| node.key().map(|k| (k, (i, node))))
+        })
         .collect();
 
     // If we have keys, use keyed reconciliation
@@ -121,8 +126,8 @@ fn reconcile_children(
 }
 
 fn reconcile_indexed_children(
-    old_children: &[VNode],
-    new_children: &[VNode],
+    old_children: &[Option<VNode>],
+    new_children: &[Option<VNode>],
     path: &mut Vec<usize>,
     patches: &mut Vec<Patch>,
 ) -> Result<()> {
@@ -130,37 +135,66 @@ fn reconcile_indexed_children(
     let new_len = new_children.len();
     let min_len = old_len.min(new_len);
 
-    // Reconcile common children
+    // Reconcile common children (preserving VNode indices, including nulls)
     for i in 0..min_len {
-        path.push(i);
-        reconcile_node(&old_children[i], &new_children[i], path, patches)?;
-        path.pop();
+        match (&old_children[i], &new_children[i]) {
+            (Some(old_node), Some(new_node)) => {
+                // Both exist - reconcile
+                path.push(i);
+                reconcile_node(old_node, new_node, path, patches)?;
+                path.pop();
+            }
+            (None, Some(new_node)) => {
+                // Old was null, new exists - create
+                path.push(i);
+                patches.push(Patch::Create {
+                    path: path.clone(),
+                    node: new_node.clone(),
+                });
+                path.pop();
+            }
+            (Some(_), None) => {
+                // Old existed, new is null - remove
+                path.push(i);
+                patches.push(Patch::Remove {
+                    path: path.clone(),
+                });
+                path.pop();
+            }
+            (None, None) => {
+                // Both null - no change needed
+            }
+        }
     }
 
-    // Handle additions
+    // Handle additions (new children beyond old length)
     for i in min_len..new_len {
-        path.push(i);
-        patches.push(Patch::Create {
-            path: path.clone(),
-            node: new_children[i].clone(),
-        });
-        path.pop();
+        if let Some(new_node) = &new_children[i] {
+            path.push(i);
+            patches.push(Patch::Create {
+                path: path.clone(),
+                node: new_node.clone(),
+            });
+            path.pop();
+        }
     }
 
-    // Handle removals (in reverse order to maintain indices)
+    // Handle removals (old children beyond new length, in reverse order)
     for i in (min_len..old_len).rev() {
-        path.push(i);
-        patches.push(Patch::Remove {
-            path: path.clone(),
-        });
-        path.pop();
+        if old_children[i].is_some() {
+            path.push(i);
+            patches.push(Patch::Remove {
+                path: path.clone(),
+            });
+            path.pop();
+        }
     }
     Ok(())
 }
 
 fn reconcile_keyed_children(
-    old_children: &[VNode],
-    new_children: &[VNode],
+    old_children: &[Option<VNode>],
+    new_children: &[Option<VNode>],
     old_keyed: &HashMap<&str, (usize, &VNode)>,
     new_keyed: &HashMap<&str, (usize, &VNode)>,
     path: &mut Vec<usize>,
@@ -172,43 +206,60 @@ fn reconcile_keyed_children(
     // Build a map of new keys for quick lookup
     let new_keys_set: std::collections::HashSet<&str> = new_keyed.keys().copied().collect();
 
-    // Process all new children
+    // Process all new children (preserving VNode indices including nulls)
     while new_idx < new_children.len() {
-        let new_child = &new_children[new_idx];
+        if let Some(new_child) = &new_children[new_idx] {
+            if let Some(new_key) = new_child.key() {
+                // This child has a key
+                if let Some(&(_old_pos, old_node)) = old_keyed.get(new_key) {
+                    // Key exists in old children - reconcile
+                    path.push(new_idx);
+                    reconcile_node(old_node, new_child, path, patches)?;
+                    path.pop();
+                } else {
+                    // New key - create node
+                    path.push(new_idx);
+                    patches.push(Patch::Create {
+                        path: path.clone(),
+                        node: new_child.clone(),
+                    });
+                    path.pop();
+                }
+            } else {
+                // No key - try to match with old non-keyed children
+                while old_idx < old_children.len() && old_children[old_idx].is_none() {
+                    old_idx += 1; // Skip nulls in old children
+                }
 
-        if let Some(new_key) = new_child.key() {
-            // This child has a key
-            if let Some(&(_old_pos, old_node)) = old_keyed.get(new_key) {
-                // Key exists in old children - reconcile
-                path.push(new_idx);
-                reconcile_node(old_node, new_child, path, patches)?;
-                path.pop();
-            } else {
-                // New key - create node
-                path.push(new_idx);
-                patches.push(Patch::Create {
-                    path: path.clone(),
-                    node: new_child.clone(),
-                });
-                path.pop();
-            }
-        } else {
-            // No key - try to match with old non-keyed children
-            if old_idx < old_children.len() && old_children[old_idx].key().is_none() {
-                path.push(new_idx);
-                reconcile_node(&old_children[old_idx], new_child, path, patches)?;
-                path.pop();
-                old_idx += 1;
-            } else {
-                // Create new child
-                path.push(new_idx);
-                patches.push(Patch::Create {
-                    path: path.clone(),
-                    node: new_child.clone(),
-                });
-                path.pop();
+                if old_idx < old_children.len() {
+                    if let Some(old_child) = &old_children[old_idx] {
+                        if old_child.key().is_none() {
+                            path.push(new_idx);
+                            reconcile_node(old_child, new_child, path, patches)?;
+                            path.pop();
+                            old_idx += 1;
+                        } else {
+                            // Create new child
+                            path.push(new_idx);
+                            patches.push(Patch::Create {
+                                path: path.clone(),
+                                node: new_child.clone(),
+                            });
+                            path.pop();
+                        }
+                    }
+                } else {
+                    // Create new child
+                    path.push(new_idx);
+                    patches.push(Patch::Create {
+                        path: path.clone(),
+                        node: new_child.clone(),
+                    });
+                    path.pop();
+                }
             }
         }
+        // If new_child is None, skip it (null in new VNode)
 
         new_idx += 1;
     }
@@ -224,10 +275,10 @@ fn reconcile_keyed_children(
         }
     }
 
-    // Check if we need to reorder
+    // Check if we need to reorder (only for non-null keyed children)
     let new_key_order: Vec<String> = new_children
         .iter()
-        .filter_map(|n| n.key().map(String::from))
+        .filter_map(|opt_n| opt_n.as_ref().and_then(|n| n.key().map(String::from)))
         .collect();
 
     if !new_key_order.is_empty() {

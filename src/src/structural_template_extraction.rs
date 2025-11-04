@@ -123,8 +123,11 @@ fn is_structural_change(old_node: &VNode, new_node: &VNode) -> bool {
 
             if old_children_count == new_children_count && old_children_count > 0 {
                 // Check first child type - if different, it's structural
-                if old_el.children[0].is_text() != new_el.children[0].is_text() {
-                    return true;
+                // Handle Option<VNode> - skip nulls
+                if let (Some(old_first), Some(new_first)) = (&old_el.children[0], &new_el.children[0]) {
+                    if old_first.is_text() != new_first.is_text() {
+                        return true;
+                    }
                 }
             }
 
