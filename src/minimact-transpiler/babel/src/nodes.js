@@ -112,12 +112,20 @@
 /**
  * Create a Component node
  */
-function createComponent(componentName, renderMethod) {
+function createComponent(componentName, renderMethod, hooks, eventHandlers) {
   return {
     type: 'Component',
     componentName,
     renderMethod,
-    imports: {}
+    imports: {},
+    hooks: hooks || {
+      useState: [],
+      useMvcState: [],
+      useMvcViewModel: null,
+      useEffect: [],
+      useRef: []
+    },
+    eventHandlers: eventHandlers || []
   };
 }
 

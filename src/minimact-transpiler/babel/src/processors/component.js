@@ -20,6 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const { createComponent, createRenderMethod } = require('../nodes');
 const { traverseJSX, traverseFragment } = require('../core/traverser');
+const { extractHooks } = require('../extractors/hooks');
 const { HexPathGenerator } = require('../hexPath');
 const { processAttributes } = require('./attributes');
 const { processExpression } = require('./expressions');
@@ -68,6 +69,23 @@ function processComponent(functionNode, outputDir, hexGap, t) {
 
   console.log(`\n[Minimact Transpiler] ====== Processing: ${componentName} ======`);
 
+  // Extract hooks from component function body
+  // We need a path object, so we'll create a minimal wrapper
+  const functionPath = {
+    node: functionNode,
+    traverse: (visitors) => {
+      // Simple traversal of function body
+      if (functionNode.body && functionNode.body.body) {
+        for (const statement of functionNode.body.body) {
+          traverseNode(statement, visitors, t);
+        }
+      }
+    }
+  };
+
+  const hooks = extractHooks(functionPath, t);
+  console.log(`  [Hooks] Found ${hooks.useState.length} useState, ${hooks.useMvcState.length} useMvcState`);
+
   // Find the return statement containing JSX
   const returnStatement = findReturnStatement(functionNode.body);
   if (!returnStatement) {
@@ -103,7 +121,7 @@ function processComponent(functionNode, outputDir, hexGap, t) {
   }
 
   // Generate component JSON structure
-  const componentJson = generateComponentJSON(componentName, children);
+  const componentJson = generateComponentJSON(componentName, children, hooks, componentContext.eventHandlers);
 
   // Write JSON to file
   const outputPath = path.join(outputDir, `${componentName}.json`);
@@ -184,10 +202,12 @@ function findReturnStatement(body) {
  * @param {Array} children - Processed JSX children nodes
  * @returns {Object} - Component JSON node
  */
-function generateComponentJSON(componentName, children) {
+function generateComponentJSON(componentName, children, hooks, eventHandlers) {
   return createComponent(
     componentName,
-    createRenderMethod(children)
+    createRenderMethod(children),
+    hooks,
+    eventHandlers
   );
 }
 
@@ -275,11 +295,72 @@ function getMaxDepth(node, depth = 0) {
   return maxDepth;
 }
 
+/**
+ * Traverse AST node and call visitor functions
+ *
+ * Properly tracks parent relationships for hook extraction
+ *
+ * @param {Object} node - Babel AST node
+ * @param {Object} visitors - Visitor functions
+ * @param {Object} t - Babel types
+ * @param {Object} parent - Parent node
+ * @param {Object} parentPath - Parent path
+ */
+function traverseNode(node, visitors, t, parent = null, parentPath = null) {
+  if (!node) return;
+
+  // Create path object with parent tracking
+  const path = {
+    node,
+    parent,
+    parentPath,
+    traverse: (childVisitors) => {
+      // Recursively traverse children with same visitors
+      for (const key in node) {
+        if (key === 'type' || key === 'loc' || key === 'start' || key === 'end') continue;
+        const child = node[key];
+        if (Array.isArray(child)) {
+          for (const item of child) {
+            if (item && typeof item === 'object' && item.type) {
+              traverseNode(item, childVisitors, t, node, path);
+            }
+          }
+        } else if (child && typeof child === 'object' && child.type) {
+          traverseNode(child, childVisitors, t, node, path);
+        }
+      }
+    }
+  };
+
+  // Call visitor for this node type
+  if (node.type && visitors[node.type]) {
+    visitors[node.type](path);
+  }
+
+  // Recursively traverse child nodes
+  for (const key in node) {
+    if (key === 'type' || key === 'loc' || key === 'start' || key === 'end') continue;
+
+    const child = node[key];
+
+    if (Array.isArray(child)) {
+      for (const item of child) {
+        if (item && typeof item === 'object' && item.type) {
+          traverseNode(item, visitors, t, node, path);
+        }
+      }
+    } else if (child && typeof child === 'object' && child.type) {
+      traverseNode(child, visitors, t, node, path);
+    }
+  }
+}
+
 module.exports = {
   processComponent,
   extractComponentName,
   findReturnStatement,
   generateComponentJSON,
   writeComponentJSON,
-  calculateStats
+  calculateStats,
+  traverseNode
 };
