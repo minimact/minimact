@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Minimact.AspNetCore.Core;
 using Minimact.Transpiler.CodeGen.Nodes;
 using Minimact.Transpiler.CodeGen.Visitors;
+using Minimact.Transpiler.CodeGen.Generators;
 
 namespace Minimact.AspNetCore.Runtime;
 
@@ -42,9 +43,15 @@ public class ComponentLoader
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(System.Linq.Expressions.Expression).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(MinimactComponent).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ComponentNode).Assembly.Location), // Minimact.Transpiler.CodeGen (has attributes)
+            MetadataReference.CreateFromFile(typeof(System.Dynamic.DynamicObject).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly.Location),
             MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
             MetadataReference.CreateFromFile(Assembly.Load("System.Collections").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Dynamic.Runtime").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Linq.Expressions").Location),
             MetadataReference.CreateFromFile(Assembly.Load("netstandard").Location),
         };
     }

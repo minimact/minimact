@@ -8,6 +8,7 @@ using Minimact.AspNetCore.HotReload;
 using Minimact.AspNetCore.Services;
 using Minimact.AspNetCore.Plugins;
 using Minimact.AspNetCore.Middleware;
+using Minimact.AspNetCore.Runtime;
 
 namespace Minimact.AspNetCore.Extensions;
 
@@ -79,6 +80,33 @@ public static class MinimactServiceExtensions
 
         // Register plugin system
         services.AddSingleton<PluginManager>();
+
+        // Register runtime component loader
+        services.AddSingleton(sp =>
+        {
+            // Check for Pages folder first (for page routing), then Components folder
+            var pagesPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Pages");
+            var componentsPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Components");
+
+            var pathToUse = Directory.Exists(pagesPath) ? pagesPath : componentsPath;
+            return new ComponentLoader(pathToUse);
+        });
+
+        // Register runtime component hot reload manager
+        services.AddSingleton<RuntimeComponentHotReloadManager>(sp =>
+        {
+            var hubContext = sp.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<MinimactHub>>();
+            var registry = sp.GetRequiredService<ComponentRegistry>();
+            var componentLoader = sp.GetRequiredService<ComponentLoader>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<RuntimeComponentHotReloadManager>>();
+
+            // Watch same path as ComponentLoader (Pages or Components)
+            var pagesPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Pages");
+            var componentsPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Components");
+            var watchPath = Directory.Exists(pagesPath) ? pagesPath : componentsPath;
+
+            return new RuntimeComponentHotReloadManager(hubContext, registry, componentLoader, logger, watchPath);
+        });
 
         return services;
     }

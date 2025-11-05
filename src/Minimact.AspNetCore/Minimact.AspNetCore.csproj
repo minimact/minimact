@@ -40,10 +40,6 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="8.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\minimact-transpiler\codegen\Minimact.Transpiler.CodeGen\Minimact.Transpiler.CodeGen.csproj" />
-  </ItemGroup>
 <Target Name="CopyNativeDllToPackageDir" AfterTargets="Build">
   <Message Text="Copying Rust native DLL for NuGet packaging..." Importance="high" />
   <Copy SourceFiles="..\target\release\minimact.dll" DestinationFiles="$(ProjectDir)native\win-x64\minimact-nuget.dll" SkipUnchangedFiles="true" />
@@ -66,6 +62,10 @@
     <Content Include="..\target\release\minimact.dll" Link="minimact.dll" CopyToOutputDirectory="PreserveNewest" Pack="false" Condition="Exists('..\target\release\minimact.dll')" />
     <Content Include="..\target\release\libminimact.so" Link="libminimact.so" CopyToOutputDirectory="PreserveNewest" Pack="false" Condition="Exists('..\target\release\libminimact.so')" />
     <Content Include="..\target\release\libminimact.dylib" Link="libminimact.dylib" CopyToOutputDirectory="PreserveNewest" Pack="false" Condition="Exists('..\target\release\libminimact.dylib')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\minimact-transpiler\codegen\Minimact.Transpiler.CodeGen\Minimact.Transpiler.CodeGen.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1422,4 +1422,17 @@ public abstract class MinimactComponent
     }
 
     #endregion
+
+    #region Template Metadata
+
+    /// <summary>
+    /// Get template metadata for predictive rendering
+    /// Override in generated components to provide template data
+    /// </summary>
+    public virtual Dictionary<string, object> GetTemplates()
+    {
+        return new Dictionary<string, object>();
+    }
+
+    #endregion
 }

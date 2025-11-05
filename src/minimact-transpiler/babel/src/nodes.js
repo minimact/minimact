@@ -112,7 +112,7 @@
 /**
  * Create a Component node
  */
-function createComponent(componentName, renderMethod, hooks, eventHandlers) {
+function createComponent(componentName, renderMethod, hooks, eventHandlers, methods) {
   return {
     type: 'Component',
     componentName,
@@ -125,7 +125,8 @@ function createComponent(componentName, renderMethod, hooks, eventHandlers) {
       useEffect: [],
       useRef: []
     },
-    eventHandlers: eventHandlers || []
+    eventHandlers: eventHandlers || [],
+    methods: methods || []
   };
 }
 

@@ -16,6 +16,8 @@ public class CSharpCodeGenerator : INodeVisitor
     private readonly EventHandlerBodyGenerator _handlerGenerator;
     private readonly ExpressionConverter _expressionConverter;
 
+    private ComponentNode? _currentComponent;
+
     public CSharpCodeGenerator()
     {
         _expressionConverter = new ExpressionConverter();
@@ -48,8 +50,10 @@ public class CSharpCodeGenerator : INodeVisitor
     public void Visit(ComponentNode node)
     {
         // Generate using statements
+        WriteLine("using System;");
         WriteLine("using Minimact.AspNetCore.Core;");
         WriteLine("using Minimact.AspNetCore.Extensions;");
+        WriteLine("using Minimact.Transpiler.CodeGen;");
         WriteLine("using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;");
         WriteLine("using System.Collections.Generic;");
         WriteLine("using System.Linq;");
@@ -166,6 +170,9 @@ public class CSharpCodeGenerator : INodeVisitor
                 }
             }
         }
+
+        // Generate GetTemplates() method for runtime template access
+        GenerateGetTemplatesMethod(node);
 
         Dedent();
         WriteLine("}");
@@ -363,4 +370,192 @@ public class CSharpCodeGenerator : INodeVisitor
             .Replace("\r", "\\r")
             .Replace("\t", "\\t");
     }
+
+    /// <summary>
+    /// Generate GetTemplates() method that returns template metadata as C# objects
+    /// This allows the Rust predictor to access templates at runtime without I/O
+    /// </summary>
+    private void GenerateGetTemplatesMethod(ComponentNode node)
+    {
+        WriteLine("/// <summary>");
+        WriteLine("/// Get template metadata for predictive rendering");
+        WriteLine("/// </summary>");
+        WriteLine("public override Dictionary<string, object> GetTemplates()");
+        WriteLine("{");
+        Indent();
+        WriteLine("return new Dictionary<string, object>");
+        WriteLine("{");
+        Indent();
+
+        // Use TemplateJsonGenerator to collect templates
+        var templateGen = new Minimact.Transpiler.CodeGen.Generators.TemplateJsonGenerator();
+        var templateVisitor = new TemplateCollectorVisitor();
+
+        if (node.RenderMethod != null)
+        {
+            node.RenderMethod.Accept(templateVisitor);
+        }
+
+        bool first = true;
+        foreach (var kvp in templateVisitor.Templates)
+        {
+            if (!first) WriteLine(",");
+            first = false;
+
+            var path = kvp.Key;
+            var template = kvp.Value;
+
+            WriteLine($"[\"{EscapeString(path)}\"] = new");
+            WriteLine("{");
+            Indent();
+            WriteLine($"[\"template\"] = \"{EscapeString(template.Template)}\",");
+            WriteLine($"[\"bindings\"] = new List<string> {{ {string.Join(", ", template.Bindings.Select(b => $"\"{EscapeString(b)}\""))} }},");
+            WriteLine($"[\"slots\"] = new List<int> {{ {string.Join(", ", template.Slots)} }},");
+            WriteLine($"[\"path\"] = new List<string> {{ {string.Join(", ", template.Path.Select(p => $"\"{EscapeString(p)}\""))} }},");
+            WriteLine($"[\"type\"] = \"{EscapeString(template.Type)}\"");
+            Dedent();
+            WriteLine("}");
+        }
+
+        if (!first) WriteLine(); // Add newline after last entry
+
+        Dedent();
+        WriteLine("};");
+        Dedent();
+        WriteLine("}");
+        WriteLine();
+    }
+}
+
+/// <summary>
+/// Visitor to collect template metadata from component nodes
+/// </summary>
+internal class TemplateCollectorVisitor : INodeVisitor
+{
+    public Dictionary<string, TemplateInfo> Templates { get; } = new();
+
+    public void Visit(ComponentNode node)
+    {
+        if (node.RenderMethod != null)
+        {
+            node.RenderMethod.Accept(this);
+        }
+    }
+
+    public void Visit(RenderMethodNode node)
+    {
+        foreach (var child in node.Children)
+        {
+            child.Accept(this);
+        }
+    }
+
+    public void Visit(JSXElementNode node)
+    {
+        foreach (var attr in node.Attributes)
+        {
+            attr.Accept(this);
+        }
+        foreach (var child in node.Children)
+        {
+            child.Accept(this);
+        }
+    }
+
+    public void Visit(TextTemplateNode node)
+    {
+        if (node.Bindings?.Count > 0 && !string.IsNullOrEmpty(node.Path))
+        {
+            Templates[node.Path] = new TemplateInfo
+            {
+                Template = node.Template,
+                Bindings = node.Bindings.Select(b => b.Path).ToList(),
+                Slots = ExtractSlots(node.Template),
+                Path = node.PathSegments ?? new List<string>(),
+                Type = "dynamic"
+            };
+        }
+    }
+
+    public void Visit(StaticTextNode node)
+    {
+        if (!string.IsNullOrEmpty(node.Content) && !string.IsNullOrEmpty(node.Path))
+        {
+            Templates[node.Path] = new TemplateInfo
+            {
+                Template = node.Content,
+                Bindings = new List<string>(),
+                Slots = new List<int>(),
+                Path = node.PathSegments ?? new List<string>(),
+                Type = "static"
+            };
+        }
+    }
+
+    public void Visit(AttributeTemplateNode node)
+    {
+        if (!string.IsNullOrEmpty(node.Path))
+        {
+            Templates[node.Path] = new TemplateInfo
+            {
+                Template = node.Template,
+                Bindings = node.Bindings?.Select(b => b.Path).ToList() ?? new List<string>(),
+                Slots = ExtractSlots(node.Template),
+                Path = node.PathSegments ?? new List<string>(),
+                Type = node.Bindings?.Count > 0 ? "attribute-dynamic" : "attribute-static"
+            };
+        }
+    }
+
+    public void Visit(StaticAttributeNode node) { }
+    public void Visit(DynamicAttributeNode node) { }
+    public void Visit(EventHandlerAttributeNode node) { }
+    public void Visit(LoopTemplateNode node)
+    {
+        if (node.Body != null)
+        {
+            node.Body.Accept(this);
+        }
+    }
+
+    public void Visit(ConditionalTemplateNode node)
+    {
+        if (node.Consequent != null) node.Consequent.Accept(this);
+        if (node.Alternate != null) node.Alternate.Accept(this);
+    }
+
+    public void Visit(ComplexTemplateNode node)
+    {
+        if (node.Bindings?.Count > 0 && !string.IsNullOrEmpty(node.Path))
+        {
+            Templates[node.Path] = new TemplateInfo
+            {
+                Template = node.Template,
+                Bindings = node.Bindings.Select(b => b.Path).ToList(),
+                Slots = ExtractSlots(node.Template),
+                Path = node.PathSegments ?? new List<string>(),
+                Type = "complex"
+            };
+        }
+    }
+
+    private List<int> ExtractSlots(string template)
+    {
+        var slots = new List<int>();
+        for (int i = 0; i < 10; i++)
+        {
+            var pos = template.IndexOf($"{{{i}}}");
+            if (pos >= 0) slots.Add(pos);
+        }
+        return slots;
+    }
+}
+
+internal class TemplateInfo
+{
+    public string Template { get; set; } = "";
+    public List<string> Bindings { get; set; } = new();
+    public List<int> Slots { get; set; } = new();
+    public List<string> Path { get; set; } = new();
+    public string Type { get; set; } = "";
 }
