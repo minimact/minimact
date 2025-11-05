@@ -15,6 +15,8 @@
  * - babel-plugin-minimact/src/extractors/templates.cjs → extractBindingShared() (lines 136-160)
  */
 
+const { extractConditionalBinding: extractConditionalBindingFromConditionals } = require('./conditionals');
+
 /**
  * Main binding extractor
  *
@@ -288,6 +290,14 @@ function extractUnaryExpressionBinding(expr, t) {
  * @returns {Object} - Conditional binding object
  */
 function extractConditionalBinding(expr, t) {
+  // Try the specialized conditional binding extractor first (for literal values)
+  const literalBinding = extractConditionalBindingFromConditionals(expr, t);
+  if (literalBinding) {
+    // Perfect! This is a ternary with literal values like: isExpanded ? 'Hide' : 'Show'
+    return literalBinding;
+  }
+
+  // Fall back to more complex handling (dynamic values)
   // Extract condition
   let condition = null;
   if (t.isIdentifier(expr.test)) {
@@ -310,7 +320,7 @@ function extractConditionalBinding(expr, t) {
     condition = `__expr__:${identifiers.join(',')}`;
   }
 
-  // Extract true value
+  // Extract true value (dynamic)
   const trueValue = t.isStringLiteral(expr.consequent) ? expr.consequent.value :
                     t.isNumericLiteral(expr.consequent) ? String(expr.consequent.value) :
                     t.isIdentifier(expr.consequent) ? expr.consequent.name :

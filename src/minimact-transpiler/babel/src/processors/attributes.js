@@ -17,6 +17,7 @@
  */
 
 const { extractStyleObject } = require('../extractors/styles');
+const { isEventHandler, extractEventHandler } = require('../extractors/eventHandlers');
 
 /**
  * Process all attributes on a JSX element
@@ -31,15 +32,16 @@ const { extractStyleObject } = require('../extractors/styles');
  * @param {Array} parentSegments - Parent path segments
  * @param {HexPathGenerator} pathGen - Hex path generator
  * @param {Object} t - Babel types
+ * @param {Object} component - Component context (for event handlers)
  * @returns {Array} - Array of processed attribute nodes
  */
-function processAttributes(attributes, parentPath, parentSegments, pathGen, t) {
+function processAttributes(attributes, parentPath, parentSegments, pathGen, t, component) {
   const result = [];
 
   for (const attr of attributes) {
     if (t.isJSXAttribute(attr)) {
       // Standard attribute: name="value" or name={expression}
-      const processed = processJSXAttribute(attr, parentPath, parentSegments, t);
+      const processed = processJSXAttribute(attr, parentPath, parentSegments, t, component);
       if (processed) {
         result.push(processed);
       }
@@ -64,9 +66,10 @@ function processAttributes(attributes, parentPath, parentSegments, pathGen, t) {
  * @param {string} parentPath - Parent element hex path
  * @param {Array} parentSegments - Parent path segments
  * @param {Object} t - Babel types
+ * @param {Object} component - Component context
  * @returns {Object|null} - Processed attribute node
  */
-function processJSXAttribute(attr, parentPath, parentSegments, t) {
+function processJSXAttribute(attr, parentPath, parentSegments, t, component) {
   const attrName = attr.name.name;
   const attrValue = attr.value;
 
@@ -86,7 +89,7 @@ function processJSXAttribute(attr, parentPath, parentSegments, t) {
 
   // 3. Dynamic expression: className={expression}
   if (t.isJSXExpressionContainer(attrValue)) {
-    return processDynamicAttribute(attr, attrPath, attrSegments, t);
+    return processDynamicAttribute(attr, attrPath, attrSegments, t, component);
   }
 
   // Unknown attribute type
@@ -139,9 +142,15 @@ function processStaticAttribute(attr, attrPath, attrSegments, t) {
  * @param {Object} t - Babel types
  * @returns {Object} - DynamicAttribute node
  */
-function processDynamicAttribute(attr, attrPath, attrSegments, t) {
+function processDynamicAttribute(attr, attrPath, attrSegments, t, component) {
   const attrName = attr.name.name;
   const expr = attr.value.expression;
+
+  // Check if event handler FIRST before other processing
+  if (isEventHandler(attrName)) {
+    return processEventHandler(attr, attrPath, attrSegments, t, component);
+  }
+
   const expressionType = getExpressionType(expr, t);
 
   console.log(`    [Attr] ${attrName}={...} (${expressionType}) → ${attrPath}`);
@@ -232,6 +241,49 @@ function processBooleanAttribute(attr, attrPath, attrSegments) {
     type: 'BooleanAttribute',
     name: attrName,
     value: true,
+    path: attrPath,
+    pathSegments: attrSegments
+  };
+}
+
+/**
+ * Process event handler attribute
+ *
+ * Handles onClick, onChange, onSubmit, and other event attributes.
+ * Extracts handler function and registers it with component.
+ *
+ * Examples:
+ * - onClick={() => handleClick()} → Extract inline handler
+ * - onClick={handleClick} → Method reference
+ * - onChange={(e) => setValue(e.target.value)} → Event parameter handling
+ *
+ * Pattern from babel-plugin-minimact/src/extractors/eventHandlers.cjs
+ *
+ * @param {Object} attr - JSX attribute node
+ * @param {string} attrPath - Attribute hex path
+ * @param {Array} attrSegments - Attribute path segments
+ * @param {Object} t - Babel types
+ * @param {Object} component - Component context
+ * @returns {Object} - EventHandlerAttribute node
+ */
+function processEventHandler(attr, attrPath, attrSegments, t, component) {
+  const attrName = attr.name.name;
+  const attrValue = attr.value;
+
+  // Initialize component.eventHandlers if needed
+  if (!component.eventHandlers) {
+    component.eventHandlers = [];
+  }
+
+  // Extract handler name/registration string
+  const handlerRegistration = extractEventHandler(attrName, attrValue, component, t);
+
+  console.log(`    [Attr] ${attrName}={...} (event handler) → ${handlerRegistration}`);
+
+  return {
+    type: 'EventHandlerAttribute',
+    name: attrName,
+    handler: handlerRegistration,
     path: attrPath,
     pathSegments: attrSegments
   };

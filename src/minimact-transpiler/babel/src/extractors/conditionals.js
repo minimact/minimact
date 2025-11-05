@@ -16,6 +16,78 @@
 const { buildMemberPath } = require('./bindings');
 
 /**
+ * Extract conditional binding for text templates
+ *
+ * Specifically handles ternary expressions that return literal values.
+ * Used in text content: {isExpanded ? 'Hide' : 'Show'}
+ *
+ * Pattern from babel-plugin-minimact/src/extractors/templates.cjs (lines 619-641)
+ *
+ * @param {Object} expr - Babel ConditionalExpression node
+ * @param {Object} t - Babel types
+ * @returns {Object|null} - Conditional binding or null if not simple literals
+ */
+function extractConditionalBinding(expr, t) {
+  if (!t.isConditionalExpression(expr)) {
+    return null;
+  }
+
+  // Extract condition
+  let condition = null;
+  if (t.isIdentifier(expr.test)) {
+    condition = expr.test.name;
+  } else if (t.isMemberExpression(expr.test)) {
+    condition = buildMemberPath(expr.test, t);
+  } else if (t.isBinaryExpression(expr.test)) {
+    // Handle: count > 5 ? 'High' : 'Low'
+    condition = extractBinaryExpression(expr.test, t);
+  } else {
+    // Complex condition
+    return null;
+  }
+
+  // Extract literal values
+  const trueValue = extractLiteralValue(expr.consequent, t);
+  const falseValue = extractLiteralValue(expr.alternate, t);
+
+  if (trueValue === null || falseValue === null) {
+    // Not simple literals
+    return null;
+  }
+
+  // Return conditional binding metadata
+  return {
+    conditional: condition,
+    trueValue,
+    falseValue
+  };
+}
+
+/**
+ * Extract literal value from node
+ *
+ * Extracts simple literal values (strings, numbers, booleans).
+ * Returns null for non-literals.
+ *
+ * @param {Object} node - Babel expression node
+ * @param {Object} t - Babel types
+ * @returns {string|null} - Literal value or null
+ */
+function extractLiteralValue(node, t) {
+  if (t.isStringLiteral(node)) {
+    return node.value;
+  } else if (t.isNumericLiteral(node)) {
+    return String(node.value);
+  } else if (t.isBooleanLiteral(node)) {
+    return String(node.value);
+  } else if (t.isNullLiteral(node)) {
+    return 'null';
+  } else {
+    return null;
+  }
+}
+
+/**
  * Extract conditional expression (ternary: ? :)
  *
  * Handles ternary operator with JSX or value branches.
@@ -382,16 +454,17 @@ function extractLiteralValue(node, t) {
 
 module.exports = {
   extractConditionalExpression,
+  extractConditionalBinding,
   extractLogicalExpression,
   extractBinaryExpression,
   extractCondition,
   extractOperand,
   extractValue,
+  extractLiteralValue,
   extractLogicalCondition,
   extractUnaryCondition,
   extractCallCondition,
   isConditionalExpression,
   containsJSX,
-  simplifyCondition,
-  extractLiteralValue
+  simplifyCondition
 };
