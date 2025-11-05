@@ -19,6 +19,8 @@ const { extractLoopTemplates } = require('./extractors/loopTemplates.cjs');
 const { extractStructuralTemplates } = require('./extractors/structuralTemplates.cjs');
 const { extractExpressionTemplates } = require('./extractors/expressionTemplates.cjs');
 const { analyzePluginUsage, validatePluginUsage } = require('./analyzers/analyzePluginUsage.cjs');
+const { HexPathGenerator } = require('./utils/hexPath.cjs');
+const { assignPathsToJSX } = require('./utils/pathAssignment.cjs');
 
 /**
  * Process a component function
@@ -190,6 +192,12 @@ function processComponent(path, state) {
 
   // Extract templates from JSX for hot reload (BEFORE replacing JSX with null)
   if (component.renderBody) {
+    // 🔥 CRITICAL: Assign hex paths to all JSX nodes FIRST
+    // This ensures all extractors use the same paths (no recalculation!)
+    const pathGen = new HexPathGenerator();
+    assignPathsToJSX(component.renderBody, '', pathGen, t);
+    console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree`);
+
     const textTemplates = extractTemplates(component.renderBody, component);
     const attrTemplates = extractAttributeTemplates(component.renderBody, component);
     const allTemplates = { ...textTemplates, ...attrTemplates };

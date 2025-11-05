@@ -1,9 +1,9 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1762358862854,
+  "generatedAt": 1762380736479,
   "templates": {
-    "[0].span[0].text[0]": {
+    "10000000.10000000.10000000": {
       "template": "Count: {0}",
       "bindings": [
         "count"
@@ -12,20 +12,20 @@
         7
       ],
       "path": [
-        0,
-        0,
+        "10000000",
+        "10000000",
         0
       ],
       "type": "dynamic"
     },
-    "[0].button[0].text[0]": {
+    "10000000.20000000.10000000": {
       "template": "+",
       "bindings": [],
       "slots": [],
       "path": [
-        0,
-        0,
-        0
+        "10000000",
+        "20000000",
+        "10000000"
       ],
       "type": "static"
     },

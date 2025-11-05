@@ -1,9 +1,9 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1762358862854,
+  "generatedAt": 1762380906498,
   "templates": {
-    "[0].span[0].text[0]": {
+    "10000000.10000000.10000000": {
       "template": "Count: {0}",
       "bindings": [
         "count"
@@ -12,33 +12,33 @@
         7
       ],
       "path": [
-        0,
-        0,
+        "10000000",
+        "10000000",
         0
       ],
       "type": "dynamic"
     },
-    "[0].button[0].text[0]": {
+    "10000000.20000000.10000000": {
       "template": "+",
       "bindings": [],
       "slots": [],
       "path": [
-        0,
-        0,
-        0
+        "10000000",
+        "20000000",
+        "10000000"
       ],
       "type": "static"
     },
-    "div[0].@className": {
+    "10000000.@className": {
       "template": "counter",
       "bindings": [],
       "slots": [],
       "path": [
-        0
+        "10000000"
       ],
       "type": "attribute-static"
     },
-    "[0].button[0].@onClick": {
+    "10000000.20000000.@onClick": {
       "template": "{0}",
       "bindings": [
         "increment"
@@ -47,8 +47,8 @@
         0
       ],
       "path": [
-        0,
-        1
+        "10000000",
+        "20000000"
       ],
       "type": "attribute-dynamic"
     }
