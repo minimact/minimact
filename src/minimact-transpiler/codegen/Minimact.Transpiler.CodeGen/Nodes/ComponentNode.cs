@@ -505,6 +505,10 @@ public class ExpressionNode : ComplexTemplateNode
 
     [JsonPropertyName("isTransform")]
     public bool? IsTransform { get; set; }
+
+    // Conditional properties (e.g., {isExpanded ? 'Hide' : 'Show'})
+    [JsonPropertyName("conditionalTemplates")]
+    public Dictionary<string, string>? ConditionalTemplates { get; set; }
 }
 
 /// <summary>

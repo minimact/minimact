@@ -33,6 +33,7 @@ public class TranspilerAllFeaturesTests
 
     [Theory]
     [InlineData(8, "ProductDetailsPage")]  // 08-ProductDetailsPage.tsx
+    [InlineData(9, "ProductDetailsPageTwo")]  // 09-ProductDetailsPageTwo.tsx (newer version with 2 conditionals)
     public async Task CSharpCodeGenerator_ShouldGenerateValidCode_AllFeatures(int testNumber, string componentName)
     {
         // Arrange

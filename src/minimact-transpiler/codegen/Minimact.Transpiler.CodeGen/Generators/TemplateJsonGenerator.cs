@@ -292,16 +292,23 @@ public class TemplateJsonGenerator : INodeVisitor
             string templateType;
             object? transform = null;
             bool? nullable = null;
+            Dictionary<string, string>? conditionalTemplates = null;
             string template = node.Template ?? "{0}";
 
+            // Check if this is a conditional expression with template mappings
+            if (node is ExpressionNode exprNode && exprNode.ConditionalTemplates != null && exprNode.ConditionalTemplates.Count > 0)
+            {
+                templateType = "conditional";
+                conditionalTemplates = exprNode.ConditionalTemplates;
+            }
             // Check if this is a transform expression
-            if (node is ExpressionNode exprNode && exprNode.IsTransform == true && !string.IsNullOrEmpty(exprNode.Transform))
+            else if (node is ExpressionNode exprNode2 && exprNode2.IsTransform == true && !string.IsNullOrEmpty(exprNode2.Transform))
             {
                 templateType = "transform";
                 transform = new
                 {
-                    method = exprNode.Transform,
-                    args = exprNode.TransformArgs ?? new List<object>()
+                    method = exprNode2.Transform,
+                    args = exprNode2.TransformArgs ?? new List<object>()
                 };
             }
             // Check if this has nullable/optional chaining
@@ -328,7 +335,8 @@ public class TemplateJsonGenerator : INodeVisitor
                 Path = node.PathSegments ?? new List<string>(),
                 Type = templateType,
                 Transform = transform,
-                Nullable = nullable
+                Nullable = nullable,
+                ConditionalTemplates = conditionalTemplates
             };
         }
     }

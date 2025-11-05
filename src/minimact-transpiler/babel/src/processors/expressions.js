@@ -135,21 +135,45 @@ function processExpression(expr, parentPath, pathGen, t, context) {
       console.log(`      [Conditional] ${typeof logicalInfo.condition === 'string' ? logicalInfo.condition : JSON.stringify(logicalInfo.condition)} ${expr.operator} <JSX>`);
     }
   } else if (t.isConditionalExpression(expr)) {
-    // Ternary: {count > 5 ? <span>High</span> : <span>Low</span>}
-    // Extract conditional structure
-    const ternaryInfo = extractConditionalExpression(expr, parentPath, pathGen, t);
+    // Ternary: {count > 5 ? <span>High</span> : <span>Low</span>} OR {isExpanded ? 'Hide' : 'Show'}
 
-    node.condition = ternaryInfo.condition;
-    node.consequent = ternaryInfo.consequent;
-    node.alternate = ternaryInfo.alternate;
-    node.isSimple = false;
-    node.isStructural = true;
-    node.isConditional = true;
+    // First check if this is a TEXT conditional (literal values) vs JSX conditional
+    const { extractConditionalBinding } = require('../extractors/conditionals');
+    const conditionalBinding = extractConditionalBinding(expr, t);
 
-    // Check if it contains JSX
-    const hasJSX = ternaryInfo.consequent.type === 'JSXElement' || ternaryInfo.alternate.type === 'JSXElement';
-    if (hasJSX) {
-      console.log(`      [Conditional] ${typeof ternaryInfo.condition === 'string' ? ternaryInfo.condition : JSON.stringify(ternaryInfo.condition)} ? <JSX> : <JSX>`);
+    if (conditionalBinding && conditionalBinding.conditional &&
+        conditionalBinding.trueValue !== undefined && conditionalBinding.falseValue !== undefined) {
+      // TEXT conditional: {isExpanded ? 'Hide' : 'Show'}
+      node.template = '{0}';
+      node.bindings = [{
+        type: 'Identifier',
+        path: conditionalBinding.conditional
+      }];
+      node.conditionalTemplates = {
+        "true": conditionalBinding.trueValue,
+        "false": conditionalBinding.falseValue
+      };
+      node.isSimple = false;
+      node.isConditional = true;
+
+      console.log(`      [Conditional Text] ${conditionalBinding.conditional} ? "${conditionalBinding.trueValue}" : "${conditionalBinding.falseValue}"`);
+    } else {
+      // JSX conditional: {count > 5 ? <span>High</span> : <span>Low</span>}
+      // Extract conditional structure
+      const ternaryInfo = extractConditionalExpression(expr, parentPath, pathGen, t);
+
+      node.condition = ternaryInfo.condition;
+      node.consequent = ternaryInfo.consequent;
+      node.alternate = ternaryInfo.alternate;
+      node.isSimple = false;
+      node.isStructural = true;
+      node.isConditional = true;
+
+      // Check if it contains JSX
+      const hasJSX = ternaryInfo.consequent.type === 'JSXElement' || ternaryInfo.alternate.type === 'JSXElement';
+      if (hasJSX) {
+        console.log(`      [Conditional] ${typeof ternaryInfo.condition === 'string' ? ternaryInfo.condition : JSON.stringify(ternaryInfo.condition)} ? <JSX> : <JSX>`);
+      }
     }
   } else if (t.isCallExpression(expr)) {
     // Function call: {items.map(...)} or {price.toFixed(2)}
