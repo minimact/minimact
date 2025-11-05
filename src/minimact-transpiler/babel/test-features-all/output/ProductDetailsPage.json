@@ -1169,15 +1169,349 @@
             ],
             "operator": "&&",
             "condition": "isAdmin",
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true,
             "branches": [
               {
                 "type": "JSXElement",
-                "tagName": "div"
+                "tag": "div",
+                "path": "10000000.50000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "style",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.50000000.10000000.10000000.@style",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000",
+                      "@style"
+                    ],
+                    "subtype": "style-object",
+                    "styleObject": {
+                      "css": "padding: 16px; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 20px",
+                      "bindings": [],
+                      "slots": [],
+                      "properties": [
+                        {
+                          "key": "padding",
+                          "cssKey": "padding",
+                          "value": "16px",
+                          "css": "padding: 16px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "backgroundColor",
+                          "cssKey": "background-color",
+                          "value": "#fef3c7",
+                          "css": "background-color: #fef3c7",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "border",
+                          "cssKey": "border",
+                          "value": "1px solid #fbbf24",
+                          "css": "border: 1px solid #fbbf24",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "borderRadius",
+                          "cssKey": "border-radius",
+                          "value": "8px",
+                          "css": "border-radius: 8px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "marginBottom",
+                          "cssKey": "margin-bottom",
+                          "value": "20px",
+                          "css": "margin-bottom: 20px",
+                          "isDynamic": false
+                        }
+                      ],
+                      "hasBindings": false,
+                      "isStatic": true
+                    },
+                    "value": "padding: 16px; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 20px"
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "h3",
+                    "path": "10000000.50000000.10000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.10000000.10000000.10000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "10000000",
+                          "10000000",
+                          "10000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "margin-top: 0",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "marginTop",
+                              "cssKey": "margin-top",
+                              "value": "0",
+                              "css": "margin-top: 0",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "margin-top: 0"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.50000000.10000000.10000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "10000000",
+                          "10000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Admin Controls"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "button",
+                    "path": "10000000.50000000.10000000.10000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000",
+                      "20000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.10000000.10000000.20000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "10000000",
+                          "10000000",
+                          "20000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "8px 16px",
+                              "css": "padding: 8px 16px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "backgroundColor",
+                              "cssKey": "background-color",
+                              "value": "#3b82f6",
+                              "css": "background-color: #3b82f6",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "color",
+                              "cssKey": "color",
+                              "value": "white",
+                              "css": "color: white",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "border",
+                              "cssKey": "border",
+                              "value": "none",
+                              "css": "border: none",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "borderRadius",
+                              "cssKey": "border-radius",
+                              "value": "4px",
+                              "css": "border-radius: 4px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "cursor",
+                              "cssKey": "cursor",
+                              "value": "pointer",
+                              "css": "cursor: pointer",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "marginRight",
+                              "cssKey": "margin-right",
+                              "value": "8px",
+                              "css": "margin-right: 8px",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.50000000.10000000.10000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "10000000",
+                          "10000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Edit Product"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "button",
+                    "path": "10000000.50000000.10000000.10000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000",
+                      "30000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.10000000.10000000.30000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "10000000",
+                          "10000000",
+                          "30000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "8px 16px",
+                              "css": "padding: 8px 16px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "backgroundColor",
+                              "cssKey": "background-color",
+                              "value": "#ef4444",
+                              "css": "background-color: #ef4444",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "color",
+                              "cssKey": "color",
+                              "value": "white",
+                              "css": "color: white",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "border",
+                              "cssKey": "border",
+                              "value": "none",
+                              "css": "border: none",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "borderRadius",
+                              "cssKey": "border-radius",
+                              "value": "4px",
+                              "css": "border-radius: 4px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "cursor",
+                              "cssKey": "cursor",
+                              "value": "pointer",
+                              "css": "cursor: pointer",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.50000000.10000000.10000000.30000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "10000000",
+                          "10000000",
+                          "30000000",
+                          "10000000"
+                        ],
+                        "content": "Delete Product"
+                      }
+                    ]
+                  }
+                ]
               }
-            ],
-            "isSimple": false,
-            "isStructural": true,
-            "isConditional": true
+            ]
           },
           {
             "type": "JSXElement",
@@ -1351,15 +1685,150 @@
                 ],
                 "operator": "&&",
                 "condition": "isExpanded",
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true,
                 "branches": [
                   {
                     "type": "JSXElement",
-                    "tagName": "div"
+                    "tag": "div",
+                    "path": "10000000.60000000.20000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.60000000.20000000.10000000.10000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "marginTop",
+                              "cssKey": "margin-top",
+                              "value": "12px",
+                              "css": "margin-top: 12px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "16px",
+                              "css": "padding: 16px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "backgroundColor",
+                              "cssKey": "background-color",
+                              "value": "#f9fafb",
+                              "css": "background-color: #f9fafb",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "border",
+                              "cssKey": "border",
+                              "value": "1px solid #e5e7eb",
+                              "css": "border: 1px solid #e5e7eb",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "borderRadius",
+                              "cssKey": "border-radius",
+                              "value": "8px",
+                              "css": "border-radius: 8px",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h3",
+                        "path": "10000000.60000000.20000000.10000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.60000000.20000000.10000000.10000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Product Specifications"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "p",
+                        "path": "10000000.60000000.20000000.10000000.10000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "20000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.60000000.20000000.10000000.10000000.20000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "20000000",
+                              "10000000"
+                            ],
+                            "content": "This is where detailed product information would go."
+                          }
+                        ]
+                      }
+                    ]
                   }
-                ],
-                "isSimple": false,
-                "isStructural": true,
-                "isConditional": true
+                ]
               }
             ]
           },

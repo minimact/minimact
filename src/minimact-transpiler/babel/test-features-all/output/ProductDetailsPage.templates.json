@@ -1,7 +1,7 @@
 {
   "component": "ProductDetailsPage",
   "version": "1.0",
-  "generatedAt": 1762361381218,
+  "generatedAt": 1762362040898,
   "templates": {
     "10000000.@style": {
       "template": "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto",
@@ -431,6 +431,103 @@
       ],
       "type": "static"
     },
+    "10000000.50000000.10000000.10000000.@style": {
+      "template": "padding: 16px; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.50000000.10000000.10000000.10000000.@style": {
+      "template": "margin-top: 0",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.50000000.10000000.10000000.10000000.10000000": {
+      "template": "Admin Controls",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.50000000.10000000.10000000.20000000.@style": {
+      "template": "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.50000000.10000000.10000000.20000000.10000000": {
+      "template": "Edit Product",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.50000000.10000000.10000000.30000000.@style": {
+      "template": "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "30000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.50000000.10000000.10000000.30000000.10000000": {
+      "template": "Delete Product",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000",
+        "10000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
     "10000000.60000000.@style": {
       "template": "margin-bottom: 20px",
       "bindings": [],
@@ -483,6 +580,50 @@
         "60000000",
         "10000000",
         "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.60000000.20000000.10000000.10000000.@style": {
+      "template": "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.60000000.20000000.10000000.10000000.10000000.10000000": {
+      "template": "Product Specifications",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.60000000.20000000.10000000.10000000.20000000.10000000": {
+      "template": "This is where detailed product information would go.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "20000000",
+        "10000000"
       ],
       "type": "static"
     },

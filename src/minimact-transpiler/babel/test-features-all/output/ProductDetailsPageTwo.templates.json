@@ -1,7 +1,7 @@
 {
   "component": "ProductDetailsPageTwo",
   "version": "1.0",
-  "generatedAt": 1762361380858,
+  "generatedAt": 1762362040573,
   "templates": {
     "10000000.@style": {
       "template": "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto",
@@ -36,6 +36,195 @@
         "10000000",
         "10000000",
         "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.10000000.10000000.@style": {
+      "template": "padding: 12px; background-color: #fee2e2; border: 1px solid #ef4444; border-radius: 4px; margin-bottom: 16px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.20000000.10000000.10000000.10000000.10000000": {
+      "template": "FALSE CONDITIONAL:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.10000000.10000000.20000000": {
+      "template": "This should NEVER appear in DOM!",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000.10000000.@style": {
+      "template": "padding: 12px; background-color: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; margin-bottom: 16px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.30000000.10000000.10000000.10000000.10000000": {
+      "template": "Debug Info:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000.10000000.20000000": {
+      "template": "Product:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000.10000000.30000000": {
+      "template": "{0}",
+      "bindings": [
+        "productName"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "30000000"
+      ],
+      "type": "dynamic"
+    },
+    "10000000.30000000.10000000.10000000.40000000": {
+      "template": ", Price: $",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "40000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000.10000000.50000000": {
+      "template": "",
+      "bindings": [
+        "price"
+      ],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "50000000"
+      ],
+      "type": "transform",
+      "transform": {
+        "method": "toFixed",
+        "args": [
+          2
+        ]
+      }
+    },
+    "10000000.30000000.10000000.10000000.60000000": {
+      "template": ", Qty:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "60000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000.10000000.70000000": {
+      "template": "{0}",
+      "bindings": [
+        "quantity"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "70000000"
+      ],
+      "type": "dynamic"
+    },
+    "10000000.30000000.10000000.10000000.80000000.@style": {
+      "template": "margin-left: 12px; padding: 4px 8px; font-size: 12px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "80000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.30000000.10000000.10000000.80000000.10000000": {
+      "template": "Hide",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000",
+        "80000000",
+        "10000000"
       ],
       "type": "static"
     },
@@ -472,6 +661,103 @@
       ],
       "type": "static"
     },
+    "10000000.80000000.10000000.10000000.@style": {
+      "template": "padding: 16px; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.80000000.10000000.10000000.10000000.@style": {
+      "template": "margin-top: 0",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.80000000.10000000.10000000.10000000.10000000": {
+      "template": "Admin Controls",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.80000000.10000000.10000000.20000000.@style": {
+      "template": "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.80000000.10000000.10000000.20000000.10000000": {
+      "template": "Edit Product",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.80000000.10000000.10000000.30000000.@style": {
+      "template": "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "30000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.80000000.10000000.10000000.30000000.10000000": {
+      "template": "Delete Product",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000",
+        "10000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
     "10000000.90000000.@style": {
       "template": "margin-bottom: 20px",
       "bindings": [],
@@ -524,6 +810,50 @@
         "90000000",
         "10000000",
         "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.90000000.20000000.10000000.10000000.@style": {
+      "template": "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "90000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.90000000.20000000.10000000.10000000.10000000.10000000": {
+      "template": "Product Specifications",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "90000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.90000000.20000000.10000000.10000000.20000000.10000000": {
+      "template": "This is where detailed product information would go.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "90000000",
+        "20000000",
+        "10000000",
+        "10000000",
+        "20000000",
+        "10000000"
       ],
       "type": "static"
     },

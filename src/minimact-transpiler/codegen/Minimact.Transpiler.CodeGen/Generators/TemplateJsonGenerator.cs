@@ -339,6 +339,20 @@ public class TemplateJsonGenerator : INodeVisitor
                 ConditionalTemplates = conditionalTemplates
             };
         }
+
+        // CRITICAL FOR HOT RELOAD: Visit branches of conditional expressions
+        // This extracts templates from inside conditional JSX that may not be rendered initially
+        if (node is ExpressionNode exprNode3 && exprNode3.IsStructural == true)
+        {
+            // Visit branches if this is a structural conditional
+            if (exprNode3.Branches != null)
+            {
+                foreach (var branch in exprNode3.Branches)
+                {
+                    branch?.Accept(this);
+                }
+            }
+        }
     }
 
     #endregion

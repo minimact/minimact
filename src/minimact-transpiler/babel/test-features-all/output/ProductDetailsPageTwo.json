@@ -115,15 +115,127 @@
             ],
             "operator": "&&",
             "condition": "<complex>",
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true,
             "branches": [
               {
                 "type": "JSXElement",
-                "tagName": "div"
+                "tag": "div",
+                "path": "10000000.20000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "style",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.20000000.10000000.10000000.@style",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "10000000",
+                      "10000000",
+                      "@style"
+                    ],
+                    "subtype": "style-object",
+                    "styleObject": {
+                      "css": "padding: 12px; background-color: #fee2e2; border: 1px solid #ef4444; border-radius: 4px; margin-bottom: 16px",
+                      "bindings": [],
+                      "slots": [],
+                      "properties": [
+                        {
+                          "key": "padding",
+                          "cssKey": "padding",
+                          "value": "12px",
+                          "css": "padding: 12px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "backgroundColor",
+                          "cssKey": "background-color",
+                          "value": "#fee2e2",
+                          "css": "background-color: #fee2e2",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "border",
+                          "cssKey": "border",
+                          "value": "1px solid #ef4444",
+                          "css": "border: 1px solid #ef4444",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "borderRadius",
+                          "cssKey": "border-radius",
+                          "value": "4px",
+                          "css": "border-radius: 4px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "marginBottom",
+                          "cssKey": "margin-bottom",
+                          "value": "16px",
+                          "css": "margin-bottom: 16px",
+                          "isDynamic": false
+                        }
+                      ],
+                      "hasBindings": false,
+                      "isStatic": true
+                    },
+                    "value": "padding: 12px; background-color: #fee2e2; border: 1px solid #ef4444; border-radius: 4px; margin-bottom: 16px"
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "strong",
+                    "path": "10000000.20000000.10000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "10000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.20000000.10000000.10000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "FALSE CONDITIONAL:"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.20000000.10000000.10000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "10000000",
+                      "10000000",
+                      "20000000"
+                    ],
+                    "content": "This should NEVER appear in DOM!"
+                  }
+                ]
               }
-            ],
-            "isSimple": false,
-            "isStructural": true,
-            "isConditional": true
+            ]
           },
           {
             "type": "Expression",
@@ -135,15 +247,300 @@
             ],
             "operator": "&&",
             "condition": "showDebugInfo",
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true,
             "branches": [
               {
                 "type": "JSXElement",
-                "tagName": "div"
+                "tag": "div",
+                "path": "10000000.30000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "style",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.30000000.10000000.10000000.@style",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "@style"
+                    ],
+                    "subtype": "style-object",
+                    "styleObject": {
+                      "css": "padding: 12px; background-color: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; margin-bottom: 16px",
+                      "bindings": [],
+                      "slots": [],
+                      "properties": [
+                        {
+                          "key": "padding",
+                          "cssKey": "padding",
+                          "value": "12px",
+                          "css": "padding: 12px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "backgroundColor",
+                          "cssKey": "background-color",
+                          "value": "#dbeafe",
+                          "css": "background-color: #dbeafe",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "border",
+                          "cssKey": "border",
+                          "value": "1px solid #3b82f6",
+                          "css": "border: 1px solid #3b82f6",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "borderRadius",
+                          "cssKey": "border-radius",
+                          "value": "4px",
+                          "css": "border-radius: 4px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "marginBottom",
+                          "cssKey": "margin-bottom",
+                          "value": "16px",
+                          "css": "margin-bottom: 16px",
+                          "isDynamic": false
+                        }
+                      ],
+                      "hasBindings": false,
+                      "isStatic": true
+                    },
+                    "value": "padding: 12px; background-color: #dbeafe; border: 1px solid #3b82f6; border-radius: 4px; margin-bottom: 16px"
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "strong",
+                    "path": "10000000.30000000.10000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.30000000.10000000.10000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "10000000",
+                          "10000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Debug Info:"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "20000000"
+                    ],
+                    "content": "Product:"
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.30000000.10000000.10000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "30000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "productName"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  },
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000.40000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "40000000"
+                    ],
+                    "content": ", Price: $"
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.30000000.10000000.10000000.50000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "50000000"
+                    ],
+                    "binding": "price",
+                    "transform": "toFixed",
+                    "transformArgs": [
+                      2
+                    ],
+                    "isSimple": false,
+                    "isTransform": true
+                  },
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000.60000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "60000000"
+                    ],
+                    "content": ", Qty:"
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.30000000.10000000.10000000.70000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "70000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "quantity"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "button",
+                    "path": "10000000.30000000.10000000.10000000.80000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000",
+                      "80000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "EventHandlerAttribute",
+                        "name": "onClick",
+                        "handler": "Handle0",
+                        "path": "10000000.30000000.10000000.10000000.80000000.@onClick",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "10000000",
+                          "10000000",
+                          "80000000",
+                          "@onClick"
+                        ]
+                      },
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.30000000.10000000.10000000.80000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "10000000",
+                          "10000000",
+                          "80000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "margin-left: 12px; padding: 4px 8px; font-size: 12px",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "marginLeft",
+                              "cssKey": "margin-left",
+                              "value": "12px",
+                              "css": "margin-left: 12px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "4px 8px",
+                              "css": "padding: 4px 8px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "fontSize",
+                              "cssKey": "font-size",
+                              "value": "12px",
+                              "css": "font-size: 12px",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "margin-left: 12px; padding: 4px 8px; font-size: 12px"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.30000000.10000000.10000000.80000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "10000000",
+                          "10000000",
+                          "80000000",
+                          "10000000"
+                        ],
+                        "content": "Hide"
+                      }
+                    ]
+                  }
+                ]
               }
-            ],
-            "isSimple": false,
-            "isStructural": true,
-            "isConditional": true
+            ]
           },
           {
             "type": "JSXElement",
@@ -158,7 +555,7 @@
               {
                 "type": "EventHandlerAttribute",
                 "name": "onClick",
-                "handler": "Handle0",
+                "handler": "Handle1",
                 "path": "10000000.40000000.@onClick",
                 "pathSegments": [
                   "10000000",
@@ -684,7 +1081,7 @@
                       {
                         "type": "EventHandlerAttribute",
                         "name": "onClick",
-                        "handler": "Handle1",
+                        "handler": "Handle2",
                         "path": "10000000.60000000.20000000.10000000.@onClick",
                         "pathSegments": [
                           "10000000",
@@ -872,7 +1269,7 @@
                       {
                         "type": "EventHandlerAttribute",
                         "name": "onClick",
-                        "handler": "Handle2",
+                        "handler": "Handle3",
                         "path": "10000000.60000000.20000000.30000000.@onClick",
                         "pathSegments": [
                           "10000000",
@@ -1105,7 +1502,7 @@
                   {
                     "type": "EventHandlerAttribute",
                     "name": "onChange",
-                    "handler": "Handle3",
+                    "handler": "Handle4",
                     "path": "10000000.70000000.20000000.@onChange",
                     "pathSegments": [
                       "10000000",
@@ -1345,15 +1742,349 @@
             ],
             "operator": "&&",
             "condition": "isAdmin",
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true,
             "branches": [
               {
                 "type": "JSXElement",
-                "tagName": "div"
+                "tag": "div",
+                "path": "10000000.80000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "style",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.80000000.10000000.10000000.@style",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "10000000",
+                      "10000000",
+                      "@style"
+                    ],
+                    "subtype": "style-object",
+                    "styleObject": {
+                      "css": "padding: 16px; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 20px",
+                      "bindings": [],
+                      "slots": [],
+                      "properties": [
+                        {
+                          "key": "padding",
+                          "cssKey": "padding",
+                          "value": "16px",
+                          "css": "padding: 16px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "backgroundColor",
+                          "cssKey": "background-color",
+                          "value": "#fef3c7",
+                          "css": "background-color: #fef3c7",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "border",
+                          "cssKey": "border",
+                          "value": "1px solid #fbbf24",
+                          "css": "border: 1px solid #fbbf24",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "borderRadius",
+                          "cssKey": "border-radius",
+                          "value": "8px",
+                          "css": "border-radius: 8px",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "marginBottom",
+                          "cssKey": "margin-bottom",
+                          "value": "20px",
+                          "css": "margin-bottom: 20px",
+                          "isDynamic": false
+                        }
+                      ],
+                      "hasBindings": false,
+                      "isStatic": true
+                    },
+                    "value": "padding: 16px; background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 20px"
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "h3",
+                    "path": "10000000.80000000.10000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "10000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.80000000.10000000.10000000.10000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "10000000",
+                          "10000000",
+                          "10000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "margin-top: 0",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "marginTop",
+                              "cssKey": "margin-top",
+                              "value": "0",
+                              "css": "margin-top: 0",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "margin-top: 0"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.80000000.10000000.10000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "10000000",
+                          "10000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Admin Controls"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "button",
+                    "path": "10000000.80000000.10000000.10000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "10000000",
+                      "10000000",
+                      "20000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.80000000.10000000.10000000.20000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "10000000",
+                          "10000000",
+                          "20000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "8px 16px",
+                              "css": "padding: 8px 16px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "backgroundColor",
+                              "cssKey": "background-color",
+                              "value": "#3b82f6",
+                              "css": "background-color: #3b82f6",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "color",
+                              "cssKey": "color",
+                              "value": "white",
+                              "css": "color: white",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "border",
+                              "cssKey": "border",
+                              "value": "none",
+                              "css": "border: none",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "borderRadius",
+                              "cssKey": "border-radius",
+                              "value": "4px",
+                              "css": "border-radius: 4px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "cursor",
+                              "cssKey": "cursor",
+                              "value": "pointer",
+                              "css": "cursor: pointer",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "marginRight",
+                              "cssKey": "margin-right",
+                              "value": "8px",
+                              "css": "margin-right: 8px",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.80000000.10000000.10000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "10000000",
+                          "10000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Edit Product"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "button",
+                    "path": "10000000.80000000.10000000.10000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "10000000",
+                      "10000000",
+                      "30000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.80000000.10000000.10000000.30000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "10000000",
+                          "10000000",
+                          "30000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "8px 16px",
+                              "css": "padding: 8px 16px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "backgroundColor",
+                              "cssKey": "background-color",
+                              "value": "#ef4444",
+                              "css": "background-color: #ef4444",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "color",
+                              "cssKey": "color",
+                              "value": "white",
+                              "css": "color: white",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "border",
+                              "cssKey": "border",
+                              "value": "none",
+                              "css": "border: none",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "borderRadius",
+                              "cssKey": "border-radius",
+                              "value": "4px",
+                              "css": "border-radius: 4px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "cursor",
+                              "cssKey": "cursor",
+                              "value": "pointer",
+                              "css": "cursor: pointer",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "padding: 8px 16px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.80000000.10000000.10000000.30000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "10000000",
+                          "10000000",
+                          "30000000",
+                          "10000000"
+                        ],
+                        "content": "Delete Product"
+                      }
+                    ]
+                  }
+                ]
               }
-            ],
-            "isSimple": false,
-            "isStructural": true,
-            "isConditional": true
+            ]
           },
           {
             "type": "JSXElement",
@@ -1410,7 +2141,7 @@
                   {
                     "type": "EventHandlerAttribute",
                     "name": "onClick",
-                    "handler": "Handle4",
+                    "handler": "Handle5",
                     "path": "10000000.90000000.10000000.@onClick",
                     "pathSegments": [
                       "10000000",
@@ -1527,15 +2258,150 @@
                 ],
                 "operator": "&&",
                 "condition": "isExpanded",
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true,
                 "branches": [
                   {
                     "type": "JSXElement",
-                    "tagName": "div"
+                    "tag": "div",
+                    "path": "10000000.90000000.20000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "20000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "style",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.90000000.20000000.10000000.10000000.@style",
+                        "pathSegments": [
+                          "10000000",
+                          "90000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "@style"
+                        ],
+                        "subtype": "style-object",
+                        "styleObject": {
+                          "css": "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px",
+                          "bindings": [],
+                          "slots": [],
+                          "properties": [
+                            {
+                              "key": "marginTop",
+                              "cssKey": "margin-top",
+                              "value": "12px",
+                              "css": "margin-top: 12px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "padding",
+                              "cssKey": "padding",
+                              "value": "16px",
+                              "css": "padding: 16px",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "backgroundColor",
+                              "cssKey": "background-color",
+                              "value": "#f9fafb",
+                              "css": "background-color: #f9fafb",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "border",
+                              "cssKey": "border",
+                              "value": "1px solid #e5e7eb",
+                              "css": "border: 1px solid #e5e7eb",
+                              "isDynamic": false
+                            },
+                            {
+                              "key": "borderRadius",
+                              "cssKey": "border-radius",
+                              "value": "8px",
+                              "css": "border-radius: 8px",
+                              "isDynamic": false
+                            }
+                          ],
+                          "hasBindings": false,
+                          "isStatic": true
+                        },
+                        "value": "margin-top: 12px; padding: 16px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px"
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h3",
+                        "path": "10000000.90000000.20000000.10000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "90000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.90000000.20000000.10000000.10000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "90000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Product Specifications"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "p",
+                        "path": "10000000.90000000.20000000.10000000.10000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "90000000",
+                          "20000000",
+                          "10000000",
+                          "10000000",
+                          "20000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.90000000.20000000.10000000.10000000.20000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "90000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "20000000",
+                              "10000000"
+                            ],
+                            "content": "This is where detailed product information would go."
+                          }
+                        ]
+                      }
+                    ]
                   }
-                ],
-                "isSimple": false,
-                "isStructural": true,
-                "isConditional": true
+                ]
               }
             ]
           },
@@ -1885,6 +2751,69 @@
       "name": "Handle0",
       "body": {
         "type": "CallExpression",
+        "start": 2535,
+        "end": 2558,
+        "loc": {
+          "start": {
+            "line": 63,
+            "column": 27,
+            "index": 2535
+          },
+          "end": {
+            "line": 63,
+            "column": 50,
+            "index": 2558
+          }
+        },
+        "callee": {
+          "type": "Identifier",
+          "start": 2535,
+          "end": 2551,
+          "loc": {
+            "start": {
+              "line": 63,
+              "column": 27,
+              "index": 2535
+            },
+            "end": {
+              "line": 63,
+              "column": 43,
+              "index": 2551
+            },
+            "identifierName": "setShowDebugInfo"
+          },
+          "name": "setShowDebugInfo"
+        },
+        "arguments": [
+          {
+            "type": "BooleanLiteral",
+            "start": 2552,
+            "end": 2557,
+            "loc": {
+              "start": {
+                "line": 63,
+                "column": 44,
+                "index": 2552
+              },
+              "end": {
+                "line": 63,
+                "column": 49,
+                "index": 2557
+              }
+            },
+            "value": false
+          }
+        ]
+      },
+      "params": [],
+      "capturedParams": [],
+      "isAsync": false,
+      "eventName": "onClick"
+    },
+    {
+      "name": "Handle1",
+      "body": {
+        "type": "CallExpression",
         "start": 2795,
         "end": 2827,
         "loc": {
@@ -1965,7 +2894,7 @@
       "eventName": "onClick"
     },
     {
-      "name": "Handle1",
+      "name": "Handle2",
       "body": {
         "type": "CallExpression",
         "start": 3809,
@@ -2051,7 +2980,7 @@
       "eventName": "onClick"
     },
     {
-      "name": "Handle2",
+      "name": "Handle3",
       "body": {
         "type": "CallExpression",
         "start": 4282,
@@ -2118,7 +3047,7 @@
       "eventName": "onClick"
     },
     {
-      "name": "Handle3",
+      "name": "Handle4",
       "body": {
         "type": "CallExpression",
         "callee": {
@@ -2158,7 +3087,7 @@
       "eventName": "onChange"
     },
     {
-      "name": "Handle4",
+      "name": "Handle5",
       "body": {
         "type": "CallExpression",
         "start": 6312,

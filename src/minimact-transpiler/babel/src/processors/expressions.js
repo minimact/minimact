@@ -124,10 +124,22 @@ function processExpression(expr, parentPath, pathGen, t, context) {
 
     node.operator = expr.operator;
     node.condition = logicalInfo.condition;
-    node.branches = logicalInfo.branches;
     node.isSimple = false;
     node.isStructural = true;
     node.isConditional = true;
+
+    // TRAVERSE the JSX branches to extract text templates
+    // This is critical for hot reload - we need templates for all conditional content
+    const { traverseJSX } = require('../core/traverser');
+
+    // For logical expressions, traverse the right side (the JSX that renders when condition is true)
+    if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
+      const branchPath = pathGen.buildPath(exprPath, '10000000'); // Right branch
+      const traversedBranch = traverseJSX(expr.right, branchPath, pathGen, t, context);
+      node.branches = [traversedBranch];
+    } else {
+      node.branches = logicalInfo.branches;
+    }
 
     // Check if it contains JSX
     const hasJSX = t.isJSXElement(expr.right) || t.isJSXFragment(expr.right);
@@ -163,11 +175,29 @@ function processExpression(expr, parentPath, pathGen, t, context) {
       const ternaryInfo = extractConditionalExpression(expr, parentPath, pathGen, t);
 
       node.condition = ternaryInfo.condition;
-      node.consequent = ternaryInfo.consequent;
-      node.alternate = ternaryInfo.alternate;
       node.isSimple = false;
       node.isStructural = true;
       node.isConditional = true;
+
+      // TRAVERSE the JSX branches to extract text templates
+      // This is critical for hot reload - we need templates for all conditional content
+      const { traverseJSX } = require('../core/traverser');
+
+      // Traverse consequent (true branch)
+      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)) {
+        const consequentPath = pathGen.buildPath(exprPath, '10000000'); // Consequent branch
+        node.consequent = traverseJSX(expr.consequent, consequentPath, pathGen, t, context);
+      } else {
+        node.consequent = ternaryInfo.consequent;
+      }
+
+      // Traverse alternate (false branch)
+      if (t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+        const alternatePath = pathGen.buildPath(exprPath, '20000000'); // Alternate branch
+        node.alternate = traverseJSX(expr.alternate, alternatePath, pathGen, t, context);
+      } else {
+        node.alternate = ternaryInfo.alternate;
+      }
 
       // Check if it contains JSX
       const hasJSX = ternaryInfo.consequent.type === 'JSXElement' || ternaryInfo.alternate.type === 'JSXElement';
