@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::path::HexPath;
 
 /// Represents a Virtual DOM node
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -131,43 +132,43 @@ pub struct StructuralTemplate {
 pub enum Patch {
     /// Create a new node at the given path
     Create {
-        path: Vec<usize>,
+        path: HexPath,
         node: VNode,
     },
     /// Remove a node at the given path
     Remove {
-        path: Vec<usize>,
+        path: HexPath,
     },
     /// Replace a node at the given path
     Replace {
-        path: Vec<usize>,
+        path: HexPath,
         node: VNode,
     },
     /// Update text content
     UpdateText {
-        path: Vec<usize>,
+        path: HexPath,
         content: String,
     },
     /// Update element properties
     UpdateProps {
-        path: Vec<usize>,
+        path: HexPath,
         props: HashMap<String, String>,
     },
     /// Reorder children (using keys)
     ReorderChildren {
-        path: Vec<usize>,
+        path: HexPath,
         order: Vec<String>, // keys in new order
     },
     /// Update text using template (runtime prediction)
     /// Enables 100% coverage with minimal memory (2KB vs 100KB per component)
     UpdateTextTemplate {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "templatePatch")]
         template_patch: TemplatePatch,
     },
     /// Update props using template (runtime prediction)
     UpdatePropsTemplate {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "propName")]
         prop_name: String,
         #[serde(rename = "templatePatch")]
@@ -176,28 +177,28 @@ pub enum Patch {
     /// Update list using loop template (Phase 4)
     /// Enables 100% coverage for .map() patterns with 97% memory reduction
     UpdateListTemplate {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "loopTemplate")]
         loop_template: LoopTemplate,
     },
     /// Reorder list using template (Phase 8)
     /// Enables reordering patterns like sort/reverse/filter with O(1) memory
     ReorderTemplate {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "reorderTemplate")]
         reorder_template: crate::reorder_detection::ReorderTemplate,
     },
     /// Replace node using structural template (Phase 5)
     /// Enables 100% coverage for conditional rendering with multiple branches
     ReplaceConditional {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "structuralTemplate")]
         structural_template: StructuralTemplate,
     },
     /// Update attribute with static value (extracted from className="static", style={...}, etc.)
     /// Enables hot reload for static attributes without re-compilation
     UpdateAttributeStatic {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "attrName")]
         attr_name: String,
         value: String,
@@ -205,7 +206,7 @@ pub enum Patch {
     /// Update attribute using template (extracted from className={var}, className={`text-${size}`}, etc.)
     /// Enables predictive rendering for dynamic attributes with 100% coverage
     UpdateAttributeDynamic {
-        path: Vec<usize>,
+        path: HexPath,
         #[serde(rename = "attrName")]
         attr_name: String,
         #[serde(rename = "templatePatch")]
@@ -348,8 +349,8 @@ pub struct TemplateInfo {
     pub bindings: Vec<String>,
     /// Slot positions in template string
     pub slots: Vec<usize>,
-    /// Path to the node in the VNode tree
-    pub path: Vec<usize>,
+    /// Path to the node in the VNode tree (hex-based)
+    pub path: HexPath,
     /// Template type: "static", "dynamic", "conditional", "attribute-static", "attribute-dynamic", etc.
     #[serde(rename = "type")]
     pub template_type: String,

@@ -7,6 +7,7 @@ pub mod validation;
 pub mod patch_validator;
 pub mod logging;
 pub mod metrics;
+pub mod path;  // Hex-based DOM path system
 pub mod deep_state_traversal;  // Phase 7
 pub mod reorder_detection;     // Phase 8
 pub mod structural_template_extraction;  // Phase 5
@@ -19,3 +20,4 @@ pub use validation::{ValidationConfig, deserialize_vnode_safe, serialize_vnode_s
 pub use patch_validator::{validate_patch, validate_patches, PatchValidatorConfig};
 pub use logging::{LogLevel, enable_logging, disable_logging, set_log_level, get_logs, get_logs_json, clear_logs};
 pub use metrics::{MetricsSnapshot, METRICS};
+pub use path::{HexPath, index_path_to_hex, hex_to_index_path, HEX_GAP};

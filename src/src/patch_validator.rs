@@ -1,5 +1,6 @@
 use crate::vdom::{VNode, Patch};
 use crate::error::{MinimactError, Result};
+use crate::path::HexPath;
 
 /// Configuration for patch validation
 #[derive(Debug, Clone)]
@@ -78,11 +79,17 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
             if config.validate_applicability {
                 // Verify parent exists and path is valid for insertion
                 if path.is_empty() {
-                    return Err(MinimactError::InvalidPatchPath { path: path.clone() });
+                    return Err(MinimactError::InvalidPatchPath {
+                        path: path.to_index_path().unwrap_or_default()
+                    });
                 }
 
-                let parent_path: Vec<usize> = path[..path.len() - 1].to_vec();
-                let child_index = path[path.len() - 1];
+                // Get parent path and child index
+                let parent_path = path.parent().unwrap_or_else(|| HexPath::root());
+                let indices = path.to_index_path().map_err(|_| MinimactError::InvalidPatchPath {
+                    path: vec![]
+                })?;
+                let child_index = indices.last().copied().unwrap_or(0);
 
                 let parent = get_node_at_path(tree, &parent_path)?;
                 if !parent.is_element() {
@@ -94,7 +101,9 @@ pub fn validate_patch(patch: &Patch, tree: &VNode, config: &PatchValidatorConfig
 
                 // Child index should be <= current children count (allows appending)
                 if child_index > parent.children_count() {
-                    return Err(MinimactError::InvalidPatchPath { path: path.clone() });
+                    return Err(MinimactError::InvalidPatchPath {
+                        path: path.to_index_path().unwrap_or_default()
+                    });
                 }
             }
         }
@@ -311,14 +320,28 @@ pub fn validate_patches(patches: &[Patch], tree: &VNode, config: &PatchValidator
 }
 
 /// Validates a patch path
-fn validate_path(path: &[usize], config: &PatchValidatorConfig) -> Result<()> {
-    if path.len() > config.max_path_depth {
-        return Err(MinimactError::InvalidPatchPath { path: path.to_vec() });
+fn validate_path(path: &HexPath, config: &PatchValidatorConfig) -> Result<()> {
+    if path.depth() > config.max_path_depth {
+        return Err(MinimactError::InvalidPatchPath {
+            path: path.to_index_path().unwrap_or_default()
+        });
     }
 
-    for &index in path {
-        if index > config.max_path_index {
-            return Err(MinimactError::InvalidPatchPath { path: path.to_vec() });
+    // Validate hex segments
+    if let Ok(segments) = path.segments() {
+        for segment in segments {
+            // Convert hex segment back to index for validation
+            if segment % crate::path::HEX_GAP != 0 {
+                return Err(MinimactError::InvalidPatchPath {
+                    path: vec![]
+                });
+            }
+            let index = (segment / crate::path::HEX_GAP - 1) as usize;
+            if index > config.max_path_index {
+                return Err(MinimactError::InvalidPatchPath {
+                    path: path.to_index_path().unwrap_or_default()
+                });
+            }
         }
     }
 
@@ -363,15 +386,20 @@ fn validate_props(props: &std::collections::HashMap<String, String>) -> Result<(
 }
 
 /// Gets a node at a specific path in the tree
-fn get_node_at_path<'a>(tree: &'a VNode, path: &[usize]) -> Result<&'a VNode> {
+fn get_node_at_path<'a>(tree: &'a VNode, path: &HexPath) -> Result<&'a VNode> {
     let mut current = tree;
 
-    for (depth, &index) in path.iter().enumerate() {
+    // Convert hex path to indices
+    let indices = path.to_index_path().map_err(|_| MinimactError::InvalidPatchPath {
+        path: vec![]
+    })?;
+
+    for (depth, &index) in indices.iter().enumerate() {
         match current {
             VNode::Element(element) => {
                 if index >= element.children.len() {
                     return Err(MinimactError::InvalidPatchPath {
-                        path: path[..=depth].to_vec(),
+                        path: indices[..=depth].to_vec(),
                     });
                 }
                 // Navigate through the child (which may be None)
@@ -380,13 +408,13 @@ fn get_node_at_path<'a>(tree: &'a VNode, path: &[usize]) -> Result<&'a VNode> {
                 } else {
                     // Path points to a null child (conditional rendering)
                     return Err(MinimactError::InvalidPatchPath {
-                        path: path[..=depth].to_vec(),
+                        path: indices[..=depth].to_vec(),
                     });
                 }
             }
             VNode::Text(_) => {
                 return Err(MinimactError::InvalidPatchPath {
-                    path: path[..=depth].to_vec(),
+                    path: indices[..=depth].to_vec(),
                 });
             }
         }
