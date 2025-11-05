@@ -25,6 +25,11 @@ public class CSharpCodeGenerator : INodeVisitor
 
     public string GetOutput() => _output.ToString();
 
+    /// <summary>
+    /// Get the generated code (alias for GetOutput for compatibility)
+    /// </summary>
+    public string GetGeneratedCode() => GetOutput();
+
     private void WriteLine(string line = "")
     {
         if (string.IsNullOrEmpty(line))
@@ -61,7 +66,10 @@ public class CSharpCodeGenerator : INodeVisitor
 
         // Component class declaration
         WriteLine("[Component]");
-        WriteLine($"public partial class {node.ComponentName} : MinimactComponent");
+
+        // Use base class if specified, otherwise inherit directly from MinimactComponent
+        var baseClass = !string.IsNullOrEmpty(node.BaseClass) ? node.BaseClass : "MinimactComponent";
+        WriteLine($"public partial class {node.ComponentName} : {baseClass}");
         WriteLine("{");
         Indent();
 

@@ -38,8 +38,12 @@
     <PackageReference Include="Markdig" Version="0.37.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\minimact-transpiler\codegen\Minimact.Transpiler.CodeGen\Minimact.Transpiler.CodeGen.csproj" />
+  </ItemGroup>
 <Target Name="CopyNativeDllToPackageDir" AfterTargets="Build">
   <Message Text="Copying Rust native DLL for NuGet packaging..." Importance="high" />
   <Copy SourceFiles="..\target\release\minimact.dll" DestinationFiles="$(ProjectDir)native\win-x64\minimact-nuget.dll" SkipUnchangedFiles="true" />

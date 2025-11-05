@@ -178,6 +178,25 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/transpiler-babel',
+      source: 'src/minimact-transpiler/babel',
+      include: [
+        'src/**/*',
+        'index.js',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git',
+        'test',
+        'examples'
+      ],
+      buildCommand: null,  // No build needed, it's just JS
+      installDependencies: false
     }
   ],
 
@@ -196,6 +215,7 @@ module.exports = {
       // Which packages this target needs
       packages: [
         '@minimact/babel-plugin',
+        '@minimact/transpiler-babel',
         '@minimact/punch',
         '@minimact/core',
         '@minimact/query',

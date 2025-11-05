@@ -9,34 +9,37 @@ import type { TranspileResult, TranspileProjectResult } from '../types/project';
 const execAsync = promisify(exec);
 
 /**
- * Extended metadata interface that includes our custom minimactCSharp property
+ * Extended metadata interface that includes our custom minimactJson property
  */
 interface MinimactBabelFileMetadata extends babel.BabelFileMetadata {
-  minimactCSharp?: string;
+  minimactJson?: string;
 }
 
 /**
- * TranspilerService - Transpiles TSX to C# using babel-plugin-minimact
+ * TranspilerService - Transpiles TSX to JSON using minimact-transpiler-babel
  *
  * Responsibilities:
- * - Transpile single TSX files to C#
+ * - Transpile single TSX files to JSON (for runtime component loading)
  * - Transpile entire projects
  * - Track errors and duration
+ *
+ * Architecture:
+ * TSX → Babel (minimact-transpiler-babel) → JSON → ASP.NET Runtime (ComponentLoader) → Roslyn → Component
  */
 export class TranspilerService {
   private babelPluginPath: string;
 
   constructor(babelPluginPath?: string) {
-    // Default to synced babel-plugin from mact_modules
-    // From dist/main -> ../../mact_modules/@minimact/babel-plugin
+    // Default to new transpiler-babel from mact_modules
+    // From dist/main -> ../../mact_modules/@minimact/transpiler-babel
     this.babelPluginPath = babelPluginPath || path.join(
       __dirname,
-      '../../mact_modules/@minimact/babel-plugin/index.cjs'
+      '../../mact_modules/@minimact/transpiler-babel/src/index.js'
     );
   }
 
   /**
-   * Transpile a single TSX file to C#
+   * Transpile a single TSX file to JSON
    */
   async transpileFile(tsxPath: string): Promise<TranspileResult> {
     const startTime = Date.now();
@@ -45,11 +48,12 @@ export class TranspilerService {
       // Read TSX file
       const tsxContent = await fs.readFile(tsxPath, 'utf-8');
 
-      // Determine output path (.tsx -> .cs)
-      const outputPath = tsxPath.replace(/\.tsx$/, '.cs');
+      // Determine output path (.tsx -> .json)
+      const outputPath = tsxPath.replace(/\.tsx$/, '.json');
 
       // Log for debugging
       console.log('[Transpiler] Transpiling:', tsxPath);
+      console.log('[Transpiler] Output:', outputPath);
       console.log('[Transpiler] Plugin path:', this.babelPluginPath);
 
       // ⚠️ CRITICAL: Parse file first to preserve TypeScript AST
@@ -84,36 +88,39 @@ export class TranspilerService {
       console.log('[Transpiler] Stored', interfaces.length, 'interfaces in AST metadata');
 
       // Now transform with the parsed AST
+      // IMPORTANT: We don't use @babel/preset-react because it transforms JSX to _jsx() calls
+      // Our plugin needs to see the raw JSX structure, not the transformed output
       const result = await babel.transformFromAstAsync(ast, tsxContent, {
         filename: tsxPath,
-        // Plugins run in order, BEFORE presets
+        // Only run our plugin - no React or TypeScript transforms
         plugins: [
-          // Our plugin runs FIRST - can read metadata!
           [this.babelPluginPath, {
-            target: 'csharp',
-            framework: 'minimact'
+            outputDir: path.dirname(outputPath),
+            hexGap: 0x10000000
           }]
         ],
-        // Presets run AFTER plugins (and in reverse order)
-        presets: [
-          ['@babel/preset-react', { runtime: 'automatic' }],
-          '@babel/preset-typescript'
-        ]
+        // Don't transform JSX or TypeScript - we just want to analyze the structure
+        presets: []
       });
 
       if (!result) {
         throw new Error('Transpilation produced no output');
       }
 
-      // Extract C# code from metadata (babel plugin stores it there)
-      const csharpCode = (result.metadata as MinimactBabelFileMetadata | undefined)?.minimactCSharp;
+      // Debug: Log what metadata we got
+      console.log('[Transpiler] Result metadata keys:', result.metadata ? Object.keys(result.metadata) : 'none');
+      console.log('[Transpiler] minimactJson present?', !!(result.metadata as any)?.minimactJson);
 
-      if (!csharpCode) {
-        throw new Error('Transpilation did not generate C# code. Check if the file contains valid Minimact components.');
+      // Extract JSON from metadata (babel plugin stores it there)
+      const jsonOutput = (result.metadata as MinimactBabelFileMetadata | undefined)?.minimactJson;
+
+      if (!jsonOutput) {
+        console.error('[Transpiler] Full metadata:', JSON.stringify(result.metadata, null, 2));
+        throw new Error('Transpilation did not generate JSON output. Check if the file contains valid Minimact components.');
       }
 
-      // Write C# output
-      await fs.writeFile(outputPath, csharpCode, 'utf-8');
+      // Write JSON output
+      await fs.writeFile(outputPath, jsonOutput, 'utf-8');
 
       const duration = Date.now() - startTime;
 

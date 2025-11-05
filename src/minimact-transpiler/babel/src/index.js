@@ -37,33 +37,57 @@ module.exports = function (babel) {
       /**
        * Visit each Program (file) and process exported components
        */
-      Program(programPath, state) {
-        const outputDir = state.opts.outputDir || './Generated';
-        const hexGap = state.opts.hexGap || 0x10000000;
+      Program: {
+        enter(programPath, state) {
+          // Initialize component collection (like babel-plugin-minimact)
+          state.file.minimactComponents = [];
+        },
 
-        // Ensure output directory exists
-        ensureDir(outputDir);
+        exit(programPath, state) {
+          const outputDir = state.opts.outputDir || './Generated';
+          const hexGap = state.opts.hexGap || 0x10000000;
 
-        // Find all exported function components
-        programPath.traverse({
-          ExportNamedDeclaration(exportPath) {
-            const declaration = exportPath.node.declaration;
+          // Ensure output directory exists
+          ensureDir(outputDir);
 
-            // export function ComponentName() { ... }
-            if (t.isFunctionDeclaration(declaration)) {
-              processComponent(declaration, outputDir, hexGap, t);
+          // Find all exported function components
+          programPath.traverse({
+            ExportNamedDeclaration(exportPath) {
+              const declaration = exportPath.node.declaration;
+
+              // export function ComponentName() { ... }
+              if (t.isFunctionDeclaration(declaration)) {
+                const componentJson = processComponent(declaration, outputDir, hexGap, t);
+                if (componentJson) {
+                  state.file.minimactComponents.push(componentJson);
+                }
+              }
+            },
+
+            ExportDefaultDeclaration(exportPath) {
+              const declaration = exportPath.node.declaration;
+
+              // export default function ComponentName() { ... }
+              if (t.isFunctionDeclaration(declaration)) {
+                const componentJson = processComponent(declaration, outputDir, hexGap, t);
+                if (componentJson) {
+                  state.file.minimactComponents.push(componentJson);
+                }
+              }
             }
-          },
+          });
 
-          ExportDefaultDeclaration(exportPath) {
-            const declaration = exportPath.node.declaration;
+          // Store component JSON in metadata (like babel-plugin-minimact did with C#)
+          // This allows tools like Swig to access the JSON without reading files
+          if (state.file.minimactComponents && state.file.minimactComponents.length > 0) {
+            // For now, assume single component per file (standard practice)
+            const componentJson = state.file.minimactComponents[0];
+            const jsonOutput = JSON.stringify(componentJson, null, 2);
 
-            // export default function ComponentName() { ... }
-            if (t.isFunctionDeclaration(declaration)) {
-              processComponent(declaration, outputDir, hexGap, t);
-            }
+            state.file.metadata = state.file.metadata || {};
+            state.file.metadata.minimactJson = jsonOutput;
           }
-        });
+        }
       }
     }
   };

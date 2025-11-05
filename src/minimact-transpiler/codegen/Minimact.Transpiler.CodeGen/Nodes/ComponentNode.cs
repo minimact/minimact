@@ -74,6 +74,9 @@ public class ComponentNode : BaseNode
     [JsonPropertyName("componentName")]
     public string ComponentName { get; set; } = string.Empty;
 
+    [JsonPropertyName("baseClass")]
+    public string? BaseClass { get; set; }
+
     [JsonPropertyName("renderMethod")]
     public RenderMethodNode? RenderMethod { get; set; }
 
