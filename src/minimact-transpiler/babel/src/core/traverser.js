@@ -47,7 +47,7 @@ function traverseJSX(node, parentPath, pathGen, t, context) {
 
   // Process attributes using provided processor
   const attributes = context.processAttributes
-    ? context.processAttributes(node.openingElement.attributes, currentPath, pathSegments, pathGen, t)
+    ? context.processAttributes(node.openingElement.attributes, currentPath, pathSegments, pathGen, t, context.component)
     : [];
 
   // Process children

@@ -40,9 +40,15 @@ function processComponent(functionNode, outputDir, hexGap, t) {
   // Create path generator and context for this component
   const pathGen = new HexPathGenerator(hexGap);
 
+  // Create component context for event handlers and other metadata
+  const componentContext = {
+    eventHandlers: []
+  };
+
   const context = {
     processAttributes,
     processExpression,
+    component: componentContext,
     log: (message) => console.log(message)
   };
 

@@ -1,0 +1,353 @@
+{
+  "type": "Component",
+  "componentName": "EventHandlersTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": false,
+        "attributes": [],
+        "children": [
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "EventHandlerAttribute",
+                "name": "onClick",
+                "handler": "handleClick",
+                "path": "10000000.20000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "@onClick"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "Click Me"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "EventHandlerAttribute",
+                "name": "onClick",
+                "handler": "Handle0",
+                "path": "10000000.40000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "@onClick"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "content": "Inline Handler"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "EventHandlerAttribute",
+                "name": "onClick",
+                "handler": "Handle1",
+                "path": "10000000.60000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "@onClick"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "content": "-"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "span",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "Identifier",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  }
+                ],
+                "template": "{0}",
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "EventHandlerAttribute",
+                "name": "onClick",
+                "handler": "Handle2",
+                "path": "10000000.80000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "@onClick"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.80000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000"
+                ],
+                "content": "+"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.a0000000",
+            "pathSegments": [
+              "10000000",
+              "a0000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "EventHandlerAttribute",
+                "name": "onClick",
+                "handler": "Handle3",
+                "path": "10000000.a0000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "a0000000",
+                  "@onClick"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.a0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "a0000000",
+                  "10000000"
+                ],
+                "content": "Increment"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.b0000000",
+            "pathSegments": [
+              "10000000",
+              "b0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.c0000000",
+            "pathSegments": [
+              "10000000",
+              "c0000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "EventHandlerAttribute",
+                "name": "onClick",
+                "handler": "Handle4",
+                "path": "10000000.c0000000.@onClick",
+                "pathSegments": [
+                  "10000000",
+                  "c0000000",
+                  "@onClick"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.c0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "c0000000",
+                  "10000000"
+                ],
+                "content": "Add to Cart"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

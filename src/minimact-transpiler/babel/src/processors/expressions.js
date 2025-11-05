@@ -23,6 +23,7 @@ const { extractBindings } = require('../extractors/bindings');
 const { extractTemplateLiteral } = require('../extractors/templates');
 const { extractLogicalExpression, extractConditionalExpression } = require('../extractors/conditionals');
 const { extractComplexExpression } = require('../extractors/complexExpressions');
+const { extractMapLoop } = require('../extractors/loops');
 
 const { buildMemberPath } = require('./attributes');
 
@@ -148,8 +149,21 @@ function processExpression(expr, parentPath, pathGen, t) {
     // Function call: {items.map(...)} or {price.toFixed(2)}
     // Check if it's a .map() (structural) or method call (transform)
     if (isMapCall(expr, t)) {
-      node.isSimple = false;
-      node.isStructural = true;
+      // Extract loop template structure
+      const loopInfo = extractMapLoop(expr, parentPath, pathGen, t);
+
+      if (loopInfo) {
+        node.loopTemplate = loopInfo;
+        node.isSimple = false;
+        node.isStructural = true;
+        node.isLoop = true;
+
+        console.log(`      [Loop] ${loopInfo.arrayBinding}.map(${loopInfo.itemVar}${loopInfo.indexVar ? ', ' + loopInfo.indexVar : ''} => ...)`);
+      } else {
+        // Couldn't extract loop structure
+        node.isSimple = false;
+        node.isStructural = true;
+      }
     } else {
       // Try to extract as transform method call
       const binding = extractBindings(expr, t);
