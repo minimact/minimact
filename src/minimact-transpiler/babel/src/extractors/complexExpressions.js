@@ -90,6 +90,58 @@ function buildExpressionTree(node, bindings, bindingMap, t) {
     };
   }
 
+  // Optional Member Expression: user?.name, obj?.prop?.nested
+  if (t.isOptionalMemberExpression(node)) {
+    // For optional chaining, try to build the full path if non-computed
+    if (!node.computed) {
+      const path = buildOptionalMemberPath(node, t);
+
+      if (path) {
+        if (!bindingMap.has(path)) {
+          bindingMap.set(path, bindings.length);
+          bindings.push(path);
+        }
+
+        return {
+          type: 'OptionalBinding',
+          slot: bindingMap.get(path),
+          name: path,
+          optional: true
+        };
+      }
+    }
+
+    // For computed or complex optional chaining
+    return {
+      type: 'OptionalMemberExpression',
+      optional: node.optional,
+      computed: node.computed,
+      object: buildExpressionTree(node.object, bindings, bindingMap, t),
+      property: node.computed
+        ? buildExpressionTree(node.property, bindings, bindingMap, t)
+        : { type: 'Identifier', name: node.property.name }
+    };
+  }
+
+  // Optional Call Expression: func?.(), obj?.method?.()
+  if (t.isOptionalCallExpression(node)) {
+    const callee = node.callee;
+    let calleeString = '<optionalCallee>';
+
+    if (t.isIdentifier(callee)) {
+      calleeString = callee.name;
+    } else if (t.isMemberExpression(callee) || t.isOptionalMemberExpression(callee)) {
+      calleeString = buildOptionalMemberPath(callee, t) || '<complex>';
+    }
+
+    return {
+      type: 'OptionalCallExpression',
+      optional: node.optional,
+      callee: calleeString,
+      arguments: node.arguments.map(arg => buildExpressionTree(arg, bindings, bindingMap, t))
+    };
+  }
+
   // Literal: 42, "hello", true → { type: 'Literal', value: ... }
   if (t.isNumericLiteral(node) || t.isStringLiteral(node) || t.isBooleanLiteral(node)) {
     return {
@@ -233,6 +285,20 @@ function buildTemplateString(tree) {
       }
       return `${buildTemplateString(tree.object)}.${buildTemplateString(tree.property)}`;
 
+    case 'OptionalBinding':
+      return `{${tree.slot}}`;
+
+    case 'OptionalMemberExpression':
+      const optOperator = tree.optional ? '?.' : '.';
+      if (tree.computed) {
+        return `${buildTemplateString(tree.object)}${tree.optional ? '?.' : ''}[${buildTemplateString(tree.property)}]`;
+      }
+      return `${buildTemplateString(tree.object)}${optOperator}${tree.property.name || buildTemplateString(tree.property)}`;
+
+    case 'OptionalCallExpression':
+      const optArgs = tree.arguments.map(arg => buildTemplateString(arg)).join(', ');
+      return `${tree.callee}${tree.optional ? '?.' : ''}(${optArgs})`;
+
     case 'ArrayExpression':
       const elements = tree.elements.map(el => buildTemplateString(el)).join(', ');
       return `[${elements}]`;
@@ -297,6 +363,43 @@ function buildMemberPath(node, t) {
 
   if (t.isIdentifier(current)) {
     parts.unshift(current.name);
+  }
+
+  return parts.join('.');
+}
+
+/**
+ * Build optional member expression path with ?. notation
+ *
+ * @param {Object} node - Optional member expression node
+ * @param {Object} t - Babel types
+ * @returns {string|null} - Optional chain path or null if complex
+ */
+function buildOptionalMemberPath(node, t) {
+  const parts = [];
+  let current = node;
+
+  while (current) {
+    if (t.isOptionalMemberExpression(current)) {
+      if (t.isIdentifier(current.property) && !current.computed) {
+        parts.unshift(current.property.name + (current.optional ? '?' : ''));
+      } else if (current.computed) {
+        return null; // Computed optional chaining is complex
+      }
+      current = current.object;
+    } else if (t.isMemberExpression(current)) {
+      if (t.isIdentifier(current.property) && !current.computed) {
+        parts.unshift(current.property.name);
+      } else {
+        return null;
+      }
+      current = current.object;
+    } else if (t.isIdentifier(current)) {
+      parts.unshift(current.name);
+      break;
+    } else {
+      return null; // Complex base
+    }
   }
 
   return parts.join('.');

@@ -1,0 +1,402 @@
+{
+  "type": "Component",
+  "componentName": "TransformMethodsTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Price: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.10000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "20000000"
+                ],
+                "binding": "price",
+                "transform": "toFixed",
+                "transformArgs": [
+                  2
+                ],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "Total: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.20000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "20000000"
+                ],
+                "binding": "cartTotal",
+                "transform": "toFixed",
+                "transformArgs": [
+                  2
+                ],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "content": "Uppercase:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "binding": "code",
+                "transform": "toUpperCase",
+                "transformArgs": [],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "content": "Lowercase:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.40000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "20000000"
+                ],
+                "binding": "code",
+                "transform": "toLowerCase",
+                "transformArgs": [],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "content": "Trimmed: \""
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "binding": "productName",
+                "transform": "trim",
+                "transformArgs": [],
+                "isSimple": false,
+                "isTransform": true
+              },
+              {
+                "type": "StaticText",
+                "path": "10000000.50000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "30000000"
+                ],
+                "content": "\""
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "content": "Trim Start: \""
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.60000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "20000000"
+                ],
+                "binding": "productName",
+                "transform": "trimStart",
+                "transformArgs": [],
+                "isSimple": false,
+                "isTransform": true
+              },
+              {
+                "type": "StaticText",
+                "path": "10000000.60000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "30000000"
+                ],
+                "content": "\""
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "content": "Trim End: \""
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.70000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "20000000"
+                ],
+                "binding": "productName",
+                "transform": "trimEnd",
+                "transformArgs": [],
+                "isSimple": false,
+                "isTransform": true
+              },
+              {
+                "type": "StaticText",
+                "path": "10000000.70000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "30000000"
+                ],
+                "content": "\""
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.80000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000"
+                ],
+                "content": "String value:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.80000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "20000000"
+                ],
+                "binding": "price",
+                "transform": "toString",
+                "transformArgs": [],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "content": "Formatted:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.90000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "20000000"
+                ],
+                "template": "toUpperCase()",
+                "bindings": [],
+                "expressionTree": {
+                  "type": "CallExpression",
+                  "callee": "toUpperCase",
+                  "arguments": []
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

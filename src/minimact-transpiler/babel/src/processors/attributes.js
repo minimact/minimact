@@ -351,6 +351,11 @@ function getExpressionType(expr, t) {
   if (t.isLogicalExpression(expr)) return 'LogicalExpression';
   if (t.isBinaryExpression(expr)) return 'BinaryExpression';
   if (t.isCallExpression(expr)) return 'CallExpression';
+  if (t.isArrayExpression(expr)) return 'ArrayExpression';
+  if (t.isNumericLiteral(expr)) return 'NumericLiteral';
+  if (t.isStringLiteral(expr)) return 'StringLiteral';
+  if (t.isBooleanLiteral(expr)) return 'BooleanLiteral';
+  if (t.isNullLiteral(expr)) return 'NullLiteral';
   return 'Unknown';
 }
 

@@ -1,0 +1,844 @@
+{
+  "type": "Component",
+  "componentName": "PluginDetectionTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.10000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Sales Chart"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.10000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "chart",
+                    "path": "10000000.10000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "data",
+                    "expressionType": "Identifier",
+                    "path": "10000000.10000000.20000000.@data",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "20000000",
+                      "@data"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "salesData"
+                      }
+                    ],
+                    "template": "{0}"
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "type",
+                    "value": "bar",
+                    "path": "10000000.10000000.20000000.@type",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "20000000",
+                      "@type"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "width",
+                    "expressionType": "NumericLiteral",
+                    "path": "10000000.10000000.20000000.@width",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "20000000",
+                      "@width"
+                    ],
+                    "template": "600",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": 600,
+                      "raw": "600"
+                    },
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "height",
+                    "expressionType": "NumericLiteral",
+                    "path": "10000000.10000000.20000000.@height",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "20000000",
+                      "@height"
+                    ],
+                    "template": "400",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": 400,
+                      "raw": "400"
+                    },
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "options",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.10000000.20000000.@options",
+                    "pathSegments": [
+                      "10000000",
+                      "10000000",
+                      "20000000",
+                      "@options"
+                    ],
+                    "template": "{ responsive: true }",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "ObjectExpression",
+                      "properties": [
+                        {
+                          "type": "Property",
+                          "key": "responsive",
+                          "value": {
+                            "type": "Literal",
+                            "value": true,
+                            "raw": "true"
+                          }
+                        }
+                      ]
+                    },
+                    "isComplexTemplate": true
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.20000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Revenue Chart"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.20000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "chart",
+                    "path": "10000000.20000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "data",
+                    "expressionType": "Identifier",
+                    "path": "10000000.20000000.20000000.@data",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "20000000",
+                      "@data"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "revenueData"
+                      }
+                    ],
+                    "template": "{0}"
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "type",
+                    "value": "line",
+                    "path": "10000000.20000000.20000000.@type",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "20000000",
+                      "@type"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "width",
+                    "expressionType": "NumericLiteral",
+                    "path": "10000000.20000000.20000000.@width",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "20000000",
+                      "@width"
+                    ],
+                    "template": "600",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": 600,
+                      "raw": "600"
+                    },
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "height",
+                    "expressionType": "NumericLiteral",
+                    "path": "10000000.20000000.20000000.@height",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "20000000",
+                      "@height"
+                    ],
+                    "template": "400",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": 400,
+                      "raw": "400"
+                    },
+                    "isComplexTemplate": true
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Location Map"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "map",
+                    "path": "10000000.30000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "center",
+                    "expressionType": "Identifier",
+                    "path": "10000000.30000000.20000000.@center",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "@center"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "mapCenter"
+                      }
+                    ],
+                    "template": "{0}"
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "markers",
+                    "expressionType": "Identifier",
+                    "path": "10000000.30000000.20000000.@markers",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "@markers"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "markers"
+                      }
+                    ],
+                    "template": "{0}"
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "zoom",
+                    "expressionType": "NumericLiteral",
+                    "path": "10000000.30000000.20000000.@zoom",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "@zoom"
+                    ],
+                    "template": "10",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": 10,
+                      "raw": "10"
+                    },
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "style",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.30000000.20000000.@style",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "@style"
+                    ],
+                    "subtype": "style-object",
+                    "styleObject": {
+                      "css": "width: 100%; height: 400px",
+                      "bindings": [],
+                      "slots": [],
+                      "properties": [
+                        {
+                          "key": "width",
+                          "cssKey": "width",
+                          "value": "100%",
+                          "css": "width: 100%",
+                          "isDynamic": false
+                        },
+                        {
+                          "key": "height",
+                          "cssKey": "height",
+                          "value": "400px",
+                          "css": "height: 400px",
+                          "isDynamic": false
+                        }
+                      ],
+                      "hasBindings": false,
+                      "isStatic": true
+                    },
+                    "value": "width: 100%; height: 400px"
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Select Date"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.40000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "datepicker",
+                    "path": "10000000.40000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "format",
+                    "value": "MM/DD/YYYY",
+                    "path": "10000000.40000000.20000000.@format",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "@format"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "minDate",
+                    "value": "2024-01-01",
+                    "path": "10000000.40000000.20000000.@minDate",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "@minDate"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "maxDate",
+                    "value": "2024-12-31",
+                    "path": "10000000.40000000.20000000.@maxDate",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "@maxDate"
+                    ]
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.50000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Editor"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "editor",
+                    "path": "10000000.50000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "placeholder",
+                    "value": "Enter text here...",
+                    "path": "10000000.50000000.20000000.@placeholder",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "@placeholder"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "toolbar",
+                    "expressionType": "ArrayExpression",
+                    "path": "10000000.50000000.20000000.@toolbar",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "@toolbar"
+                    ],
+                    "template": "[\"bold\", \"italic\", \"underline\", \"link\"]",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "ArrayExpression",
+                      "elements": [
+                        {
+                          "type": "Literal",
+                          "value": "bold",
+                          "raw": "\"bold\""
+                        },
+                        {
+                          "type": "Literal",
+                          "value": "italic",
+                          "raw": "\"italic\""
+                        },
+                        {
+                          "type": "Literal",
+                          "value": "underline",
+                          "raw": "\"underline\""
+                        },
+                        {
+                          "type": "Literal",
+                          "value": "link",
+                          "raw": "\"link\""
+                        }
+                      ]
+                    },
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "height",
+                    "expressionType": "NumericLiteral",
+                    "path": "10000000.50000000.20000000.@height",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "@height"
+                    ],
+                    "template": "300",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": 300,
+                      "raw": "300"
+                    },
+                    "isComplexTemplate": true
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.60000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Code Editor"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.60000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "code-editor",
+                    "path": "10000000.60000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "language",
+                    "value": "javascript",
+                    "path": "10000000.60000000.20000000.@language",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "@language"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "theme",
+                    "value": "monokai",
+                    "path": "10000000.60000000.20000000.@theme",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "@theme"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "showLineNumbers",
+                    "expressionType": "BooleanLiteral",
+                    "path": "10000000.60000000.20000000.@showLineNumbers",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "@showLineNumbers"
+                    ],
+                    "template": "true",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": true,
+                      "raw": "true"
+                    },
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "readOnly",
+                    "expressionType": "BooleanLiteral",
+                    "path": "10000000.60000000.20000000.@readOnly",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "@readOnly"
+                    ],
+                    "template": "false",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": false,
+                      "raw": "false"
+                    },
+                    "isComplexTemplate": true
+                  }
+                ],
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

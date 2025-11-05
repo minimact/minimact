@@ -101,7 +101,7 @@ function traverseFragment(fragment, parentPath, pathGen, t, context) {
     } else if (t.isJSXExpressionContainer(child)) {
       // Expression container - delegate to processor
       const exprNode = context.processExpression
-        ? context.processExpression(child.expression, parentPath, pathGen, t)
+        ? context.processExpression(child.expression, parentPath, pathGen, t, context)
         : null;
       if (exprNode) {
         children.push(exprNode);
@@ -168,7 +168,7 @@ function traverseChildren(children, parentPath, pathGen, t, context) {
       } else {
         // Dynamic content - delegate to expression processor
         const exprNode = context.processExpression
-          ? context.processExpression(expr, parentPath, pathGen, t)
+          ? context.processExpression(expr, parentPath, pathGen, t, context)
           : null;
         if (exprNode) {
           result.push(exprNode);
@@ -210,7 +210,7 @@ function traverseStructuralExpression(expr, parentPath, pathGen, t, context) {
     if (t.isJSXElement(expr.right)) {
       // Delegate to expression processor which will handle conditional extraction
       return context.processExpression
-        ? context.processExpression(expr, parentPath, pathGen, t)
+        ? context.processExpression(expr, parentPath, pathGen, t, context)
         : null;
     }
   } else if (t.isConditionalExpression(expr)) {
@@ -219,7 +219,7 @@ function traverseStructuralExpression(expr, parentPath, pathGen, t, context) {
 
     // Delegate to expression processor which will handle conditional extraction
     return context.processExpression
-      ? context.processExpression(expr, parentPath, pathGen, t)
+      ? context.processExpression(expr, parentPath, pathGen, t, context)
       : null;
   } else if (t.isCallExpression(expr) &&
              t.isMemberExpression(expr.callee) &&
@@ -230,7 +230,7 @@ function traverseStructuralExpression(expr, parentPath, pathGen, t, context) {
 
     // Delegate to expression processor which will handle loop extraction
     return context.processExpression
-      ? context.processExpression(expr, parentPath, pathGen, t)
+      ? context.processExpression(expr, parentPath, pathGen, t, context)
       : null;
   } else if (t.isJSXFragment(expr)) {
     // Fragment

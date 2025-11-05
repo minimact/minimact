@@ -1,0 +1,142 @@
+{
+  "type": "Component",
+  "componentName": "ConditionalRenderingTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": false,
+        "attributes": [],
+        "children": [
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "operator": "&&",
+            "condition": "isAdmin",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tagName": "div"
+              }
+            ],
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "operator": "&&",
+            "condition": "isLoggedIn",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tagName": "div"
+              }
+            ],
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "operator": "&&",
+            "condition": "hasPermission",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tagName": "div"
+              }
+            ],
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "operator": "&&",
+            "condition": "isAdmin",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tagName": "button"
+              }
+            ],
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "operator": "&&",
+            "condition": "hasPermission",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tagName": "button"
+              }
+            ],
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true
+          },
+          {
+            "type": "Expression",
+            "expressionType": "LogicalExpression",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "operator": "&&",
+            "condition": "showBanner",
+            "branches": [
+              {
+                "type": "JSXElement",
+                "tagName": "div"
+              }
+            ],
+            "isSimple": false,
+            "isStructural": true,
+            "isConditional": true
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

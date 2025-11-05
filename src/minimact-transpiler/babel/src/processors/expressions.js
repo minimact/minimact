@@ -39,9 +39,15 @@ const { buildMemberPath } = require('./attributes');
  * @param {string} parentPath - Parent hex path
  * @param {HexPathGenerator} pathGen - Hex path generator
  * @param {Object} t - Babel types
+ * @param {Object} context - Traversal context (for nested JSX and component metadata)
  * @returns {Object|null} - Expression node or null
  */
-function processExpression(expr, parentPath, pathGen, t) {
+function processExpression(expr, parentPath, pathGen, t, context) {
+  // Skip JSX comments (JSXEmptyExpression) - they're just {/* ... */}
+  if (t.isJSXEmptyExpression && t.isJSXEmptyExpression(expr)) {
+    return null;
+  }
+
   // Generate hex path for expression
   const exprHex = pathGen.next(parentPath);
   const exprPath = pathGen.buildPath(parentPath, exprHex);
@@ -153,7 +159,20 @@ function processExpression(expr, parentPath, pathGen, t) {
       const loopInfo = extractMapLoop(expr, parentPath, pathGen, t);
 
       if (loopInfo) {
-        node.loopTemplate = loopInfo;
+        // Traverse the loop body JSX and convert to our JSON structure
+        const { traverseJSX } = require('../core/traverser');
+        const bodyPath = pathGen.buildPath(exprPath, '00000001'); // Body gets path under expression
+        const traversedBody = traverseJSX(loopInfo.body, bodyPath, pathGen, t, context);
+
+        node.loopTemplate = {
+          type: loopInfo.type,
+          arrayBinding: loopInfo.arrayBinding,
+          itemVar: loopInfo.itemVar,
+          indexVar: loopInfo.indexVar,
+          keyBinding: loopInfo.keyBinding,
+          body: traversedBody, // Now contains our JSON structure instead of raw Babel AST
+          depth: loopInfo.depth
+        };
         node.isSimple = false;
         node.isStructural = true;
         node.isLoop = true;
@@ -267,6 +286,10 @@ function getExpressionType(expr, t) {
   if (t.isObjectExpression(expr)) return 'ObjectExpression';
   if (t.isArrayExpression(expr)) return 'ArrayExpression';
   if (t.isArrowFunctionExpression(expr)) return 'ArrowFunctionExpression';
+  if (t.isNumericLiteral(expr)) return 'NumericLiteral';
+  if (t.isStringLiteral(expr)) return 'StringLiteral';
+  if (t.isBooleanLiteral(expr)) return 'BooleanLiteral';
+  if (t.isNullLiteral(expr)) return 'NullLiteral';
   return 'Unknown';
 }
 

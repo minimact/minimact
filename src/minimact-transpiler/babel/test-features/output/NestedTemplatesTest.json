@@ -1,0 +1,285 @@
+{
+  "type": "Component",
+  "componentName": "NestedTemplatesTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Summary:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.10000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "20000000"
+                ],
+                "template": "Total: ${0}",
+                "slots": [
+                  8
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  }
+                ],
+                "transforms": [
+                  {
+                    "slotIndex": 0,
+                    "method": "toFixed",
+                    "args": [
+                      2
+                    ]
+                  }
+                ],
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "template": "Product: {0} at ${1}",
+                "slots": [
+                  9,
+                  17
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "productName"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "__expr__:price,quantity"
+                  }
+                ],
+                "transforms": [
+                  {
+                    "slotIndex": 1,
+                    "method": "toFixed",
+                    "args": [
+                      2
+                    ]
+                  }
+                ],
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "template": "After {0}% off: ${1}",
+                "slots": [
+                  6,
+                  17
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "__expr__:discount"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "__expr__:price,quantity,discount"
+                  }
+                ],
+                "transforms": [
+                  {
+                    "slotIndex": 0,
+                    "method": "toFixed",
+                    "args": [
+                      0
+                    ]
+                  },
+                  {
+                    "slotIndex": 1,
+                    "method": "toFixed",
+                    "args": [
+                      2
+                    ]
+                  }
+                ],
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "template": "Order: {0} x {1} = ${2} (discount: {3}%)",
+                "slots": [
+                  7,
+                  13,
+                  20,
+                  35
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "quantity"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "productName"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "__expr__:price,quantity"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "__expr__:discount"
+                  }
+                ],
+                "transforms": [
+                  {
+                    "slotIndex": 2,
+                    "method": "toFixed",
+                    "args": [
+                      2
+                    ]
+                  },
+                  {
+                    "slotIndex": 3,
+                    "method": "toFixed",
+                    "args": [
+                      0
+                    ]
+                  }
+                ],
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "template": "Status: {0}",
+                "slots": [
+                  8
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "discount > <complex>"
+                  }
+                ],
+                "conditionals": [
+                  {
+                    "slotIndex": 0,
+                    "condition": "discount > <complex>",
+                    "trueValue": "<complex>",
+                    "falseValue": "No discount"
+                  }
+                ],
+                "isSimple": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}
