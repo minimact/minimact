@@ -16,6 +16,8 @@
  * babel-plugin-minimact/src/generators/jsx.cjs (lines 102-140)
  */
 
+const { extractStyleObject } = require('../extractors/styles');
+
 /**
  * Process all attributes on a JSX element
  *
@@ -174,9 +176,34 @@ function processDynamicAttribute(attr, attrPath, attrSegments, t) {
     attrNode.template = buildTemplateString(expr, t);
   } else if (t.isObjectExpression(expr) && attrName === 'style') {
     // Style object: style={{ fontSize: '32px', opacity: isVisible ? 1 : 0.5 }}
-    // Will be extracted in Phase 2
-    attrNode.subtype = 'style-object';
-    attrNode.styleObject = extractStyleObjectStructure(expr, t);
+    // Use comprehensive style extractor
+    const styleInfo = extractStyleObject(expr, t);
+
+    if (styleInfo) {
+      attrNode.subtype = 'style-object';
+      attrNode.styleObject = styleInfo;
+
+      // If style has bindings, extract them
+      if (styleInfo.hasBindings) {
+        attrNode.bindings = styleInfo.bindings.map(binding => ({
+          type: 'StyleBinding',
+          path: binding
+        }));
+        attrNode.template = styleInfo.css;
+        attrNode.slots = styleInfo.slots;
+
+        console.log(`    [Attr] style={...} with ${styleInfo.bindings.length} binding(s): "${styleInfo.css.substring(0, 50)}${styleInfo.css.length > 50 ? '...' : ''}"`);
+      } else {
+        // Static style - can be converted to string immediately
+        attrNode.value = styleInfo.css;
+
+        console.log(`    [Attr] style={...} (static): "${styleInfo.css.substring(0, 50)}${styleInfo.css.length > 50 ? '...' : ''}"`);
+      }
+    } else {
+      // Fallback to old structure extraction
+      console.warn(`    [Attr] style={...} extraction failed, using fallback`);
+      attrNode.styleObject = extractStyleObjectStructure(expr, t);
+    }
   } else {
     // Complex expression - store raw for Phase 2
     attrNode.raw = '<complex>';

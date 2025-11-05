@@ -19,6 +19,10 @@
  * - Binding extraction (lines 389-396)
  */
 
+const { extractBindings } = require('../extractors/bindings');
+const { extractTemplateLiteral } = require('../extractors/templates');
+const { extractLogicalExpression, extractConditionalExpression } = require('../extractors/conditionals');
+
 const { buildMemberPath } = require('./attributes');
 
 /**
@@ -80,15 +84,38 @@ function processExpression(expr, parentPath, pathGen, t) {
     node.isSimple = bindings.every(b => b.type !== 'Complex');
   } else if (t.isLogicalExpression(expr)) {
     // Logical: {isVisible && <div>...</div>}
-    // Delegate to conditional/loop processor (Phase 2)
+    // Extract conditional structure
+    const logicalInfo = extractLogicalExpression(expr, parentPath, pathGen, t);
+
     node.operator = expr.operator;
+    node.condition = logicalInfo.condition;
+    node.branches = logicalInfo.branches;
     node.isSimple = false;
     node.isStructural = true;
+    node.isConditional = true;
+
+    // Check if it contains JSX
+    const hasJSX = t.isJSXElement(expr.right) || t.isJSXFragment(expr.right);
+    if (hasJSX) {
+      console.log(`      [Conditional] ${typeof logicalInfo.condition === 'string' ? logicalInfo.condition : JSON.stringify(logicalInfo.condition)} ${expr.operator} <JSX>`);
+    }
   } else if (t.isConditionalExpression(expr)) {
     // Ternary: {count > 5 ? <span>High</span> : <span>Low</span>}
-    // Delegate to conditional processor (Phase 2)
+    // Extract conditional structure
+    const ternaryInfo = extractConditionalExpression(expr, parentPath, pathGen, t);
+
+    node.condition = ternaryInfo.condition;
+    node.consequent = ternaryInfo.consequent;
+    node.alternate = ternaryInfo.alternate;
     node.isSimple = false;
     node.isStructural = true;
+    node.isConditional = true;
+
+    // Check if it contains JSX
+    const hasJSX = ternaryInfo.consequent.type === 'JSXElement' || ternaryInfo.alternate.type === 'JSXElement';
+    if (hasJSX) {
+      console.log(`      [Conditional] ${typeof ternaryInfo.condition === 'string' ? ternaryInfo.condition : JSON.stringify(ternaryInfo.condition)} ? <JSX> : <JSX>`);
+    }
   } else if (t.isCallExpression(expr)) {
     // Function call: {items.map(...)} or {price.toFixed(2)}
     // Check if it's a .map() (structural) or method call (transform)
@@ -96,9 +123,23 @@ function processExpression(expr, parentPath, pathGen, t) {
       node.isSimple = false;
       node.isStructural = true;
     } else {
-      // Method call transformation (Phase 2)
-      node.isSimple = false;
-      node.isComplex = true;
+      // Try to extract as transform method call
+      const binding = extractBindings(expr, t);
+
+      if (binding && typeof binding === 'object' && binding.type === 'transform') {
+        // Transform method: price.toFixed(2)
+        node.binding = binding.binding;
+        node.transform = binding.transform;
+        node.transformArgs = binding.args;
+        node.isSimple = false;
+        node.isTransform = true;
+
+        console.log(`      [Transform] ${binding.binding}.${binding.transform}(${binding.args.join(', ')})`);
+      } else {
+        // Complex method call (Phase 2)
+        node.isSimple = false;
+        node.isComplex = true;
+      }
     }
   } else if (t.isBinaryExpression(expr)) {
     // Binary expression: {count * 2 + 1}
