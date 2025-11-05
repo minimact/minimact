@@ -117,14 +117,23 @@ public class VNodeTreeGenerator
             else if (attr is DynamicAttributeNode dynamicAttr)
             {
                 var htmlAttrName = dynamicAttr.Name == "className" ? "class" : dynamicAttr.Name;
-                if (dynamicAttr.Bindings != null && dynamicAttr.Bindings.Count > 0 && dynamicAttr.Template != null)
+
+                // Handle style objects (subtype: "style-object")
+                if (dynamicAttr.Subtype == "style-object" && dynamicAttr.StyleObject != null)
+                {
+                    var css = dynamicAttr.StyleObject.Css ?? "";
+                    var escapedCss = EscapeString(css);
+                    props.Add($"[\"{htmlAttrName}\"] = \"{escapedCss}\"");
+                }
+                else if (dynamicAttr.Bindings != null && dynamicAttr.Bindings.Count > 0 && dynamicAttr.Template != null)
                 {
                     var csharpTemplate = ConvertTemplateToCSharp(dynamicAttr.Template, dynamicAttr.Bindings);
                     props.Add($"[\"{htmlAttrName}\"] = $\"{csharpTemplate}\"");
                 }
                 else if (dynamicAttr.Value != null)
                 {
-                    props.Add($"[\"{htmlAttrName}\"] = {dynamicAttr.Value}");
+                    var escapedValue = EscapeString(dynamicAttr.Value);
+                    props.Add($"[\"{htmlAttrName}\"] = \"{escapedValue}\"");
                 }
             }
             else if (attr is EventHandlerAttributeNode eventAttr)

@@ -15,7 +15,7 @@ public partial class BlockStatementHandlersTest : MinimactComponent
         StateManager.SyncMembersToState(this);
 
 
-        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VElement("button", new Dictionary<string, string> { [""] = "" }, "Multi-Statement Handler"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "With Variable"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "Conditional Block"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "With Return"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "Nested Blocks"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "Complex Block") });
+        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Multi-Statement Handler"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "With Variable"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Conditional Block"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "With Return"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Nested Blocks"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Complex Block") });
     }
 
     public void Handle0()

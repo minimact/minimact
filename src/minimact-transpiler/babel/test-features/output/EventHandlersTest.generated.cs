@@ -16,7 +16,7 @@ public partial class EventHandlersTest : MinimactComponent
         StateManager.SyncMembersToState(this);
 
 
-        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VElement("button", new Dictionary<string, string> { [""] = "" }, "Click Me"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "Inline Handler"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "-"), new VElement("span", new Dictionary<string, string>(), new VNode[] { new VText($"{{count}}") }), new VElement("button", new Dictionary<string, string> { [""] = "" }, "+"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "Increment"), new VElement("button", new Dictionary<string, string> { [""] = "" }, "Add to Cart") });
+        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Click Me"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Inline Handler"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "-"), new VElement("span", new Dictionary<string, string>(), new VNode[] { new VText($"{{count}}") }), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "+"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Increment"), new VElement("button", new Dictionary<string, string> { ["onclick"] = "" }, "Add to Cart") });
     }
 
     public void Handle0()

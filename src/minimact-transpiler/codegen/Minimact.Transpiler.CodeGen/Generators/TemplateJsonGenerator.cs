@@ -179,13 +179,30 @@ public class TemplateJsonGenerator : INodeVisitor
             var bindings = node.Bindings?.Select(b => b.Path).ToList()
                 ?? (node.Binding != null ? new List<string> { node.Binding } : new List<string>());
 
+            // Determine if this is truly dynamic or static
+            // For style attributes, check StyleObject.HasBindings or IsStatic
+            string attributeType;
+            if (node.Subtype == "style-object" && node.StyleObject != null)
+            {
+                var hasBindings = node.StyleObject.HasBindings == true ||
+                                (node.StyleObject.Bindings?.Count > 0);
+                var isStatic = node.StyleObject.IsStatic == true;
+
+                attributeType = (hasBindings && !isStatic) ? "attribute-dynamic" : "attribute-static";
+            }
+            else
+            {
+                // For non-style attributes, check if bindings exist
+                attributeType = bindings.Count > 0 ? "attribute-dynamic" : "attribute-static";
+            }
+
             _templates[node.Path] = new TemplateMetadata
             {
                 Template = template,
                 Bindings = bindings,
                 Slots = ExtractSlotPositions(template),
                 Path = node.PathSegments ?? new List<string>(),
-                Type = "attribute-dynamic"
+                Type = attributeType
             };
         }
 
@@ -226,7 +243,24 @@ public class TemplateJsonGenerator : INodeVisitor
 
     public void Visit(ConditionalTemplateNode node)
     {
-        // Visit branches
+        // Generate conditional template metadata if present
+        if (!string.IsNullOrEmpty(node.Template) &&
+            node.Bindings?.Count > 0 &&
+            node.ConditionalTemplates != null &&
+            !string.IsNullOrEmpty(node.Path))
+        {
+            _templates[node.Path] = new TemplateMetadata
+            {
+                Template = node.Template,
+                Bindings = node.Bindings.Select(b => b.Path).ToList(),
+                Slots = ExtractSlotPositions(node.Template),
+                Path = node.PathSegments ?? new List<string>(),
+                Type = "conditional",
+                ConditionalTemplates = node.ConditionalTemplates
+            };
+        }
+
+        // Visit branches for nested nodes
         if (node.Consequent != null)
         {
             node.Consequent.Accept(this);
@@ -239,16 +273,62 @@ public class TemplateJsonGenerator : INodeVisitor
 
     public void Visit(ComplexTemplateNode node)
     {
-        if (node.Bindings?.Count > 0 && !string.IsNullOrEmpty(node.Path))
+        // Check if we have bindings (either Bindings array or singular Binding for transforms)
+        List<string> bindings = new List<string>();
+
+        if (node.Bindings?.Count > 0)
         {
-            // Complex template - use path directly from JSON
+            bindings = node.Bindings.Select(b => b.Path).ToList();
+        }
+        else if (node is ExpressionNode expr && !string.IsNullOrEmpty(expr.Binding))
+        {
+            // Transform expressions use singular "binding" property
+            bindings = new List<string> { expr.Binding };
+        }
+
+        if (bindings.Count > 0 && !string.IsNullOrEmpty(node.Path))
+        {
+            // Determine the template type
+            string templateType;
+            object? transform = null;
+            bool? nullable = null;
+            string template = node.Template ?? "{0}";
+
+            // Check if this is a transform expression
+            if (node is ExpressionNode exprNode && exprNode.IsTransform == true && !string.IsNullOrEmpty(exprNode.Transform))
+            {
+                templateType = "transform";
+                transform = new
+                {
+                    method = exprNode.Transform,
+                    args = exprNode.TransformArgs ?? new List<object>()
+                };
+            }
+            // Check if this has nullable/optional chaining
+            else if (bindings.Any(b => b.Contains("?")))
+            {
+                templateType = "nullable";
+                nullable = true;
+            }
+            // Check if this is simple dynamic (single binding, no operators)
+            else if (template == "{0}" && bindings.Count == 1)
+            {
+                templateType = "dynamic";
+            }
+            else
+            {
+                templateType = "complex";
+            }
+
             _templates[node.Path] = new TemplateMetadata
             {
-                Template = node.Template,
-                Bindings = node.Bindings.Select(b => b.Path).ToList(),
-                Slots = ExtractSlotPositions(node.Template),
+                Template = template,
+                Bindings = bindings,
+                Slots = ExtractSlotPositions(template),
                 Path = node.PathSegments ?? new List<string>(),
-                Type = "complex"
+                Type = templateType,
+                Transform = transform,
+                Nullable = nullable
             };
         }
     }
@@ -317,4 +397,10 @@ public class TemplateMetadata
 
     [JsonPropertyName("transform")]
     public object? Transform { get; set; }
+
+    [JsonPropertyName("conditionalTemplates")]
+    public Dictionary<string, string>? ConditionalTemplates { get; set; }
+
+    [JsonPropertyName("nullable")]
+    public bool? Nullable { get; set; }
 }

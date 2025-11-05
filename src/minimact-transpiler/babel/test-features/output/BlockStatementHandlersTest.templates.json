@@ -1,6 +1,73 @@
 {
   "component": "BlockStatementHandlersTest",
   "version": "1.0",
-  "generatedAt": 1762355488599,
-  "templates": {}
+  "generatedAt": 1762358859703,
+  "templates": {
+    "10000000.10000000.10000000": {
+      "template": "Multi-Statement Handler",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.10000000": {
+      "template": "With Variable",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000": {
+      "template": "Conditional Block",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.10000000": {
+      "template": "With Return",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.50000000.10000000": {
+      "template": "Nested Blocks",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.60000000.10000000": {
+      "template": "Complex Block",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "10000000"
+      ],
+      "type": "static"
+    }
+  }
 }

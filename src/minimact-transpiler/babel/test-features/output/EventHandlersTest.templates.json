@@ -1,9 +1,42 @@
 {
   "component": "EventHandlersTest",
   "version": "1.0",
-  "generatedAt": 1762355489506,
+  "generatedAt": 1762358860736,
   "templates": {
-    "10000000.40000000.10000000.expr": {
+    "10000000.10000000.10000000": {
+      "template": "Click Me",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.10000000": {
+      "template": "Inline Handler",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.10000000": {
+      "template": "-",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.10000000": {
       "template": "{0}",
       "bindings": [
         "count"
@@ -16,7 +49,40 @@
         "40000000",
         "10000000"
       ],
-      "type": "complex"
+      "type": "dynamic"
+    },
+    "10000000.50000000.10000000": {
+      "template": "\u002B",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.60000000.10000000": {
+      "template": "Increment",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.70000000.10000000": {
+      "template": "Add to Cart",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "70000000",
+        "10000000"
+      ],
+      "type": "static"
     }
   }
 }

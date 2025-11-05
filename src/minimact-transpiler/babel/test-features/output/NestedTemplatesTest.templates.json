@@ -1,9 +1,20 @@
 {
   "component": "NestedTemplatesTest",
   "version": "1.0",
-  "generatedAt": 1762355489270,
+  "generatedAt": 1762358860381,
   "templates": {
-    "10000000.10000000.20000000.expr": {
+    "10000000.10000000.10000000": {
+      "template": "Summary:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.10000000.20000000": {
       "template": "Total: ${0}",
       "bindings": [
         "price"
@@ -18,7 +29,7 @@
       ],
       "type": "complex"
     },
-    "10000000.20000000.10000000.expr": {
+    "10000000.20000000.10000000": {
       "template": "Product: {0} at ${1}",
       "bindings": [
         "productName",
@@ -35,7 +46,7 @@
       ],
       "type": "complex"
     },
-    "10000000.30000000.10000000.expr": {
+    "10000000.30000000.10000000": {
       "template": "After {0}% off: ${1}",
       "bindings": [
         "__expr__:discount",
@@ -52,7 +63,7 @@
       ],
       "type": "complex"
     },
-    "10000000.40000000.10000000.expr": {
+    "10000000.40000000.10000000": {
       "template": "Order: {0} x {1} = ${2} (discount: {3}%)",
       "bindings": [
         "quantity",
@@ -73,7 +84,7 @@
       ],
       "type": "complex"
     },
-    "10000000.50000000.10000000.expr": {
+    "10000000.50000000.10000000": {
       "template": "Status: {0}",
       "bindings": [
         "discount \u003E \u003Ccomplex\u003E"

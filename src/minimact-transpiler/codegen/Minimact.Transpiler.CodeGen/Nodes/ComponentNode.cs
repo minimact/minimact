@@ -317,10 +317,58 @@ public class DynamicAttributeNode : BaseNode
     [JsonPropertyName("subtype")]
     public string? Subtype { get; set; }
 
+    [JsonPropertyName("styleObject")]
+    public StyleObjectInfo? StyleObject { get; set; }
+
     [JsonPropertyName("children")]
     public List<BaseNode>? Children { get; set; }
 
     public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Style object information for style attributes
+/// </summary>
+public class StyleObjectInfo
+{
+    [JsonPropertyName("css")]
+    public string? Css { get; set; }
+
+    [JsonPropertyName("bindings")]
+    public List<string>? Bindings { get; set; }
+
+    [JsonPropertyName("slots")]
+    public List<int>? Slots { get; set; }
+
+    [JsonPropertyName("properties")]
+    public List<StyleProperty>? Properties { get; set; }
+
+    [JsonPropertyName("hasBindings")]
+    public bool? HasBindings { get; set; }
+
+    [JsonPropertyName("isStatic")]
+    public bool? IsStatic { get; set; }
+}
+
+/// <summary>
+/// Individual style property
+/// </summary>
+public class StyleProperty
+{
+    [JsonPropertyName("key")]
+    public string? Key { get; set; }
+
+    [JsonPropertyName("cssKey")]
+    public string? CssKey { get; set; }
+
+    [JsonPropertyName("value")]
+    public string? Value { get; set; }
+
+    [JsonPropertyName("css")]
+    public string? Css { get; set; }
+
+    [JsonPropertyName("isDynamic")]
+    public bool? IsDynamic { get; set; }
 }
 
 /// <summary>
@@ -380,6 +428,16 @@ public class ConditionalTemplateNode : BaseNode
     [JsonPropertyName("alternate")]
     public BaseNode? Alternate { get; set; }
 
+    // For template generation
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+
+    [JsonPropertyName("bindings")]
+    public List<BindingNode>? Bindings { get; set; }
+
+    [JsonPropertyName("conditionalTemplates")]
+    public Dictionary<string, string>? ConditionalTemplates { get; set; }
+
     public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
 }
 
@@ -434,6 +492,19 @@ public class ExpressionNode : ComplexTemplateNode
     // Additional property for loop expressions (CallExpression with .map())
     [JsonPropertyName("loopTemplate")]
     public LoopTemplateInfo? LoopTemplate { get; set; }
+
+    // Transform properties (e.g., .toFixed(2))
+    [JsonPropertyName("binding")]
+    public string? Binding { get; set; }  // Singular binding for transforms
+
+    [JsonPropertyName("transform")]
+    public string? Transform { get; set; }
+
+    [JsonPropertyName("transformArgs")]
+    public List<object>? TransformArgs { get; set; }
+
+    [JsonPropertyName("isTransform")]
+    public bool? IsTransform { get; set; }
 }
 
 /// <summary>

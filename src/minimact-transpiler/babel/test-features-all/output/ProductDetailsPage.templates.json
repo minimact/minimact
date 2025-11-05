@@ -1,7 +1,7 @@
 {
   "component": "ProductDetailsPage",
   "version": "1.0",
-  "generatedAt": 1762357726049,
+  "generatedAt": 1762359410214,
   "templates": {
     "10000000.@style": {
       "template": "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto",
@@ -11,7 +11,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.10000000.10000000": {
       "template": "{0}",
@@ -26,7 +26,7 @@
         "10000000",
         "10000000"
       ],
-      "type": "complex"
+      "type": "dynamic"
     },
     "10000000.10000000.20000000": {
       "template": "950040830",
@@ -48,7 +48,7 @@
         "20000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.20000000.10000000.@style": {
       "template": "font-size: 32px; font-weight: bold; color: #2563eb",
@@ -60,7 +60,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.20000000.10000000.10000000": {
       "template": "$",
@@ -74,6 +74,26 @@
       ],
       "type": "static"
     },
+    "10000000.20000000.10000000.20000000": {
+      "template": "",
+      "bindings": [
+        "price"
+      ],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "transform",
+      "transform": {
+        "method": "toFixed",
+        "args": [
+          2
+        ]
+      }
+    },
     "10000000.20000000.20000000.@style": {
       "template": "color: #6b7280; font-size: 14px",
       "bindings": [],
@@ -84,7 +104,7 @@
         "20000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.20000000.20000000.10000000": {
       "template": "Logged in as:",
@@ -112,7 +132,8 @@
         "20000000",
         "20000000"
       ],
-      "type": "complex"
+      "type": "nullable",
+      "nullable": true
     },
     "10000000.30000000.@style": {
       "template": "margin-bottom: 20px",
@@ -123,7 +144,7 @@
         "30000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.30000000.10000000.@style": {
       "template": "display: block; margin-bottom: 8px; font-weight: 500",
@@ -135,7 +156,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.30000000.10000000.10000000": {
       "template": "Quantity11:",
@@ -159,7 +180,7 @@
         "20000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.30000000.20000000.10000000.@style": {
       "template": "padding: 8px 16px; background-color: #e5e7eb; border: none; border-radius: 4px; cursor: pointer",
@@ -172,7 +193,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.30000000.20000000.10000000.10000000": {
       "template": "-",
@@ -198,7 +219,7 @@
         "20000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.30000000.20000000.20000000.10000000": {
       "template": "{0}",
@@ -215,7 +236,7 @@
         "20000000",
         "10000000"
       ],
-      "type": "complex"
+      "type": "dynamic"
     },
     "10000000.30000000.20000000.30000000.@style": {
       "template": "padding: 8px 16px; background-color: #e5e7eb; border: none; border-radius: 4px; cursor: pointer",
@@ -228,7 +249,7 @@
         "30000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.30000000.20000000.30000000.10000000": {
       "template": "\u002B",
@@ -252,7 +273,7 @@
         "40000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.40000000.10000000.@style": {
       "template": "display: block; margin-bottom: 8px; font-weight: 500",
@@ -264,7 +285,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.40000000.10000000.10000000": {
       "template": "Color:",
@@ -304,7 +325,7 @@
         "20000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.40000000.20000000.10000000.@value": {
       "template": "Black",
@@ -419,7 +440,7 @@
         "60000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.60000000.10000000.@style": {
       "template": "padding: 8px 16px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer",
@@ -431,7 +452,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.60000000.10000000.20000000": {
       "template": "Details",
@@ -454,7 +475,7 @@
         "70000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.70000000.10000000.@style": {
       "template": "font-size: 18px",
@@ -466,7 +487,7 @@
         "10000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.70000000.10000000.10000000": {
       "template": "Total: $",
@@ -480,6 +501,26 @@
       ],
       "type": "static"
     },
+    "10000000.70000000.10000000.20000000": {
+      "template": "",
+      "bindings": [
+        "cartTotal"
+      ],
+      "slots": [],
+      "path": [
+        "10000000",
+        "70000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "transform",
+      "transform": {
+        "method": "toFixed",
+        "args": [
+          2
+        ]
+      }
+    },
     "10000000.80000000.@style": {
       "template": "padding: 12px 24px; background-color: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%",
       "bindings": [],
@@ -489,7 +530,7 @@
         "80000000",
         "@style"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
     },
     "10000000.80000000.10000000": {
       "template": "Add to Cart",
