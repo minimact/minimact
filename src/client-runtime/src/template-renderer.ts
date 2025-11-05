@@ -534,21 +534,27 @@ export class TemplateRenderer {
    * Convert rendered loop VNodes to concrete patches
    * Generates Create/Replace patches for list update
    *
-   * @param parentPath - Path to parent element containing the list
+   * @param parentPath - Hex path to parent element containing the list
    * @param vnodes - Rendered VNodes for list items
    * @returns Array of patches to update the list
    */
   private static convertLoopToPatches(
-    parentPath: number[],
+    parentPath: string,
     vnodes: VNode[]
   ): Patch[] {
     // For Phase 4A simplicity: Replace entire list with Create patches
     // TODO Phase 4C: Optimize with incremental diffing
 
-    return vnodes.map((node, index) => ({
-      type: 'Create',
-      path: [...parentPath, index],
-      node
-    } as Patch));
+    return vnodes.map((node, index) => {
+      // Convert index to hex and append to parent path
+      const hexIndex = index.toString(16).padStart(8, '0');
+      const childPath = parentPath ? `${parentPath}.${hexIndex}` : hexIndex;
+
+      return {
+        type: 'Create',
+        path: childPath,
+        node
+      } as Patch;
+    });
   }
 }

@@ -62,17 +62,18 @@ export class DOMPatcher {
   /**
    * Create and insert a new node
    */
-  private patchCreate(rootElement: HTMLElement, path: number[], node: VNode): void {
+  private patchCreate(rootElement: HTMLElement, path: string, node: VNode): void {
     const newElement = this.createElementFromVNode(node);
 
-    if (path.length === 0) {
+    if (path === '' || path === '.') {
       // Replace root
       rootElement.innerHTML = '';
       rootElement.appendChild(newElement);
     } else {
       // Insert at path
-      const parentPath = path.slice(0, -1);
-      const index = path[path.length - 1];
+      const pathParts = path.split('.');
+      const parentPath = pathParts.slice(0, -1).join('.');
+      const index = parseInt(pathParts[pathParts.length - 1], 16);
       const parent = this.getElementByPath(rootElement, parentPath) as HTMLElement;
 
       if (parent) {
@@ -184,12 +185,17 @@ export class DOMPatcher {
   }
 
   /**
-   * Get a DOM element by its path (array of indices)
+   * Get a DOM element by its hex path (e.g., "10000000.20000000.30000000")
    */
-  private getElementByPath(rootElement: HTMLElement, path: number[]): Node | null {
-    let current: Node = rootElement;
+  private getElementByPath(rootElement: HTMLElement, path: string): Node | null {
+    if (path === '' || path === '.') {
+      return rootElement;
+    }
 
-    for (const index of path) {
+    let current: Node = rootElement;
+    const indices = path.split('.').map(hex => parseInt(hex, 16));
+
+    for (const index of indices) {
       if (index >= current.childNodes.length) {
         return null;
       }

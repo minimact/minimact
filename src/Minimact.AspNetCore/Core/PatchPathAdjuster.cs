@@ -1,16 +1,18 @@
 namespace Minimact.AspNetCore.Core;
 
 /// <summary>
-/// [OBSOLETE] Adjusts VNode paths to DOM paths by accounting for null children.
+/// Adjusts VNode paths to DOM paths by accounting for null children.
 ///
-/// This class is no longer needed with the hex-based path system.
-/// Hex paths (e.g., "10000000.20000000.30000000") are stable and don't require
-/// adjustment for null children or insertions. They maintain fixed positions
-/// with 268M gaps between elements, so path adjustment is unnecessary.
+/// With hex-based paths (e.g., "10000000.20000000.30000000"), the paths are stable
+/// and don't require renumbering when JSX structure changes. However, we still need
+/// to adjust VNode-based hex paths to DOM-based hex paths because null children
+/// aren't rendered in the DOM.
 ///
-/// This class is kept for backward compatibility but will be removed in a future version.
+/// Example:
+/// - VNode tree: [null, &lt;Header/&gt;, &lt;Main/&gt;]
+/// - VNode hex path for Header: "20000000" (index 1)
+/// - DOM hex path for Header: "10000000" (DOM index 0, after skipping null)
 /// </summary>
-[Obsolete("PatchPathAdjuster is no longer needed with hex-based paths. Hex paths are stable and don't require adjustment.")]
 public static class PatchPathAdjuster
 {
     /// <summary>
@@ -88,23 +90,68 @@ public static class PatchPathAdjuster
     }
 
     /// <summary>
-    /// [OBSOLETE] Adjust path in-place (for mutable patch objects).
-    /// No longer needed with hex paths - this is now a no-op.
+    /// Convert VNode hex path to DOM hex path by skipping null children
     /// </summary>
-    [Obsolete("No longer needed with hex-based paths. Paths don't require adjustment.")]
-    public static void AdjustPatchPath(Patch patch, VNode rootVNode)
+    /// <param name="vnodeHexPath">Hex path in VNode tree (e.g., "20000000.10000000")</param>
+    /// <param name="rootVNode">Root VNode to walk for null counting</param>
+    /// <returns>Adjusted hex path for DOM traversal (e.g., "10000000.10000000")</returns>
+    public static string VNodeHexPathToDomHexPath(string vnodeHexPath, VNode rootVNode)
     {
-        // No-op: Hex paths don't need adjustment
+        if (string.IsNullOrEmpty(vnodeHexPath))
+        {
+            return vnodeHexPath ?? string.Empty;
+        }
+
+        // Parse hex path to indices
+        var hexSegments = vnodeHexPath.Split('.');
+        var vnodeIndices = new List<int>();
+
+        foreach (var segment in hexSegments)
+        {
+            if (uint.TryParse(segment, System.Globalization.NumberStyles.HexNumber, null, out uint hexValue))
+            {
+                // Convert hex value back to index: (hex / 0x10000000) - 1
+                int index = (int)(hexValue / 0x10000000) - 1;
+                vnodeIndices.Add(index);
+            }
+            else
+            {
+                throw new ArgumentException($"Invalid hex segment in path: {segment}");
+            }
+        }
+
+        // Adjust indices for null children
+        var domIndices = VNodePathToDomPath(vnodeIndices.ToArray(), rootVNode);
+
+        // Convert back to hex path
+        var domHexSegments = new List<string>();
+        foreach (var domIndex in domIndices)
+        {
+            // Convert DOM index to hex: (index + 1) * 0x10000000
+            uint hexValue = (uint)(domIndex + 1) * 0x10000000;
+            domHexSegments.Add(hexValue.ToString("x8"));
+        }
+
+        return string.Join(".", domHexSegments);
     }
 
     /// <summary>
-    /// [OBSOLETE] Adjust multiple patches in batch.
-    /// No longer needed with hex paths - this is now a no-op.
+    /// Adjust patch path in-place (for mutable patch objects)
     /// </summary>
-    [Obsolete("No longer needed with hex-based paths. Paths don't require adjustment.")]
+    public static void AdjustPatchPath(Patch patch, VNode rootVNode)
+    {
+        patch.Path = VNodeHexPathToDomHexPath(patch.Path, rootVNode);
+    }
+
+    /// <summary>
+    /// Adjust multiple patches in batch
+    /// </summary>
     public static void AdjustPatchPaths(IEnumerable<Patch> patches, VNode rootVNode)
     {
-        // No-op: Hex paths don't need adjustment
+        foreach (var patch in patches)
+        {
+            AdjustPatchPath(patch, rootVNode);
+        }
     }
 
     /// <summary>
