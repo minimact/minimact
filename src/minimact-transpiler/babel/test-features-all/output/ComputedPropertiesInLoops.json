@@ -1,0 +1,1791 @@
+{
+  "type": "Component",
+  "componentName": "ComputedPropertiesInLoops",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Computed Properties in Loops (EXPECTED TO FAIL)"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "warning",
+                "path": "10000000.20000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "⚠️ These patterns are NOT supported by the babel plugin!"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case error",
+                "path": "10000000.30000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 1: Direct Computed Property (item[dynamicKey])"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "content": "Status: ❌ NOT SUPPORTED"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.30000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "30000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "code-sample",
+                    "path": "10000000.30000000.30000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "30000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.30000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "items",
+                      "itemVar": "item",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.30000000.30000000.10000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "30000000",
+                          "10000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.30000000.30000000.10000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.id"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.30000000.30000000.10000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Value:"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.30000000.30000000.10000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.[computed]"
+                              }
+                            ],
+                            "template": "{0}",
+                            "isSimple": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case error",
+                "path": "10000000.40000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 2: Sorting with Computed Key"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.40000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "content": "Status: ❌ NOT SUPPORTED"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.40000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "30000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "code-sample",
+                    "path": "10000000.40000000.30000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "30000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.40000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "items",
+                      "itemVar": "item",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.40000000.30000000.10000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "30000000",
+                          "10000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.40000000.30000000.10000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.id"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.40000000.30000000.10000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Sort Value:"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.40000000.30000000.10000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.[computed]"
+                              }
+                            ],
+                            "template": "{0}",
+                            "isSimple": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case error",
+                "path": "10000000.50000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.50000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 3: Translation Lookup"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.50000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "content": "Status: ❌ NOT SUPPORTED"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.50000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "30000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.50000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "Object",
+                      "itemVar": "key",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.50000000.30000000.10000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "30000000",
+                          "10000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "Identifier",
+                            "path": "10000000.50000000.30000000.10000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "50000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "key"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "Expression",
+                            "expressionType": "Identifier",
+                            "path": "10000000.50000000.30000000.10000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "50000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "key"
+                              }
+                            ],
+                            "template": "{0}",
+                            "isSimple": true
+                          },
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.50000000.30000000.10000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "50000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "content": ":"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.50000000.30000000.10000000.00000001.10000000.30000000",
+                            "pathSegments": [
+                              "10000000",
+                              "50000000",
+                              "30000000",
+                              "10000000",
+                              "00000001",
+                              "10000000",
+                              "30000000"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "translations.[computed]"
+                              }
+                            ],
+                            "template": "{0}",
+                            "isSimple": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "workarounds",
+                "path": "10000000.60000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h2",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.60000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "✅ Working Workarounds"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.60000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "test-case success",
+                    "path": "10000000.60000000.20000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "h3",
+                    "path": "10000000.60000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.20000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "20000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Workaround 1: Pre-compute Value Outside JSX"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "p",
+                    "path": "10000000.60000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.20000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "20000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Status: ✅ WORKS"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.60000000.20000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "30000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "items",
+                      "itemVar": "item",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.60000000.20000000.30000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "20000000",
+                          "30000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.60000000.20000000.30000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "20000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.id"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.60000000.20000000.30000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "20000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Value:"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "Identifier",
+                            "path": "10000000.60000000.20000000.30000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "20000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "displayValue"
+                              }
+                            ],
+                            "template": "{0}",
+                            "isSimple": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.60000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "30000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "test-case success",
+                    "path": "10000000.60000000.30000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "30000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "h3",
+                    "path": "10000000.60000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.30000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "30000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Workaround 2: Explicit Conditional"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "p",
+                    "path": "10000000.60000000.30000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "30000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.30000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "30000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Status: ✅ WORKS"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.60000000.30000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "30000000",
+                      "30000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "items",
+                      "itemVar": "item",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.60000000.30000000.30000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "30000000",
+                          "30000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.60000000.30000000.30000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "30000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.id"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.60000000.30000000.30000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "30000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Value:"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "ConditionalExpression",
+                            "path": "10000000.60000000.30000000.30000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "30000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "condition": {
+                              "type": "BinaryExpression",
+                              "left": "selectedField",
+                              "operator": "===",
+                              "right": "name"
+                            },
+                            "consequent": {
+                              "type": "Value",
+                              "value": "item.name"
+                            },
+                            "alternate": {
+                              "type": "Value",
+                              "value": "item.category"
+                            },
+                            "isSimple": false,
+                            "isStructural": true,
+                            "isConditional": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.60000000.40000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "40000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "test-case success",
+                    "path": "10000000.60000000.40000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "40000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "h3",
+                    "path": "10000000.60000000.40000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "40000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.40000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "40000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Workaround 3: Helper Function"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "p",
+                    "path": "10000000.60000000.40000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "40000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.40000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "40000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Status: ✅ WORKS"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.60000000.40000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "40000000",
+                      "30000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "items",
+                      "itemVar": "item",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.60000000.40000000.30000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "40000000",
+                          "30000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.60000000.40000000.30000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "40000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.id"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.60000000.40000000.30000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "40000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Value:"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "CallExpression",
+                            "path": "10000000.60000000.40000000.30000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "40000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "template": "getFieldValue({0}, {1})",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "item"
+                              },
+                              {
+                                "type": "Identifier",
+                                "path": "selectedField"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "CallExpression",
+                              "callee": "getFieldValue",
+                              "arguments": [
+                                {
+                                  "type": "Binding",
+                                  "slot": 0,
+                                  "name": "item"
+                                },
+                                {
+                                  "type": "Binding",
+                                  "slot": 1,
+                                  "name": "selectedField"
+                                }
+                              ]
+                            },
+                            "isSimple": false,
+                            "isComplexTemplate": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.60000000.50000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "50000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "test-case success",
+                    "path": "10000000.60000000.50000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "50000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "h3",
+                    "path": "10000000.60000000.50000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "50000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.50000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "50000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Workaround 4: Transform Data First"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "p",
+                    "path": "10000000.60000000.50000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "50000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.60000000.50000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "50000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Status: ✅ WORKS"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "CallExpression",
+                    "path": "10000000.60000000.50000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "50000000",
+                      "30000000"
+                    ],
+                    "loopTemplate": {
+                      "type": "MapLoop",
+                      "arrayBinding": "items",
+                      "itemVar": "item",
+                      "indexVar": null,
+                      "keyBinding": null,
+                      "body": {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.60000000.50000000.30000000.00000001.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "60000000",
+                          "50000000",
+                          "30000000",
+                          "00000001",
+                          "10000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "key",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.60000000.50000000.30000000.00000001.10000000.@key",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "50000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "@key"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.id"
+                              }
+                            ],
+                            "template": "{0}"
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.60000000.50000000.30000000.00000001.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "50000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Value:"
+                          },
+                          {
+                            "type": "Expression",
+                            "expressionType": "MemberExpression",
+                            "path": "10000000.60000000.50000000.30000000.00000001.10000000.20000000",
+                            "pathSegments": [
+                              "10000000",
+                              "60000000",
+                              "50000000",
+                              "30000000",
+                              "00000001",
+                              "10000000",
+                              "20000000"
+                            ],
+                            "bindings": [
+                              {
+                                "type": "MemberExpression",
+                                "path": "item.displayValue"
+                              }
+                            ],
+                            "template": "{0}",
+                            "isSimple": true
+                          }
+                        ]
+                      },
+                      "depth": 0
+                    },
+                    "isSimple": false,
+                    "isStructural": true,
+                    "isLoop": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "controls",
+                "path": "10000000.70000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test Controls"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "select",
+                "path": "10000000.70000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "value",
+                    "expressionType": "Identifier",
+                    "path": "10000000.70000000.20000000.@value",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "@value"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "selectedField"
+                      }
+                    ],
+                    "template": "{0}"
+                  },
+                  {
+                    "type": "EventHandlerAttribute",
+                    "name": "onChange",
+                    "handler": "Handle0",
+                    "path": "10000000.70000000.20000000.@onChange",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "@onChange"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "option",
+                    "path": "10000000.70000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "value",
+                        "value": "name",
+                        "path": "10000000.70000000.20000000.10000000.@value",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "20000000",
+                          "10000000",
+                          "@value"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.70000000.20000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "20000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Name"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "option",
+                    "path": "10000000.70000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "value",
+                        "value": "category",
+                        "path": "10000000.70000000.20000000.20000000.@value",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "20000000",
+                          "20000000",
+                          "@value"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.70000000.20000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "20000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Category"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "select",
+                "path": "10000000.70000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "30000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "value",
+                    "expressionType": "Identifier",
+                    "path": "10000000.70000000.30000000.@value",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "@value"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "sortBy"
+                      }
+                    ],
+                    "template": "{0}"
+                  },
+                  {
+                    "type": "EventHandlerAttribute",
+                    "name": "onChange",
+                    "handler": "Handle1",
+                    "path": "10000000.70000000.30000000.@onChange",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "@onChange"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "option",
+                    "path": "10000000.70000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "value",
+                        "value": "price",
+                        "path": "10000000.70000000.30000000.10000000.@value",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "10000000",
+                          "@value"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.70000000.30000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "content": "Price"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "option",
+                    "path": "10000000.70000000.30000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "value",
+                        "value": "stock",
+                        "path": "10000000.70000000.30000000.20000000.@value",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "20000000",
+                          "@value"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "StaticText",
+                        "path": "10000000.70000000.30000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "content": "Stock"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

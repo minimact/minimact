@@ -1,0 +1,2613 @@
+{
+  "type": "Component",
+  "componentName": "MultiplePlugins",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Multiple Plugin Test Cases"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "warning",
+                "path": "10000000.20000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "⚠️ Plugin matching uses \"first match wins\" logic - verify each plugin renders correctly!"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.30000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 1: BarChart + LineChart"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "charts-row",
+                    "path": "10000000.30000000.20000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.30000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.30000000.20000000.10000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "20000000",
+                          "10000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.30000000.20000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "20000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.30000000.20000000.10000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Sales (Bar Chart)"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.30000000.20000000.10000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "20000000",
+                          "10000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.30000000.20000000.10000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "20000000",
+                              "10000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.30000000.20000000.10000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "20000000",
+                              "10000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 400, height: 300 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "salesData"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "salesData"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 400,
+                                    "raw": "400"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 300,
+                                    "raw": "300"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.30000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.30000000.20000000.20000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "20000000",
+                          "20000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.30000000.20000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "20000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.30000000.20000000.20000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "20000000",
+                              "20000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Revenue Trend (Line Chart)"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.30000000.20000000.20000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "30000000",
+                          "20000000",
+                          "20000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "LineChart",
+                            "path": "10000000.30000000.20000000.20000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "20000000",
+                              "20000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.30000000.20000000.20000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "30000000",
+                              "20000000",
+                              "20000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 400, height: 300 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "timeSeriesData"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "timeSeriesData"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 400,
+                                    "raw": "400"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 300,
+                                    "raw": "300"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.40000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 2: Three BarCharts"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.40000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "charts-grid",
+                    "path": "10000000.40000000.20000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.40000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.40000000.20000000.10000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "10000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.40000000.20000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.40000000.20000000.10000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Sales"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.40000000.20000000.10000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "10000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.40000000.20000000.10000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "10000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.40000000.20000000.10000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "10000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 300, height: 250 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "salesData"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "salesData"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 300,
+                                    "raw": "300"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 250,
+                                    "raw": "250"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.40000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.40000000.20000000.20000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "20000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.40000000.20000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.40000000.20000000.20000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "20000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Revenue"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.40000000.20000000.20000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "20000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.40000000.20000000.20000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "20000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.40000000.20000000.20000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "20000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 300, height: 250 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "revenueData"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "revenueData"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 300,
+                                    "raw": "300"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 250,
+                                    "raw": "250"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.40000000.20000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "30000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.40000000.20000000.30000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "30000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.40000000.20000000.30000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "30000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.40000000.20000000.30000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "30000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Product Mix"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.40000000.20000000.30000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "40000000",
+                          "20000000",
+                          "30000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.40000000.20000000.30000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "30000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.40000000.20000000.30000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "40000000",
+                              "20000000",
+                              "30000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 300, height: 250 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "productMix"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "productMix"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 300,
+                                    "raw": "300"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 250,
+                                    "raw": "250"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.40000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "expected",
+                    "path": "10000000.40000000.30000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "30000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Each chart should show DIFFERENT data. If they all show the same data, plugin matching failed!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.50000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.50000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 3: Four Different Chart Types"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "charts-grid-4",
+                    "path": "10000000.50000000.20000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "Plugin",
+                    "path": "10000000.50000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "name",
+                        "value": "BarChart",
+                        "path": "10000000.50000000.20000000.10000000.@name",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "10000000",
+                          "@name"
+                        ]
+                      },
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "state",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.20000000.10000000.@state",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "10000000",
+                          "@state"
+                        ],
+                        "template": "{ data: {0}, width: 350, height: 250 }",
+                        "bindings": [
+                          {
+                            "type": "Identifier",
+                            "path": "salesData"
+                          }
+                        ],
+                        "expressionTree": {
+                          "type": "ObjectExpression",
+                          "properties": [
+                            {
+                              "type": "Property",
+                              "key": "data",
+                              "value": {
+                                "type": "Binding",
+                                "slot": 0,
+                                "name": "salesData"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "width",
+                              "value": {
+                                "type": "Literal",
+                                "value": 350,
+                                "raw": "350"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "height",
+                              "value": {
+                                "type": "Literal",
+                                "value": 250,
+                                "raw": "250"
+                              }
+                            }
+                          ]
+                        },
+                        "isComplexTemplate": true
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "Plugin",
+                    "path": "10000000.50000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "name",
+                        "value": "LineChart",
+                        "path": "10000000.50000000.20000000.20000000.@name",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "20000000",
+                          "@name"
+                        ]
+                      },
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "state",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.20000000.20000000.@state",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "20000000",
+                          "@state"
+                        ],
+                        "template": "{ data: {0}, width: 350, height: 250 }",
+                        "bindings": [
+                          {
+                            "type": "Identifier",
+                            "path": "timeSeriesData"
+                          }
+                        ],
+                        "expressionTree": {
+                          "type": "ObjectExpression",
+                          "properties": [
+                            {
+                              "type": "Property",
+                              "key": "data",
+                              "value": {
+                                "type": "Binding",
+                                "slot": 0,
+                                "name": "timeSeriesData"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "width",
+                              "value": {
+                                "type": "Literal",
+                                "value": 350,
+                                "raw": "350"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "height",
+                              "value": {
+                                "type": "Literal",
+                                "value": 250,
+                                "raw": "250"
+                              }
+                            }
+                          ]
+                        },
+                        "isComplexTemplate": true
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "Plugin",
+                    "path": "10000000.50000000.20000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "30000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "name",
+                        "value": "PieChart",
+                        "path": "10000000.50000000.20000000.30000000.@name",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "30000000",
+                          "@name"
+                        ]
+                      },
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "state",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.20000000.30000000.@state",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "30000000",
+                          "@state"
+                        ],
+                        "template": "{ data: {0}, width: 350, height: 250 }",
+                        "bindings": [
+                          {
+                            "type": "Identifier",
+                            "path": "productMix"
+                          }
+                        ],
+                        "expressionTree": {
+                          "type": "ObjectExpression",
+                          "properties": [
+                            {
+                              "type": "Property",
+                              "key": "data",
+                              "value": {
+                                "type": "Binding",
+                                "slot": 0,
+                                "name": "productMix"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "width",
+                              "value": {
+                                "type": "Literal",
+                                "value": 350,
+                                "raw": "350"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "height",
+                              "value": {
+                                "type": "Literal",
+                                "value": 250,
+                                "raw": "250"
+                              }
+                            }
+                          ]
+                        },
+                        "isComplexTemplate": true
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "Plugin",
+                    "path": "10000000.50000000.20000000.40000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "40000000"
+                    ],
+                    "isStructural": false,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "name",
+                        "value": "AreaChart",
+                        "path": "10000000.50000000.20000000.40000000.@name",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "40000000",
+                          "@name"
+                        ]
+                      },
+                      {
+                        "type": "DynamicAttribute",
+                        "name": "state",
+                        "expressionType": "ObjectExpression",
+                        "path": "10000000.50000000.20000000.40000000.@state",
+                        "pathSegments": [
+                          "10000000",
+                          "50000000",
+                          "20000000",
+                          "40000000",
+                          "@state"
+                        ],
+                        "template": "{ data: {0}, width: 350, height: 250 }",
+                        "bindings": [
+                          {
+                            "type": "Identifier",
+                            "path": "salesData"
+                          }
+                        ],
+                        "expressionTree": {
+                          "type": "ObjectExpression",
+                          "properties": [
+                            {
+                              "type": "Property",
+                              "key": "data",
+                              "value": {
+                                "type": "Binding",
+                                "slot": 0,
+                                "name": "salesData"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "width",
+                              "value": {
+                                "type": "Literal",
+                                "value": 350,
+                                "raw": "350"
+                              }
+                            },
+                            {
+                              "type": "Property",
+                              "key": "height",
+                              "value": {
+                                "type": "Literal",
+                                "value": 250,
+                                "raw": "250"
+                              }
+                            }
+                          ]
+                        },
+                        "isComplexTemplate": true
+                      }
+                    ],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.60000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.60000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 4: Conditional Plugin Rendering"
+                  }
+                ]
+              },
+              {
+                "type": "Expression",
+                "expressionType": "LogicalExpression",
+                "path": "10000000.60000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "20000000"
+                ],
+                "operator": "&&",
+                "condition": {
+                  "type": "BinaryExpression",
+                  "left": "salesData.length",
+                  "operator": ">",
+                  "right": "0"
+                },
+                "branches": [
+                  {
+                    "type": "JSXElement",
+                    "tagName": "Plugin"
+                  }
+                ],
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true
+              },
+              {
+                "type": "Expression",
+                "expressionType": "LogicalExpression",
+                "path": "10000000.60000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "30000000"
+                ],
+                "operator": "&&",
+                "condition": {
+                  "type": "BinaryExpression",
+                  "left": "timeSeriesData.length",
+                  "operator": ">",
+                  "right": "0"
+                },
+                "branches": [
+                  {
+                    "type": "JSXElement",
+                    "tagName": "Plugin"
+                  }
+                ],
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.70000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 5: Multiple Same-Type Plugins with Different Data"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.70000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "note",
+                    "path": "10000000.70000000.20000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "content": "ℹ️ Note: Plugin names must be static string literals. Dynamic names like name="
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "StringLiteral",
+                    "path": "10000000.70000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "template": "\"{config.type}\"",
+                    "bindings": [],
+                    "expressionTree": {
+                      "type": "Literal",
+                      "value": "{config.type}",
+                      "raw": "\"{config.type}\""
+                    },
+                    "isSimple": false,
+                    "isComplexTemplate": true
+                  },
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.20000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "30000000"
+                    ],
+                    "content": "are not supported."
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.70000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "charts-row",
+                    "path": "10000000.70000000.30000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.70000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.70000000.30000000.10000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "10000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.70000000.30000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.70000000.30000000.10000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "10000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Sales"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.70000000.30000000.10000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "10000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.70000000.30000000.10000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "10000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.70000000.30000000.10000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "10000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 400, height: 250 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "salesData"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "salesData"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 400,
+                                    "raw": "400"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 250,
+                                    "raw": "250"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.70000000.30000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "20000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.70000000.30000000.20000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "20000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.70000000.30000000.20000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "20000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.70000000.30000000.20000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "20000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Revenue"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.70000000.30000000.20000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "20000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.70000000.30000000.20000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "20000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.70000000.30000000.20000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "20000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 400, height: 250 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "revenueData"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "revenueData"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 400,
+                                    "raw": "400"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 250,
+                                    "raw": "250"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.70000000.30000000.30000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "30000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "chart",
+                        "path": "10000000.70000000.30000000.30000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "30000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "h4",
+                        "path": "10000000.70000000.30000000.30000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "30000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [],
+                        "children": [
+                          {
+                            "type": "StaticText",
+                            "path": "10000000.70000000.30000000.30000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "30000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "content": "Products"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "Plugin",
+                        "path": "10000000.70000000.30000000.30000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "70000000",
+                          "30000000",
+                          "30000000",
+                          "20000000"
+                        ],
+                        "isStructural": false,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "name",
+                            "value": "BarChart",
+                            "path": "10000000.70000000.30000000.30000000.20000000.@name",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "30000000",
+                              "20000000",
+                              "@name"
+                            ]
+                          },
+                          {
+                            "type": "DynamicAttribute",
+                            "name": "state",
+                            "expressionType": "ObjectExpression",
+                            "path": "10000000.70000000.30000000.30000000.20000000.@state",
+                            "pathSegments": [
+                              "10000000",
+                              "70000000",
+                              "30000000",
+                              "30000000",
+                              "20000000",
+                              "@state"
+                            ],
+                            "template": "{ data: {0}, width: 400, height: 250 }",
+                            "bindings": [
+                              {
+                                "type": "Identifier",
+                                "path": "productMix"
+                              }
+                            ],
+                            "expressionTree": {
+                              "type": "ObjectExpression",
+                              "properties": [
+                                {
+                                  "type": "Property",
+                                  "key": "data",
+                                  "value": {
+                                    "type": "Binding",
+                                    "slot": 0,
+                                    "name": "productMix"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "width",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 400,
+                                    "raw": "400"
+                                  }
+                                },
+                                {
+                                  "type": "Property",
+                                  "key": "height",
+                                  "value": {
+                                    "type": "Literal",
+                                    "value": 250,
+                                    "raw": "250"
+                                  }
+                                }
+                              ]
+                            },
+                            "isComplexTemplate": true
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.70000000.40000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "40000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "expected",
+                    "path": "10000000.70000000.40000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "40000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.40000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "40000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Each chart shows different data (Sales, Revenue, Products)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.80000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.80000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.80000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 6: Plugins in Nested Structures"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "div",
+                "path": "10000000.80000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "20000000"
+                ],
+                "isStructural": true,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "className",
+                    "value": "dashboard",
+                    "path": "10000000.80000000.20000000.@className",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "20000000",
+                      "@className"
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "JSXElement",
+                    "tag": "div",
+                    "path": "10000000.80000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "isStructural": true,
+                    "attributes": [
+                      {
+                        "type": "StaticAttribute",
+                        "name": "className",
+                        "value": "row",
+                        "path": "10000000.80000000.20000000.10000000.@className",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "20000000",
+                          "10000000",
+                          "@className"
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.80000000.20000000.10000000.10000000",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "20000000",
+                          "10000000",
+                          "10000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "className",
+                            "value": "col",
+                            "path": "10000000.80000000.20000000.10000000.10000000.@className",
+                            "pathSegments": [
+                              "10000000",
+                              "80000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "@className"
+                            ]
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "JSXElement",
+                            "tag": "Plugin",
+                            "path": "10000000.80000000.20000000.10000000.10000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "80000000",
+                              "20000000",
+                              "10000000",
+                              "10000000",
+                              "10000000"
+                            ],
+                            "isStructural": false,
+                            "attributes": [
+                              {
+                                "type": "StaticAttribute",
+                                "name": "name",
+                                "value": "BarChart",
+                                "path": "10000000.80000000.20000000.10000000.10000000.10000000.@name",
+                                "pathSegments": [
+                                  "10000000",
+                                  "80000000",
+                                  "20000000",
+                                  "10000000",
+                                  "10000000",
+                                  "10000000",
+                                  "@name"
+                                ]
+                              },
+                              {
+                                "type": "DynamicAttribute",
+                                "name": "state",
+                                "expressionType": "ObjectExpression",
+                                "path": "10000000.80000000.20000000.10000000.10000000.10000000.@state",
+                                "pathSegments": [
+                                  "10000000",
+                                  "80000000",
+                                  "20000000",
+                                  "10000000",
+                                  "10000000",
+                                  "10000000",
+                                  "@state"
+                                ],
+                                "template": "{ data: {0}, width: 300, height: 200 }",
+                                "bindings": [
+                                  {
+                                    "type": "Identifier",
+                                    "path": "salesData"
+                                  }
+                                ],
+                                "expressionTree": {
+                                  "type": "ObjectExpression",
+                                  "properties": [
+                                    {
+                                      "type": "Property",
+                                      "key": "data",
+                                      "value": {
+                                        "type": "Binding",
+                                        "slot": 0,
+                                        "name": "salesData"
+                                      }
+                                    },
+                                    {
+                                      "type": "Property",
+                                      "key": "width",
+                                      "value": {
+                                        "type": "Literal",
+                                        "value": 300,
+                                        "raw": "300"
+                                      }
+                                    },
+                                    {
+                                      "type": "Property",
+                                      "key": "height",
+                                      "value": {
+                                        "type": "Literal",
+                                        "value": 200,
+                                        "raw": "200"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "isComplexTemplate": true
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "type": "JSXElement",
+                        "tag": "div",
+                        "path": "10000000.80000000.20000000.10000000.20000000",
+                        "pathSegments": [
+                          "10000000",
+                          "80000000",
+                          "20000000",
+                          "10000000",
+                          "20000000"
+                        ],
+                        "isStructural": true,
+                        "attributes": [
+                          {
+                            "type": "StaticAttribute",
+                            "name": "className",
+                            "value": "col",
+                            "path": "10000000.80000000.20000000.10000000.20000000.@className",
+                            "pathSegments": [
+                              "10000000",
+                              "80000000",
+                              "20000000",
+                              "10000000",
+                              "20000000",
+                              "@className"
+                            ]
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "JSXElement",
+                            "tag": "div",
+                            "path": "10000000.80000000.20000000.10000000.20000000.10000000",
+                            "pathSegments": [
+                              "10000000",
+                              "80000000",
+                              "20000000",
+                              "10000000",
+                              "20000000",
+                              "10000000"
+                            ],
+                            "isStructural": true,
+                            "attributes": [
+                              {
+                                "type": "StaticAttribute",
+                                "name": "className",
+                                "value": "nested",
+                                "path": "10000000.80000000.20000000.10000000.20000000.10000000.@className",
+                                "pathSegments": [
+                                  "10000000",
+                                  "80000000",
+                                  "20000000",
+                                  "10000000",
+                                  "20000000",
+                                  "10000000",
+                                  "@className"
+                                ]
+                              }
+                            ],
+                            "children": [
+                              {
+                                "type": "JSXElement",
+                                "tag": "Plugin",
+                                "path": "10000000.80000000.20000000.10000000.20000000.10000000.10000000",
+                                "pathSegments": [
+                                  "10000000",
+                                  "80000000",
+                                  "20000000",
+                                  "10000000",
+                                  "20000000",
+                                  "10000000",
+                                  "10000000"
+                                ],
+                                "isStructural": false,
+                                "attributes": [
+                                  {
+                                    "type": "StaticAttribute",
+                                    "name": "name",
+                                    "value": "LineChart",
+                                    "path": "10000000.80000000.20000000.10000000.20000000.10000000.10000000.@name",
+                                    "pathSegments": [
+                                      "10000000",
+                                      "80000000",
+                                      "20000000",
+                                      "10000000",
+                                      "20000000",
+                                      "10000000",
+                                      "10000000",
+                                      "@name"
+                                    ]
+                                  },
+                                  {
+                                    "type": "DynamicAttribute",
+                                    "name": "state",
+                                    "expressionType": "ObjectExpression",
+                                    "path": "10000000.80000000.20000000.10000000.20000000.10000000.10000000.@state",
+                                    "pathSegments": [
+                                      "10000000",
+                                      "80000000",
+                                      "20000000",
+                                      "10000000",
+                                      "20000000",
+                                      "10000000",
+                                      "10000000",
+                                      "@state"
+                                    ],
+                                    "template": "{ data: {0}, width: 300, height: 200 }",
+                                    "bindings": [
+                                      {
+                                        "type": "Identifier",
+                                        "path": "timeSeriesData"
+                                      }
+                                    ],
+                                    "expressionTree": {
+                                      "type": "ObjectExpression",
+                                      "properties": [
+                                        {
+                                          "type": "Property",
+                                          "key": "data",
+                                          "value": {
+                                            "type": "Binding",
+                                            "slot": 0,
+                                            "name": "timeSeriesData"
+                                          }
+                                        },
+                                        {
+                                          "type": "Property",
+                                          "key": "width",
+                                          "value": {
+                                            "type": "Literal",
+                                            "value": 300,
+                                            "raw": "300"
+                                          }
+                                        },
+                                        {
+                                          "type": "Property",
+                                          "key": "height",
+                                          "value": {
+                                            "type": "Literal",
+                                            "value": 200,
+                                            "raw": "200"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "isComplexTemplate": true
+                                  }
+                                ],
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.90000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.90000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 7: Plugin with Version Specifier"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "Plugin",
+                "path": "10000000.90000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [
+                  {
+                    "type": "StaticAttribute",
+                    "name": "name",
+                    "value": "BarChart",
+                    "path": "10000000.90000000.20000000.@name",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "20000000",
+                      "@name"
+                    ]
+                  },
+                  {
+                    "type": "StaticAttribute",
+                    "name": "version",
+                    "value": "1.0.0",
+                    "path": "10000000.90000000.20000000.@version",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "20000000",
+                      "@version"
+                    ]
+                  },
+                  {
+                    "type": "DynamicAttribute",
+                    "name": "state",
+                    "expressionType": "ObjectExpression",
+                    "path": "10000000.90000000.20000000.@state",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "20000000",
+                      "@state"
+                    ],
+                    "template": "{ data: {0}, width: 500, height: 300 }",
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "salesData"
+                      }
+                    ],
+                    "expressionTree": {
+                      "type": "ObjectExpression",
+                      "properties": [
+                        {
+                          "type": "Property",
+                          "key": "data",
+                          "value": {
+                            "type": "Binding",
+                            "slot": 0,
+                            "name": "salesData"
+                          }
+                        },
+                        {
+                          "type": "Property",
+                          "key": "width",
+                          "value": {
+                            "type": "Literal",
+                            "value": 500,
+                            "raw": "500"
+                          }
+                        },
+                        {
+                          "type": "Property",
+                          "key": "height",
+                          "value": {
+                            "type": "Literal",
+                            "value": 300,
+                            "raw": "300"
+                          }
+                        }
+                      ]
+                    },
+                    "isComplexTemplate": true
+                  }
+                ],
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}
