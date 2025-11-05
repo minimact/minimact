@@ -326,6 +326,268 @@ function processDestructuring(pattern, body, t) {
 }
 
 /**
+ * Extract block statement handler (multiple statements)
+ *
+ * Handles event handlers with multiple statements:
+ * onClick={() => {
+ *   console.log('Clicked');
+ *   setCount(count + 1);
+ *   alert('Updated!');
+ * }}
+ *
+ * Pattern from babel-plugin-minimact/src/extractors/eventHandlers.cjs (lines 120-150)
+ *
+ * @param {Object} blockStatement - BlockStatement node
+ * @param {Object} component - Component context (for tracking dependencies)
+ * @param {Object} t - Babel types
+ * @returns {Array} - Array of statement info objects
+ */
+function extractBlockStatementHandler(blockStatement, component, t) {
+  const statements = [];
+
+  for (const stmt of blockStatement.body) {
+    if (t.isExpressionStatement(stmt)) {
+      const expr = stmt.expression;
+
+      if (t.isCallExpression(expr)) {
+        // Function call: setCount(...), alert(...), console.log(...), etc.
+        statements.push({
+          type: 'Call',
+          callee: extractCallee(expr.callee, t),
+          arguments: extractArguments(expr.arguments, t)
+        });
+      } else if (t.isAssignmentExpression(expr)) {
+        // Assignment: count = 5
+        statements.push({
+          type: 'Assignment',
+          operator: expr.operator,
+          left: extractExpression(expr.left, t),
+          right: extractExpression(expr.right, t)
+        });
+      } else {
+        // Other expression statement
+        statements.push({
+          type: 'ExpressionStatement',
+          expression: extractExpression(expr, t)
+        });
+      }
+    } else if (t.isIfStatement(stmt)) {
+      // if statement in handler
+      statements.push({
+        type: 'If',
+        condition: extractExpression(stmt.test, t),
+        consequent: t.isBlockStatement(stmt.consequent)
+          ? extractBlockStatementHandler(stmt.consequent, component, t)
+          : [{ type: 'ExpressionStatement', expression: extractExpression(stmt.consequent, t) }],
+        alternate: stmt.alternate
+          ? (t.isBlockStatement(stmt.alternate)
+              ? extractBlockStatementHandler(stmt.alternate, component, t)
+              : [{ type: 'ExpressionStatement', expression: extractExpression(stmt.alternate, t) }])
+          : null
+      });
+    } else if (t.isReturnStatement(stmt)) {
+      // return statement
+      statements.push({
+        type: 'Return',
+        value: stmt.argument ? extractExpression(stmt.argument, t) : null
+      });
+    } else if (t.isVariableDeclaration(stmt)) {
+      // Variable declaration: const x = 5;
+      statements.push({
+        type: 'VariableDeclaration',
+        kind: stmt.kind, // const, let, var
+        declarations: stmt.declarations.map(decl => ({
+          name: t.isIdentifier(decl.id) ? decl.id.name : extractExpression(decl.id, t),
+          init: decl.init ? extractExpression(decl.init, t) : null
+        }))
+      });
+    } else {
+      // Other statement types (for, while, switch, etc.)
+      // Store the node itself for special handling by C# visitor
+      statements.push({
+        type: 'UnsupportedStatement',
+        statementType: stmt.type,
+        _astNode: stmt
+      });
+    }
+  }
+
+  return statements;
+}
+
+/**
+ * Extract callee from call expression
+ *
+ * Examples:
+ * - setCount → "setCount"
+ * - console.log → "console.log"
+ * - obj.method.call → "obj.method.call"
+ *
+ * @param {Object} callee - Callee node
+ * @param {Object} t - Babel types
+ * @returns {string|Object} - Callee string or expression object for complex cases
+ */
+function extractCallee(callee, t) {
+  if (t.isIdentifier(callee)) {
+    return callee.name;
+  }
+
+  if (t.isMemberExpression(callee)) {
+    const object = extractCallee(callee.object, t);
+    const property = t.isIdentifier(callee.property)
+      ? callee.property.name
+      : extractExpression(callee.property, t);
+
+    // If object is a string and property is a string, join them
+    if (typeof object === 'string' && typeof property === 'string') {
+      return `${object}.${property}`;
+    }
+
+    // Otherwise return structured form
+    return {
+      type: 'MemberAccess',
+      object: object,
+      property: property,
+      computed: callee.computed
+    };
+  }
+
+  // Complex callee (function call result, etc.)
+  return extractExpression(callee, t);
+}
+
+/**
+ * Extract arguments from call expression
+ *
+ * @param {Array} args - Argument nodes
+ * @param {Object} t - Babel types
+ * @returns {Array} - Array of argument info objects
+ */
+function extractArguments(args, t) {
+  return args.map(arg => extractExpression(arg, t));
+}
+
+/**
+ * Extract expression metadata for C# code generation
+ *
+ * Instead of generating code strings, we extract structured metadata
+ * that C# can understand and regenerate in C# syntax.
+ *
+ * Examples:
+ * - count + 1 → { type: 'Binary', operator: '+', left: 'count', right: 1 }
+ * - user.name → { type: 'Member', path: 'user.name' }
+ * - alert('Hi') → { type: 'Call', callee: 'alert', args: [{ type: 'String', value: 'Hi' }] }
+ *
+ * @param {Object} node - AST node
+ * @param {Object} t - Babel types
+ * @returns {Object} - Expression metadata
+ */
+function extractExpression(node, t) {
+  if (t.isIdentifier(node)) {
+    return { type: 'Identifier', name: node.name };
+  }
+
+  if (t.isNumericLiteral(node)) {
+    return { type: 'Numeric', value: node.value };
+  }
+
+  if (t.isStringLiteral(node)) {
+    return { type: 'String', value: node.value };
+  }
+
+  if (t.isBooleanLiteral(node)) {
+    return { type: 'Boolean', value: node.value };
+  }
+
+  if (t.isNullLiteral(node)) {
+    return { type: 'Null' };
+  }
+
+  if (t.isMemberExpression(node)) {
+    return {
+      type: 'Member',
+      object: extractExpression(node.object, t),
+      property: t.isIdentifier(node.property) ? node.property.name : extractExpression(node.property, t),
+      computed: node.computed
+    };
+  }
+
+  if (t.isBinaryExpression(node)) {
+    return {
+      type: 'Binary',
+      operator: node.operator,
+      left: extractExpression(node.left, t),
+      right: extractExpression(node.right, t)
+    };
+  }
+
+  if (t.isLogicalExpression(node)) {
+    return {
+      type: 'Logical',
+      operator: node.operator,
+      left: extractExpression(node.left, t),
+      right: extractExpression(node.right, t)
+    };
+  }
+
+  if (t.isUnaryExpression(node)) {
+    return {
+      type: 'Unary',
+      operator: node.operator,
+      argument: extractExpression(node.argument, t),
+      prefix: node.prefix
+    };
+  }
+
+  if (t.isCallExpression(node)) {
+    return {
+      type: 'Call',
+      callee: extractCallee(node.callee, t),
+      arguments: extractArguments(node.arguments, t)
+    };
+  }
+
+  if (t.isConditionalExpression(node)) {
+    return {
+      type: 'Conditional',
+      test: extractExpression(node.test, t),
+      consequent: extractExpression(node.consequent, t),
+      alternate: extractExpression(node.alternate, t)
+    };
+  }
+
+  if (t.isArrayExpression(node)) {
+    return {
+      type: 'Array',
+      elements: node.elements.map(el => el ? extractExpression(el, t) : { type: 'Null' })
+    };
+  }
+
+  if (t.isObjectExpression(node)) {
+    return {
+      type: 'Object',
+      properties: node.properties.map(prop => {
+        if (t.isObjectProperty(prop)) {
+          return {
+            key: t.isIdentifier(prop.key) ? prop.key.name : extractExpression(prop.key, t),
+            value: extractExpression(prop.value, t)
+          };
+        }
+        return { type: 'Unknown' };
+      })
+    };
+  }
+
+  // Fallback for complex/unsupported expressions
+  return {
+    type: 'Complex',
+    nodeType: node.type,
+    // Store the node itself for later analysis if needed
+    _astNode: node
+  };
+}
+
+/**
  * Get event type from event name
  *
  * Maps event name to C# event type.
@@ -381,6 +643,10 @@ module.exports = {
   transformEventTargetValue,
   hasDestructuredParams,
   processDestructuring,
+  extractBlockStatementHandler,
+  extractCallee,
+  extractArguments,
+  extractExpression,
   getEventType,
   validateEventHandler
 };
