@@ -30,11 +30,11 @@ public class Template
     public List<int> Slots { get; set; } = new();
 
     /// <summary>
-    /// DOM path to the node
-    /// Example: [0, 1, 0] = first child, second child, first child
+    /// Hex-based path to the node
+    /// Example: "10000000.20000000.30000000"
     /// </summary>
     [JsonPropertyName("path")]
-    public List<int> Path { get; set; } = new();
+    public string Path { get; set; } = string.Empty;
 
     /// <summary>
     /// Template type: static | dynamic | attribute | loop
@@ -80,8 +80,8 @@ public class TemplateMap
     public long GeneratedAt { get; set; }
 
     /// <summary>
-    /// Map from node path to template
-    /// Key format: "div[0].h1[0].text[0]"
+    /// Map from hex node path to template
+    /// Key format: "10000000.20000000.30000000"
     /// </summary>
     [JsonPropertyName("templates")]
     public Dictionary<string, Template> Templates { get; set; } = new();
@@ -105,10 +105,11 @@ public class TemplatePatch
     public string ComponentId { get; set; } = string.Empty;
 
     /// <summary>
-    /// DOM path to the node
+    /// Hex-based path to the node
+    /// Example: "10000000.20000000.30000000"
     /// </summary>
     [JsonPropertyName("path")]
-    public List<int> Path { get; set; } = new();
+    public string Path { get; set; } = string.Empty;
 
     /// <summary>
     /// New template string
