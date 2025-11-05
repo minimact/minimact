@@ -1,0 +1,160 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Loading screen */
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.loader {
+  text-align: center;
+  color: white;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Welcome screen */
+.app-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.welcome-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-card h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #212121;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-card > p {
+  margin: 0 0 32px 0;
+  color: #757575;
+  font-size: 16px;
+}
+
+.upload-section,
+.paste-section {
+  margin-bottom: 32px;
+}
+
+.upload-section h3,
+.paste-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.file-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.file-input:hover {
+  border-color: #667eea;
+}
+
+.json-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.json-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.submit-button {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.features {
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.features h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.features li {
+  padding: 8px 0;
+  color: #616161;
+  font-size: 14px;
+}
