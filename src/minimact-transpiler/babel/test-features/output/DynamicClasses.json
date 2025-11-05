@@ -1,0 +1,560 @@
+{
+  "type": "Component",
+  "componentName": "DynamicClasses",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": false,
+        "attributes": [
+          {
+            "type": "StaticAttribute",
+            "name": "className",
+            "value": "container",
+            "path": "10000000.@className",
+            "pathSegments": [
+              "10000000",
+              "@className"
+            ]
+          }
+        ],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Dynamic Class Names"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "card static",
+                "path": "10000000.30000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "content": "Static Classes"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "Identifier",
+                "path": "10000000.50000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "@className"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "theme"
+                  }
+                ],
+                "template": "{0}"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "content": "Dynamic Theme Class"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.70000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "@className"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "theme"
+                  }
+                ],
+                "template": "theme-{0}"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "content": "Template Literal Class"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "ConditionalExpression",
+                "path": "10000000.90000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "@className"
+                ],
+                "template": "{0} ? \"active\" : \"inactive\"",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "isActive"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "ConditionalExpression",
+                  "test": {
+                    "type": "Binding",
+                    "slot": 0,
+                    "name": "isActive"
+                  },
+                  "consequent": {
+                    "type": "Literal",
+                    "value": "active",
+                    "raw": "\"active\""
+                  },
+                  "alternate": {
+                    "type": "Literal",
+                    "value": "inactive",
+                    "raw": "\"inactive\""
+                  }
+                },
+                "isComplexTemplate": true
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "content": "Conditional Class"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.a0000000",
+            "pathSegments": [
+              "10000000",
+              "a0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.b0000000",
+            "pathSegments": [
+              "10000000",
+              "b0000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.b0000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "b0000000",
+                  "@className"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "theme"
+                  },
+                  {
+                    "type": "Complex",
+                    "path": "<complex>"
+                  }
+                ],
+                "template": "card theme-{0} {1}"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.b0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "b0000000",
+                  "10000000"
+                ],
+                "content": "Complex Template"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.c0000000",
+            "pathSegments": [
+              "10000000",
+              "c0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.d0000000",
+            "pathSegments": [
+              "10000000",
+              "d0000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.d0000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "d0000000",
+                  "@className"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "theme"
+                  }
+                ],
+                "template": "base-class count-{0} {1}-theme"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.d0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "d0000000",
+                  "10000000"
+                ],
+                "content": "Multiple Bindings"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.e0000000",
+            "pathSegments": [
+              "10000000",
+              "e0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.f0000000",
+            "pathSegments": [
+              "10000000",
+              "f0000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.f0000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "f0000000",
+                  "@className"
+                ],
+                "bindings": [
+                  {
+                    "type": "Complex",
+                    "path": "<complex>"
+                  }
+                ],
+                "template": "card {0}"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.f0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "f0000000",
+                  "10000000"
+                ],
+                "content": "Optional Class"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.100000000",
+            "pathSegments": [
+              "10000000",
+              "100000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.110000000",
+            "pathSegments": [
+              "10000000",
+              "110000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.110000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "110000000",
+                  "@className"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "theme"
+                  },
+                  {
+                    "type": "Complex",
+                    "path": "<complex>"
+                  }
+                ],
+                "template": "btn btn-{0} {1} btn-lg"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.110000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "110000000",
+                  "10000000"
+                ],
+                "content": "Button Classes"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

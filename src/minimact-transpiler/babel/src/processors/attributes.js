@@ -17,7 +17,8 @@
  */
 
 const { extractStyleObject } = require('../extractors/styles');
-const { isEventHandler, extractEventHandler } = require('../extractors/eventHandlers');
+const { extractEventHandler } = require('../extractors/eventHandlers');
+const { extractComplexExpression } = require('../extractors/complexExpressions');
 
 /**
  * Process all attributes on a JSX element
@@ -214,8 +215,23 @@ function processDynamicAttribute(attr, attrPath, attrSegments, t, component) {
       attrNode.styleObject = extractStyleObjectStructure(expr, t);
     }
   } else {
-    // Complex expression - store raw for Phase 2
-    attrNode.raw = '<complex>';
+    // Complex expression - extract as template with expression tree
+    try {
+      const complexInfo = extractComplexExpression(expr, t);
+      attrNode.template = complexInfo.template;
+      attrNode.bindings = complexInfo.bindings.map(b => ({
+        type: 'Identifier',
+        path: b
+      }));
+      attrNode.expressionTree = complexInfo.expressionTree;
+      attrNode.isComplexTemplate = true;
+
+      console.log(`    [Attr] ${attrName}={...} ComplexTemplate: "${complexInfo.template}"`);
+    } catch (e) {
+      // Fallback for truly unknown expressions
+      attrNode.raw = '<complex>';
+      console.log(`    [Attr] ${attrName}={...} Complex (unable to extract): ${e.message}`);
+    }
   }
 
   return attrNode;

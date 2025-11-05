@@ -1,0 +1,521 @@
+{
+  "type": "Component",
+  "componentName": "MultipleExpressions",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": false,
+        "attributes": [
+          {
+            "type": "StaticAttribute",
+            "name": "className",
+            "value": "container",
+            "path": "10000000.@className",
+            "pathSegments": [
+              "10000000",
+              "@className"
+            ]
+          }
+        ],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Multiple Expression Types"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "content": "Count:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "Identifier",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  }
+                ],
+                "template": "{0}",
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "content": "Double:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "template": "{0} * 2",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "*",
+                  "left": {
+                    "type": "Binding",
+                    "slot": 0,
+                    "name": "count"
+                  },
+                  "right": {
+                    "type": "Literal",
+                    "value": 2,
+                    "raw": "2"
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "content": "Complex:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.70000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "20000000"
+                ],
+                "template": "{0} * 2 + 10",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "+",
+                  "left": {
+                    "type": "BinaryExpression",
+                    "operator": "*",
+                    "left": {
+                      "type": "Binding",
+                      "slot": 0,
+                      "name": "count"
+                    },
+                    "right": {
+                      "type": "Literal",
+                      "value": 2,
+                      "raw": "2"
+                    }
+                  },
+                  "right": {
+                    "type": "Literal",
+                    "value": 10,
+                    "raw": "10"
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "content": "Name:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "MemberExpression",
+                "path": "10000000.90000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "20000000"
+                ],
+                "bindings": [
+                  {
+                    "type": "MemberExpression",
+                    "path": "user.name"
+                  }
+                ],
+                "template": "{0}",
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.a0000000",
+            "pathSegments": [
+              "10000000",
+              "a0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.b0000000",
+            "pathSegments": [
+              "10000000",
+              "b0000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "TemplateLiteral",
+                "path": "10000000.b0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "b0000000",
+                  "10000000"
+                ],
+                "template": "Hello, {0}!",
+                "slots": [
+                  7
+                ],
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "user.name"
+                  }
+                ],
+                "isSimple": true
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.c0000000",
+            "pathSegments": [
+              "10000000",
+              "c0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.d0000000",
+            "pathSegments": [
+              "10000000",
+              "d0000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.d0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "d0000000",
+                  "10000000"
+                ],
+                "content": "Price: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.d0000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "d0000000",
+                  "20000000"
+                ],
+                "binding": "price",
+                "transform": "toFixed",
+                "transformArgs": [
+                  2
+                ],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.e0000000",
+            "pathSegments": [
+              "10000000",
+              "e0000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.f0000000",
+            "pathSegments": [
+              "10000000",
+              "f0000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.f0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "f0000000",
+                  "10000000"
+                ],
+                "content": "Floor:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.f0000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "f0000000",
+                  "20000000"
+                ],
+                "template": "Math.floor({0} * 1.2)",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "CallExpression",
+                  "callee": "Math.floor",
+                  "arguments": [
+                    {
+                      "type": "BinaryExpression",
+                      "operator": "*",
+                      "left": {
+                        "type": "Binding",
+                        "slot": 0,
+                        "name": "price"
+                      },
+                      "right": {
+                        "type": "Literal",
+                        "value": 1.2,
+                        "raw": "1.2"
+                      }
+                    }
+                  ]
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

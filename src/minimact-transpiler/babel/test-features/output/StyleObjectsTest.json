@@ -1,0 +1,404 @@
+{
+  "type": "Component",
+  "componentName": "StyleObjectsTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": false,
+        "attributes": [],
+        "children": [
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "style",
+                "expressionType": "ObjectExpression",
+                "path": "10000000.20000000.@style",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "@style"
+                ],
+                "subtype": "style-object",
+                "styleObject": {
+                  "css": "padding: 20px; font-family: system-ui; max-width: 800px",
+                  "bindings": [],
+                  "slots": [],
+                  "properties": [
+                    {
+                      "key": "padding",
+                      "cssKey": "padding",
+                      "value": "20px",
+                      "css": "padding: 20px",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "fontFamily",
+                      "cssKey": "font-family",
+                      "value": "system-ui",
+                      "css": "font-family: system-ui",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "maxWidth",
+                      "cssKey": "max-width",
+                      "value": "800px",
+                      "css": "max-width: 800px",
+                      "isDynamic": false
+                    }
+                  ],
+                  "hasBindings": false,
+                  "isStatic": true
+                },
+                "value": "padding: 20px; font-family: system-ui; max-width: 800px"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "Simple Styles"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "style",
+                "expressionType": "ObjectExpression",
+                "path": "10000000.40000000.@style",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "@style"
+                ],
+                "subtype": "style-object",
+                "styleObject": {
+                  "css": "font-size: 32px; font-weight: bold; color: #2563eb",
+                  "bindings": [],
+                  "slots": [],
+                  "properties": [
+                    {
+                      "key": "fontSize",
+                      "cssKey": "font-size",
+                      "value": "32px",
+                      "css": "font-size: 32px",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "fontWeight",
+                      "cssKey": "font-weight",
+                      "value": "bold",
+                      "css": "font-weight: bold",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "color",
+                      "cssKey": "color",
+                      "value": "#2563eb",
+                      "css": "color: #2563eb",
+                      "isDynamic": false
+                    }
+                  ],
+                  "hasBindings": false,
+                  "isStatic": true
+                },
+                "value": "font-size: 32px; font-weight: bold; color: #2563eb"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "content": "Numeric Values"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "style",
+                "expressionType": "ObjectExpression",
+                "path": "10000000.60000000.@style",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "@style"
+                ],
+                "subtype": "style-object",
+                "styleObject": {
+                  "css": "display: flex; flex-direction: column; gap: 10px; background-color: #f3f4f6; border-radius: 8px",
+                  "bindings": [],
+                  "slots": [],
+                  "properties": [
+                    {
+                      "key": "display",
+                      "cssKey": "display",
+                      "value": "flex",
+                      "css": "display: flex",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "flexDirection",
+                      "cssKey": "flex-direction",
+                      "value": "column",
+                      "css": "flex-direction: column",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "gap",
+                      "cssKey": "gap",
+                      "value": "10px",
+                      "css": "gap: 10px",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "backgroundColor",
+                      "cssKey": "background-color",
+                      "value": "#f3f4f6",
+                      "css": "background-color: #f3f4f6",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "borderRadius",
+                      "cssKey": "border-radius",
+                      "value": "8px",
+                      "css": "border-radius: 8px",
+                      "isDynamic": false
+                    }
+                  ],
+                  "hasBindings": false,
+                  "isStatic": true
+                },
+                "value": "display: flex; flex-direction: column; gap: 10px; background-color: #f3f4f6; border-radius: 8px"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "content": "Complex Styles"
+              }
+            ]
+          },
+          {
+            "type": "Expression",
+            "expressionType": "Unknown",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "template": "<unknown>",
+            "bindings": [],
+            "expressionTree": {
+              "type": "Unknown",
+              "nodeType": "JSXEmptyExpression",
+              "raw": "<unknown>"
+            },
+            "isSimple": false,
+            "isComplexTemplate": true
+          },
+          {
+            "type": "JSXElement",
+            "tag": "button",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "style",
+                "expressionType": "ObjectExpression",
+                "path": "10000000.80000000.@style",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "@style"
+                ],
+                "subtype": "style-object",
+                "styleObject": {
+                  "css": "padding: 10px 20px; border: none; border-radius: 5px; background-color: #3b82f6; color: white; cursor: pointer; transform: scale(1.05)",
+                  "bindings": [],
+                  "slots": [],
+                  "properties": [
+                    {
+                      "key": "padding",
+                      "cssKey": "padding",
+                      "value": "10px 20px",
+                      "css": "padding: 10px 20px",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "border",
+                      "cssKey": "border",
+                      "value": "none",
+                      "css": "border: none",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "borderRadius",
+                      "cssKey": "border-radius",
+                      "value": "5px",
+                      "css": "border-radius: 5px",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "backgroundColor",
+                      "cssKey": "background-color",
+                      "value": "#3b82f6",
+                      "css": "background-color: #3b82f6",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "color",
+                      "cssKey": "color",
+                      "value": "white",
+                      "css": "color: white",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "cursor",
+                      "cssKey": "cursor",
+                      "value": "pointer",
+                      "css": "cursor: pointer",
+                      "isDynamic": false
+                    },
+                    {
+                      "key": "transform",
+                      "cssKey": "transform",
+                      "value": "scale(1.05)",
+                      "css": "transform: scale(1.05)",
+                      "isDynamic": false
+                    }
+                  ],
+                  "hasBindings": false,
+                  "isStatic": true
+                },
+                "value": "padding: 10px 20px; border: none; border-radius: 5px; background-color: #3b82f6; color: white; cursor: pointer; transform: scale(1.05)"
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.80000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000"
+                ],
+                "content": "Styled Button"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

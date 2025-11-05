@@ -94,6 +94,17 @@
  * @property {string} content - Static text content
  */
 
+/**
+ * Complex expression template (needs C# evaluation)
+ * Example: {count * 2 + 1} → template: "{0} * 2 + 1", bindings: ["count"]
+ * Example: {Math.floor(price * 1.2)} → template: "Math.floor({0} * 1.2)", bindings: ["price"]
+ * @typedef {BaseNode} ComplexTemplateNode
+ * @property {'ComplexTemplate'} type
+ * @property {string} template - Expression template with {0}, {1}... placeholders
+ * @property {string[]} bindings - State/prop bindings (e.g., ["price", "tax"])
+ * @property {Object} expressionTree - AST of the expression for C# evaluation
+ */
+
 // ============================================================================
 // Factory functions for creating nodes
 // ============================================================================
@@ -222,6 +233,20 @@ function createConditionalTemplate(path, pathSegments, condition, operator, cons
   return node;
 }
 
+/**
+ * Create a ComplexTemplate node
+ */
+function createComplexTemplate(path, pathSegments, template, bindings, expressionTree) {
+  return {
+    type: 'ComplexTemplate',
+    path,
+    pathSegments,
+    template,
+    bindings,
+    expressionTree
+  };
+}
+
 module.exports = {
   // Factory functions
   createComponent,
@@ -231,5 +256,6 @@ module.exports = {
   createStaticText,
   createAttributeTemplate,
   createLoopTemplate,
-  createConditionalTemplate
+  createConditionalTemplate,
+  createComplexTemplate
 };

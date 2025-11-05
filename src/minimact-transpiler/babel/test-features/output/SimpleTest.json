@@ -1,0 +1,68 @@
+{
+  "type": "Component",
+  "componentName": "SimpleTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "template": "{0} * 2",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "count"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "*",
+                  "left": {
+                    "type": "Binding",
+                    "slot": 0,
+                    "name": "count"
+                  },
+                  "right": {
+                    "type": "Literal",
+                    "value": 2,
+                    "raw": "2"
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

@@ -18,8 +18,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createComponent, createRenderMethod } = require('../core/nodes');
+const { createComponent, createRenderMethod } = require('../nodes');
 const { traverseJSX, traverseFragment } = require('../core/traverser');
+const { HexPathGenerator } = require('../hexPath');
+const { processAttributes } = require('./attributes');
+const { processExpression } = require('./expressions');
 
 /**
  * Process a component function declaration and generate JSON output
@@ -31,11 +34,18 @@ const { traverseJSX, traverseFragment } = require('../core/traverser');
  * @param {string} outputDir - Output directory for JSON files
  * @param {number} hexGap - Hex gap for path generation (default: 0x10000000)
  * @param {Object} t - Babel types
- * @param {HexPathGenerator} pathGen - Hex path generator instance
- * @param {Object} context - Traversal context with processors
  * @returns {Object|null} - Generated component JSON or null if skipped
  */
-function processComponent(functionNode, outputDir, hexGap, t, pathGen, context) {
+function processComponent(functionNode, outputDir, hexGap, t) {
+  // Create path generator and context for this component
+  const pathGen = new HexPathGenerator(hexGap);
+
+  const context = {
+    processAttributes,
+    processExpression,
+    log: (message) => console.log(message)
+  };
+
   // Extract and validate component name
   const componentName = extractComponentName(functionNode);
   if (!componentName) {

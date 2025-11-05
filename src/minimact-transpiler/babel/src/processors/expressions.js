@@ -22,6 +22,7 @@
 const { extractBindings } = require('../extractors/bindings');
 const { extractTemplateLiteral } = require('../extractors/templates');
 const { extractLogicalExpression, extractConditionalExpression } = require('../extractors/conditionals');
+const { extractComplexExpression } = require('../extractors/complexExpressions');
 
 const { buildMemberPath } = require('./attributes');
 
@@ -77,11 +78,38 @@ function processExpression(expr, parentPath, pathGen, t) {
     node.isSimple = true;
   } else if (t.isTemplateLiteral(expr)) {
     // Template literal: {`Count: ${count}`}
-    // Will be fully extracted in Phase 2
-    const { template, bindings } = extractTemplateLiteralBasic(expr, t);
-    node.template = template;
-    node.bindings = bindings;
-    node.isSimple = bindings.every(b => b.type !== 'Complex');
+    // Use full extractor for comprehensive template extraction
+    const extracted = extractTemplateLiteral(expr, t);
+    node.template = extracted.template;
+    node.slots = extracted.slots;
+
+    // Convert bindings to structured format
+    node.bindings = extracted.bindings.map((binding, i) => {
+      if (typeof binding === 'string') {
+        // Simple binding (identifier or member expression)
+        return binding === '__complex__'
+          ? { type: 'Complex', path: '<complex>' }
+          : { type: 'Identifier', path: binding };
+      } else if (typeof binding === 'object') {
+        // Already structured binding
+        return binding;
+      }
+      return { type: 'Complex', path: '<unknown>' };
+    });
+
+    // Add transform metadata if present
+    if (extracted.transforms && extracted.transforms.length > 0) {
+      node.transforms = extracted.transforms;
+    }
+
+    // Add conditional metadata if present
+    if (extracted.conditionals && extracted.conditionals.length > 0) {
+      node.conditionals = extracted.conditionals;
+    }
+
+    node.isSimple = extracted.bindings.every(b =>
+      typeof b === 'string' && b !== '__complex__'
+    );
   } else if (t.isLogicalExpression(expr)) {
     // Logical: {isVisible && <div>...</div>}
     // Extract conditional structure
@@ -136,26 +164,69 @@ function processExpression(expr, parentPath, pathGen, t) {
 
         console.log(`      [Transform] ${binding.binding}.${binding.transform}(${binding.args.join(', ')})`);
       } else {
-        // Complex method call (Phase 2)
+        // Complex method call - extract as ComplexTemplate
+        const complexInfo = extractComplexExpression(expr, t);
+        node.template = complexInfo.template;
+        node.bindings = complexInfo.bindings.map(b => ({
+          type: 'Identifier',
+          path: b
+        }));
+        node.expressionTree = complexInfo.expressionTree;
         node.isSimple = false;
-        node.isComplex = true;
+        node.isComplexTemplate = true;
+
+        console.log(`      [ComplexTemplate] ${complexInfo.template}`);
       }
     }
   } else if (t.isBinaryExpression(expr)) {
     // Binary expression: {count * 2 + 1}
-    // Phase 2: arithmetic template extraction
+    // Extract as ComplexTemplate
+    const complexInfo = extractComplexExpression(expr, t);
+    node.template = complexInfo.template;
+    node.bindings = complexInfo.bindings.map(b => ({
+      type: 'Identifier',
+      path: b
+    }));
+    node.expressionTree = complexInfo.expressionTree;
     node.isSimple = false;
-    node.isComplex = true;
+    node.isComplexTemplate = true;
+
+    console.log(`      [ComplexTemplate] ${complexInfo.template}`);
   } else if (t.isUnaryExpression(expr)) {
     // Unary expression: {-count}, {+value}
-    // Phase 2: unary transformation
+    // Extract as ComplexTemplate
+    const complexInfo = extractComplexExpression(expr, t);
+    node.template = complexInfo.template;
+    node.bindings = complexInfo.bindings.map(b => ({
+      type: 'Identifier',
+      path: b
+    }));
+    node.expressionTree = complexInfo.expressionTree;
     node.isSimple = false;
-    node.isComplex = true;
+    node.isComplexTemplate = true;
+
+    console.log(`      [ComplexTemplate] ${complexInfo.template}`);
   } else {
-    // Complex expression - Phase 2
-    node.raw = '<complex>';
-    node.isSimple = false;
-    node.isComplex = true;
+    // Other complex expressions - try to extract as ComplexTemplate
+    try {
+      const complexInfo = extractComplexExpression(expr, t);
+      node.template = complexInfo.template;
+      node.bindings = complexInfo.bindings.map(b => ({
+        type: 'Identifier',
+        path: b
+      }));
+      node.expressionTree = complexInfo.expressionTree;
+      node.isSimple = false;
+      node.isComplexTemplate = true;
+
+      console.log(`      [ComplexTemplate] ${complexInfo.template}`);
+    } catch (e) {
+      // Fallback for truly unknown expressions
+      node.raw = '<complex>';
+      node.isSimple = false;
+      node.isComplex = true;
+      console.log(`      [Complex] Unable to extract template: ${e.message}`);
+    }
   }
 
   return node;

@@ -10,7 +10,7 @@
  * This module delegates to the traverser for recursive processing.
  */
 
-const { createStaticText } = require('../core/nodes');
+const { createStaticText } = require('../nodes');
 
 /**
  * Process children array of JSX element

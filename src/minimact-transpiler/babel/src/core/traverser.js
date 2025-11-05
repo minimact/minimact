@@ -11,7 +11,7 @@
  * babel-plugin-minimact/src/extractors/templates.cjs (lines 298-434)
  */
 
-const { createJSXElement, createStaticText } = require('./nodes');
+const { createJSXElement, createStaticText } = require('../nodes');
 const { processChildren: processChildrenHelper } = require('../processors/children');
 const { isStructuralExpression: isStructuralExpressionHelper } = require('../processors/jsx');
 
