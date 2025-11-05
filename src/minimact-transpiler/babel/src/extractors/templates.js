@@ -42,11 +42,31 @@ function extractTemplateLiteral(node, t) {
     if (i < node.expressions.length) {
       const expr = node.expressions[i];
 
+      // IMPORTANT: Check for nested template literals first
+      // Pattern from babel-plugin-minimact/src/extractors/templates.cjs (lines 326-329)
+      if (t.isTemplateLiteral(expr)) {
+        // Extract and merge nested template
+        const nested = extractNestedTemplate(expr, bindings.length, templateStr, t);
+
+        // Append nested template text
+        templateStr += nested.template;
+
+        // Merge nested data
+        bindings.push(...nested.bindings);
+        slots.push(...nested.slots);
+        transforms.push(...nested.transforms);
+        conditionals.push(...nested.conditionals);
+
+        // Skip the placeholder addition since we inlined the nested template
+        continue;
+      }
+
       // Record slot position (where {i} placeholder starts)
       slots.push(templateStr.length);
 
       // Add placeholder
-      templateStr += `{${i}}`;
+      const currentBindingIndex = bindings.length;
+      templateStr += `{${currentBindingIndex}}`;
 
       // Extract binding from expression
       const binding = extractBindings(expr, t);
@@ -275,6 +295,62 @@ function validateTemplate(templateInfo) {
 }
 
 /**
+ * Extract and merge nested template literal
+ *
+ * Recursively extracts a nested template literal and merges it into the parent.
+ * This handles cases like: `Total: ${`$${price.toFixed(2)}`}`
+ *
+ * Pattern from babel-plugin-minimact/src/extractors/templates.cjs (lines 326-329)
+ *
+ * @param {Object} nestedNode - Babel TemplateLiteral node (nested)
+ * @param {number} startSlotIndex - Starting slot index for nested bindings
+ * @param {string} parentTemplate - Parent template string being built
+ * @param {Object} t - Babel types
+ * @returns {Object} - Merged nested template info
+ */
+function extractNestedTemplate(nestedNode, startSlotIndex, parentTemplate, t) {
+  // Recursively extract the nested template
+  const nestedTemplate = extractTemplateLiteral(nestedNode, t);
+
+  console.log(`      [Nested Template] Depth +1: "${nestedTemplate.template}" with ${nestedTemplate.bindings.length} binding(s)`);
+
+  // Adjust placeholder indices to avoid collisions with parent
+  let adjustedTemplate = nestedTemplate.template;
+  for (let j = 0; j < nestedTemplate.bindings.length; j++) {
+    const oldPlaceholder = `{${j}}`;
+    const newPlaceholder = `{${startSlotIndex + j}}`;
+    adjustedTemplate = adjustedTemplate.replace(oldPlaceholder, newPlaceholder);
+  }
+
+  // Calculate slot offset (position in parent template)
+  const slotOffset = parentTemplate.length;
+  const adjustedSlots = nestedTemplate.slots.map(s => s + slotOffset);
+
+  // Adjust transform and conditional slot indices
+  const adjustedTransforms = nestedTemplate.transforms
+    ? nestedTemplate.transforms.map(t => ({
+        ...t,
+        slotIndex: t.slotIndex + startSlotIndex
+      }))
+    : [];
+
+  const adjustedConditionals = nestedTemplate.conditionals
+    ? nestedTemplate.conditionals.map(c => ({
+        ...c,
+        slotIndex: c.slotIndex + startSlotIndex
+      }))
+    : [];
+
+  return {
+    template: adjustedTemplate,
+    bindings: nestedTemplate.bindings,
+    slots: adjustedSlots,
+    transforms: adjustedTransforms,
+    conditionals: adjustedConditionals
+  };
+}
+
+/**
  * Merge multiple template infos (for mixed content)
  *
  * Combines multiple templates into one, adjusting slot indices.
@@ -354,6 +430,7 @@ function mergeTemplates(templates) {
 
 module.exports = {
   extractTemplateLiteral,
+  extractNestedTemplate,
   buildTemplateString,
   extractTemplateBindings,
   isSimpleTemplate,

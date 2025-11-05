@@ -30,7 +30,7 @@ const { extractConditionalBinding: extractConditionalBindingFromConditionals } =
 function extractBindings(expr, t) {
   if (t.isIdentifier(expr)) {
     return extractIdentifierBinding(expr, t);
-  } else if (t.isMemberExpression(expr)) {
+  } else if (t.isMemberExpression(expr) || t.isOptionalMemberExpression(expr)) {
     return extractMemberBinding(expr, t);
   } else if (t.isCallExpression(expr)) {
     // First try method call binding (toFixed, toLowerCase, etc.)
@@ -75,13 +75,14 @@ function extractIdentifierBinding(identifier, t) {
  * Extract member expression binding
  *
  * Dotted property access: user.name, todo.text, item.category.name
+ * Optional chaining: user?.name, viewModel?.userEmail
  *
  * CRITICAL FUNCTION - Ported from babel-plugin-minimact/src/extractors/templates.cjs
  * buildMemberPathShared() (lines 34-50)
  *
- * @param {Object} memberExpr - Babel MemberExpression node
+ * @param {Object} memberExpr - Babel MemberExpression or OptionalMemberExpression node
  * @param {Object} t - Babel types
- * @returns {string} - Dotted path (e.g., "user.name")
+ * @returns {string} - Dotted path (e.g., "user.name" or "viewModel.userEmail")
  */
 function extractMemberBinding(memberExpr, t) {
   return buildMemberPath(memberExpr, t);
@@ -108,7 +109,8 @@ function buildMemberPath(expr, t) {
   let current = expr;
 
   // Walk up the member expression chain
-  while (t.isMemberExpression(current)) {
+  // Handle both MemberExpression and OptionalMemberExpression (e.g., user?.profile?.name)
+  while (t.isMemberExpression(current) || t.isOptionalMemberExpression(current)) {
     if (t.isIdentifier(current.property)) {
       parts.unshift(current.property.name);
     }
@@ -127,10 +129,14 @@ function buildMemberPath(expr, t) {
  * Extract method call binding
  *
  * Transform methods like toFixed, toLowerCase, etc.
+ * Supports method chaining on member expressions!
  *
  * Examples:
  * - price.toFixed(2) → { transform: "toFixed", binding: "price", args: [2] }
  * - text.toLowerCase() → { transform: "toLowerCase", binding: "text", args: [] }
+ * - product.name.toUpperCase() → { transform: "toUpperCase", binding: "product.name", args: [] }
+ * - product.price.toFixed(2) → { transform: "toFixed", binding: "product.price", args: [2] }
+ * - user?.email?.toLowerCase() → { transform: "toLowerCase", binding: "user.email", args: [] }
  *
  * Pattern from babel-plugin-minimact/src/extractors/templates.cjs (lines 56-100)
  *
@@ -161,9 +167,11 @@ function extractMethodCallBinding(expr, t) {
 
   // Extract the binding (what's being transformed)
   let binding = null;
-  if (t.isMemberExpression(callee.object)) {
+  if (t.isMemberExpression(callee.object) || t.isOptionalMemberExpression(callee.object)) {
+    // Handle: product.price.toFixed(2) or product?.price?.toFixed(2)
     binding = buildMemberPath(callee.object, t);
   } else if (t.isIdentifier(callee.object)) {
+    // Handle: price.toFixed(2)
     binding = callee.object.name;
   } else if (t.isBinaryExpression(callee.object)) {
     // Handle: (price * quantity).toFixed(2)

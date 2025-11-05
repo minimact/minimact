@@ -25,7 +25,8 @@ function buildMemberPathShared(expr) {
   let current = expr;
 
   // Walk up the member expression chain
-  while (isMemberExpression(current)) {
+  // Handle both MemberExpression and OptionalMemberExpression (e.g., user?.profile?.name)
+  while (isMemberExpression(current) || isOptionalMemberExpression(current)) {
     if (isIdentifier(current.property)) {
       // Add property name to the front (we're walking backwards)
       parts.unshift(current.property.name);
@@ -69,13 +70,13 @@ function extractIdentifiersShared(expr, result) {
   } else if (isUnaryExpression(expr)) {
     // Unary: !a, -b, +c
     extractIdentifiersShared(expr.argument, result);
-  } else if (isMemberExpression(expr)) {
-    // Member: user.name
+  } else if (isMemberExpression(expr) || isOptionalMemberExpression(expr)) {
+    // Member: user.name or user?.name
     result.push(buildMemberPathShared(expr));
   } else if (isCallExpression(expr)) {
     // Call: func(a, b)
     // Extract from callee and arguments
-    if (isMemberExpression(expr.callee)) {
+    if (isMemberExpression(expr.callee) || isOptionalMemberExpression(expr.callee)) {
       result.push(buildMemberPathShared(expr.callee.object));
     } else if (isIdentifier(expr.callee)) {
       result.push(expr.callee.name);
