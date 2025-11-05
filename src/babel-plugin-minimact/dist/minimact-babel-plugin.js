@@ -5152,20 +5152,18 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	function extractAttributeTemplates$1(renderBody, component) {
 	  const templates = {};
 
-	  // Track sibling counts for proper path generation
-	  function traverseJSX(node, parentPath = [], siblingIndex = 0, parentTagCounts = {}) {
+	  // Traverse JSX tree using pre-assigned hex paths
+	  function traverseJSX(node) {
 	    if (t$8.isJSXElement(node)) {
 	      const tagName = node.openingElement.name.name;
 
-	      // Use actual sibling position, NOT tag-specific counter
-	      const elementIndex = siblingIndex;
-	      const currentPath = [...parentPath, elementIndex];
-
-	      // Track tag-specific index for path key building only (per-parent level)
-	      if (!parentTagCounts[tagName]) {
-	        parentTagCounts[tagName] = 0;
+	      // 🔥 USE PRE-ASSIGNED HEX PATH (no recalculation!)
+	      const elementPath = node.__minimactPath;
+	      if (!elementPath) {
+	        throw new Error(`[Attribute Extractor] No __minimactPath found on <${tagName}>. Did assignPathsToJSX run first?`);
 	      }
-	      const tagIndex = parentTagCounts[tagName]++;
+
+	      const currentPath = getPathSegmentsFromNode(node);
 
 	      // Check attributes for template expressions
 	      for (const attr of node.openingElement.attributes) {
@@ -5173,11 +5171,13 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          const attrName = attr.name.name;
 	          const attrValue = attr.value;
 
+	          // 🔥 USE PRE-ASSIGNED ATTRIBUTE PATH
+	          const attrPath = attr.__minimactPath || `${elementPath}.@${attrName}`;
+
 	          // 1. Template literal: className={`count-${count}`}
 	          if (t$8.isJSXExpressionContainer(attrValue) && t$8.isTemplateLiteral(attrValue.expression)) {
 	            const template = extractTemplateLiteralShared(attrValue.expression);
 	            if (template) {
-	              const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, attrName);
 	              console.log(`[Attribute Template] Found template literal in ${attrName}: "${template.template}" (path: ${attrPath})`);
 	              templates[attrPath] = {
 	                ...template,
@@ -5189,16 +5189,14 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          }
 	          // 2. Style object: style={{ fontSize: '32px', opacity: isVisible ? 1 : 0.5 }}
 	          else if (attrName === 'style' && t$8.isJSXExpressionContainer(attrValue) && t$8.isObjectExpression(attrValue.expression)) {
-	            const styleTemplate = extractStyleObjectTemplate(attrValue.expression, tagName, tagIndex, parentPath, currentPath);
+	            const styleTemplate = extractStyleObjectTemplate(attrValue.expression, tagName, null, null, currentPath);
 	            if (styleTemplate) {
-	              const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, 'style');
 	              console.log(`[Attribute Template] Found style object: "${styleTemplate.template.substring(0, 60)}..." (path: ${attrPath})`);
 	              templates[attrPath] = styleTemplate;
 	            }
 	          }
 	          // 3. Static string attribute: className="btn-primary", placeholder="Enter name"
 	          else if (t$8.isStringLiteral(attrValue)) {
-	            const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, attrName);
 	            console.log(`[Attribute Template] Found static attribute ${attrName}: "${attrValue.value}" (path: ${attrPath})`);
 	            templates[attrPath] = {
 	              template: attrValue.value,
@@ -5215,7 +5213,6 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	            // Check if it's a simple binding (identifier or member expression)
 	            if (t$8.isIdentifier(expr) || t$8.isMemberExpression(expr)) {
 	              const binding = t$8.isIdentifier(expr) ? expr.name : buildMemberPathShared(expr);
-	              const attrPath = buildAttributePathKey(tagName, tagIndex, parentPath, attrName);
 	              console.log(`[Attribute Template] Found dynamic attribute ${attrName}: binding="${binding}" (path: ${attrPath})`);
 	              templates[attrPath] = {
 	                template: '{0}',
@@ -5230,28 +5227,13 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	        }
 	      }
 
-	      // Traverse children with correct sibling indices
-	      let childIndex = 0;
-	      const childTagCounts = {}; // Fresh tag counts for this parent's children
+	      // Traverse children (no need to track indices - paths are pre-assigned!)
 	      for (const child of node.children) {
 	        if (t$8.isJSXElement(child)) {
-	          traverseJSX(child, currentPath, childIndex, childTagCounts);
-	          childIndex++;
+	          traverseJSX(child);
 	        }
 	      }
 	    }
-	  }
-
-	  /**
-	   * Build attribute path key
-	   * Example: div[0].@style or div[1].@className
-	   */
-	  function buildAttributePathKey(tagName, index, parentPath, attrName) {
-	    const parentKeys = [];
-	    for (let i = 0; i < parentPath.length; i++) {
-	      parentKeys.push(`[${parentPath[i]}]`);
-	    }
-	    return `${parentKeys.join('.')}.${tagName}[${index}].@${attrName}`.replace(/^\./, '');
 	  }
 
 	  /**

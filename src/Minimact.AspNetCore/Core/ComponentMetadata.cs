@@ -41,9 +41,10 @@ public class ComponentMetadata
 
     /// <summary>
     /// Templates extracted by Babel plugin from JSX (text and attributes).
-    /// Key: Template path (e.g., "[0].h1[0].text[0]" or "[0].button[0].@style")
+    /// Key: Hex-based template path (e.g., "10000000.10000000" or "10000000.20000000.@style")
     /// Value: Template metadata (template string, bindings, type, etc.)
     /// Used for predictive rendering with 100% coverage.
+    /// Hex paths allow insertions without renumbering existing elements.
     /// </summary>
     public Dictionary<string, Models.TemplateInfo>? Templates { get; set; }
 }
