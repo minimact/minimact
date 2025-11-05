@@ -25,7 +25,7 @@ const { extractLogicalExpression, extractConditionalExpression } = require('../e
 const { extractComplexExpression } = require('../extractors/complexExpressions');
 const { extractMapLoop } = require('../extractors/loops');
 
-const { buildMemberPath } = require('./attributes');
+const { buildMemberPath } = require('../utils/astHelpers');
 
 /**
  * Process a JSX expression container

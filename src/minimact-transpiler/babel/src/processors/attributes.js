@@ -19,6 +19,7 @@
 const { extractStyleObject } = require('../extractors/styles');
 const { extractEventHandler } = require('../extractors/eventHandlers');
 const { extractComplexExpression } = require('../extractors/complexExpressions');
+const { buildMemberPath: buildMemberPathUtil } = require('../utils/astHelpers');
 
 /**
  * Process all attributes on a JSX element
@@ -370,24 +371,8 @@ function getExpressionType(expr, t) {
  * @returns {string} - Dotted path string
  */
 function buildMemberPath(expr, t) {
-  const parts = [];
-  let current = expr;
-
-  while (t.isMemberExpression(current)) {
-    if (t.isIdentifier(current.property)) {
-      parts.unshift(current.property.name);
-    } else {
-      // Computed property: obj[key]
-      parts.unshift('<computed>');
-    }
-    current = current.object;
-  }
-
-  if (t.isIdentifier(current)) {
-    parts.unshift(current.name);
-  }
-
-  return parts.join('.');
+  // Use utility function for consistency
+  return buildMemberPathUtil(expr, t);
 }
 
 /**

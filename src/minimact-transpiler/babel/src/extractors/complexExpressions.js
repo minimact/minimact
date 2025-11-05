@@ -13,6 +13,7 @@
  */
 
 const { extractBindings } = require('./bindings');
+const { buildMemberPath: buildMemberPathUtil } = require('../utils/astHelpers');
 
 /**
  * Extract complex expression as template with expression tree
@@ -342,30 +343,14 @@ function getCalleeString(callee, t) {
 }
 
 /**
- * Build member expression path
+ * Build member expression path (wrapper for utility function)
  *
  * @param {Object} node - Member expression node
  * @param {Object} t - Babel types
  * @returns {string} - Dot-separated path
  */
 function buildMemberPath(node, t) {
-  const parts = [];
-  let current = node;
-
-  while (t.isMemberExpression(current)) {
-    if (t.isIdentifier(current.property) && !current.computed) {
-      parts.unshift(current.property.name);
-    } else {
-      parts.unshift('<computed>');
-    }
-    current = current.object;
-  }
-
-  if (t.isIdentifier(current)) {
-    parts.unshift(current.name);
-  }
-
-  return parts.join('.');
+  return buildMemberPathUtil(node, t);
 }
 
 /**

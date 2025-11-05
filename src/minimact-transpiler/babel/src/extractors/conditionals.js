@@ -13,7 +13,7 @@
  * - babel-plugin-minimact/src/extractors/templates.cjs → Conditional traversal (lines 404-421)
  */
 
-const { buildMemberPath } = require('./bindings');
+const { buildMemberPath } = require('../utils/astHelpers');
 
 /**
  * Extract conditional binding for text templates

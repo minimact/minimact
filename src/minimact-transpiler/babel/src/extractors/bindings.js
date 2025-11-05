@@ -16,6 +16,7 @@
  */
 
 const { extractConditionalBinding: extractConditionalBindingFromConditionals } = require('./conditionals');
+const { buildMemberPath: buildMemberPathUtil } = require('../utils/astHelpers');
 
 /**
  * Main binding extractor
@@ -105,24 +106,8 @@ function extractMemberBinding(memberExpr, t) {
  * @returns {string} - Dotted path
  */
 function buildMemberPath(expr, t) {
-  const parts = [];
-  let current = expr;
-
-  // Walk up the member expression chain
-  // Handle both MemberExpression and OptionalMemberExpression (e.g., user?.profile?.name)
-  while (t.isMemberExpression(current) || t.isOptionalMemberExpression(current)) {
-    if (t.isIdentifier(current.property)) {
-      parts.unshift(current.property.name);
-    }
-    current = current.object;
-  }
-
-  // Get the root identifier
-  if (t.isIdentifier(current)) {
-    parts.unshift(current.name);
-  }
-
-  return parts.join('.');
+  // Use utility function for consistency
+  return buildMemberPathUtil(expr, t);
 }
 
 /**

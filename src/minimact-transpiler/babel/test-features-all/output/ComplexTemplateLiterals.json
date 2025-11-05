@@ -1,0 +1,1019 @@
+{
+  "type": "Component",
+  "componentName": "ComplexTemplateLiterals",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "h1",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": true,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Complex Template Literal Tests"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.20000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.20000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 1: Simple .toFixed()"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.20000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.20000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "totalSimple"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.20000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.20000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "20000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: $199.98"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.30000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 2: Multiple .toFixed()"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.30000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "totalComplex"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.30000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.30000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "30000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Price: $99.99 x 2 = $199.98"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.40000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 3: Nested Calculations"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.40000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.40000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "withDiscount"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.40000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.40000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "40000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Original: $199.98, After 15% off: $169.98"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.50000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.50000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 4: Conditional in Template"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.50000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "status"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.50000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.50000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "50000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Status: In Stock - 2 available"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.60000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.60000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 5: Object Property"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.60000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.60000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "productInfo"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.60000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.60000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "60000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Widget - $49.99 each"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.70000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 6: Nested Template"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.70000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.70000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "summary"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.70000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.70000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "70000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Total: $199.98"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "test-case",
+                "path": "10000000.80000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.80000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.80000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Test 7: Method Chaining"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.80000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "Expression",
+                    "expressionType": "Identifier",
+                    "path": "10000000.80000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "formatted"
+                      }
+                    ],
+                    "template": "{0}",
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.80000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "30000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.80000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "80000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Expected: Product: WIDGET at $49.99"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": true,
+            "attributes": [
+              {
+                "type": "StaticAttribute",
+                "name": "className",
+                "value": "inline-tests",
+                "path": "10000000.90000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "@className"
+                ]
+              }
+            ],
+            "children": [
+              {
+                "type": "JSXElement",
+                "tag": "h3",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "isStructural": true,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.90000000.10000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "10000000",
+                      "10000000"
+                    ],
+                    "content": "Inline Template Literals in JSX"
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.90000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "20000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.90000000.20000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "20000000",
+                      "10000000"
+                    ],
+                    "content": "Total:"
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "TemplateLiteral",
+                    "path": "10000000.90000000.20000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "20000000",
+                      "20000000"
+                    ],
+                    "template": "${0}",
+                    "slots": [
+                      1
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "__expr__:price,quantity"
+                      }
+                    ],
+                    "transforms": [
+                      {
+                        "slotIndex": 0,
+                        "method": "toFixed",
+                        "args": [
+                          2
+                        ]
+                      }
+                    ],
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.90000000.30000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "30000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.90000000.30000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "30000000",
+                      "10000000"
+                    ],
+                    "content": "Per Item:"
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "TemplateLiteral",
+                    "path": "10000000.90000000.30000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "30000000",
+                      "20000000"
+                    ],
+                    "template": "${0}",
+                    "slots": [
+                      1
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "price"
+                      }
+                    ],
+                    "transforms": [
+                      {
+                        "slotIndex": 0,
+                        "method": "toFixed",
+                        "args": [
+                          2
+                        ]
+                      }
+                    ],
+                    "isSimple": true
+                  }
+                ]
+              },
+              {
+                "type": "JSXElement",
+                "tag": "p",
+                "path": "10000000.90000000.40000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "40000000"
+                ],
+                "isStructural": false,
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "StaticText",
+                    "path": "10000000.90000000.40000000.10000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "40000000",
+                      "10000000"
+                    ],
+                    "content": "Discount:"
+                  },
+                  {
+                    "type": "Expression",
+                    "expressionType": "TemplateLiteral",
+                    "path": "10000000.90000000.40000000.20000000",
+                    "pathSegments": [
+                      "10000000",
+                      "90000000",
+                      "40000000",
+                      "20000000"
+                    ],
+                    "template": "{0}%",
+                    "slots": [
+                      0
+                    ],
+                    "bindings": [
+                      {
+                        "type": "Identifier",
+                        "path": "__expr__:discount"
+                      }
+                    ],
+                    "transforms": [
+                      {
+                        "slotIndex": 0,
+                        "method": "toFixed",
+                        "args": [
+                          0
+                        ]
+                      }
+                    ],
+                    "isSimple": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}

@@ -1,0 +1,720 @@
+{
+  "type": "Component",
+  "componentName": "BinaryExpressionsTest",
+  "renderMethod": {
+    "type": "RenderMethod",
+    "children": [
+      {
+        "type": "JSXElement",
+        "tag": "div",
+        "path": "10000000",
+        "pathSegments": [
+          "10000000"
+        ],
+        "isStructural": true,
+        "attributes": [],
+        "children": [
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.10000000",
+            "pathSegments": [
+              "10000000",
+              "10000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.10000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "10000000"
+                ],
+                "content": "Subtotal: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.10000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "10000000",
+                  "20000000"
+                ],
+                "template": "{0} * {1}",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "quantity"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "*",
+                  "left": {
+                    "type": "Binding",
+                    "slot": 0,
+                    "name": "price"
+                  },
+                  "right": {
+                    "type": "Binding",
+                    "slot": 1,
+                    "name": "quantity"
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.20000000",
+            "pathSegments": [
+              "10000000",
+              "20000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.20000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "10000000"
+                ],
+                "content": "Discount: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.20000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "20000000",
+                  "20000000"
+                ],
+                "template": "{0} * {1} * {2}",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "quantity"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "discount"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "*",
+                  "left": {
+                    "type": "BinaryExpression",
+                    "operator": "*",
+                    "left": {
+                      "type": "Binding",
+                      "slot": 0,
+                      "name": "price"
+                    },
+                    "right": {
+                      "type": "Binding",
+                      "slot": 1,
+                      "name": "quantity"
+                    }
+                  },
+                  "right": {
+                    "type": "Binding",
+                    "slot": 2,
+                    "name": "discount"
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.30000000",
+            "pathSegments": [
+              "10000000",
+              "30000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.30000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "10000000"
+                ],
+                "content": "Tax: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.30000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "30000000",
+                  "20000000"
+                ],
+                "template": "{0} * {1} * {2}",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "quantity"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "taxRate"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "*",
+                  "left": {
+                    "type": "BinaryExpression",
+                    "operator": "*",
+                    "left": {
+                      "type": "Binding",
+                      "slot": 0,
+                      "name": "price"
+                    },
+                    "right": {
+                      "type": "Binding",
+                      "slot": 1,
+                      "name": "quantity"
+                    }
+                  },
+                  "right": {
+                    "type": "Binding",
+                    "slot": 2,
+                    "name": "taxRate"
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.40000000",
+            "pathSegments": [
+              "10000000",
+              "40000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.40000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "10000000"
+                ],
+                "content": "Total: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.40000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "40000000",
+                  "20000000"
+                ],
+                "binding": "__expr__:price,quantity,discount,taxRate",
+                "transform": "toFixed",
+                "transformArgs": [
+                  2
+                ],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.50000000",
+            "pathSegments": [
+              "10000000",
+              "50000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.50000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "10000000"
+                ],
+                "content": "Over threshold:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "ConditionalExpression",
+                "path": "10000000.50000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "50000000",
+                  "20000000"
+                ],
+                "condition": {
+                  "type": "BinaryExpression",
+                  "left": "<complex>",
+                  "operator": ">",
+                  "right": "threshold"
+                },
+                "consequent": {
+                  "type": "Value",
+                  "value": "Yes"
+                },
+                "alternate": {
+                  "type": "Value",
+                  "value": "No"
+                },
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.60000000",
+            "pathSegments": [
+              "10000000",
+              "60000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.60000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "10000000"
+                ],
+                "content": "Eligible for discount:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "ConditionalExpression",
+                "path": "10000000.60000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "60000000",
+                  "20000000"
+                ],
+                "condition": {
+                  "type": "BinaryExpression",
+                  "left": "quantity",
+                  "operator": ">=",
+                  "right": "5"
+                },
+                "consequent": {
+                  "type": "Value",
+                  "value": "Yes"
+                },
+                "alternate": {
+                  "type": "Value",
+                  "value": "No"
+                },
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "div",
+            "path": "10000000.70000000",
+            "pathSegments": [
+              "10000000",
+              "70000000"
+            ],
+            "isStructural": false,
+            "attributes": [
+              {
+                "type": "DynamicAttribute",
+                "name": "className",
+                "expressionType": "ConditionalExpression",
+                "path": "10000000.70000000.@className",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "@className"
+                ],
+                "template": "{0} > 50 ? \"expensive\" : \"affordable\"",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "ConditionalExpression",
+                  "test": {
+                    "type": "BinaryExpression",
+                    "operator": ">",
+                    "left": {
+                      "type": "Binding",
+                      "slot": 0,
+                      "name": "price"
+                    },
+                    "right": {
+                      "type": "Literal",
+                      "value": 50,
+                      "raw": "50"
+                    }
+                  },
+                  "consequent": {
+                    "type": "Literal",
+                    "value": "expensive",
+                    "raw": "\"expensive\""
+                  },
+                  "alternate": {
+                    "type": "Literal",
+                    "value": "affordable",
+                    "raw": "\"affordable\""
+                  }
+                },
+                "isComplexTemplate": true
+              }
+            ],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.70000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "70000000",
+                  "10000000"
+                ],
+                "content": "Price category"
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.80000000",
+            "pathSegments": [
+              "10000000",
+              "80000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.80000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "10000000"
+                ],
+                "content": "Complex:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "BinaryExpression",
+                "path": "10000000.80000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "80000000",
+                  "20000000"
+                ],
+                "template": "{0} * {1} - {0} * {1} * {2} + {0} * {1} * {3}",
+                "bindings": [
+                  {
+                    "type": "Identifier",
+                    "path": "price"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "quantity"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "discount"
+                  },
+                  {
+                    "type": "Identifier",
+                    "path": "taxRate"
+                  }
+                ],
+                "expressionTree": {
+                  "type": "BinaryExpression",
+                  "operator": "+",
+                  "left": {
+                    "type": "BinaryExpression",
+                    "operator": "-",
+                    "left": {
+                      "type": "BinaryExpression",
+                      "operator": "*",
+                      "left": {
+                        "type": "Binding",
+                        "slot": 0,
+                        "name": "price"
+                      },
+                      "right": {
+                        "type": "Binding",
+                        "slot": 1,
+                        "name": "quantity"
+                      }
+                    },
+                    "right": {
+                      "type": "BinaryExpression",
+                      "operator": "*",
+                      "left": {
+                        "type": "BinaryExpression",
+                        "operator": "*",
+                        "left": {
+                          "type": "Binding",
+                          "slot": 0,
+                          "name": "price"
+                        },
+                        "right": {
+                          "type": "Binding",
+                          "slot": 1,
+                          "name": "quantity"
+                        }
+                      },
+                      "right": {
+                        "type": "Binding",
+                        "slot": 2,
+                        "name": "discount"
+                      }
+                    }
+                  },
+                  "right": {
+                    "type": "BinaryExpression",
+                    "operator": "*",
+                    "left": {
+                      "type": "BinaryExpression",
+                      "operator": "*",
+                      "left": {
+                        "type": "Binding",
+                        "slot": 0,
+                        "name": "price"
+                      },
+                      "right": {
+                        "type": "Binding",
+                        "slot": 1,
+                        "name": "quantity"
+                      }
+                    },
+                    "right": {
+                      "type": "Binding",
+                      "slot": 3,
+                      "name": "taxRate"
+                    }
+                  }
+                },
+                "isSimple": false,
+                "isComplexTemplate": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.90000000",
+            "pathSegments": [
+              "10000000",
+              "90000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.90000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "10000000"
+                ],
+                "content": "Formatted: $"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "CallExpression",
+                "path": "10000000.90000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "90000000",
+                  "20000000"
+                ],
+                "binding": "__expr__:price,quantity,discount",
+                "transform": "toFixed",
+                "transformArgs": [
+                  2
+                ],
+                "isSimple": false,
+                "isTransform": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.a0000000",
+            "pathSegments": [
+              "10000000",
+              "a0000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.a0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "a0000000",
+                  "10000000"
+                ],
+                "content": "Valid:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "ConditionalExpression",
+                "path": "10000000.a0000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "a0000000",
+                  "20000000"
+                ],
+                "condition": {
+                  "type": "LogicalCondition",
+                  "operator": "&&",
+                  "left": {
+                    "type": "BinaryExpression",
+                    "left": "price",
+                    "operator": ">",
+                    "right": "0"
+                  },
+                  "right": {
+                    "type": "BinaryExpression",
+                    "left": "quantity",
+                    "operator": ">",
+                    "right": "0"
+                  }
+                },
+                "consequent": {
+                  "type": "Value",
+                  "value": "Yes"
+                },
+                "alternate": {
+                  "type": "Value",
+                  "value": "No"
+                },
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true
+              }
+            ]
+          },
+          {
+            "type": "JSXElement",
+            "tag": "p",
+            "path": "10000000.b0000000",
+            "pathSegments": [
+              "10000000",
+              "b0000000"
+            ],
+            "isStructural": false,
+            "attributes": [],
+            "children": [
+              {
+                "type": "StaticText",
+                "path": "10000000.b0000000.10000000",
+                "pathSegments": [
+                  "10000000",
+                  "b0000000",
+                  "10000000"
+                ],
+                "content": "Show warning:"
+              },
+              {
+                "type": "Expression",
+                "expressionType": "ConditionalExpression",
+                "path": "10000000.b0000000.20000000",
+                "pathSegments": [
+                  "10000000",
+                  "b0000000",
+                  "20000000"
+                ],
+                "condition": {
+                  "type": "LogicalCondition",
+                  "operator": "||",
+                  "left": {
+                    "type": "BinaryExpression",
+                    "left": "price",
+                    "operator": ">",
+                    "right": "threshold"
+                  },
+                  "right": {
+                    "type": "BinaryExpression",
+                    "left": "quantity",
+                    "operator": ">",
+                    "right": "10"
+                  }
+                },
+                "consequent": {
+                  "type": "Value",
+                  "value": "Yes"
+                },
+                "alternate": {
+                  "type": "Value",
+                  "value": "No"
+                },
+                "isSimple": false,
+                "isStructural": true,
+                "isConditional": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "imports": {}
+}
