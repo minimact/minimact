@@ -191,6 +191,13 @@ function extractBindingShared(expr, component = null) {
     }
   } else if (isBinaryExpression(expr)) {
     // Binary expression: {count + 1}
+    // Extract full expression metadata (not just identifiers)
+    const exprMetadata = extractBinaryExpressionMetadata(expr);
+    if (exprMetadata) {
+      return exprMetadata;
+    }
+
+    // Fallback to identifiers
     const identifiers = [];
     extractIdentifiersShared(expr, identifiers);
     if (identifiers.length > 0) {
@@ -199,6 +206,64 @@ function extractBindingShared(expr, component = null) {
   }
 
   return null;
+}
+
+/**
+ * Extract binary expression metadata
+ *
+ * Extracts full structure of binary expressions for complex calculations.
+ * Example: (price * quantity) → { type: 'BinaryExpression', operator: '*', left: 'price', right: 'quantity' }
+ * Example: (discount * 100).toFixed(0) → captured by extractMethodCallBindingShared
+ *
+ * This provides C# with enough metadata to evaluate the expression server-side.
+ *
+ * @param {Object} expr - Babel BinaryExpression node
+ * @returns {Object|null} - Expression metadata or null
+ */
+function extractBinaryExpressionMetadata(expr) {
+  if (!isBinaryExpression(expr)) {
+    return null;
+  }
+
+  const metadata = {
+    type: 'BinaryExpression',
+    operator: expr.operator
+  };
+
+  // Extract left side
+  if (isIdentifier(expr.left)) {
+    metadata.left = expr.left.name;
+  } else if (isMemberExpression(expr.left)) {
+    metadata.left = buildMemberPathShared(expr.left);
+  } else if (isNumericLiteral(expr.left)) {
+    metadata.left = expr.left.value;
+  } else if (isBinaryExpression(expr.left)) {
+    // Nested binary expression: (a + b) * c
+    metadata.left = extractBinaryExpressionMetadata(expr.left);
+  } else {
+    metadata.left = '<complex>';
+  }
+
+  // Extract right side
+  if (isIdentifier(expr.right)) {
+    metadata.right = expr.right.name;
+  } else if (isMemberExpression(expr.right)) {
+    metadata.right = buildMemberPathShared(expr.right);
+  } else if (isNumericLiteral(expr.right)) {
+    metadata.right = expr.right.value;
+  } else if (isBinaryExpression(expr.right)) {
+    // Nested binary expression: a * (b + c)
+    metadata.right = extractBinaryExpressionMetadata(expr.right);
+  } else {
+    metadata.right = '<complex>';
+  }
+
+  // Extract all identifiers for dependency tracking
+  const identifiers = [];
+  extractIdentifiersShared(expr, identifiers);
+  metadata.identifiers = identifiers;
+
+  return metadata;
 }
 
 /**
@@ -234,15 +299,26 @@ function extractMethodCallBindingShared(expr) {
 
   // Extract the base binding
   let binding = null;
+  let binaryExpr = null;
+
   if (isMemberExpression(callee.object)) {
     binding = buildMemberPathShared(callee.object);
   } else if (isIdentifier(callee.object)) {
     binding = callee.object.name;
   } else if (isBinaryExpression(callee.object)) {
-    // Expression like (discount * 100).toFixed(0)
-    const identifiers = [];
-    extractIdentifiersShared(callee.object, identifiers);
-    binding = `__expr__:${identifiers.join(',')}`;
+    // Expression like (discount * 100).toFixed(0) or ((price * quantity) * (1 - discount)).toFixed(2)
+    // Extract full expression metadata instead of just identifiers
+    binaryExpr = extractBinaryExpressionMetadata(callee.object);
+
+    if (binaryExpr) {
+      // Use the expression metadata as the binding
+      binding = binaryExpr;
+    } else {
+      // Fallback to identifiers
+      const identifiers = [];
+      extractIdentifiersShared(callee.object, identifiers);
+      binding = `__expr__:${identifiers.join(',')}`;
+    }
   }
 
   if (!binding) return null;
@@ -393,6 +469,7 @@ module.exports = {
   extractBindingShared,
   extractTemplateLiteralShared,
   extractMethodCallBindingShared,
+  extractBinaryExpressionMetadata,
 
   // Utility functions
   isEventHandler,
