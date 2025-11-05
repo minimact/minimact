@@ -13,7 +13,8 @@ interface TreeNode {
 }
 
 export const TreeView: React.FC = () => {
-  const { document, cursor, setCursor } = useDocumentStore();
+  const { document, cursor, setCursor, clipboard, copyNode, pasteAsChild, deleteLine } = useDocumentStore();
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; lineIndex: number } | null>(null);
 
   if (!document) return null;
 
@@ -72,6 +73,40 @@ export const TreeView: React.FC = () => {
     }
   };
 
+  const handleCopy = (e: React.MouseEvent, lineIndex: number) => {
+    e.stopPropagation();
+    copyNode(lineIndex);
+  };
+
+  const handlePaste = (e: React.MouseEvent, lineIndex: number, position: 'prepend' | 'append') => {
+    e.stopPropagation();
+    pasteAsChild(lineIndex, position);
+  };
+
+  const handleDelete = (lineIndex: number) => {
+    if (confirm('Delete this node and all its children?')) {
+      deleteLine(lineIndex);
+    }
+    setContextMenu(null);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, lineIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      lineIndex
+    });
+  };
+
+  // Close context menu when clicking elsewhere
+  React.useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    window.document.addEventListener('click', closeMenu);
+    return () => window.document.removeEventListener('click', closeMenu);
+  }, []);
+
   const renderTree = (nodes: TreeNode[]): React.ReactNode => {
     return nodes.map((node) => (
       <div key={node.path} className="tree-node-container">
@@ -79,9 +114,41 @@ export const TreeView: React.FC = () => {
           className={`tree-node ${cursor.lineIndex === node.lineIndex ? 'active' : ''}`}
           style={{ paddingLeft: `${node.depth * 12}px` }}
           onClick={() => handleNodeClick(node.lineIndex)}
+          onContextMenu={(e) => handleContextMenu(e, node.lineIndex)}
         >
           <span className="tree-node-icon">{getIcon(node.type)}</span>
           <span className="tree-node-label">{node.label}</span>
+
+          <div className="tree-node-actions">
+            {/* Copy button */}
+            <button
+              className="tree-action-btn copy-btn"
+              onClick={(e) => handleCopy(e, node.lineIndex)}
+              title="Copy node"
+            >
+              📋
+            </button>
+
+            {/* Paste buttons - only show if clipboard has content */}
+            {clipboard && (
+              <>
+                <button
+                  className="tree-action-btn paste-btn"
+                  onClick={(e) => handlePaste(e, node.lineIndex, 'prepend')}
+                  title="Paste as first child"
+                >
+                  ⬇️
+                </button>
+                <button
+                  className="tree-action-btn paste-btn"
+                  onClick={(e) => handlePaste(e, node.lineIndex, 'append')}
+                  title="Paste as last child"
+                >
+                  ⬆️
+                </button>
+              </>
+            )}
+          </div>
         </div>
         {node.children.length > 0 && node.isExpanded && (
           <div className="tree-node-children">
@@ -100,6 +167,26 @@ export const TreeView: React.FC = () => {
       <div className="tree-view-content">
         {renderTree(tree)}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="tree-context-menu"
+          style={{
+            position: 'fixed',
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+            zIndex: 1000
+          }}
+        >
+          <div
+            className="context-menu-item delete-item"
+            onClick={() => handleDelete(contextMenu.lineIndex)}
+          >
+            🗑️ Delete
+          </div>
+        </div>
+      )}
     </div>
   );
 };
