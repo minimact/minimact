@@ -21,8 +21,8 @@ export interface Template {
   bindings: string[];
   /** Character positions where params are inserted */
   slots: number[];
-  /** DOM path to the text node */
-  path: number[];
+  /** DOM hex path to the text node (e.g., "10000000.20000000") */
+  path: string;
   /** Template type: static | dynamic | attribute */
   type: 'static' | 'dynamic' | 'attribute';
   /** Attribute name (only for attribute templates) */
@@ -39,7 +39,7 @@ export interface TemplateMap {
 export interface TemplatePatch {
   type: 'UpdateTextTemplate' | 'UpdatePropTemplate';
   componentId: string;
-  path: number[];
+  path: string;
   template: string;
   params: any[];
   bindings: string[];
@@ -185,7 +185,7 @@ export class TemplateStateManager {
   /**
    * Apply template patch from hot reload
    */
-  applyTemplatePatch(patch: TemplatePatch): { text: string; path: number[] } | null {
+  applyTemplatePatch(patch: TemplatePatch): { text: string; path: string } | null {
     const { componentId, path, template, params, bindings, slots, attribute } = patch;
 
     // Get current state values from client (not stale params from server!)
@@ -198,7 +198,7 @@ export class TemplateStateManager {
     // Render template with current client state
     const text = this.renderWithParams(template, currentParams);
 
-    // Build node path key
+    // Build node path key (use hex path as-is, replace dots with underscores)
     const nodePath = this.buildNodePathKey(path);
     const key = `${componentId}:${nodePath}`;
 
@@ -229,11 +229,11 @@ export class TemplateStateManager {
   }
 
   /**
-   * Build node path key from path array
-   * Example: [0, 1, 0] → "0_1_0"
+   * Build node path key from hex path string
+   * Example: "10000000.20000000" → "10000000_20000000"
    */
-  private buildNodePathKey(path: number[]): string {
-    return path.join('_');
+  private buildNodePathKey(path: string): string {
+    return path.replace(/\./g, '_');
   }
 
   /**
@@ -276,7 +276,7 @@ export class TemplateStateManager {
       memoryBytes += (template.template?.length || 0) * 2; // UTF-16
       memoryBytes += (template.bindings?.length || 0) * 20; // Rough estimate
       memoryBytes += (template.slots?.length || 0) * 4; // 4 bytes per number
-      memoryBytes += (template.path?.length || 0) * 4;
+      memoryBytes += (template.path?.length || 0) * 2; // UTF-16 for hex string
     }
 
     return {

@@ -1,5 +1,6 @@
 use crate::vdom::{VNode, Patch, TemplatePatch, ComponentMetadata, LoopTemplate, ItemTemplate};
 use crate::reconciler::reconcile;
+use crate::path::HexPath;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -411,7 +412,7 @@ impl Predictor {
         state_change: &StateChange,
         old_content: &str,
         new_content: &str,
-        path: &[usize],
+        path: &HexPath,
     ) -> Option<TemplatePatch> {
         use serde_json::Value;
         use std::collections::HashMap;
@@ -627,7 +628,7 @@ impl Predictor {
         old_content: &str,
         new_content: &str,
         all_state: &HashMap<String, serde_json::Value>,
-        path: &[usize],
+        path: &HexPath,
     ) -> Option<TemplatePatch> {
         use serde_json::Value;
         use crate::vdom::Binding;
@@ -726,7 +727,7 @@ impl Predictor {
 
                 // Create loop template patch
                 Some(vec![Patch::UpdateListTemplate {
-                    path: vec![],
+                    path: HexPath::root(),
                     loop_template: LoopTemplate {
                         array_binding: state_change.state_key.clone(),
                         item_template,
@@ -743,7 +744,7 @@ impl Predictor {
                 )?;
 
                 Some(vec![Patch::UpdateListTemplate {
-                    path: vec![],
+                    path: HexPath::root(),
                     loop_template: LoopTemplate {
                         array_binding: state_change.state_key.clone(),
                         item_template,
@@ -840,7 +841,7 @@ impl Predictor {
         }
 
         // 2. Detect structural changes (Create/Remove/Replace)
-        let created_nodes: Vec<(&VNode, &Vec<usize>)> = new_patches.iter()
+        let created_nodes: Vec<(&VNode, &HexPath)> = new_patches.iter()
             .filter_map(|p| {
                 if let Patch::Create { path, node } = p {
                     Some((node, path))
@@ -863,11 +864,7 @@ impl Predictor {
         )?;
 
         // 4. Get parent path (path without last element)
-        let parent_path = if first_path.is_empty() {
-            vec![]
-        } else {
-            first_path[..first_path.len() - 1].to_vec()
-        };
+        let parent_path = first_path.parent().unwrap_or_else(|| HexPath::root());
 
         // 5. Build loop template
         let loop_template = LoopTemplate {
@@ -1053,7 +1050,7 @@ impl Predictor {
 
         for projection in projections {
             // Find the target element in the tree by selector
-            if let Some((path, _element)) = self.find_element_by_selector(new_tree, &projection.selector, &mut Vec::new()) {
+            if let Some((path, _element)) = self.find_element_by_selector(new_tree, &projection.selector, &HexPath::root()) {
                 // Generate patch based on apply_as type
                 match projection.apply_as.as_str() {
                     "textContent" => {
@@ -1126,8 +1123,8 @@ impl Predictor {
         &self,
         node: &'a VNode,
         selector: &str,
-        path: &mut Vec<usize>,
-    ) -> Option<(Vec<usize>, &'a crate::vdom::VElement)> {
+        path: &HexPath,
+    ) -> Option<(HexPath, &'a crate::vdom::VElement)> {
         match node {
             VNode::Element(element) => {
                 // Check if this element matches the selector
@@ -1138,11 +1135,10 @@ impl Predictor {
                 // Recursively search children (skip nulls)
                 for (i, opt_child) in element.children.iter().enumerate() {
                     if let Some(child) = opt_child {
-                        path.push(i);
-                        if let Some(result) = self.find_element_by_selector(child, selector, path) {
+                        let child_path = path.child(i);
+                        if let Some(result) = self.find_element_by_selector(child, selector, &child_path) {
                             return Some(result);
                         }
-                        path.pop();
                     }
                 }
 
@@ -1364,7 +1360,7 @@ impl Predictor {
                     TemplatePrediction {
                         state_key: state_change.state_key.clone(),
                         patches: vec![Patch::UpdateListTemplate {
-                            path: vec![], // Will be determined by reconciler
+                            path: HexPath::root(), // Will be determined by reconciler
                             loop_template,
                         }],
                         source: TemplateSource::BabelGenerated,
@@ -1669,7 +1665,7 @@ impl Predictor {
         };
 
         let mut patches = Vec::new();
-        Self::find_text_patches_recursive(tree, &old_text, new_text, &mut Vec::new(), &mut patches);
+        Self::find_text_patches_recursive(tree, &old_text, new_text, &HexPath::root(), &mut patches);
 
         if patches.is_empty() {
             None
@@ -1683,7 +1679,7 @@ impl Predictor {
         node: &VNode,
         old_text: &str,
         new_text: &str,
-        path: &mut Vec<usize>,
+        path: &HexPath,
         patches: &mut Vec<Patch>
     ) {
         match node {
@@ -1702,9 +1698,8 @@ impl Predictor {
                 // Recursively check children (skip nulls)
                 for (i, opt_child) in element.children.iter().enumerate() {
                     if let Some(child) = opt_child {
-                        path.push(i);
-                        Self::find_text_patches_recursive(child, old_text, new_text, path, patches);
-                        path.pop();
+                        let child_path = path.child(i);
+                        Self::find_text_patches_recursive(child, old_text, new_text, &child_path, patches);
                     }
                 }
             }

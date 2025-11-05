@@ -93,20 +93,20 @@ export type ItemTemplate =
     };
 
 export type Patch =
-  | { type: 'Create'; path: number[]; node: VNode }
-  | { type: 'Remove'; path: number[] }
-  | { type: 'Replace'; path: number[]; node: VNode }
-  | { type: 'UpdateText'; path: number[]; content: string }
-  | { type: 'UpdateProps'; path: number[]; props: Record<string, string> }
-  | { type: 'ReorderChildren'; path: number[]; order: string[] }
+  | { type: 'Create'; path: string; node: VNode }
+  | { type: 'Remove'; path: string }
+  | { type: 'Replace'; path: string; node: VNode }
+  | { type: 'UpdateText'; path: string; content: string }
+  | { type: 'UpdateProps'; path: string; props: Record<string, string> }
+  | { type: 'ReorderChildren'; path: string; order: string[] }
   // Template patches for runtime prediction (100% coverage with minimal memory)
-  | { type: 'UpdateTextTemplate'; path: number[]; templatePatch: TemplatePatch }
-  | { type: 'UpdatePropsTemplate'; path: number[]; propName: string; templatePatch: TemplatePatch }
+  | { type: 'UpdateTextTemplate'; path: string; templatePatch: TemplatePatch }
+  | { type: 'UpdatePropsTemplate'; path: string; propName: string; templatePatch: TemplatePatch }
   // Loop template patch for array rendering (.map patterns)
-  | { type: 'UpdateListTemplate'; path: number[]; loopTemplate: LoopTemplate }
+  | { type: 'UpdateListTemplate'; path: string; loopTemplate: LoopTemplate }
   // Attribute template patches for static and dynamic attributes (className, style, etc.)
-  | { type: 'UpdateAttributeStatic'; path: number[]; attrName: string; value: string }
-  | { type: 'UpdateAttributeDynamic'; path: number[]; attrName: string; templatePatch: TemplatePatch };
+  | { type: 'UpdateAttributeStatic'; path: string; attrName: string; value: string }
+  | { type: 'UpdateAttributeDynamic'; path: string; attrName: string; templatePatch: TemplatePatch };
 
 export interface ComponentState {
   [key: string]: any;

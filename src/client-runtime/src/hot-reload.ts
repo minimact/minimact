@@ -552,13 +552,18 @@ export class HotReloadManager {
   }
 
   /**
-   * Find DOM element by path array
-   * Example: [0, 1, 0] → first child, second child, first child
+   * Find DOM element by hex path string
+   * Example: "10000000.20000000.30000000" → convert to indices and navigate
    */
-  private findElementByPath(root: HTMLElement, path: number[]): Node | null {
-    let current: Node | null = root;
+  private findElementByPath(root: HTMLElement, path: string): Node | null {
+    if (path === '' || path === '.') {
+      return root;
+    }
 
-    for (const index of path) {
+    let current: Node | null = root;
+    const indices = path.split('.').map(hex => parseInt(hex, 16));
+
+    for (const index of indices) {
       if (!current || !current.childNodes) return null;
       current = current.childNodes[index] || null;
     }

@@ -26,6 +26,7 @@
  */
 
 use crate::vdom::{Patch, StructuralTemplate, VNode};
+use crate::path::HexPath;
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -46,7 +47,7 @@ pub struct StateChange {
 /// Returns Some(Patch::ReplaceConditional) if extraction succeeds, None otherwise.
 pub fn extract_structural_template(
     state_change: &StateChange,
-    old_path: &[usize],
+    old_path: &HexPath,
     old_node: &VNode,
     new_node: &VNode,
 ) -> Option<Patch> {
@@ -84,7 +85,7 @@ pub fn extract_structural_template(
     };
 
     Some(Patch::ReplaceConditional {
-        path: old_path.to_vec(),
+        path: old_path.clone(),
         structural_template,
     })
 }
