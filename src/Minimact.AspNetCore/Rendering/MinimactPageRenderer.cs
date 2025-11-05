@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Minimact.AspNetCore.Attributes;
 using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Runtime;
 using System.Reflection;
 using System.Text.Json;
 
@@ -17,11 +18,13 @@ public class MinimactPageRenderer
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ComponentRegistry _registry;
+    private readonly ComponentLoader? _componentLoader;
 
-    public MinimactPageRenderer(IServiceProvider serviceProvider, ComponentRegistry registry)
+    public MinimactPageRenderer(IServiceProvider serviceProvider, ComponentRegistry registry, ComponentLoader? componentLoader = null)
     {
         _serviceProvider = serviceProvider;
         _registry = registry;
+        _componentLoader = componentLoader;
     }
 
     /// <summary>
@@ -50,6 +53,63 @@ public class MinimactPageRenderer
 
         // 2. Create component instance (parameterless constructor)
         var component = ActivatorUtilities.CreateInstance<TComponent>(_serviceProvider);
+
+        // 3. Set ViewModel and mutability on component
+        component.SetMvcViewModel(viewModel, mutability);
+
+        // 4. Register component
+        _registry.RegisterComponent(component);
+
+        // 5. Initialize and render
+        var vnode = await component.InitializeAndRenderAsync();
+        var html = vnode.ToHtml();
+
+        // 6. Serialize ViewModel for client
+        var viewModelJson = SerializeViewModel(component, viewModel, mutability);
+
+        // 7. Generate complete HTML page
+        var pageHtml = GeneratePageHtml(component, html, pageTitle, viewModelJson, options);
+
+        return new ContentResult
+        {
+            Content = pageHtml,
+            ContentType = "text/html",
+            StatusCode = 200
+        };
+    }
+
+    /// <summary>
+    /// Render a Minimact component by name (for runtime-loaded components from JSON).
+    /// </summary>
+    /// <param name="componentName">The component name (e.g., "ProductDetailsPage")</param>
+    /// <param name="viewModel">The ViewModel to pass to the component</param>
+    /// <param name="pageTitle">The HTML page title</param>
+    /// <param name="options">Optional rendering options</param>
+    /// <returns>IActionResult containing the rendered HTML page</returns>
+    /// <example>
+    /// // In controller:
+    /// var viewModel = new ProductViewModel { Name = "Widget", Price = 99.99m };
+    /// return await _renderer.RenderPageByName("ProductDetailsPage", viewModel, "Product Details");
+    /// </example>
+    public async Task<IActionResult> RenderPageByName(
+        string componentName,
+        object viewModel,
+        string pageTitle,
+        MinimactPageRenderOptions? options = null)
+    {
+        if (_componentLoader == null)
+        {
+            throw new InvalidOperationException(
+                "ComponentLoader is not configured. Add it to DI: services.AddSingleton<ComponentLoader>()");
+        }
+
+        options ??= new MinimactPageRenderOptions();
+
+        // 1. Extract mutability metadata from ViewModel
+        var mutability = ExtractMutabilityMetadata(viewModel);
+
+        // 2. Load component from JSON at runtime
+        var component = _componentLoader.Load(componentName);
 
         // 3. Set ViewModel and mutability on component
         component.SetMvcViewModel(viewModel, mutability);
