@@ -145,6 +145,21 @@ public class CSharpCodeGenerator : INodeVisitor
         }
     }
 
+    public void Visit(ComplexTemplateNode node)
+    {
+        if (node.Bindings.Count == 0)
+        {
+            return; // No bindings, no template needed
+        }
+
+        var pathArray = FormatPathArray(node.PathSegments);
+        var bindingsArray = FormatStringArray(node.Bindings);
+
+        // For now, emit ComplexTemplate attribute with template and bindings
+        // Expression tree will be evaluated at runtime by C#
+        WriteLine($"[ComplexTemplate(Path = new[] {{ {pathArray} }}, Template = \"{EscapeString(node.Template)}\", Bindings = new[] {{ {bindingsArray} }})]");
+    }
+
     /// <summary>
     /// Format path segments array for C#
     /// Example: ["10000000", "20000000"] → "\"10000000\", \"20000000\""

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Minimact.Transpiler.CodeGen.Visitors;
 
 namespace Minimact.Transpiler.CodeGen.Nodes;
 
@@ -15,6 +16,7 @@ namespace Minimact.Transpiler.CodeGen.Nodes;
 [JsonDerivedType(typeof(AttributeTemplateNode), "AttributeTemplate")]
 [JsonDerivedType(typeof(LoopTemplateNode), "LoopTemplate")]
 [JsonDerivedType(typeof(ConditionalTemplateNode), "ConditionalTemplate")]
+[JsonDerivedType(typeof(ComplexTemplateNode), "ComplexTemplate")]
 public abstract class BaseNode
 {
     [JsonPropertyName("type")]
@@ -196,4 +198,105 @@ public class ConditionalTemplateNode : BaseNode
     public BaseNode? Alternate { get; set; }
 
     public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Complex expression template (needs C# evaluation)
+/// Example: {count * 2 + 1} → template: "{0} * 2 + 1", bindings: ["count"]
+/// Example: {Math.floor(price * 1.2)} → template: "Math.floor({0} * 1.2)", bindings: ["price"]
+/// </summary>
+public class ComplexTemplateNode : BaseNode
+{
+    [JsonPropertyName("template")]
+    public string Template { get; set; } = string.Empty;
+
+    [JsonPropertyName("bindings")]
+    public List<string> Bindings { get; set; } = new();
+
+    [JsonPropertyName("expressionTree")]
+    public ExpressionTreeNode? ExpressionTree { get; set; }
+
+    public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Expression tree node for C# evaluation
+/// Represents the AST of a complex expression
+/// </summary>
+public class ExpressionTreeNode
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+
+    [JsonPropertyName("operator")]
+    public string? Operator { get; set; }
+
+    [JsonPropertyName("left")]
+    public ExpressionTreeNode? Left { get; set; }
+
+    [JsonPropertyName("right")]
+    public ExpressionTreeNode? Right { get; set; }
+
+    [JsonPropertyName("argument")]
+    public ExpressionTreeNode? Argument { get; set; }
+
+    [JsonPropertyName("test")]
+    public ExpressionTreeNode? Test { get; set; }
+
+    [JsonPropertyName("consequent")]
+    public ExpressionTreeNode? Consequent { get; set; }
+
+    [JsonPropertyName("alternate")]
+    public ExpressionTreeNode? Alternate { get; set; }
+
+    [JsonPropertyName("callee")]
+    public string? Callee { get; set; }
+
+    [JsonPropertyName("arguments")]
+    public List<ExpressionTreeNode>? Arguments { get; set; }
+
+    [JsonPropertyName("object")]
+    public ExpressionTreeNode? Object { get; set; }
+
+    [JsonPropertyName("property")]
+    public ExpressionTreeNode? Property { get; set; }
+
+    [JsonPropertyName("computed")]
+    public bool? Computed { get; set; }
+
+    [JsonPropertyName("elements")]
+    public List<ExpressionTreeNode>? Elements { get; set; }
+
+    [JsonPropertyName("properties")]
+    public List<PropertyNode>? Properties { get; set; }
+
+    [JsonPropertyName("slot")]
+    public int? Slot { get; set; }
+
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("value")]
+    public object? Value { get; set; }
+
+    [JsonPropertyName("raw")]
+    public string? Raw { get; set; }
+
+    [JsonPropertyName("prefix")]
+    public bool? Prefix { get; set; }
+}
+
+/// <summary>
+/// Property node for object expressions
+/// </summary>
+public class PropertyNode
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+
+    [JsonPropertyName("key")]
+    public string Key { get; set; } = string.Empty;
+
+    [JsonPropertyName("value")]
+    public ExpressionTreeNode? Value { get; set; }
 }

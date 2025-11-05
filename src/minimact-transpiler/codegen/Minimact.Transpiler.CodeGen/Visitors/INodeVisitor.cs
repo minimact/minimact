@@ -15,4 +15,5 @@ public interface INodeVisitor
     void Visit(AttributeTemplateNode node);
     void Visit(LoopTemplateNode node);
     void Visit(ConditionalTemplateNode node);
+    void Visit(ComplexTemplateNode node);
 }
