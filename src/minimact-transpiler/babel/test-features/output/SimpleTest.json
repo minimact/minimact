@@ -64,5 +64,20 @@
       }
     ]
   },
-  "imports": {}
+  "imports": {},
+  "hooks": {
+    "useState": [
+      {
+        "stateVar": "count",
+        "setter": "setCount",
+        "initialValue": "5",
+        "type": "double"
+      }
+    ],
+    "useMvcState": [],
+    "useMvcViewModel": null,
+    "useEffect": [],
+    "useRef": []
+  },
+  "eventHandlers": []
 }

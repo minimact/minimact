@@ -17,6 +17,12 @@ namespace Minimact.Transpiler.CodeGen.Nodes;
 [JsonDerivedType(typeof(LoopTemplateNode), "LoopTemplate")]
 [JsonDerivedType(typeof(ConditionalTemplateNode), "ConditionalTemplate")]
 [JsonDerivedType(typeof(ComplexTemplateNode), "ComplexTemplate")]
+[JsonDerivedType(typeof(ExpressionNode), "Expression")]
+[JsonDerivedType(typeof(BinaryExpressionNode), "BinaryExpression")]
+[JsonDerivedType(typeof(UnaryExpressionNode), "UnaryExpression")]
+[JsonDerivedType(typeof(CallExpressionNode), "CallExpression")]
+[JsonDerivedType(typeof(MemberExpressionNode), "MemberExpression")]
+[JsonDerivedType(typeof(ConditionalExpressionNode), "ConditionalExpression")]
 public abstract class BaseNode
 {
     [JsonPropertyName("type")]
@@ -223,7 +229,7 @@ public class TextTemplateNode : BaseNode
     public string Template { get; set; } = string.Empty;
 
     [JsonPropertyName("bindings")]
-    public List<string> Bindings { get; set; } = new();
+    public List<BindingNode> Bindings { get; set; } = new();
 
     [JsonPropertyName("slots")]
     public List<int> Slots { get; set; } = new();
@@ -255,7 +261,7 @@ public class AttributeTemplateNode : BaseNode
     public string Template { get; set; } = string.Empty;
 
     [JsonPropertyName("bindings")]
-    public List<string> Bindings { get; set; } = new();
+    public List<BindingNode> Bindings { get; set; } = new();
 
     [JsonPropertyName("slots")]
     public List<int> Slots { get; set; } = new();
@@ -319,12 +325,68 @@ public class ComplexTemplateNode : BaseNode
     public string Template { get; set; } = string.Empty;
 
     [JsonPropertyName("bindings")]
-    public List<string> Bindings { get; set; } = new();
+    public List<BindingNode> Bindings { get; set; } = new();
 
     [JsonPropertyName("expressionTree")]
     public ExpressionTreeNode? ExpressionTree { get; set; }
 
     public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Expression node (extends ComplexTemplateNode)
+/// Used when babel outputs "type": "Expression"
+/// </summary>
+public class ExpressionNode : ComplexTemplateNode
+{
+    // Inherits all properties from ComplexTemplateNode
+    // No additional properties needed - this is just for polymorphic deserialization
+}
+
+/// <summary>
+/// Binary expression node (extends ComplexTemplateNode)
+/// Used when babel outputs "type": "BinaryExpression"
+/// </summary>
+public class BinaryExpressionNode : ComplexTemplateNode { }
+
+/// <summary>
+/// Unary expression node (extends ComplexTemplateNode)
+/// Used when babel outputs "type": "UnaryExpression"
+/// </summary>
+public class UnaryExpressionNode : ComplexTemplateNode { }
+
+/// <summary>
+/// Call expression node (extends ComplexTemplateNode)
+/// Used when babel outputs "type": "CallExpression"
+/// </summary>
+public class CallExpressionNode : ComplexTemplateNode { }
+
+/// <summary>
+/// Member expression node (extends ComplexTemplateNode)
+/// Used when babel outputs "type": "MemberExpression"
+/// </summary>
+public class MemberExpressionNode : ComplexTemplateNode { }
+
+/// <summary>
+/// Conditional expression node (extends ComplexTemplateNode)
+/// Used when babel outputs "type": "ConditionalExpression"
+/// </summary>
+public class ConditionalExpressionNode : ComplexTemplateNode { }
+
+/// <summary>
+/// Binding reference (variable or property reference in template)
+/// Example: { "type": "Identifier", "path": "count" }
+/// </summary>
+public class BindingNode
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+
+    [JsonPropertyName("path")]
+    public string Path { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 }
 
 /// <summary>

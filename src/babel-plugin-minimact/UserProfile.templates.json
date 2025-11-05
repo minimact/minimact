@@ -1,0 +1,71 @@
+{
+  "component": "UserProfile",
+  "version": "1.0",
+  "generatedAt": 1762353002901,
+  "templates": {
+    "[0].div[0].text[0]": {
+      "template": "Loading...",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "[0].[1].h1[0].text[0]": {
+      "template": "{0}",
+      "bindings": [
+        "user.name"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].p[0].text[0]": {
+      "template": "{0}",
+      "bindings": [
+        "user.email"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "dynamic"
+    },
+    "[0].[1].span[0].text[0]": {
+      "template": "Admin",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "type": "static"
+    },
+    "div[0].@className": {
+      "template": "profile",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        0
+      ],
+      "type": "attribute-static"
+    }
+  }
+}

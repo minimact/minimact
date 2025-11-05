@@ -138,5 +138,13 @@
       }
     ]
   },
-  "imports": {}
+  "imports": {},
+  "hooks": {
+    "useState": [],
+    "useMvcState": [],
+    "useMvcViewModel": null,
+    "useEffect": [],
+    "useRef": []
+  },
+  "eventHandlers": []
 }

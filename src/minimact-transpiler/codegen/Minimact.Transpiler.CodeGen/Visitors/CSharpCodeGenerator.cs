@@ -1,5 +1,7 @@
 using System.Text;
 using Minimact.Transpiler.CodeGen.Nodes;
+using Minimact.Transpiler.CodeGen.Generators;
+using Minimact.Transpiler.CodeGen.Converters;
 
 namespace Minimact.Transpiler.CodeGen.Visitors;
 
@@ -10,6 +12,16 @@ public class CSharpCodeGenerator : INodeVisitor
 {
     private readonly StringBuilder _output = new();
     private int _indentLevel = 0;
+    private readonly VNodeTreeGenerator _vnodeGenerator;
+    private readonly EventHandlerBodyGenerator _handlerGenerator;
+    private readonly ExpressionConverter _expressionConverter;
+
+    public CSharpCodeGenerator()
+    {
+        _expressionConverter = new ExpressionConverter();
+        _vnodeGenerator = new VNodeTreeGenerator(_expressionConverter);
+        _handlerGenerator = new EventHandlerBodyGenerator(_expressionConverter);
+    }
 
     public string GetOutput() => _output.ToString();
 
@@ -106,8 +118,16 @@ public class CSharpCodeGenerator : INodeVisitor
             WriteLine();
         }
 
-        WriteLine("// TODO: Generate VNode tree from renderMethod");
-        WriteLine("return new VElement(\"div\", new Dictionary<string, string>());");
+        // Generate VNode tree using VNodeTreeGenerator
+        if (node.RenderMethod != null)
+        {
+            var vnodeCode = _vnodeGenerator.Generate(node.RenderMethod);
+            WriteLine($"return {vnodeCode};");
+        }
+        else
+        {
+            WriteLine("return new VNode();");
+        }
         Dedent();
         WriteLine("}");
         WriteLine();
@@ -148,17 +168,21 @@ public class CSharpCodeGenerator : INodeVisitor
     /// </summary>
     private void GenerateEventHandler(EventHandlerMetadata handler)
     {
-        // TODO: Parse handler body and params properly
-        // For now, generate a stub method
-        var asyncModifier = handler.IsAsync ? "async " : "";
-        var returnType = handler.IsAsync ? "Task" : "void";
+        // Use EventHandlerBodyGenerator to generate the complete method
+        var handlerCode = _handlerGenerator.GenerateEventHandlerMethod(handler, _indentLevel);
 
-        WriteLine($"public {asyncModifier}{returnType} {handler.Name}()");
-        WriteLine("{");
-        Indent();
-        WriteLine("// TODO: Generate handler body from AST");
-        Dedent();
-        WriteLine("}");
+        // The generator returns the complete method with its own indentation
+        // We need to write it line by line with proper indentation
+        var lines = handlerCode.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            // Remove the generator's indentation and use our own
+            var trimmedLine = line.TrimStart();
+            if (!string.IsNullOrWhiteSpace(trimmedLine))
+            {
+                _output.AppendLine(new string(' ', _indentLevel * 4) + trimmedLine);
+            }
+        }
         WriteLine();
     }
 
@@ -194,7 +218,7 @@ public class CSharpCodeGenerator : INodeVisitor
         }
 
         var pathArray = FormatPathArray(node.PathSegments);
-        var bindingsArray = FormatStringArray(node.Bindings);
+        var bindingsArray = FormatBindingsArray(node.Bindings);
 
         WriteLine($"[TextTemplate(Path = new[] {{ {pathArray} }}, Template = \"{EscapeString(node.Template)}\", Bindings = new[] {{ {bindingsArray} }})]");
     }
@@ -212,7 +236,7 @@ public class CSharpCodeGenerator : INodeVisitor
         }
 
         var pathArray = FormatPathArray(node.PathSegments);
-        var bindingsArray = FormatStringArray(node.Bindings);
+        var bindingsArray = FormatBindingsArray(node.Bindings);
 
         WriteLine($"[AttributeTemplate(Path = new[] {{ {pathArray} }}, Attribute = \"{node.Attribute}\", Template = \"{EscapeString(node.Template)}\", Bindings = new[] {{ {bindingsArray} }})]");
     }
@@ -257,7 +281,7 @@ public class CSharpCodeGenerator : INodeVisitor
         }
 
         var pathArray = FormatPathArray(node.PathSegments);
-        var bindingsArray = FormatStringArray(node.Bindings);
+        var bindingsArray = FormatBindingsArray(node.Bindings);
 
         // For now, emit ComplexTemplate attribute with template and bindings
         // Expression tree will be evaluated at runtime by C#
@@ -285,6 +309,15 @@ public class CSharpCodeGenerator : INodeVisitor
     private string FormatStringArray(List<string> items)
     {
         return string.Join(", ", items.Select(s => $"\"{EscapeString(s)}\""));
+    }
+
+    /// <summary>
+    /// Format bindings array for C#
+    /// Example: [{"path": "count"}] → "\"count\""
+    /// </summary>
+    private string FormatBindingsArray(List<BindingNode> bindings)
+    {
+        return string.Join(", ", bindings.Select(b => $"\"{EscapeString(b.Path)}\""));
     }
 
     /// <summary>

@@ -17,19 +17,16 @@ public class VNodeTreeGenerator
 {
     private readonly ExpressionConverter _expressionConverter;
     private readonly StringBuilder _output;
-    private int _indentLevel;
 
     public VNodeTreeGenerator(ExpressionConverter? expressionConverter = null)
     {
         _expressionConverter = expressionConverter ?? new ExpressionConverter();
         _output = new StringBuilder();
-        _indentLevel = 0;
     }
 
     public string Generate(RenderMethodNode renderMethod)
     {
         _output.Clear();
-        _indentLevel = 0;
 
         if (renderMethod.Children == null || renderMethod.Children.Count == 0)
         {
@@ -313,26 +310,27 @@ public class VNodeTreeGenerator
 
     #region Helper Methods
 
-    private string ConvertTemplateToCSharp(string template, List<string> bindings)
+    private string ConvertTemplateToCSharp(string template, List<BindingNode> bindings)
     {
         // Convert "{0}" placeholders to "{binding}" for C# string interpolation
-        // Example: "Count: {0}" + ["count"] → "Count: {count}"
+        // Example: "Count: {0}" + [{"path": "count"}] → "Count: {count}"
         var result = template;
 
         for (int i = 0; i < bindings.Count; i++)
         {
-            result = result.Replace($"{{{i}}}", $"{{{bindings[i]}}}");
+            var bindingPath = bindings[i].Path;
+            result = result.Replace($"{{{i}}}", $"{{{bindingPath}}}");
         }
 
         return EscapeString(result);
     }
 
-    private string EvaluateExpressionTree(ExpressionTreeNode expressionTree, List<string> bindings)
+    private string EvaluateExpressionTree(ExpressionTreeNode expressionTree, List<BindingNode> bindings)
     {
         return expressionTree.Type switch
         {
             "Binding" when expressionTree.Slot.HasValue =>
-                bindings[expressionTree.Slot.Value],
+                bindings[expressionTree.Slot.Value].Path,
 
             "Literal" when expressionTree.Raw != null =>
                 expressionTree.Raw,
@@ -343,7 +341,7 @@ public class VNodeTreeGenerator
         };
     }
 
-    private string EvaluateBinaryExpression(ExpressionTreeNode expr, List<string> bindings)
+    private string EvaluateBinaryExpression(ExpressionTreeNode expr, List<BindingNode> bindings)
     {
         var left = expr.Left != null
             ? EvaluateExpressionTree(expr.Left, bindings)

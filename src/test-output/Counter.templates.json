@@ -1,21 +1,25 @@
 {
-  "component": "TodoList",
+  "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1762353004103,
+  "generatedAt": 1762353005253,
   "templates": {
-    "[0].h1[0].text[0]": {
-      "template": "My Todos",
-      "bindings": [],
-      "slots": [],
+    "[0].span[0].text[0]": {
+      "template": "Count: {0}",
+      "bindings": [
+        "count"
+      ],
+      "slots": [
+        7
+      ],
       "path": [
         0,
         0,
         0
       ],
-      "type": "static"
+      "type": "dynamic"
     },
     "[0].button[0].text[0]": {
-      "template": "Add Todo",
+      "template": "+",
       "bindings": [],
       "slots": [],
       "path": [
@@ -26,7 +30,7 @@
       "type": "static"
     },
     "div[0].@className": {
-      "template": "todo-list",
+      "template": "counter",
       "bindings": [],
       "slots": [],
       "path": [
@@ -37,14 +41,14 @@
     "[0].button[0].@onClick": {
       "template": "{0}",
       "bindings": [
-        "addTodo"
+        "increment"
       ],
       "slots": [
         0
       ],
       "path": [
         0,
-        2
+        1
       ],
       "type": "attribute-dynamic"
     }
