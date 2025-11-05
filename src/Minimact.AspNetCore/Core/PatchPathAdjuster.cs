@@ -1,8 +1,16 @@
 namespace Minimact.AspNetCore.Core;
 
 /// <summary>
-/// Adjusts VNode paths to DOM paths by accounting for null children
+/// [OBSOLETE] Adjusts VNode paths to DOM paths by accounting for null children.
+///
+/// This class is no longer needed with the hex-based path system.
+/// Hex paths (e.g., "10000000.20000000.30000000") are stable and don't require
+/// adjustment for null children or insertions. They maintain fixed positions
+/// with 268M gaps between elements, so path adjustment is unnecessary.
+///
+/// This class is kept for backward compatibility but will be removed in a future version.
 /// </summary>
+[Obsolete("PatchPathAdjuster is no longer needed with hex-based paths. Hex paths are stable and don't require adjustment.")]
 public static class PatchPathAdjuster
 {
     /// <summary>
@@ -80,25 +88,23 @@ public static class PatchPathAdjuster
     }
 
     /// <summary>
-    /// Adjust path in-place (for mutable patch objects)
+    /// [OBSOLETE] Adjust path in-place (for mutable patch objects).
+    /// No longer needed with hex paths - this is now a no-op.
     /// </summary>
+    [Obsolete("No longer needed with hex-based paths. Paths don't require adjustment.")]
     public static void AdjustPatchPath(Patch patch, VNode rootVNode)
     {
-        if (patch?.Path != null && patch.Path.Count > 0)
-        {
-            patch.Path = VNodePathToDomPath(patch.Path.ToArray(), rootVNode).ToList();
-        }
+        // No-op: Hex paths don't need adjustment
     }
 
     /// <summary>
-    /// Adjust multiple patches in batch
+    /// [OBSOLETE] Adjust multiple patches in batch.
+    /// No longer needed with hex paths - this is now a no-op.
     /// </summary>
+    [Obsolete("No longer needed with hex-based paths. Paths don't require adjustment.")]
     public static void AdjustPatchPaths(IEnumerable<Patch> patches, VNode rootVNode)
     {
-        foreach (var patch in patches)
-        {
-            AdjustPatchPath(patch, rootVNode);
-        }
+        // No-op: Hex paths don't need adjustment
     }
 
     /// <summary>

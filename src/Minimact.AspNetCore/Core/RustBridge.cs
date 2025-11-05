@@ -338,8 +338,13 @@ public class Patch
     [JsonProperty("type")]
     public string Type { get; set; } = "";
 
+    /// <summary>
+    /// Hex-based DOM path (e.g., "10000000.20000000.30000000")
+    /// This uses the tag-agnostic hex path system where each segment is a hex value
+    /// with 0x10000000 (268M) gaps between elements, allowing insertions without renumbering.
+    /// </summary>
     [JsonProperty("path")]
-    public List<int> Path { get; set; } = new();
+    public string Path { get; set; } = "";
 
     [JsonProperty("node")]
     public VNode? Node { get; set; }

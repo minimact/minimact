@@ -31,11 +31,12 @@ public class TemplateInfo
     public List<int> Slots { get; set; } = new();
 
     /// <summary>
-    /// Path in the VNode tree where this template applies
-    /// Example: [0, 1, 0] for div > span > text
+    /// Hex-based path in the VNode tree where this template applies
+    /// Example: "10000000.20000000.30000000" for div > span > text
+    /// Uses tag-agnostic hex path system with 268M gaps between elements
     /// </summary>
     [JsonPropertyName("path")]
-    public List<int> Path { get; set; } = new();
+    public string Path { get; set; } = "";
 
     /// <summary>
     /// Template type determines patch generation:
