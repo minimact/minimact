@@ -89,56 +89,175 @@ public partial class ProductDetailsPage : MinimactComponent
 
 ### New Transpiler (`minimact-transpiler`)
 
-**Current Outputs:**
-1. **JSON IR** - Intermediate representation with hex paths
-2. **C# attributes only** - Metadata, NOT working code
+**Current Status (Updated 2025-11-05):**
 
-**Current C# Output:**
+✅ **Phase 1 COMPLETE** - Babel plugin generates comprehensive JSON IR with:
+- Hook metadata (useState, useMvcState, useMvcViewModel)
+- Event handler AST bodies
+- Hex path system (tag-agnostic)
+- Template extraction
+
+✅ **Phase 2 PARTIAL** - C# code generation implemented:
+- ✅ Hook field generation (useState → [State] fields)
+- ✅ MVC state properties
+- ✅ Event handler method stubs
+- ✅ Setter methods for mutable state
+- ✅ **ExpressionConverter.cs** - Complete JS-to-C# conversion (Math, toFixed, .map, etc.)
+
+**Current C# Output (from CSharpCodeGenerator):**
 ```csharp
 using Minimact.AspNetCore.Core;
-using Minimact.AspNetCore.Attributes;
+using Minimact.AspNetCore.Extensions;
+using System.Collections.Generic;
 
 namespace Generated;
 
-[TextTemplate(Path = new[] { "10000000", "20000000" }, Template = "{0}", Bindings = new[] { "count" })]
-[ComplexTemplate(Path = new[] { "10000000", "30000000" }, Template = "Math.floor({0} * 1.2)", Bindings = new[] { "price" })]
-public class ProductDetailsPage : MinimactComponent
+[Component]
+public partial class ProductDetailsPage : MinimactComponent
 {
+    // ✅ State fields generated
+    [State]
+    private int quantity = 0;
+
+    // ✅ MVC state properties generated
+    private string productName => GetState<string>("productName");
+    private decimal price => GetState<decimal>("price");
+
+    // ✅ Hook fields generated
+    private dynamic viewModel = null;
+
     protected override VNode Render()
     {
-        // TODO: Render implementation will be generated
+        // ❌ TODO: Full VNode tree generation
         return new VNode();
     }
+
+    // ✅ Event handler stubs generated
+    public void Handle2() { /* TODO: Body generation */ }
+
+    // ✅ Setter methods generated
+    private void setQuantity(int value) { SetState("quantity", value); }
 }
 ```
 
-**Missing:**
-- ❌ State field declarations
-- ❌ MVC state properties
-- ❌ Hook transformations
-- ❌ Full Render() VNode tree
-- ❌ Event handler methods
-- ❌ Setter methods
-- ❌ templates.json generation
+**Still Missing:**
+- ❌ Full Render() VNode tree generation (Phase 2.4)
+- ❌ Event handler body generation from AST (Phase 2.5)
+- ❌ templates.json generation (Phase 3)
+- ❌ Loop and conditional VNode generation
+
+---
+
+## Recent Implementation: ExpressionConverter.cs
+
+**Location:** `codegen/Minimact.Transpiler.CodeGen/Converters/ExpressionConverter.cs`
+
+**Status:** ✅ **COMPLETE** - Comprehensive JavaScript-to-C# expression converter
+
+This class ports all the JavaScript-to-C# conversion logic from the original `babel-plugin-minimact/src/generators/expressions.cjs`. It converts JavaScript AST nodes (stored in JSON) to C# expression strings.
+
+**Supported Conversions:**
+
+### Math Methods
+- `Math.floor(x)` → `(int)Math.Floor(x)`
+- `Math.ceil(x)` → `(int)Math.Ceil(x)`
+- `Math.round(x)` → `(int)Math.Round(x)`
+- `Math.max/min/pow/log/etc.` → `Math.Max/Min/Pow/Log/etc.` (PascalCase)
+
+### String Methods
+- `.toLowerCase()` → `.ToLower()`
+- `.toUpperCase()` → `.ToUpper()`
+- `.substring(start, end)` → `.Substring(start, end)`
+- `.padStart(n, char)` → `.PadLeft(n, char)`
+- `.padEnd(n, char)` → `.PadRight(n, char)`
+- `.toFixed(2)` → `.ToString("F2")`
+- `.toLocaleString()` → `.ToString("g")`
+- `.trim()` → `.Trim()`
+- `.split(sep)` → `.Split(sep)`
+- `.join(sep)` → `string.Join(sep, array)`
+- `.includes(x)` → `.Contains(x)`
+- `.startsWith(x)` → `.StartsWith(x)`
+- `.endsWith(x)` → `.EndsWith(x)`
+- `.indexOf(x)` → `.IndexOf(x)`
+- `.replace(old, new)` → `.Replace(old, new)`
+- `.slice(start, end)` → `.Skip(start).Take(end - start).ToList()`
+
+### Array Methods
+- `.map(fn)` → `.Select(fn).ToList()`
+- `.filter(fn)` → `.Where(fn).ToList()`
+- `.find(fn)` → `.FirstOrDefault(fn)`
+- `.some(fn)` → `.Any(fn)`
+- `.every(fn)` → `.All(fn)`
+- `.reduce(fn, init)` → `.Aggregate(init, fn)`
+- `.push(item)` → `.Add(item)`
+- `.pop()` → `.RemoveAt(list.Count - 1)`
+- `.shift()` → `.RemoveAt(0)`
+- `.unshift(item)` → `.Insert(0, item)`
+- `.sort()` → `.OrderBy(x => x).ToList()`
+- `.reverse()` → `.Reverse().ToList()`
+- `.concat(other)` → `.Concat(other).ToList()`
+
+### Special Functions
+- `encodeURIComponent(x)` → `Uri.EscapeDataString(x)`
+- `decodeURIComponent(x)` → `Uri.UnescapeDataString(x)`
+- `fetch(url)` → `new HttpClient().GetAsync(url)`
+- `alert(msg)` → `Console.WriteLine(msg)`
+- `String(value)` → `(value).ToString()`
+- `parseInt(str)` → `int.Parse(str)`
+- `parseFloat(str)` → `double.Parse(str)`
+- `isNaN(x)` → `double.IsNaN(x)`
+
+### Operators & Expressions
+- `===` → `==`
+- `!==` → `!=`
+- `.length` → `.Count`
+- Binary/Logical/Unary expressions
+- Conditional (ternary) operators
+- Template literals: `` `Count: ${count}` `` → `$"Count: {count}"`
+- Arrow functions → Lambda expressions
+- Optional chaining: `obj?.prop`
+
+**Usage Example:**
+
+```csharp
+var converter = new ExpressionConverter();
+var astNode = JsonSerializer.Deserialize<JsonElement>(jsonString);
+var csharpExpr = converter.ConvertExpression(astNode);
+
+// Example: Math.floor(price * 1.2) → (int)Math.Floor(price * 1.2)
+// Example: items.map(x => x.name) → items.Select(x => x.name).ToList()
+```
+
+**Integration Points:**
+
+This converter will be used by:
+1. **Event Handler Body Generation** - Convert event handler AST to C# statements
+2. **ComplexTemplate Evaluation** - Convert expression trees in templates to C# expressions
+3. **Attribute Value Generation** - Convert dynamic attribute values to C# expressions
+
+**Next Steps:**
+1. Integrate into `CSharpCodeGenerator` for event handler bodies
+2. Use in `GenerateComplexTemplate()` method
+3. Use in `GenerateAttributeValue()` method
 
 ---
 
 ## Implementation Roadmap
 
-### Phase 1: Extend JSON IR with Complete Semantic Information
+### Phase 1: Extend JSON IR with Complete Semantic Information ✅ COMPLETE
 
-**Current JSON IR captures:**
+**JSON IR now captures:**
 - ✅ JSX structure with hex paths
 - ✅ Template bindings
 - ✅ Expression trees
 - ✅ Loop/conditional structures
+- ✅ **State declarations** (from `useState` calls)
+- ✅ **MVC state bindings** (from `useMvcState` calls)
+- ✅ **Hook metadata** (usePubSub, useMvcViewModel, useEffect, useRef)
+- ✅ **Event handler signatures** (with AST bodies)
+- ✅ **Import statements** (for external libraries)
 
-**Missing from JSON IR:**
-- ❌ **State declarations** (from `useState` calls)
-- ❌ **MVC state bindings** (from `useMvcState` calls)
-- ❌ **Hook metadata** (usePubSub, useMvcViewModel, useEffect, useRef)
-- ❌ **Event handler signatures** (parameter types, names)
-- ❌ **Import statements** (for external libraries)
+**Implementation:** Hook extraction and event handler extraction are implemented in the Babel plugin and metadata is stored in the JSON IR ComponentNode.
 
 **Action Items:**
 

@@ -30,10 +30,15 @@ public class CSharpCodeGenerator : INodeVisitor
 
     public void Visit(ComponentNode node)
     {
+        // Generate using statements
         WriteLine("using Minimact.AspNetCore.Core;");
-        WriteLine("using Minimact.AspNetCore.Attributes;");
+        WriteLine("using Minimact.AspNetCore.Extensions;");
+        WriteLine("using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;");
+        WriteLine("using System.Collections.Generic;");
+        WriteLine("using System.Linq;");
+        WriteLine("using System.Threading.Tasks;");
         WriteLine();
-        WriteLine($"namespace Generated;");
+        WriteLine("namespace Minimact.Components;");
         WriteLine();
 
         // Generate template attributes from render method
@@ -42,20 +47,119 @@ public class CSharpCodeGenerator : INodeVisitor
             node.RenderMethod.Accept(this);
         }
 
-        WriteLine($"public class {node.ComponentName} : MinimactComponent");
+        // Component class declaration
+        WriteLine("[Component]");
+        WriteLine($"public partial class {node.ComponentName} : MinimactComponent");
         WriteLine("{");
         Indent();
 
+        // Generate useState fields
+        if (node.Hooks?.UseState != null)
+        {
+            foreach (var state in node.Hooks.UseState)
+            {
+                WriteLine("[State]");
+                WriteLine($"private {state.Type} {state.StateVar} = {state.InitialValue};");
+                WriteLine();
+            }
+        }
+
+        // Generate useMvcState properties (read-only)
+        if (node.Hooks?.UseMvcState != null)
+        {
+            foreach (var mvcState in node.Hooks.UseMvcState)
+            {
+                if (mvcState.StateVar != null)
+                {
+                    WriteLine($"// MVC State property: {mvcState.PropertyName}");
+                    WriteLine($"private {mvcState.Type} {mvcState.StateVar} => GetState<{mvcState.Type}>(\"{mvcState.MvcKey}\");");
+                    WriteLine();
+                }
+            }
+        }
+
+        // Generate useMvcViewModel field
+        if (node.Hooks?.UseMvcViewModel != null)
+        {
+            WriteLine("// useMvcViewModel - read-only access to entire ViewModel");
+            WriteLine($"private dynamic {node.Hooks.UseMvcViewModel.Name} = null;");
+            WriteLine();
+        }
+
+        // Generate Render() method
         WriteLine("protected override VNode Render()");
         WriteLine("{");
         Indent();
-        WriteLine("// TODO: Render implementation will be generated");
-        WriteLine("return new VNode();");
+        WriteLine("StateManager.SyncMembersToState(this);");
+        WriteLine();
+
+        // Generate local variable declarations for MVC state (for Render method scope)
+        if (node.Hooks?.UseMvcState != null)
+        {
+            foreach (var mvcState in node.Hooks.UseMvcState)
+            {
+                if (mvcState.StateVar != null)
+                {
+                    WriteLine($"var {mvcState.StateVar} = GetState<{mvcState.Type}>(\"{mvcState.MvcKey}\");");
+                }
+            }
+            WriteLine();
+        }
+
+        WriteLine("// TODO: Generate VNode tree from renderMethod");
+        WriteLine("return new VElement(\"div\", new Dictionary<string, string>());");
         Dedent();
         WriteLine("}");
+        WriteLine();
+
+        // Generate event handler methods
+        if (node.EventHandlers != null && node.EventHandlers.Count > 0)
+        {
+            foreach (var handler in node.EventHandlers)
+            {
+                GenerateEventHandler(handler);
+            }
+        }
+
+        // Generate setter methods for useMvcState (mutable ones)
+        if (node.Hooks?.UseMvcState != null)
+        {
+            foreach (var mvcState in node.Hooks.UseMvcState)
+            {
+                if (!mvcState.ReadOnly && mvcState.Setter != null && mvcState.StateVar != null)
+                {
+                    WriteLine($"private void {mvcState.Setter}({mvcState.Type} value)");
+                    WriteLine("{");
+                    Indent();
+                    WriteLine($"SetState(\"{mvcState.MvcKey}\", value);");
+                    Dedent();
+                    WriteLine("}");
+                    WriteLine();
+                }
+            }
+        }
 
         Dedent();
         WriteLine("}");
+    }
+
+    /// <summary>
+    /// Generate an event handler method
+    /// </summary>
+    private void GenerateEventHandler(EventHandlerMetadata handler)
+    {
+        // TODO: Parse handler body and params properly
+        // For now, generate a stub method
+        var asyncModifier = handler.IsAsync ? "async " : "";
+        var returnType = handler.IsAsync ? "Task" : "void";
+
+        WriteLine($"public {asyncModifier}{returnType} {handler.Name}()");
+        WriteLine("{");
+        Indent();
+        WriteLine("// TODO: Generate handler body from AST");
+        Dedent();
+        WriteLine("}");
+        WriteLine();
     }
 
     public void Visit(RenderMethodNode node)

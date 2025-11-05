@@ -71,7 +71,115 @@ public class ComponentNode : BaseNode
     [JsonPropertyName("imports")]
     public Dictionary<string, string> Imports { get; set; } = new();
 
+    [JsonPropertyName("hooks")]
+    public HooksMetadata? Hooks { get; set; }
+
+    [JsonPropertyName("eventHandlers")]
+    public List<EventHandlerMetadata> EventHandlers { get; set; } = new();
+
     public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Hook metadata (useState, useMvcState, etc.)
+/// </summary>
+public class HooksMetadata
+{
+    [JsonPropertyName("useState")]
+    public List<UseStateInfo> UseState { get; set; } = new();
+
+    [JsonPropertyName("useMvcState")]
+    public List<UseMvcStateInfo> UseMvcState { get; set; } = new();
+
+    [JsonPropertyName("useMvcViewModel")]
+    public UseMvcViewModelInfo? UseMvcViewModel { get; set; }
+
+    [JsonPropertyName("useEffect")]
+    public List<UseEffectInfo> UseEffect { get; set; } = new();
+
+    [JsonPropertyName("useRef")]
+    public List<UseRefInfo> UseRef { get; set; } = new();
+}
+
+public class UseStateInfo
+{
+    [JsonPropertyName("stateVar")]
+    public string StateVar { get; set; } = string.Empty;
+
+    [JsonPropertyName("setter")]
+    public string? Setter { get; set; }
+
+    [JsonPropertyName("initialValue")]
+    public string InitialValue { get; set; } = string.Empty;
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "dynamic";
+}
+
+public class UseMvcStateInfo
+{
+    [JsonPropertyName("stateVar")]
+    public string? StateVar { get; set; }
+
+    [JsonPropertyName("setter")]
+    public string? Setter { get; set; }
+
+    [JsonPropertyName("propertyName")]
+    public string PropertyName { get; set; } = string.Empty;
+
+    [JsonPropertyName("mvcKey")]
+    public string MvcKey { get; set; } = string.Empty;
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "dynamic";
+
+    [JsonPropertyName("readOnly")]
+    public bool ReadOnly { get; set; }
+}
+
+public class UseMvcViewModelInfo
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+}
+
+public class UseEffectInfo
+{
+    [JsonPropertyName("hasCallback")]
+    public bool HasCallback { get; set; }
+
+    [JsonPropertyName("hasDependencies")]
+    public bool HasDependencies { get; set; }
+}
+
+public class UseRefInfo
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("initialValue")]
+    public string InitialValue { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Event handler metadata
+/// </summary>
+public class EventHandlerMetadata
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("body")]
+    public object? Body { get; set; } // AST node (dynamic)
+
+    [JsonPropertyName("params")]
+    public List<object>? Params { get; set; }
+
+    [JsonPropertyName("capturedParams")]
+    public List<string> CapturedParams { get; set; } = new();
+
+    [JsonPropertyName("isAsync")]
+    public bool IsAsync { get; set; }
 }
 
 /// <summary>
