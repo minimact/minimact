@@ -1,0 +1,506 @@
+{
+  "component": "ProductDetailsPage",
+  "version": "1.0",
+  "generatedAt": 1762357726049,
+  "templates": {
+    "10000000.@style": {
+      "template": "padding: 20px; font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.10000000.10000000": {
+      "template": "{0}",
+      "bindings": [
+        "productName"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.10000000.20000000": {
+      "template": "950040830",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.20000000.10000000.@style": {
+      "template": "font-size: 32px; font-weight: bold; color: #2563eb",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.20000000.10000000.10000000": {
+      "template": "$",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.20000000.@style": {
+      "template": "color: #6b7280; font-size: 14px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.20000000.20000000.10000000": {
+      "template": "Logged in as:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "20000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.20000000.20000000.20000000": {
+      "template": "{0}",
+      "bindings": [
+        "viewModel.userEmail?"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "20000000",
+        "20000000",
+        "20000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.30000000.@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.30000000.10000000.@style": {
+      "template": "display: block; margin-bottom: 8px; font-weight: 500",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.30000000.10000000.10000000": {
+      "template": "Quantity11:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.20000000.@style": {
+      "template": "display: flex; gap: 10px; align-items: center",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.30000000.20000000.10000000.@style": {
+      "template": "padding: 8px 16px; background-color: #e5e7eb; border: none; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.30000000.20000000.10000000.10000000": {
+      "template": "-",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.30000000.20000000.20000000.@style": {
+      "template": "font-size: 20px; font-weight: bold; min-width: 40px; text-align: center",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.30000000.20000000.20000000.10000000": {
+      "template": "{0}",
+      "bindings": [
+        "quantity"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.30000000.20000000.30000000.@style": {
+      "template": "padding: 8px 16px; background-color: #e5e7eb; border: none; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "30000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.30000000.20000000.30000000.10000000": {
+      "template": "\u002B",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "30000000",
+        "20000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.40000000.10000000.@style": {
+      "template": "display: block; margin-bottom: 8px; font-weight: 500",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.40000000.10000000.10000000": {
+      "template": "Color:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.20000000.@value": {
+      "template": "{0}",
+      "bindings": [
+        "color"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "@value"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.40000000.20000000.@style": {
+      "template": "padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.40000000.20000000.10000000.@value": {
+      "template": "Black",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "10000000",
+        "@value"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.40000000.20000000.10000000.10000000": {
+      "template": "Black",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.20000000.20000000.@value": {
+      "template": "White",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "20000000",
+        "@value"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.40000000.20000000.20000000.10000000": {
+      "template": "White",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.20000000.30000000.@value": {
+      "template": "Red",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "30000000",
+        "@value"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.40000000.20000000.30000000.10000000": {
+      "template": "Red",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.40000000.20000000.40000000.@value": {
+      "template": "Blue",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "40000000",
+        "@value"
+      ],
+      "type": "attribute-static"
+    },
+    "10000000.40000000.20000000.40000000.10000000": {
+      "template": "Blue",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "40000000",
+        "20000000",
+        "40000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.60000000.@style": {
+      "template": "margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.60000000.10000000.@style": {
+      "template": "padding: 8px 16px; background-color: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.60000000.10000000.20000000": {
+      "template": "Details",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "60000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "static"
+    },
+    "10000000.70000000.@style": {
+      "template": "padding: 16px; background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; margin-bottom: 20px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "70000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.70000000.10000000.@style": {
+      "template": "font-size: 18px",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "70000000",
+        "10000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.70000000.10000000.10000000": {
+      "template": "Total: $",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "70000000",
+        "10000000",
+        "10000000"
+      ],
+      "type": "static"
+    },
+    "10000000.80000000.@style": {
+      "template": "padding: 12px 24px; background-color: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "@style"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "10000000.80000000.10000000": {
+      "template": "Add to Cart",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "10000000",
+        "80000000",
+        "10000000"
+      ],
+      "type": "static"
+    }
+  }
+}

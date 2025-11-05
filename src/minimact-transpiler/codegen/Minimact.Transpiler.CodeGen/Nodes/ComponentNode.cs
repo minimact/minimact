@@ -14,6 +14,9 @@ namespace Minimact.Transpiler.CodeGen.Nodes;
 [JsonDerivedType(typeof(TextTemplateNode), "TextTemplate")]
 [JsonDerivedType(typeof(StaticTextNode), "StaticText")]
 [JsonDerivedType(typeof(AttributeTemplateNode), "AttributeTemplate")]
+[JsonDerivedType(typeof(StaticAttributeNode), "StaticAttribute")]
+[JsonDerivedType(typeof(DynamicAttributeNode), "DynamicAttribute")]
+[JsonDerivedType(typeof(EventHandlerAttributeNode), "EventHandlerAttribute")]
 [JsonDerivedType(typeof(LoopTemplateNode), "LoopTemplate")]
 [JsonDerivedType(typeof(ConditionalTemplateNode), "ConditionalTemplate")]
 [JsonDerivedType(typeof(ComplexTemplateNode), "ComplexTemplate")]
@@ -211,7 +214,7 @@ public class JSXElementNode : BaseNode
     public bool IsStructural { get; set; }
 
     [JsonPropertyName("attributes")]
-    public List<AttributeTemplateNode> Attributes { get; set; } = new();
+    public List<BaseNode> Attributes { get; set; } = new();
 
     [JsonPropertyName("children")]
     public List<BaseNode> Children { get; set; } = new();
@@ -268,6 +271,72 @@ public class AttributeTemplateNode : BaseNode
 
     [JsonPropertyName("subtype")]
     public string? Subtype { get; set; }
+
+    public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Static attribute node (fixed value, no bindings)
+/// Example: <button style="color: red"> → name="style", value="color: red"
+/// </summary>
+public class StaticAttributeNode : BaseNode
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = string.Empty;
+
+    public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Dynamic attribute node (has bindings or expressions)
+/// Example: <div className={isActive ? 'active' : ''}>
+/// </summary>
+public class DynamicAttributeNode : BaseNode
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("value")]
+    public string? Value { get; set; }
+
+    [JsonPropertyName("expressionType")]
+    public string? ExpressionType { get; set; }
+
+    [JsonPropertyName("binding")]
+    public string? Binding { get; set; }
+
+    [JsonPropertyName("bindings")]
+    public List<BindingNode>? Bindings { get; set; }
+
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+
+    [JsonPropertyName("subtype")]
+    public string? Subtype { get; set; }
+
+    [JsonPropertyName("children")]
+    public List<BaseNode>? Children { get; set; }
+
+    public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Event handler attribute node
+/// Example: <button onClick={handleClick}>
+/// </summary>
+public class EventHandlerAttributeNode : BaseNode
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("handlerName")]
+    public string? HandlerName { get; set; }
+
+    [JsonPropertyName("handlerBody")]
+    public object? HandlerBody { get; set; }
 
     public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
 }
@@ -336,11 +405,59 @@ public class ComplexTemplateNode : BaseNode
 /// <summary>
 /// Expression node (extends ComplexTemplateNode)
 /// Used when babel outputs "type": "Expression"
+/// Can represent complex expressions, conditionals, loops, or other expression types
 /// </summary>
 public class ExpressionNode : ComplexTemplateNode
 {
-    // Inherits all properties from ComplexTemplateNode
-    // No additional properties needed - this is just for polymorphic deserialization
+    // Additional properties for conditional expressions (LogicalExpression)
+    [JsonPropertyName("expressionType")]
+    public string? ExpressionType { get; set; }
+
+    [JsonPropertyName("operator")]
+    public string? Operator { get; set; }
+
+    [JsonPropertyName("condition")]
+    public string? Condition { get; set; }
+
+    [JsonPropertyName("branches")]
+    public List<BaseNode>? Branches { get; set; }
+
+    [JsonPropertyName("isSimple")]
+    public bool? IsSimple { get; set; }
+
+    [JsonPropertyName("isStructural")]
+    public bool? IsStructural { get; set; }
+
+    [JsonPropertyName("isConditional")]
+    public bool? IsConditional { get; set; }
+
+    // Additional property for loop expressions (CallExpression with .map())
+    [JsonPropertyName("loopTemplate")]
+    public LoopTemplateInfo? LoopTemplate { get; set; }
+}
+
+/// <summary>
+/// Loop template info from .map() call expression
+/// </summary>
+public class LoopTemplateInfo
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+
+    [JsonPropertyName("arrayBinding")]
+    public string ArrayBinding { get; set; } = string.Empty;
+
+    [JsonPropertyName("itemVar")]
+    public string ItemVar { get; set; } = string.Empty;
+
+    [JsonPropertyName("indexVar")]
+    public string? IndexVar { get; set; }
+
+    [JsonPropertyName("keyBinding")]
+    public string? KeyBinding { get; set; }
+
+    [JsonPropertyName("body")]
+    public JSXElementNode? Body { get; set; }
 }
 
 /// <summary>

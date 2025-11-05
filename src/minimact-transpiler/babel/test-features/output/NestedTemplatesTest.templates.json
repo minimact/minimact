@@ -1,0 +1,92 @@
+{
+  "component": "NestedTemplatesTest",
+  "version": "1.0",
+  "generatedAt": 1762355489270,
+  "templates": {
+    "10000000.10000000.20000000.expr": {
+      "template": "Total: ${0}",
+      "bindings": [
+        "price"
+      ],
+      "slots": [
+        8
+      ],
+      "path": [
+        "10000000",
+        "10000000",
+        "20000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.20000000.10000000.expr": {
+      "template": "Product: {0} at ${1}",
+      "bindings": [
+        "productName",
+        "__expr__:price,quantity"
+      ],
+      "slots": [
+        9,
+        17
+      ],
+      "path": [
+        "10000000",
+        "20000000",
+        "10000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.30000000.10000000.expr": {
+      "template": "After {0}% off: ${1}",
+      "bindings": [
+        "__expr__:discount",
+        "__expr__:price,quantity,discount"
+      ],
+      "slots": [
+        6,
+        17
+      ],
+      "path": [
+        "10000000",
+        "30000000",
+        "10000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.40000000.10000000.expr": {
+      "template": "Order: {0} x {1} = ${2} (discount: {3}%)",
+      "bindings": [
+        "quantity",
+        "productName",
+        "__expr__:price,quantity",
+        "__expr__:discount"
+      ],
+      "slots": [
+        7,
+        13,
+        20,
+        35
+      ],
+      "path": [
+        "10000000",
+        "40000000",
+        "10000000"
+      ],
+      "type": "complex"
+    },
+    "10000000.50000000.10000000.expr": {
+      "template": "Status: {0}",
+      "bindings": [
+        "discount \u003E \u003Ccomplex\u003E"
+      ],
+      "slots": [
+        8
+      ],
+      "path": [
+        "10000000",
+        "50000000",
+        "10000000"
+      ],
+      "type": "complex"
+    }
+  }
+}

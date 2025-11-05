@@ -13,6 +13,9 @@ public interface INodeVisitor
     void Visit(TextTemplateNode node);
     void Visit(StaticTextNode node);
     void Visit(AttributeTemplateNode node);
+    void Visit(StaticAttributeNode node);
+    void Visit(DynamicAttributeNode node);
+    void Visit(EventHandlerAttributeNode node);
     void Visit(LoopTemplateNode node);
     void Visit(ConditionalTemplateNode node);
     void Visit(ComplexTemplateNode node);

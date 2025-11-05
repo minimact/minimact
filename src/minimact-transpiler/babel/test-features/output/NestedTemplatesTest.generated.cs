@@ -20,7 +20,7 @@ public partial class NestedTemplatesTest : MinimactComponent
         StateManager.SyncMembersToState(this);
 
 
-        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"Summary:{Total: ${price}}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{Product: {productName} at ${__expr__:price,quantity}}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{After {__expr__:discount}% off: ${__expr__:price,quantity,discount}}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{Order: {quantity} x {productName} = ${__expr__:price,quantity} (discount: {__expr__:discount}%)}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{Status: {discount > <complex>}}") }) });
+        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"Summary:Total: ${price}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{Product: {productName} at ${__expr__:price,quantity}}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{After {__expr__:discount}% off: ${__expr__:price,quantity,discount}}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{Order: {quantity} x {productName} = ${__expr__:price,quantity} (discount: {__expr__:discount}%)}") }), new VElement("p", new Dictionary<string, string>(), new VNode[] { new VText($"{Status: {discount > <complex>}}") }) });
     }
 
 }

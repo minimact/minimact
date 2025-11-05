@@ -1,0 +1,22 @@
+{
+  "component": "EventHandlersTest",
+  "version": "1.0",
+  "generatedAt": 1762355489506,
+  "templates": {
+    "10000000.40000000.10000000.expr": {
+      "template": "{0}",
+      "bindings": [
+        "count"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "10000000",
+        "40000000",
+        "10000000"
+      ],
+      "type": "complex"
+    }
+  }
+}

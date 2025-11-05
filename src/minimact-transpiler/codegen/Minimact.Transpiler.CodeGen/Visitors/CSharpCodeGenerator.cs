@@ -241,6 +241,29 @@ public class CSharpCodeGenerator : INodeVisitor
         WriteLine($"[AttributeTemplate(Path = new[] {{ {pathArray} }}, Attribute = \"{node.Attribute}\", Template = \"{EscapeString(node.Template)}\", Bindings = new[] {{ {bindingsArray} }})]");
     }
 
+    public void Visit(StaticAttributeNode node)
+    {
+        // Static attributes don't need template attributes in C# (no bindings)
+    }
+
+    public void Visit(DynamicAttributeNode node)
+    {
+        // Dynamic attributes may generate templates, but they're handled by VNodeTreeGenerator
+        // Visit children for complex expressions
+        if (node.Children != null)
+        {
+            foreach (var child in node.Children)
+            {
+                child.Accept(this);
+            }
+        }
+    }
+
+    public void Visit(EventHandlerAttributeNode node)
+    {
+        // Event handlers are processed separately in VNodeTreeGenerator
+    }
+
     public void Visit(LoopTemplateNode node)
     {
         var pathArray = FormatPathArray(node.PathSegments);

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Minimact.Transpiler.CodeGen.Generators;
 using Minimact.Transpiler.CodeGen.Nodes;
 using Minimact.Transpiler.CodeGen.Visitors;
@@ -9,39 +8,32 @@ using Xunit.Abstractions;
 namespace Minimact.Transpiler.CodeGen.Tests;
 
 /// <summary>
-/// Tests the C# code generator by:
-/// 1. Running the babel transpiler to generate JSON IR
-/// 2. Feeding the JSON IR to the C# code generator
-/// 3. Verifying the output compiles and looks correct
+/// Tests the C# code generator against test-features-all directory
+/// These are more comprehensive real-world component tests
 /// </summary>
-public class TranspilerTests
+public class TranspilerAllFeaturesTests
 {
     private readonly ITestOutputHelper _output;
-    private readonly string _testFeaturesDir;
+    private readonly string _testFeaturesAllDir;
     private readonly string _outputDir;
 
-    public TranspilerTests(ITestOutputHelper output)
+    public TranspilerAllFeaturesTests(ITestOutputHelper output)
     {
         _output = output;
 
-        // Navigate to test-features directory
+        // Navigate to test-features-all directory
         var baseDir = AppContext.BaseDirectory;
         var minimactRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", ".."));
-        _testFeaturesDir = Path.Combine(minimactRoot, "src", "minimact-transpiler", "babel", "test-features");
-        _outputDir = Path.Combine(_testFeaturesDir, "output");
+        _testFeaturesAllDir = Path.Combine(minimactRoot, "src", "minimact-transpiler", "babel", "test-features-all");
+        _outputDir = Path.Combine(_testFeaturesAllDir, "output");
 
-        _output.WriteLine($"Test Features Dir: {_testFeaturesDir}");
+        _output.WriteLine($"Test Features All Dir: {_testFeaturesAllDir}");
         _output.WriteLine($"Output Dir: {_outputDir}");
     }
 
     [Theory]
-    [InlineData(3, "ConditionalRenderingTest")]     // 03-conditional-rendering.tsx
-    [InlineData(5, "EventHandlersTest")]            // 05-event-handlers.tsx
-    [InlineData(7, "NestedTemplatesTest")]          // 07-nested-templates.tsx
-    [InlineData(10, "NestedLoopsTest")]             // 10-nested-loops.tsx
-    [InlineData(15, "BlockStatementHandlersTest")]  // 15-block-statement-handlers.tsx
-    [InlineData(18, "SimpleTest")]                  // 18-simple-test.tsx
-    public async Task CSharpCodeGenerator_ShouldGenerateValidCode(int testNumber, string componentName)
+    [InlineData(8, "ProductDetailsPage")]  // 08-ProductDetailsPage.tsx
+    public async Task CSharpCodeGenerator_ShouldGenerateValidCode_AllFeatures(int testNumber, string componentName)
     {
         // Arrange
         _output.WriteLine($"\n{'='.ToString().PadRight(70, '=')}");
@@ -56,16 +48,11 @@ public class TranspilerTests
         // Step 2: Load the generated JSON IR
         _output.WriteLine($"\n[2/4] Loading JSON IR...");
 
-        // Try with "Test" suffix first, then without
-        var jsonPath = Path.Combine(_outputDir, $"{componentName}Test.json");
-        if (!File.Exists(jsonPath))
-        {
-            jsonPath = Path.Combine(_outputDir, $"{componentName}.json");
-        }
+        var jsonPath = Path.Combine(_outputDir, $"{componentName}.json");
 
         if (!File.Exists(jsonPath))
         {
-            throw new FileNotFoundException($"JSON IR not found: {componentName}.json or {componentName}Test.json in {_outputDir}");
+            throw new FileNotFoundException($"JSON IR not found: {componentName}.json in {_outputDir}");
         }
 
         var jsonContent = await File.ReadAllTextAsync(jsonPath);
@@ -100,9 +87,9 @@ public class TranspilerTests
         var csharpCode = generator.GetOutput();
 
         _output.WriteLine($"✓ Generated C# code: {csharpCode.Length} chars");
-        _output.WriteLine($"\n  Preview (first 20 lines):");
+        _output.WriteLine($"\n  Preview (first 30 lines):");
 
-        var previewLines = csharpCode.Split('\n').Take(20);
+        var previewLines = csharpCode.Split('\n').Take(30);
         foreach (var line in previewLines)
         {
             _output.WriteLine($"    {line}");
@@ -126,6 +113,27 @@ public class TranspilerTests
         {
             var templateCount = templates.EnumerateObject().Count();
             _output.WriteLine($"  Template count: {templateCount}");
+
+            // Display first few templates
+            _output.WriteLine($"\n  Sample templates:");
+            var sampleTemplates = templates.EnumerateObject().Take(5);
+            foreach (var template in sampleTemplates)
+            {
+                _output.WriteLine($"    {template.Name}:");
+                if (template.Value.TryGetProperty("template", out var templateStr))
+                {
+                    _output.WriteLine($"      template: {templateStr.GetString()}");
+                }
+                if (template.Value.TryGetProperty("type", out var typeStr))
+                {
+                    _output.WriteLine($"      type: {typeStr.GetString()}");
+                }
+                if (template.Value.TryGetProperty("bindings", out var bindings))
+                {
+                    var bindingsList = bindings.EnumerateArray().Select(b => b.GetString()).ToList();
+                    _output.WriteLine($"      bindings: [{string.Join(", ", bindingsList)}]");
+                }
+            }
         }
 
         // Step 4: Verify output using Roslyn syntax tree analysis
@@ -141,6 +149,16 @@ public class TranspilerTests
         _output.WriteLine($"    Fields: {summary.Fields.Count}");
         _output.WriteLine($"    Properties: {summary.Properties.Count}");
         _output.WriteLine($"    Syntax Errors: {summary.HasSyntaxErrors}");
+
+        // Display methods
+        if (summary.Methods.Count > 0)
+        {
+            _output.WriteLine($"\n  Methods:");
+            foreach (var method in summary.Methods.Take(10))
+            {
+                _output.WriteLine($"    - {method}");
+            }
+        }
 
         // Verify no syntax errors
         Assert.False(summary.HasSyntaxErrors, $"Generated code has syntax errors:\n{string.Join("\n", summary.DiagnosticErrors)}");
@@ -169,7 +187,7 @@ public class TranspilerTests
     /// </summary>
     private async Task RunBabelTranspiler(int testNumber)
     {
-        var runTestPath = Path.Combine(_testFeaturesDir, "run-test.js");
+        var runTestPath = Path.Combine(_testFeaturesAllDir, "run-test.js");
 
         if (!File.Exists(runTestPath))
         {
@@ -184,7 +202,7 @@ public class TranspilerTests
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
-            WorkingDirectory = _testFeaturesDir
+            WorkingDirectory = _testFeaturesAllDir
         };
 
         using var process = Process.Start(startInfo)
@@ -215,69 +233,5 @@ public class TranspilerTests
                 _output.WriteLine($"    {line.Trim()}");
             }
         }
-    }
-
-    [Fact]
-    public void CSharpCodeGenerator_ShouldHandleEmptyComponent()
-    {
-        // Arrange
-        var component = new ComponentNode
-        {
-            ComponentName = "EmptyComponent",
-            RenderMethod = new RenderMethodNode
-            {
-                Children = new List<BaseNode>()
-            }
-        };
-
-        // Act
-        var generator = new CSharpCodeGenerator();
-        component.Accept(generator);
-        var output = generator.GetOutput();
-
-        // Assert
-        _output.WriteLine("Generated code:");
-        _output.WriteLine(output);
-
-        Assert.Contains("class EmptyComponent", output);
-        Assert.Contains("protected override VNode Render()", output);
-        Assert.Contains("return new VNode()", output);
-    }
-
-    [Fact]
-    public void CSharpCodeGenerator_ShouldHandleSimpleElement()
-    {
-        // Arrange
-        var component = new ComponentNode
-        {
-            ComponentName = "SimpleElement",
-            RenderMethod = new RenderMethodNode
-            {
-                Children = new List<BaseNode>
-                {
-                    new JSXElementNode
-                    {
-                        Tag = "div",
-                        Attributes = new List<BaseNode>(),
-                        Children = new List<BaseNode>
-                        {
-                            new StaticTextNode { Content = "Hello World" }
-                        }
-                    }
-                }
-            }
-        };
-
-        // Act
-        var generator = new CSharpCodeGenerator();
-        component.Accept(generator);
-        var output = generator.GetOutput();
-
-        // Assert
-        _output.WriteLine("Generated code:");
-        _output.WriteLine(output);
-
-        Assert.Contains("new VElement(\"div\"", output);
-        Assert.Contains("Hello World", output);
     }
 }

@@ -1,7 +1,7 @@
 {
   "component": "UserProfile",
   "version": "1.0",
-  "generatedAt": 1762353002901,
+  "generatedAt": 1762355488264,
   "templates": {
     "[0].div[0].text[0]": {
       "template": "Loading...",

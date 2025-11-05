@@ -15,7 +15,7 @@ public partial class ConditionalRenderingTest : MinimactComponent
         StateManager.SyncMembersToState(this);
 
 
-        return new VElement("div", new Dictionary<string, string>(), new VNode[] { new VText($"{}{}{}{}{}{}") });
+        return new VElement("div", new Dictionary<string, string>(), new VNode[] { (isAdmin) ? new VElement("", new Dictionary<string, string>()) : null, (isLoggedIn) ? new VElement("", new Dictionary<string, string>()) : null, (hasPermission) ? new VElement("", new Dictionary<string, string>()) : null, (isAdmin) ? new VElement("", new Dictionary<string, string>()) : null, (hasPermission) ? new VElement("", new Dictionary<string, string>()) : null, (showBanner) ? new VElement("", new Dictionary<string, string>()) : null });
     }
 
 }

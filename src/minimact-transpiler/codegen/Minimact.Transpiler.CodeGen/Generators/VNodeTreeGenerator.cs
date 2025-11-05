@@ -49,6 +49,10 @@ public class VNodeTreeGenerator
             JSXElementNode element => GenerateVElement(element),
             StaticTextNode text => GenerateStaticText(text),
             TextTemplateNode template => GenerateTextTemplate(template),
+            // Check if ExpressionNode is actually a loop (CallExpression with .map())
+            ExpressionNode expr when expr.LoopTemplate != null => GenerateLoopFromExpression(expr),
+            // Check if ExpressionNode is actually a conditional (LogicalExpression with &&)
+            ExpressionNode expr when expr.IsConditional == true => GenerateLogicalExpression(expr),
             ComplexTemplateNode complex => GenerateComplexTemplate(complex),
             ConditionalTemplateNode conditional => GenerateConditional(conditional),
             LoopTemplateNode loop => GenerateLoop(loop),
@@ -92,7 +96,7 @@ public class VNodeTreeGenerator
         return $"new VElement(\"{tag}\", {propsDict}, new VNode[] {{ {childrenArray} }})";
     }
 
-    private string GeneratePropsDict(List<AttributeTemplateNode>? attributes)
+    private string GeneratePropsDict(List<BaseNode>? attributes)
     {
         if (attributes == null || attributes.Count == 0)
         {
@@ -103,33 +107,54 @@ public class VNodeTreeGenerator
 
         foreach (var attr in attributes)
         {
-            var name = attr.Attribute;
+            // Handle different attribute node types
+            if (attr is StaticAttributeNode staticAttr)
+            {
+                var htmlAttrName = staticAttr.Name == "className" ? "class" : staticAttr.Name;
+                var escapedValue = EscapeString(staticAttr.Value);
+                props.Add("[\"" + htmlAttrName + "\"] = \"" + escapedValue + "\"");
+            }
+            else if (attr is DynamicAttributeNode dynamicAttr)
+            {
+                var htmlAttrName = dynamicAttr.Name == "className" ? "class" : dynamicAttr.Name;
+                if (dynamicAttr.Bindings != null && dynamicAttr.Bindings.Count > 0 && dynamicAttr.Template != null)
+                {
+                    var csharpTemplate = ConvertTemplateToCSharp(dynamicAttr.Template, dynamicAttr.Bindings);
+                    props.Add($"[\"{htmlAttrName}\"] = $\"{csharpTemplate}\"");
+                }
+                else if (dynamicAttr.Value != null)
+                {
+                    props.Add($"[\"{htmlAttrName}\"] = {dynamicAttr.Value}");
+                }
+            }
+            else if (attr is EventHandlerAttributeNode eventAttr)
+            {
+                props.Add($"[\"{eventAttr.Name.ToLower()}\"] = \"{eventAttr.HandlerName}\"");
+            }
+            else if (attr is AttributeTemplateNode attrTemplate)
+            {
+                var name = attrTemplate.Attribute;
+                var htmlAttrName = name == "className" ? "class" : name;
 
-            // Convert className to class for HTML compatibility
-            var htmlAttrName = name == "className" ? "class" : name;
-
-            // Check subtype to determine if it's static or dynamic
-            if (attr.Subtype == "static")
-            {
-                var escapedValue = EscapeString(attr.Template);
-                props.Add($"[\"{htmlAttrName}\"] = \"{escapedValue}\"");
-            }
-            else if (name.StartsWith("on"))
-            {
-                // Event handler
-                props.Add($"[\"{name.ToLower()}\"] = \"{attr.Template}\"");
-            }
-            else if (attr.Bindings != null && attr.Bindings.Count > 0)
-            {
-                // Template with bindings
-                var csharpTemplate = ConvertTemplateToCSharp(attr.Template, attr.Bindings);
-                props.Add($"[\"{htmlAttrName}\"] = $\"{csharpTemplate}\"");
-            }
-            else
-            {
-                // Static template
-                var escapedValue = EscapeString(attr.Template);
-                props.Add($"[\"{htmlAttrName}\"] = \"{escapedValue}\"");
+                if (attrTemplate.Subtype == "static")
+                {
+                    var escapedValue = EscapeString(attrTemplate.Template);
+                    props.Add($"[\"{htmlAttrName}\"] = \"{escapedValue}\"");
+                }
+                else if (name.StartsWith("on"))
+                {
+                    props.Add($"[\"{name.ToLower()}\"] = \"{attrTemplate.Template}\"");
+                }
+                else if (attrTemplate.Bindings != null && attrTemplate.Bindings.Count > 0)
+                {
+                    var csharpTemplate = ConvertTemplateToCSharp(attrTemplate.Template, attrTemplate.Bindings);
+                    props.Add($"[\"{htmlAttrName}\"] = $\"{csharpTemplate}\"");
+                }
+                else
+                {
+                    var escapedValue = EscapeString(attrTemplate.Template);
+                    props.Add($"[\"{htmlAttrName}\"] = \"{escapedValue}\"");
+                }
             }
         }
 
@@ -203,6 +228,17 @@ public class VNodeTreeGenerator
 
     private bool IsTextOrExpression(BaseNode node)
     {
+        // ExpressionNode with structural properties should NOT be treated as text
+        // They should be treated as structural nodes (like JSXElement)
+        if (node is ExpressionNode expr)
+        {
+            // Loop expressions are structural
+            if (expr.LoopTemplate != null) return false;
+
+            // Conditional expressions are structural
+            if (expr.IsConditional == true) return false;
+        }
+
         return node is StaticTextNode ||
                node is TextTemplateNode ||
                node is ComplexTemplateNode;
@@ -213,9 +249,9 @@ public class VNodeTreeGenerator
         // Build a single interpolated string from multiple text/expression children
         var parts = mixed.Children.Select(child => child switch
         {
-            StaticTextNode text => EscapeString(text.Content),
-            TextTemplateNode template => "{" + ConvertTemplateToCSharp(template.Template, template.Bindings) + "}",
-            ComplexTemplateNode complex => "{" + GenerateComplexExpression(complex) + "}",
+            StaticTextNode text => EscapeStringForInterpolation(text.Content),
+            TextTemplateNode template => ConvertTemplateForInterpolation(template.Template, template.Bindings),
+            ComplexTemplateNode complex => GenerateComplexExpression(complex),
             _ => ""
         });
 
@@ -279,6 +315,60 @@ public class VNodeTreeGenerator
         if (alternate == "null") alternate = "new VNode()";
 
         return $"({condition}) ? {consequent} : {alternate}";
+    }
+
+    private string GenerateLogicalExpression(ExpressionNode expr)
+    {
+        // Handle LogicalExpression with && operator
+        // Example: {isAdmin && <div>Admin Panel</div>}
+        // Generates: (isAdmin) ? <VNode> : null
+
+        var op = expr.Operator ?? "&&"; // Default to && if operator is null
+
+        if (op == "&&")
+        {
+            var condition = expr.Condition ?? "true";
+
+            // Get the first branch (the consequent when condition is true)
+            var consequent = expr.Branches != null && expr.Branches.Count > 0
+                ? GenerateVNode(expr.Branches[0])
+                : "null";
+
+            // For && operator, if condition is false, result is null (nothing rendered)
+            return $"({condition}) ? {consequent} : null";
+        }
+        else if (op == "||")
+        {
+            // Handle || operator
+            // Example: {error || <div>No error</div>}
+            // Generates: (error) ? null : <VNode>
+            var condition = expr.Condition ?? "false";
+
+            var alternate = expr.Branches != null && expr.Branches.Count > 0
+                ? GenerateVNode(expr.Branches[0])
+                : "null";
+
+            return $"({condition}) ? null : {alternate}";
+        }
+        else
+        {
+            throw new NotImplementedException($"Logical operator '{op}' not supported");
+        }
+    }
+
+    private string GenerateLoopFromExpression(ExpressionNode expr)
+    {
+        // Extract loop info from ExpressionNode.LoopTemplate
+        var loopInfo = expr.LoopTemplate!;
+        var collection = loopInfo.ArrayBinding;
+        var itemParam = loopInfo.ItemVar;
+        var body = loopInfo.Body != null ? GenerateVElement(loopInfo.Body) : "new VNode()";
+
+        // Check if collection needs dynamic cast
+        var needsCast = collection.Contains("?.") || collection.Contains("?");
+        var castedCollection = needsCast ? $"((IEnumerable<dynamic>){collection})" : collection;
+
+        return $"{castedCollection}.Select({itemParam} => {body}).ToArray()";
     }
 
     private string GenerateLoop(LoopTemplateNode loop)
@@ -371,6 +461,32 @@ public class VNodeTreeGenerator
             .Replace("\n", "\\n")
             .Replace("\r", "\\r")
             .Replace("\t", "\\t");
+    }
+
+    /// <summary>
+    /// Escape string for use in C# interpolated string ($"...") context
+    /// Identical to EscapeString since braces aren't escaped
+    /// </summary>
+    private string EscapeStringForInterpolation(string str)
+    {
+        return EscapeString(str);
+    }
+
+    /// <summary>
+    /// Convert template with bindings for use directly in interpolated string
+    /// Example: "{0}" + [{"path": "count"}] → "{count}"
+    /// </summary>
+    private string ConvertTemplateForInterpolation(string template, List<BindingNode> bindings)
+    {
+        var result = template;
+
+        for (int i = 0; i < bindings.Count; i++)
+        {
+            var bindingPath = bindings[i].Path;
+            result = result.Replace($"{{{i}}}", $"{{{bindingPath}}}");
+        }
+
+        return EscapeString(result);
     }
 
     #endregion
