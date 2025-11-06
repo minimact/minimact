@@ -8,6 +8,7 @@ use crate::path::HexPath;
 pub enum VNode {
     Element(VElement),
     Text(VText),
+    Null(VNull),
 }
 
 /// Represents a Virtual DOM element
@@ -21,12 +22,25 @@ pub struct VElement {
     pub children: Vec<Option<VNode>>,
     /// Optional key for reconciliation optimization
     pub key: Option<String>,
+    /// Hex-based path from transpilation (e.g., "10000000.20000000")
+    pub path: HexPath,
 }
 
 /// Represents a text node
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VText {
     pub content: String,
+    /// Hex-based path from transpilation (e.g., "10000000.20000000.30000000")
+    pub path: HexPath,
+}
+
+/// Represents a null node (conditionally rendered element that evaluated to false)
+/// Example: {isVisible && <Modal />} when isVisible is false
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VNull {
+    /// Hex-based path from transpilation (e.g., "20000000")
+    /// This is the path where the element WOULD be if the condition were true
+    pub path: HexPath,
 }
 
 /// Binding with optional transform (Phase 6: Expression Templates)

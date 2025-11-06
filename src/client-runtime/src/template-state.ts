@@ -93,7 +93,18 @@ export class TemplateStateManager {
         const actualPath = pathSegments.slice(0, -1).join('.');
         nullPaths.add(actualPath);
         console.log(`[TemplateState] Null path detected: ${actualPath}`);
-        continue; // Don't add null paths to depth map
+
+        // Still add null path segments to depth map for navigation
+        // (remove the '.null' suffix first)
+        const actualSegments = pathSegments.slice(0, -1);
+        for (let depth = 0; depth < actualSegments.length; depth++) {
+          const segment = actualSegments[depth];
+          if (!depthMap.has(depth)) {
+            depthMap.set(depth, new Set());
+          }
+          depthMap.get(depth)!.add(segment);
+        }
+        continue; // Don't add to templates
       }
 
       for (let depth = 0; depth < pathSegments.length; depth++) {

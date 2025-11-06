@@ -107,8 +107,12 @@ public static class Minimact
 
         foreach (var child in children)
         {
+            // Preserve null for conditional rendering (e.g., {condition && <Component />})
             if (child == null)
+            {
+                result.Add(null!);
                 continue;
+            }
 
             // Already a VNode
             if (child is VNode vnode)

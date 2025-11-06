@@ -154,13 +154,23 @@ public class TemplateHotReloadManager : IDisposable
     /// </summary>
     public async Task SendTemplateMapToClientAsync(string componentId, string connectionId)
     {
-        if (!_templateMaps.TryGetValue(componentId, out var templateMap))
+        // Get component instance to find its type name
+        var component = _registry.GetComponent(componentId);
+        if (component == null)
         {
-            _logger.LogDebug("[Minimact Templates] No cached template map for {ComponentId}", componentId);
+            _logger.LogDebug("[Minimact Templates] Component {ComponentId} not found in registry", componentId);
             return;
         }
 
-        // Augment template map with null path entries
+        // Template maps are keyed by component type name (from filename)
+        var componentTypeName = component.GetType().Name;
+        if (!_templateMaps.TryGetValue(componentTypeName, out var templateMap))
+        {
+            _logger.LogDebug("[Minimact Templates] No cached template map for component type {ComponentType}", componentTypeName);
+            return;
+        }
+
+        // Augment template map with null path entries (using component GUID for VNode lookup)
         var augmentedTemplateMap = AugmentTemplateMapWithNullPaths(componentId, templateMap);
 
         try

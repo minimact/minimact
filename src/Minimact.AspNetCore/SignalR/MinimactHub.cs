@@ -44,10 +44,9 @@ public class MinimactHub : Hub
             component.ConnectionId = Context.ConnectionId;
             component.PatchSender = _patchSender;
 
-            // Send initial template map for this component type
-            var componentType = component.GetType().Name;
-            Console.WriteLine($"[MinimactHub] Sending initial template map for component type: {componentType}");
-            await _templateHotReloadManager.SendTemplateMapToClientAsync(componentType, Context.ConnectionId);
+            // Send initial template map for this component instance
+            Console.WriteLine($"[MinimactHub] Sending initial template map for component: {componentId}");
+            await _templateHotReloadManager.SendTemplateMapToClientAsync(componentId, Context.ConnectionId);
         }
         else
         {
