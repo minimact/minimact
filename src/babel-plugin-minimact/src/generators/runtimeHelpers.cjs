@@ -87,6 +87,11 @@ function generateRuntimeHelperCall(tagName, attributes, children, component, ind
     } else if (t.isJSXExpressionContainer(child)) {
       const expr = child.expression;
 
+      // Skip JSX comments (empty expressions like {/* comment */})
+      if (t.isJSXEmptyExpression(expr)) {
+        continue; // Don't add to childrenArgs
+      }
+
       // Handle conditionals with JSX: {condition ? <A/> : <B/>}
       if (t.isConditionalExpression(expr)) {
         const { generateBooleanExpression } = require('./expressions.cjs');
@@ -164,6 +169,10 @@ function generateRuntimeHelperForJSXNode(node, component, indent) {
       } else if (t.isJSXElement(child)) {
         childrenArgs.push(generateRuntimeHelperForJSXNode(child, component, indent + 1));
       } else if (t.isJSXExpressionContainer(child)) {
+        // Skip JSX comments (empty expressions like {/* comment */})
+        if (t.isJSXEmptyExpression(child.expression)) {
+          continue; // Don't add to childrenArgs
+        }
         childrenArgs.push(generateCSharpExpression(child.expression));
       }
     }
