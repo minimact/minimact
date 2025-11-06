@@ -73,6 +73,31 @@ var Minimact = (function (exports) {
      */
     class JsonProtocol {
         /**
+         * Write handshake request message
+         * Must be sent immediately after WebSocket connection is established
+         */
+        static writeHandshake() {
+            const handshake = {
+                protocol: this.protocolName,
+                version: this.protocolVersion
+            };
+            return JSON.stringify(handshake) + this.RECORD_SEPARATOR;
+        }
+        /**
+         * Parse handshake response message
+         */
+        static parseHandshake(data) {
+            try {
+                const cleanData = data.endsWith(this.RECORD_SEPARATOR)
+                    ? data.slice(0, -1)
+                    : data;
+                return JSON.parse(cleanData);
+            }
+            catch (error) {
+                throw new Error(`Failed to parse handshake: ${error}`);
+            }
+        }
+        /**
          * Write invocation message (client → server RPC call)
          */
         static writeInvocation(invocationId, target, args) {
@@ -112,20 +137,26 @@ var Minimact = (function (exports) {
         }
         /**
          * Parse incoming message
+         * Removes record separator if present
          */
         static parseMessage(data) {
             try {
-                return JSON.parse(data);
+                // Remove record separator if present
+                const cleanData = data.endsWith(this.RECORD_SEPARATOR)
+                    ? data.slice(0, -1)
+                    : data;
+                return JSON.parse(cleanData);
             }
             catch (error) {
                 throw new Error(`Failed to parse message: ${error}`);
             }
         }
         /**
-         * Serialize message to JSON string
+         * Serialize message to JSON string with SignalR record separator
+         * SignalR requires all messages to end with \x1E
          */
         static serializeMessage(message) {
-            return JSON.stringify(message);
+            return JSON.stringify(message) + this.RECORD_SEPARATOR;
         }
         /**
          * Check if message is invocation
@@ -160,6 +191,11 @@ var Minimact = (function (exports) {
      * Protocol version
      */
     JsonProtocol.protocolVersion = 1;
+    /**
+     * SignalR message record separator (ASCII 30)
+     * Every SignalR message must be terminated with this character
+     */
+    JsonProtocol.RECORD_SEPARATOR = '\x1E';
 
     /**
      * Simple Event Emitter
@@ -419,16 +455,47 @@ var Minimact = (function (exports) {
                         reject(new Error(`Connection timeout after ${this.connectionTimeout}ms`));
                     }
                 }, this.connectionTimeout);
+                // Track handshake completion
+                let handshakeComplete = false;
                 this.ws.onopen = () => {
-                    clearTimeout(connectionTimeout);
-                    this.state = ConnectionState.Connected;
-                    this.reconnectAttempts = 0;
-                    this.log('Connected ✓');
-                    this.eventEmitter.emit('connected');
-                    resolve();
+                    // Send handshake immediately after connection
+                    const handshake = JsonProtocol.writeHandshake();
+                    this.log('Sending handshake', handshake);
+                    this.ws.send(handshake);
                 };
                 this.ws.onmessage = (event) => {
-                    this.handleMessage(event.data);
+                    // First message should be handshake response
+                    if (!handshakeComplete) {
+                        try {
+                            const response = JsonProtocol.parseHandshake(event.data);
+                            if (response.error) {
+                                clearTimeout(connectionTimeout);
+                                this.log('Handshake failed', response.error);
+                                this.ws?.close();
+                                reject(new Error(`Handshake failed: ${response.error}`));
+                                return;
+                            }
+                            // Handshake successful
+                            handshakeComplete = true;
+                            clearTimeout(connectionTimeout);
+                            this.state = ConnectionState.Connected;
+                            this.reconnectAttempts = 0;
+                            this.log('Handshake complete ✓');
+                            this.log('Connected ✓');
+                            this.eventEmitter.emit('connected');
+                            resolve();
+                        }
+                        catch (error) {
+                            clearTimeout(connectionTimeout);
+                            this.log('Handshake parse error', error);
+                            this.ws?.close();
+                            reject(new Error(`Handshake error: ${error}`));
+                        }
+                    }
+                    else {
+                        // Handle normal messages
+                        this.handleMessage(event.data);
+                    }
                 };
                 this.ws.onerror = (error) => {
                     this.log('WebSocket error', error);
@@ -442,32 +509,37 @@ var Minimact = (function (exports) {
         }
         /**
          * Internal: Handle incoming messages
+         * SignalR can send multiple messages in one WebSocket frame, separated by \x1E
          */
         handleMessage(data) {
-            try {
-                const message = JsonProtocol.parseMessage(data);
-                this.log(`Received message (type: ${message.type})`, message);
-                if (JsonProtocol.isInvocation(message)) {
-                    // Server calling client method
-                    this.handleInvocation(message);
+            // Split on record separator - server can send multiple messages at once
+            const messages = data.split('\x1E').filter(msg => msg.length > 0);
+            for (const messageData of messages) {
+                try {
+                    const message = JSON.parse(messageData);
+                    this.log(`Received message (type: ${message.type})`, message);
+                    if (JsonProtocol.isInvocation(message)) {
+                        // Server calling client method
+                        this.handleInvocation(message);
+                    }
+                    else if (JsonProtocol.isCompletion(message)) {
+                        // Response to client invoke()
+                        this.handleCompletion(message);
+                    }
+                    else if (JsonProtocol.isPing(message)) {
+                        // Server ping (respond with pong)
+                        this.handlePing();
+                    }
+                    else if (JsonProtocol.isClose(message)) {
+                        // Server requested close
+                        this.log('Server requested close', message.error);
+                        this.ws?.close(1000, 'Server closed connection');
+                    }
                 }
-                else if (JsonProtocol.isCompletion(message)) {
-                    // Response to client invoke()
-                    this.handleCompletion(message);
+                catch (error) {
+                    this.log('Error parsing message', error);
+                    console.error('[SignalM] Error parsing message:', error);
                 }
-                else if (JsonProtocol.isPing(message)) {
-                    // Server ping (respond with pong)
-                    this.handlePing();
-                }
-                else if (JsonProtocol.isClose(message)) {
-                    // Server requested close
-                    this.log('Server requested close', message.error);
-                    this.ws?.close(1000, 'Server closed connection');
-                }
-            }
-            catch (error) {
-                this.log('Error parsing message', error);
-                console.error('[SignalM] Error parsing message:', error);
             }
         }
         /**
@@ -657,6 +729,23 @@ var Minimact = (function (exports) {
             this.connection.on('Error', (message) => {
                 console.error('[Minimact] Server error:', message);
                 this.emit('error', { message });
+            });
+            // Handle hot reload messages
+            this.connection.on('HotReload:TemplateMap', (data) => {
+                this.log('HotReload:TemplateMap', data);
+                this.emit('HotReload:TemplateMap', data);
+            });
+            this.connection.on('HotReload:TemplatePatch', (data) => {
+                this.log('HotReload:TemplatePatch', data);
+                this.emit('HotReload:TemplatePatch', data);
+            });
+            this.connection.on('HotReload:FileChange', (data) => {
+                this.log('HotReload:FileChange', data);
+                this.emit('HotReload:FileChange', data);
+            });
+            this.connection.on('HotReload:Error', (data) => {
+                console.error('[Minimact Hot Reload] Error:', data.error);
+                this.emit('HotReload:Error', data);
             });
             // Handle reconnection
             this.connection.onReconnecting(() => {
@@ -877,12 +966,15 @@ var Minimact = (function (exports) {
     class DOMPatcher {
         constructor(options = {}) {
             this.debugLogging = options.debugLogging || false;
+            this.templateState = options.templateState;
         }
         /**
          * Apply an array of patches to a root element
          */
-        applyPatches(rootElement, patches) {
+        applyPatches(rootElement, patches, componentId) {
             this.log('Applying patches', { count: patches.length, patches });
+            // Store componentId for this patch batch
+            this.componentId = componentId;
             for (const patch of patches) {
                 try {
                     this.applyPatch(rootElement, patch);
@@ -891,6 +983,8 @@ var Minimact = (function (exports) {
                     console.error('[Minimact] Failed to apply patch:', patch, error);
                 }
             }
+            // Clear componentId after batch
+            this.componentId = undefined;
         }
         /**
          * Apply a single patch to the DOM
@@ -904,9 +998,17 @@ var Minimact = (function (exports) {
             switch (patch.type) {
                 case 'Create':
                     this.patchCreate(rootElement, patch.path, patch.node);
+                    // Update null path tracking: path now exists, remove from null paths
+                    if (this.templateState && this.componentId) {
+                        this.templateState.removeFromNullPaths(this.componentId, patch.path);
+                    }
                     break;
                 case 'Remove':
                     this.patchRemove(targetElement);
+                    // Update null path tracking: path now null, add to null paths
+                    if (this.templateState && this.componentId) {
+                        this.templateState.addToNullPaths(this.componentId, patch.path);
+                    }
                     break;
                 case 'Replace':
                     this.patchReplace(targetElement, patch.node);
@@ -927,15 +1029,16 @@ var Minimact = (function (exports) {
          */
         patchCreate(rootElement, path, node) {
             const newElement = this.createElementFromVNode(node);
-            if (path.length === 0) {
+            if (path === '' || path === '.') {
                 // Replace root
                 rootElement.innerHTML = '';
                 rootElement.appendChild(newElement);
             }
             else {
                 // Insert at path
-                const parentPath = path.slice(0, -1);
-                const index = path[path.length - 1];
+                const pathParts = path.split('.');
+                const parentPath = pathParts.slice(0, -1).join('.');
+                const index = parseInt(pathParts[pathParts.length - 1], 16);
                 const parent = this.getElementByPath(rootElement, parentPath);
                 if (parent) {
                     if (index >= parent.childNodes.length) {
@@ -1037,11 +1140,15 @@ var Minimact = (function (exports) {
             this.log('Reordered children', { element, order });
         }
         /**
-         * Get a DOM element by its path (array of indices)
+         * Get a DOM element by its hex path (e.g., "10000000.20000000.30000000")
          */
         getElementByPath(rootElement, path) {
+            if (path === '' || path === '.') {
+                return rootElement;
+            }
             let current = rootElement;
-            for (const index of path) {
+            const indices = path.split('.').map(hex => parseInt(hex, 16));
+            for (const index of indices) {
                 if (index >= current.childNodes.length) {
                     return null;
                 }
@@ -1425,8 +1532,18 @@ var Minimact = (function (exports) {
                 // Build args object
                 const argsObj = {};
                 // Add parsed args from handler string
+                // Args may be JSON strings that need parsing (e.g., "{\"name\":\"file.txt\"}")
                 if (handler.args.length > 0) {
-                    argsObj.args = handler.args;
+                    argsObj.args = handler.args.map((arg) => {
+                        try {
+                            // Try to parse as JSON (for objects/arrays)
+                            return JSON.parse(arg);
+                        }
+                        catch {
+                            // If not JSON, return as-is (for simple strings/numbers)
+                            return arg;
+                        }
+                    });
                 }
                 // Add event data
                 if (event instanceof MouseEvent) {
@@ -1449,6 +1566,17 @@ var Minimact = (function (exports) {
                 if (event.type === 'input' || event.type === 'change') {
                     const target = event.target;
                     argsObj.value = target.value;
+                }
+                // Convert argsObj to array format expected by server
+                // Server expects: object[] args, so we pass the actual argument values as an array
+                const argsArray = [];
+                // For input/change events, pass the value as the first argument
+                if (argsObj.value !== undefined) {
+                    argsArray.push(argsObj.value);
+                }
+                // For handlers with explicit args, add those
+                if (argsObj.args && Array.isArray(argsObj.args)) {
+                    argsArray.push(...argsObj.args);
                 }
                 // Check hint queue for cached prediction (CACHE HIT!)
                 if (this.hintQueue && this.domPatcher) {
@@ -1476,7 +1604,7 @@ var Minimact = (function (exports) {
                                 confidence: (matchedHint.confidence * 100).toFixed(0) + '%'
                             });
                             // Still notify server in background for verification
-                            this.componentMethodInvoker(handler.componentId, handler.methodName, argsObj).catch(err => {
+                            this.componentMethodInvoker(handler.componentId, handler.methodName, argsArray).catch(err => {
                                 console.error('[Minimact] Background server notification failed:', err);
                             });
                             return;
@@ -1484,7 +1612,7 @@ var Minimact = (function (exports) {
                     }
                 }
                 // 🔴 CACHE MISS - No prediction found, send to server
-                await this.componentMethodInvoker(handler.componentId, handler.methodName, argsObj);
+                await this.componentMethodInvoker(handler.componentId, handler.methodName, argsArray);
                 const latency = performance.now() - startTime;
                 // Notify playground of cache miss
                 if (this.playgroundBridge) {
@@ -1876,6 +2004,23 @@ var Minimact = (function (exports) {
                     // Convert to concrete patches
                     return this.convertLoopToPatches(patch.path, vnodes);
                 }
+                case 'UpdateAttributeStatic': {
+                    // Static attributes don't need materialization - just convert to UpdateProps
+                    return {
+                        type: 'UpdateProps',
+                        path: patch.path,
+                        props: { [patch.attrName]: patch.value }
+                    };
+                }
+                case 'UpdateAttributeDynamic': {
+                    // Materialize dynamic attribute template with current state
+                    const value = this.renderTemplatePatch(patch.templatePatch, stateValues);
+                    return {
+                        type: 'UpdateProps',
+                        path: patch.path,
+                        props: { [patch.attrName]: value }
+                    };
+                }
                 default:
                     // Not a template patch, return as-is
                     return patch;
@@ -1994,7 +2139,11 @@ var Minimact = (function (exports) {
          * @returns True if patch is a template patch
          */
         static isTemplatePatch(patch) {
-            return patch.type === 'UpdateTextTemplate' || patch.type === 'UpdatePropsTemplate';
+            return patch.type === 'UpdateTextTemplate'
+                || patch.type === 'UpdatePropsTemplate'
+                || patch.type === 'UpdateListTemplate'
+                || patch.type === 'UpdateAttributeStatic'
+                || patch.type === 'UpdateAttributeDynamic';
         }
         /**
          * Extract bindings from a template patch
@@ -2003,7 +2152,7 @@ var Minimact = (function (exports) {
          * @returns Array of state variable names, or empty array if not a template patch
          */
         static extractBindings(patch) {
-            if (patch.type === 'UpdateTextTemplate' || patch.type === 'UpdatePropsTemplate') {
+            if (patch.type === 'UpdateTextTemplate' || patch.type === 'UpdatePropsTemplate' || patch.type === 'UpdateAttributeDynamic') {
                 // Handle both string bindings and Binding objects
                 return patch.templatePatch.bindings.map(binding => {
                     if (typeof binding === 'object' && 'stateKey' in binding) {
@@ -2011,6 +2160,10 @@ var Minimact = (function (exports) {
                     }
                     return binding;
                 });
+            }
+            if (patch.type === 'UpdateAttributeStatic') {
+                // Static attributes have no bindings
+                return [];
             }
             return [];
         }
@@ -2160,18 +2313,23 @@ var Minimact = (function (exports) {
          * Convert rendered loop VNodes to concrete patches
          * Generates Create/Replace patches for list update
          *
-         * @param parentPath - Path to parent element containing the list
+         * @param parentPath - Hex path to parent element containing the list
          * @param vnodes - Rendered VNodes for list items
          * @returns Array of patches to update the list
          */
         static convertLoopToPatches(parentPath, vnodes) {
             // For Phase 4A simplicity: Replace entire list with Create patches
             // TODO Phase 4C: Optimize with incremental diffing
-            return vnodes.map((node, index) => ({
-                type: 'Create',
-                path: [...parentPath, index],
-                node
-            }));
+            return vnodes.map((node, index) => {
+                // Convert index to hex and append to parent path
+                const hexIndex = index.toString(16).padStart(8, '0');
+                const childPath = parentPath ? `${parentPath}.${hexIndex}` : hexIndex;
+                return {
+                    type: 'Create',
+                    path: childPath,
+                    node
+                };
+            });
         }
     }
 
@@ -2387,6 +2545,1449 @@ var Minimact = (function (exports) {
     }
 
     /**
+     * TSX Pattern Detector
+     *
+     * Detects common edit patterns in TSX code to enable instant hot reload
+     * via prediction cache lookup (0-5ms instead of 50ms with esbuild)
+     */
+    class TsxPatternDetector {
+        /**
+         * Detect what kind of edit was made to TSX code
+         * Returns a pattern that can be matched against prediction cache
+         */
+        detectEditPattern(oldTsx, newTsx) {
+            // Quick check: If identical, no pattern
+            if (oldTsx === newTsx) {
+                return { type: 'complex', confidence: 0 };
+            }
+            const diff = this.computeDiff(oldTsx, newTsx);
+            // Fast path 1: Pure text content change (40% of edits)
+            const textPattern = this.detectTextChange(diff);
+            if (textPattern)
+                return textPattern;
+            // Fast path 2: Class name change (25% of edits)
+            const classPattern = this.detectClassChange(diff);
+            if (classPattern)
+                return classPattern;
+            // Fast path 3: Attribute change (15% of edits)
+            const attrPattern = this.detectAttributeChange(diff);
+            if (attrPattern)
+                return attrPattern;
+            // Fast path 4: Inline style change (10% of edits)
+            const stylePattern = this.detectStyleChange(diff);
+            if (stylePattern)
+                return stylePattern;
+            // Fast path 5: Element added/removed (5% of edits)
+            const elementPattern = this.detectElementChange(diff);
+            if (elementPattern)
+                return elementPattern;
+            // Complex change - fall back to server
+            return { type: 'complex', confidence: 0.5 };
+        }
+        /**
+         * Compute line-based diff between old and new TSX
+         */
+        computeDiff(oldTsx, newTsx) {
+            const oldLines = oldTsx.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const newLines = newTsx.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const oldSet = new Set(oldLines);
+            const newSet = new Set(newLines);
+            const added = newLines.filter(line => !oldSet.has(line));
+            const removed = oldLines.filter(line => !newSet.has(line));
+            const unchanged = newLines.filter(line => oldSet.has(line));
+            return { added, removed, unchanged };
+        }
+        /**
+         * Detect pure text content change
+         * Example: <div>Hello</div> → <div>Hello World</div>
+         */
+        detectTextChange(diff) {
+            // Exactly one line changed
+            if (diff.removed.length !== 1 || diff.added.length !== 1) {
+                return null;
+            }
+            const removed = diff.removed[0];
+            const added = diff.added[0];
+            // Extract tags and content
+            const removedMatch = removed.match(/^<(\w+)[^>]*>(.*)<\/\1>$/);
+            const addedMatch = added.match(/^<(\w+)[^>]*>(.*)<\/\1>$/);
+            if (!removedMatch || !addedMatch) {
+                return null;
+            }
+            const [, removedTag, removedContent] = removedMatch;
+            const [, addedTag, addedContent] = addedMatch;
+            // Same tag, different content
+            if (removedTag === addedTag && removedContent !== addedContent) {
+                // Check if only text changed (no attributes)
+                const removedAttrs = this.extractAttributes(removed);
+                const addedAttrs = this.extractAttributes(added);
+                if (JSON.stringify(removedAttrs) === JSON.stringify(addedAttrs)) {
+                    return {
+                        type: 'text-content',
+                        path: removedTag,
+                        oldValue: removedContent.trim(),
+                        newValue: addedContent.trim(),
+                        confidence: 0.99
+                    };
+                }
+            }
+            return null;
+        }
+        /**
+         * Detect className change
+         * Example: className="btn" → className="btn btn-primary"
+         */
+        detectClassChange(diff) {
+            if (diff.removed.length !== 1 || diff.added.length !== 1) {
+                return null;
+            }
+            const removed = diff.removed[0];
+            const added = diff.added[0];
+            // Extract className values
+            const removedClassMatch = removed.match(/className=["']([^"']+)["']/);
+            const addedClassMatch = added.match(/className=["']([^"']+)["']/);
+            if (!removedClassMatch || !addedClassMatch) {
+                return null;
+            }
+            const removedClasses = removedClassMatch[1].split(/\s+/);
+            const addedClasses = addedClassMatch[1].split(/\s+/);
+            // Check if rest of line is identical (except className)
+            const withoutClass = (str) => str.replace(/className=["'][^"']*["']/, 'className="__PLACEHOLDER__"');
+            if (withoutClass(removed) === withoutClass(added)) {
+                return {
+                    type: 'class-name',
+                    oldClasses: removedClasses,
+                    newClasses: addedClasses,
+                    confidence: 0.98
+                };
+            }
+            return null;
+        }
+        /**
+         * Detect attribute change
+         * Example: disabled="true" → disabled="false"
+         */
+        detectAttributeChange(diff) {
+            if (diff.removed.length !== 1 || diff.added.length !== 1) {
+                return null;
+            }
+            const removed = diff.removed[0];
+            const added = diff.added[0];
+            const removedAttrs = this.extractAttributes(removed);
+            const addedAttrs = this.extractAttributes(added);
+            // Find which attribute changed
+            const changedAttr = Object.keys(addedAttrs).find(key => removedAttrs[key] !== addedAttrs[key]);
+            if (!changedAttr) {
+                return null;
+            }
+            // Check if only one attribute changed
+            const removedKeys = Object.keys(removedAttrs);
+            const addedKeys = Object.keys(addedAttrs);
+            if (removedKeys.length !== addedKeys.length) {
+                return null;
+            }
+            const unchangedAttrs = removedKeys.filter(key => key !== changedAttr && removedAttrs[key] === addedAttrs[key]);
+            if (unchangedAttrs.length === removedKeys.length - 1) {
+                return {
+                    type: 'attribute',
+                    attribute: changedAttr,
+                    oldValue: removedAttrs[changedAttr],
+                    newValue: addedAttrs[changedAttr],
+                    confidence: 0.97
+                };
+            }
+            return null;
+        }
+        /**
+         * Detect inline style change
+         * Example: style={{ color: 'red' }} → style={{ color: 'blue' }}
+         */
+        detectStyleChange(diff) {
+            if (diff.removed.length !== 1 || diff.added.length !== 1) {
+                return null;
+            }
+            const removed = diff.removed[0];
+            const added = diff.added[0];
+            // Extract style attribute
+            const removedStyleMatch = removed.match(/style=\{\{([^}]+)\}\}/);
+            const addedStyleMatch = added.match(/style=\{\{([^}]+)\}\}/);
+            if (!removedStyleMatch || !addedStyleMatch) {
+                return null;
+            }
+            const removedStyles = this.parseInlineStyle(removedStyleMatch[1]);
+            const addedStyles = this.parseInlineStyle(addedStyleMatch[1]);
+            // Find which style property changed
+            const changedProp = Object.keys(addedStyles).find(key => removedStyles[key] !== addedStyles[key]);
+            if (!changedProp) {
+                return null;
+            }
+            // Check if only one property changed
+            if (Object.keys(removedStyles).length !== Object.keys(addedStyles).length) {
+                return null;
+            }
+            const unchangedProps = Object.keys(removedStyles).filter(key => key !== changedProp && removedStyles[key] === addedStyles[key]);
+            if (unchangedProps.length === Object.keys(removedStyles).length - 1) {
+                return {
+                    type: 'inline-style',
+                    styleProperty: changedProp,
+                    oldValue: removedStyles[changedProp],
+                    newValue: addedStyles[changedProp],
+                    confidence: 0.96
+                };
+            }
+            return null;
+        }
+        /**
+         * Detect element added or removed
+         * Example: Adding <div>New</div> to JSX
+         */
+        detectElementChange(diff) {
+            // Element added: New line appears
+            if (diff.added.length === 1 && diff.removed.length === 0) {
+                const added = diff.added[0];
+                const elementMatch = added.match(/^<(\w+)/);
+                if (elementMatch) {
+                    return {
+                        type: 'element-added',
+                        element: added,
+                        confidence: 0.90
+                    };
+                }
+            }
+            // Element removed: Line disappears
+            if (diff.removed.length === 1 && diff.added.length === 0) {
+                const removed = diff.removed[0];
+                const elementMatch = removed.match(/^<(\w+)/);
+                if (elementMatch) {
+                    return {
+                        type: 'element-removed',
+                        element: removed,
+                        confidence: 0.90
+                    };
+                }
+            }
+            return null;
+        }
+        /**
+         * Extract attributes from JSX element
+         */
+        extractAttributes(jsx) {
+            const attrs = {};
+            // Match all attribute="value" or attribute='value' patterns
+            const attrRegex = /(\w+)=["']([^"']+)["']/g;
+            let match;
+            while ((match = attrRegex.exec(jsx)) !== null) {
+                attrs[match[1]] = match[2];
+            }
+            return attrs;
+        }
+        /**
+         * Parse inline style object
+         * Example: "color: 'red', fontSize: '16px'" → { color: 'red', fontSize: '16px' }
+         */
+        parseInlineStyle(styleStr) {
+            const styles = {};
+            // Split by comma
+            const pairs = styleStr.split(',');
+            for (const pair of pairs) {
+                const [key, value] = pair.split(':').map(s => s.trim());
+                if (key && value) {
+                    // Remove quotes
+                    const cleanValue = value.replace(/['"]/g, '');
+                    styles[key] = cleanValue;
+                }
+            }
+            return styles;
+        }
+        /**
+         * Build cache key from pattern
+         * Used to lookup pre-computed patches
+         */
+        buildCacheKey(componentId, pattern) {
+            switch (pattern.type) {
+                case 'text-content':
+                    return `${componentId}:text:${pattern.path}:${pattern.oldValue}→${pattern.newValue}`;
+                case 'class-name':
+                    return `${componentId}:class:${pattern.oldClasses?.join(',')}→${pattern.newClasses?.join(',')}`;
+                case 'attribute':
+                    return `${componentId}:attr:${pattern.attribute}:${pattern.oldValue}→${pattern.newValue}`;
+                case 'inline-style':
+                    return `${componentId}:style:${pattern.styleProperty}:${pattern.oldValue}→${pattern.newValue}`;
+                case 'element-added':
+                    return `${componentId}:add:${this.hashElement(pattern.element)}`;
+                case 'element-removed':
+                    return `${componentId}:remove:${this.hashElement(pattern.element)}`;
+                default:
+                    return `${componentId}:complex`;
+            }
+        }
+        /**
+         * Simple hash for element string
+         */
+        hashElement(element) {
+            let hash = 0;
+            for (let i = 0; i < element.length; i++) {
+                const char = element.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return hash.toString(36);
+        }
+    }
+
+    /**
+     * Template State Manager - Client-Side Template Rendering
+     *
+     * Manages "virtual state" for text nodes using parameterized templates.
+     * This enables instant hot reload with 100% coverage and minimal memory.
+     *
+     * Architecture:
+     * - Templates loaded from .templates.json at component init
+     * - State changes trigger template re-rendering
+     * - Hot reload updates templates without server round-trip
+     *
+     * Memory: ~2KB per component (vs 100KB with prediction-based approach)
+     * Coverage: 100% (works with any value)
+     * Latency: <5ms for template updates
+     */
+    /**
+     * Template State Manager
+     */
+    class TemplateStateManager {
+        constructor() {
+            this.templates = new Map();
+            this.componentStates = new Map();
+            // Hex path index: componentId -> depth -> sorted hex codes
+            this.hexPathIndex = new Map();
+            // Null paths: componentId -> Set of paths that are currently null
+            this.nullPaths = new Map();
+        }
+        /**
+         * Initialize templates from .templates.json file
+         */
+        loadTemplateMap(componentId, templateMap) {
+            console.log(`[TemplateState] Loading ${Object.keys(templateMap.templates).length} templates for ${componentId}`);
+            // Build hex path index for this component
+            const depthMap = new Map();
+            const nullPaths = new Set(); // Track null paths
+            for (const [nodePath, template] of Object.entries(templateMap.templates)) {
+                const key = `${componentId}:${nodePath}`;
+                // Normalize: Server sends 'templateString', client expects 'template'
+                const normalized = {
+                    template: template.templateString || template.template,
+                    bindings: template.bindings,
+                    slots: template.slots,
+                    path: template.path,
+                    type: template.type
+                };
+                this.templates.set(key, normalized);
+                // Extract hex path segments and build depth index
+                const pathSegments = nodePath.split('.');
+                // Check if this path ends with '.null' (path didn't render)
+                const isNullPath = pathSegments[pathSegments.length - 1] === 'null';
+                if (isNullPath) {
+                    // Remove '.null' suffix and store as null path
+                    const actualPath = pathSegments.slice(0, -1).join('.');
+                    nullPaths.add(actualPath);
+                    console.log(`[TemplateState] Null path detected: ${actualPath}`);
+                    // Still add null path segments to depth map for navigation
+                    // (remove the '.null' suffix first)
+                    const actualSegments = pathSegments.slice(0, -1);
+                    for (let depth = 0; depth < actualSegments.length; depth++) {
+                        const segment = actualSegments[depth];
+                        if (!depthMap.has(depth)) {
+                            depthMap.set(depth, new Set());
+                        }
+                        depthMap.get(depth).add(segment);
+                    }
+                    continue; // Don't add to templates
+                }
+                for (let depth = 0; depth < pathSegments.length; depth++) {
+                    const segment = pathSegments[depth];
+                    // Skip attribute markers (@style, @className, etc.)
+                    if (segment.startsWith('@'))
+                        continue;
+                    if (!depthMap.has(depth)) {
+                        depthMap.set(depth, new Set());
+                    }
+                    depthMap.get(depth).add(segment);
+                }
+            }
+            // Store null paths for this component
+            this.nullPaths.set(componentId, nullPaths);
+            // Convert sets to sorted arrays
+            const sortedDepthMap = new Map();
+            for (const [depth, hexSet] of depthMap.entries()) {
+                sortedDepthMap.set(depth, Array.from(hexSet).sort());
+            }
+            this.hexPathIndex.set(componentId, sortedDepthMap);
+            console.log(`[TemplateState] Built hex path index for ${componentId}:`, sortedDepthMap);
+            // Initialize component state tracking
+            if (!this.componentStates.has(componentId)) {
+                this.componentStates.set(componentId, new Map());
+            }
+        }
+        /**
+         * Get sorted hex codes for a specific component and depth
+         */
+        getHexCodesAtDepth(componentId, depth) {
+            console.log(`[TemplateState] getHexCodesAtDepth(${componentId}, ${depth}) - Available keys:`, Array.from(this.hexPathIndex.keys()));
+            return this.hexPathIndex.get(componentId)?.get(depth);
+        }
+        /**
+         * Check if a path is currently null (not rendered)
+         */
+        isPathNull(componentId, path) {
+            return this.nullPaths.get(componentId)?.has(path) ?? false;
+        }
+        /**
+         * Remove a path from null paths (element was created)
+         */
+        removeFromNullPaths(componentId, path) {
+            const nullPathsSet = this.nullPaths.get(componentId);
+            if (nullPathsSet) {
+                nullPathsSet.delete(path);
+                console.log(`[TemplateState] Removed ${path} from null paths for ${componentId}`);
+            }
+        }
+        /**
+         * Add a path to null paths (element was removed)
+         */
+        addToNullPaths(componentId, path) {
+            let nullPathsSet = this.nullPaths.get(componentId);
+            if (!nullPathsSet) {
+                nullPathsSet = new Set();
+                this.nullPaths.set(componentId, nullPathsSet);
+            }
+            nullPathsSet.add(path);
+            console.log(`[TemplateState] Added ${path} to null paths for ${componentId}`);
+        }
+        /**
+         * Register a template for a specific node path
+         */
+        registerTemplate(componentId, nodePath, template) {
+            const key = `${componentId}:${nodePath}`;
+            this.templates.set(key, template);
+        }
+        /**
+         * Get template by component ID and node path
+         */
+        getTemplate(componentId, nodePath) {
+            const key = `${componentId}:${nodePath}`;
+            return this.templates.get(key);
+        }
+        /**
+         * Get all templates for a component
+         */
+        getComponentTemplates(componentId) {
+            const result = new Map();
+            for (const [key, template] of this.templates.entries()) {
+                if (key.startsWith(`${componentId}:`)) {
+                    const nodePath = key.substring(componentId.length + 1);
+                    result.set(nodePath, template);
+                }
+            }
+            return result;
+        }
+        /**
+         * Get templates bound to a specific state variable
+         */
+        getTemplatesBoundTo(componentId, stateKey) {
+            const templates = [];
+            for (const [key, template] of this.templates.entries()) {
+                if (key.startsWith(`${componentId}:`) && template.bindings.includes(stateKey)) {
+                    templates.push(template);
+                }
+            }
+            return templates;
+        }
+        /**
+         * Update component state (from useState)
+         */
+        updateState(componentId, stateKey, value) {
+            let state = this.componentStates.get(componentId);
+            if (!state) {
+                state = new Map();
+                this.componentStates.set(componentId, state);
+            }
+            state.set(stateKey, value);
+        }
+        /**
+         * Get component state value
+         */
+        getStateValue(componentId, stateKey) {
+            return this.componentStates.get(componentId)?.get(stateKey);
+        }
+        /**
+         * Render template with current state values
+         */
+        render(componentId, nodePath) {
+            const template = this.getTemplate(componentId, nodePath);
+            if (!template)
+                return null;
+            // Get state values for bindings
+            const params = template.bindings.map(binding => this.getStateValue(componentId, binding));
+            return this.renderWithParams(template.template, params);
+        }
+        /**
+         * Render template with specific parameter values
+         */
+        renderWithParams(template, params) {
+            let result = template;
+            // Replace {0}, {1}, etc. with parameter values
+            params.forEach((param, index) => {
+                const placeholder = `{${index}}`;
+                const value = param !== undefined && param !== null ? String(param) : '';
+                result = result.replace(placeholder, value);
+            });
+            return result;
+        }
+        /**
+         * Apply template patch from hot reload
+         */
+        applyTemplatePatch(patch) {
+            const { componentId, path, template, params, bindings, slots, attribute } = patch;
+            // Get current state values from client (not stale params from server!)
+            const currentParams = [];
+            for (const binding of bindings) {
+                const value = this.getStateValue(componentId, binding);
+                currentParams.push(value !== undefined ? value : params[currentParams.length]);
+            }
+            // Render template with current client state
+            const text = this.renderWithParams(template, currentParams);
+            // Build node path key (use hex path as-is, replace dots with underscores)
+            const nodePath = this.buildNodePathKey(path);
+            const key = `${componentId}:${nodePath}`;
+            // Update stored template
+            const existingTemplate = this.templates.get(key);
+            if (existingTemplate) {
+                existingTemplate.template = template;
+                existingTemplate.bindings = bindings;
+                existingTemplate.slots = slots;
+                if (attribute) {
+                    existingTemplate.attribute = attribute;
+                }
+            }
+            else {
+                // Register new template
+                this.templates.set(key, {
+                    template,
+                    bindings,
+                    slots,
+                    path,
+                    type: attribute ? 'attribute' : 'dynamic',
+                    attribute
+                });
+            }
+            console.log(`[TemplateState] Applied template patch: "${template}" → "${text}"`);
+            return { text, path };
+        }
+        /**
+         * Build node path key from hex path string
+         * Example: "10000000.20000000" → "10000000_20000000"
+         */
+        buildNodePathKey(path) {
+            return path.replace(/\./g, '_');
+        }
+        /**
+         * Clear all templates for a component
+         */
+        clearComponent(componentId) {
+            const keysToDelete = [];
+            for (const key of this.templates.keys()) {
+                if (key.startsWith(`${componentId}:`)) {
+                    keysToDelete.push(key);
+                }
+            }
+            for (const key of keysToDelete) {
+                this.templates.delete(key);
+            }
+            this.componentStates.delete(componentId);
+        }
+        /**
+         * Clear all templates
+         */
+        clear() {
+            this.templates.clear();
+            this.componentStates.clear();
+        }
+        /**
+         * Get statistics
+         */
+        getStats() {
+            const componentCount = this.componentStates.size;
+            const templateCount = this.templates.size;
+            // Estimate memory usage (rough estimate)
+            let memoryBytes = 0;
+            for (const template of this.templates.values()) {
+                memoryBytes += (template.template?.length || 0) * 2; // UTF-16
+                memoryBytes += (template.bindings?.length || 0) * 20; // Rough estimate
+                memoryBytes += (template.slots?.length || 0) * 4; // 4 bytes per number
+                memoryBytes += (template.path?.length || 0) * 2; // UTF-16 for hex string
+            }
+            return {
+                componentCount,
+                templateCount,
+                memoryKB: Math.round(memoryBytes / 1024),
+                avgTemplatesPerComponent: templateCount / Math.max(componentCount, 1)
+            };
+        }
+    }
+    /**
+     * Global template state manager instance
+     */
+    const templateState = new TemplateStateManager();
+
+    /**
+     * Minimact Hot Reload - Template-Based Approach
+     *
+     * Uses parameterized templates extracted at build time for INSTANT hot reload
+     * Target: <5ms for all text/attribute edits
+     * Memory: ~2KB per component (98% less than prediction-based)
+     * Coverage: 100% (works with any value)
+     *
+     * Architecture:
+     * - Build time: Babel plugin extracts templates from JSX
+     * - Init: Load .templates.json files
+     * - Hot reload: Apply template patches directly
+     * - Fallback: Server re-render for structural changes (~150ms)
+     */
+    /**
+     * Hot Reload Manager
+     * Handles client-side hot reload with optimistic updates
+     */
+    class HotReloadManager {
+        constructor(minimact, config = {}) {
+            this.ws = null;
+            this.previousVNodes = new Map();
+            this.previousTsx = new Map();
+            this.tsxPredictionCache = new Map();
+            this.pendingVerifications = new Map();
+            this.reconnectAttempts = 0;
+            this.maxReconnectAttempts = 5;
+            // Map of null paths: componentType -> Set of paths that are currently null (not rendered)
+            this.nullPaths = new Map();
+            this.minimact = minimact;
+            this.config = {
+                enabled: true,
+                wsUrl: this.getDefaultWsUrl(),
+                debounceMs: 50,
+                showNotifications: true,
+                logLevel: 'info',
+                ...config
+            };
+            this.metrics = {
+                lastUpdateTime: 0,
+                updateCount: 0,
+                averageLatency: 0,
+                cacheHits: 0,
+                cacheMisses: 0,
+                errors: 0
+            };
+            this.detector = new TsxPatternDetector();
+            if (this.config.enabled) {
+                this.connect();
+            }
+        }
+        /**
+         * Get default WebSocket URL based on current location
+         */
+        getDefaultWsUrl() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            return `${protocol}//${host}/minimact-hmr`;
+        }
+        /**
+         * Connect to hot reload WebSocket server
+         */
+        connect() {
+            if (!this.config.wsUrl)
+                return;
+            try {
+                this.ws = new WebSocket(this.config.wsUrl);
+                this.ws.onopen = () => {
+                    this.log('info', '✅ Hot reload connected');
+                    this.reconnectAttempts = 0;
+                    this.showToast('🔥 Hot reload enabled', 'success');
+                };
+                this.ws.onmessage = (event) => {
+                    this.handleMessage(JSON.parse(event.data));
+                };
+                this.ws.onerror = (error) => {
+                    this.log('error', 'Hot reload connection error:', error);
+                };
+                this.ws.onclose = () => {
+                    this.log('warn', 'Hot reload disconnected');
+                    this.attemptReconnect();
+                };
+            }
+            catch (error) {
+                this.log('error', 'Failed to connect to hot reload server:', error);
+            }
+        }
+        /**
+         * Attempt to reconnect to WebSocket
+         */
+        attemptReconnect() {
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                this.log('error', 'Max reconnection attempts reached');
+                return;
+            }
+            this.reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
+            this.log('info', `Reconnecting in ${delay}ms... (attempt ${this.reconnectAttempts})`);
+            setTimeout(() => {
+                this.connect();
+            }, delay);
+        }
+        /**
+         * Handle incoming WebSocket message
+         */
+        async handleMessage(message) {
+            const startTime = performance.now();
+            switch (message.type) {
+                case 'template-map':
+                    // Initial template map load
+                    this.handleTemplateMap(message);
+                    break;
+                case 'template-patch':
+                    // Template update from hot reload
+                    await this.handleTemplatePatch(message);
+                    break;
+                case 'file-change':
+                    await this.handleFileChange(message);
+                    break;
+                case 'error':
+                    this.handleError(message);
+                    break;
+                case 'connected':
+                    this.log('info', 'Hot reload server ready');
+                    break;
+                case 'rerender-complete':
+                    // Server finished re-render (naive fallback)
+                    this.log('debug', 'Server re-render complete');
+                    break;
+            }
+            const latency = performance.now() - startTime;
+            this.updateMetrics(latency);
+        }
+        /**
+         * Handle file change - PREDICTIVE MAPPING APPROACH
+         * Try prediction cache first (0-5ms), fall back to server (150ms)
+         */
+        async handleFileChange(message) {
+            if (!message.componentId || !message.code)
+                return;
+            const startTime = performance.now();
+            this.log('debug', `📝 File changed: ${message.filePath}`);
+            try {
+                const previousCode = this.previousTsx.get(message.componentId) || '';
+                // First load - just cache TSX
+                if (!previousCode) {
+                    this.previousTsx.set(message.componentId, message.code);
+                    this.log('debug', 'First load - cached TSX');
+                    return;
+                }
+                // STEP 1: Detect edit pattern (1-2ms)
+                const pattern = this.detector.detectEditPattern(previousCode, message.code);
+                this.log('debug', `Detected pattern: ${pattern.type} (confidence: ${(pattern.confidence * 100).toFixed(0)}%)`);
+                // STEP 2: Try prediction cache lookup (0ms)
+                if (pattern.confidence > 0.90) {
+                    const cacheKey = this.detector.buildCacheKey(message.componentId, pattern);
+                    const cachedPatches = this.tsxPredictionCache.get(cacheKey);
+                    if (cachedPatches) {
+                        // 🚀 INSTANT HOT RELOAD!
+                        const component = this.minimact.getComponent(message.componentId);
+                        if (component) {
+                            this.minimact.domPatcher.applyPatches(component.element, cachedPatches);
+                            const latency = performance.now() - startTime;
+                            this.log('info', `🚀 INSTANT! Applied cached patches in ${latency.toFixed(1)}ms`);
+                            this.metrics.cacheHits++;
+                            this.showToast(`⚡ ${latency.toFixed(0)}ms`, 'success', 800);
+                            // Flash component
+                            this.flashComponent(component.element);
+                            // Update cached TSX
+                            this.previousTsx.set(message.componentId, message.code);
+                            // Still verify in background
+                            this.verifyWithServer(message.componentId, message.code);
+                            return;
+                        }
+                    }
+                    else {
+                        this.log('debug', `No cache hit for key: ${cacheKey}`);
+                    }
+                }
+                // STEP 3: Fall back to server re-render (naive fallback)
+                this.log('info', `⚠️ No prediction - requesting server render`);
+                this.metrics.cacheMisses++;
+                await this.requestServerRerender(message.componentId, message.code);
+                const latency = performance.now() - startTime;
+                this.log('info', `✅ Server render complete in ${latency.toFixed(1)}ms`);
+                this.showToast(`🔄 ${latency.toFixed(0)}ms`, 'info', 1000);
+                // Update cached TSX
+                this.previousTsx.set(message.componentId, message.code);
+            }
+            catch (error) {
+                this.log('error', 'Hot reload failed:', error);
+                this.metrics.errors++;
+                this.showToast('❌ Hot reload failed', 'error');
+            }
+        }
+        /**
+         * Request server to re-render component (naive fallback)
+         */
+        async requestServerRerender(componentId, code) {
+            return new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Server rerender timeout'));
+                }, 5000);
+                // Send request
+                this.ws?.send(JSON.stringify({
+                    type: 'request-rerender',
+                    componentId,
+                    code,
+                    timestamp: Date.now()
+                }));
+                // Wait for response
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'rerender-complete' && msg.componentId === componentId) {
+                        clearTimeout(timeout);
+                        this.ws?.removeEventListener('message', handler);
+                        resolve();
+                    }
+                };
+                this.ws?.addEventListener('message', handler);
+            });
+        }
+        /**
+         * Verify with server in background (non-blocking)
+         */
+        async verifyWithServer(componentId, code) {
+            try {
+                // Request verification from server
+                this.ws?.send(JSON.stringify({
+                    type: 'verify-tsx',
+                    componentId,
+                    code,
+                    timestamp: Date.now()
+                }));
+                this.log('debug', `Verification requested for ${componentId}`);
+            }
+            catch (error) {
+                this.log('warn', 'Verification request failed:', error);
+            }
+        }
+        /**
+         * Handle template map initialization
+         * Load templates from .templates.json file
+         */
+        handleTemplateMap(message) {
+            if (!message.templateMap || !message.componentId)
+                return;
+            const startTime = performance.now();
+            // Note: message.componentId is actually the component TYPE name (e.g., "ProductDetailsPage")
+            const componentType = message.componentId;
+            const newTemplates = message.templateMap.templates;
+            console.log(`[HotReload] 🔍 Processing template map for ${componentType}:`, {
+                newTemplateCount: Object.keys(newTemplates).length,
+                newTemplateKeys: Object.keys(newTemplates).slice(0, 5)
+            });
+            // Debug: Check structure of first template
+            const firstKey = Object.keys(newTemplates)[0];
+            if (firstKey) {
+                console.log(`[HotReload] 🔍 First template structure:`, firstKey, newTemplates[firstKey]);
+            }
+            // Get existing templates to detect changes
+            const existingTemplates = new Map();
+            console.log(`[HotReload] 🔍 Checking for existing templates...`);
+            for (const [nodePath, template] of Object.entries(newTemplates)) {
+                const existing = templateState.getTemplate(componentType, nodePath);
+                // Note: Server sends 'templateString', client stores as 'template'
+                const newTemplateStr = template.templateString || template.template;
+                if (existing) {
+                    const changed = existing.template !== newTemplateStr;
+                    console.log(`[HotReload] ${changed ? '🔥' : '✅'} Template "${nodePath}": old="${existing.template}" new="${newTemplateStr}" changed=${changed}`);
+                    existingTemplates.set(nodePath, existing);
+                }
+                else {
+                    console.log(`[HotReload] ❌ No existing template for ${nodePath}, new="${newTemplateStr}"`);
+                }
+            }
+            console.log(`[HotReload] 📋 Found ${existingTemplates.size} existing templates out of ${Object.keys(newTemplates).length}`);
+            // Load new template map
+            templateState.loadTemplateMap(componentType, message.templateMap);
+            // Get all instances of this component type from registry
+            const instances = this.minimact.componentRegistry.getByType(componentType);
+            console.log(`[HotReload] 🔍 Found ${instances.length} instance(s) of type "${componentType}"`);
+            if (instances.length === 0) {
+                console.warn(`[HotReload] ⚠️ No instances found for component type "${componentType}"`);
+                return;
+            }
+            // Apply templates to each instance
+            for (const instance of instances) {
+                console.log(`[HotReload] 📦 Processing instance ${instance.instanceId.substring(0, 8)}...`);
+                const patches = [];
+                let changedCount = 0;
+                for (const [nodePath, newTemplate] of Object.entries(newTemplates)) {
+                    const existingTemplate = existingTemplates.get(nodePath);
+                    // Check if template string changed
+                    if (existingTemplate && existingTemplate.template !== newTemplate.template) {
+                        changedCount++;
+                        console.log(`[HotReload] 🔥 Template changed #${changedCount}: "${existingTemplate.template}" → "${newTemplate.template}"`);
+                        // Get current state values for this instance's bindings
+                        const params = newTemplate.bindings.map(binding => templateState.getStateValue(instance.instanceId, binding));
+                        // Render template with current state
+                        const text = templateState.renderWithParams(newTemplate.template, params);
+                        // Create patch for DOMPatcher
+                        if (newTemplate.type === 'attribute' && newTemplate.attribute) {
+                            patches.push({
+                                type: 'UpdateProp',
+                                path: newTemplate.path,
+                                prop: newTemplate.attribute,
+                                value: text
+                            });
+                        }
+                        else {
+                            patches.push({
+                                type: 'UpdateText',
+                                path: newTemplate.path,
+                                text: text
+                            });
+                        }
+                    }
+                }
+                console.log(`[HotReload] 📊 Instance summary: ${changedCount} changed, ${patches.length} patches`);
+                // Apply all patches at once using DOMPatcher
+                if (patches.length > 0) {
+                    this.minimact.domPatcher.applyPatches(instance.element, patches);
+                    this.flashComponent(instance.element);
+                    console.log(`[HotReload] ✅ Applied ${patches.length} patches to instance ${instance.instanceId.substring(0, 8)}`);
+                }
+            }
+            const latency = performance.now() - startTime;
+            const templateCount = Object.keys(newTemplates).length;
+            this.log('info', `📦 Loaded ${templateCount} templates for ${componentType} in ${latency.toFixed(1)}ms`);
+            const stats = templateState.getStats();
+            this.log('debug', `Template stats: ${stats.templateCount} total, ~${stats.memoryKB}KB`);
+        }
+        /**
+         * Handle template patch from hot reload
+         * INSTANT update: <5ms for all text/attribute changes
+         */
+        async handleTemplatePatch(message) {
+            if (!message.templatePatch || !message.componentId)
+                return;
+            const startTime = performance.now();
+            const patch = message.templatePatch;
+            // Note: message.componentId is the component TYPE name
+            const componentType = message.componentId;
+            console.log(`[HotReload] 🔧 Applying template patch to ${componentType}:`, patch);
+            try {
+                // Handle UpdateAttributeStatic separately (no template rendering needed)
+                if (patch.type === 'UpdateAttributeStatic') {
+                    const attrName = patch.attrName;
+                    const value = patch.value;
+                    if (!attrName || value === undefined) {
+                        console.warn(`[HotReload] ⚠️ UpdateAttributeStatic missing attrName or value:`, patch);
+                        return;
+                    }
+                    // Get all instances of this component type
+                    const instances = this.minimact.componentRegistry.getByType(componentType);
+                    console.log(`[HotReload] 🔍 Found ${instances.length} instance(s) to update`);
+                    if (instances.length === 0) {
+                        console.warn(`[HotReload] ⚠️ No instances found for type "${componentType}"`);
+                        return;
+                    }
+                    // Apply to each instance
+                    for (const instance of instances) {
+                        const element = this.findElementByPath(instance.element, patch.path, componentType);
+                        if (element && element.nodeType === Node.ELEMENT_NODE) {
+                            element.setAttribute(attrName, value);
+                            const latency = performance.now() - startTime;
+                            console.log(`[HotReload] 🚀 INSTANT! Updated static attribute ${attrName}="${value}" in ${latency.toFixed(1)}ms`);
+                            this.log('info', `🚀 INSTANT! Static attribute updated in ${latency.toFixed(1)}ms`);
+                            this.metrics.cacheHits++;
+                            this.showToast(`⚡ ${latency.toFixed(0)}ms`, 'success', 800);
+                            this.flashComponent(instance.element);
+                        }
+                        else {
+                            console.warn(`[HotReload] ⚠️ Element not found at path:`, patch.path);
+                        }
+                    }
+                    return;
+                }
+                // Apply template patch to template state (for dynamic templates)
+                const result = templateState.applyTemplatePatch(patch);
+                if (result) {
+                    console.log(`[HotReload] 📝 Template patch result:`, result);
+                    // Get all instances of this component type
+                    const instances = this.minimact.componentRegistry.getByType(componentType);
+                    console.log(`[HotReload] 🔍 Found ${instances.length} instance(s) to update`);
+                    if (instances.length === 0) {
+                        console.warn(`[HotReload] ⚠️ No instances found for type "${componentType}"`);
+                        return;
+                    }
+                    // Apply to each instance
+                    for (const instance of instances) {
+                        const element = this.findElementByPath(instance.element, result.path, componentType);
+                        if (element) {
+                            if (patch.type === 'UpdateTextTemplate') {
+                                // Update text node
+                                if (element.nodeType === Node.TEXT_NODE) {
+                                    element.textContent = result.text;
+                                }
+                                else {
+                                    element.textContent = result.text;
+                                }
+                            }
+                            else if (patch.type === 'UpdatePropTemplate' && patch.attribute) {
+                                // Update attribute (dynamic)
+                                element.setAttribute(patch.attribute, result.text);
+                            }
+                            const latency = performance.now() - startTime;
+                            // 🚀 INSTANT HOT RELOAD!
+                            console.log(`[HotReload] 🚀 INSTANT! Updated instance ${instance.instanceId.substring(0, 8)} in ${latency.toFixed(1)}ms: "${result.text}"`);
+                            this.log('info', `🚀 INSTANT! Template updated in ${latency.toFixed(1)}ms: "${result.text}"`);
+                            this.metrics.cacheHits++;
+                            this.showToast(`⚡ ${latency.toFixed(0)}ms`, 'success', 800);
+                            // Flash component
+                            this.flashComponent(instance.element);
+                        }
+                        else {
+                            console.warn(`[HotReload] ⚠️ Element not found at path:`, result.path);
+                        }
+                    }
+                }
+                else {
+                    console.warn(`[HotReload] ⚠️ Template patch returned no result`);
+                }
+            }
+            catch (error) {
+                this.log('error', 'Template patch failed:', error);
+                this.metrics.errors++;
+                // Fall back to server re-render
+                await this.requestServerRerender(message.componentId, '');
+            }
+        }
+        /**
+         * Check if a path is currently null (not rendered)
+         */
+        isPathNull(componentType, path) {
+            return this.nullPaths.get(componentType)?.has(path) ?? false;
+        }
+        /**
+         * Mark a path as null (not rendered)
+         */
+        setPathNull(componentType, path) {
+            if (!this.nullPaths.has(componentType)) {
+                this.nullPaths.set(componentType, new Set());
+            }
+            this.nullPaths.get(componentType).add(path);
+        }
+        /**
+         * Mark a path as non-null (rendered)
+         */
+        setPathNonNull(componentType, path) {
+            this.nullPaths.get(componentType)?.delete(path);
+        }
+        /**
+         * Update null paths from server patches
+         * The server tells us which paths are null when sending patches
+         */
+        updateNullPaths(componentType, nullPathsFromServer) {
+            this.nullPaths.set(componentType, new Set(nullPathsFromServer));
+        }
+        /**
+         * Find DOM element by hex path string
+         * Example: "10000000.20000000.30000000" → convert to indices and navigate
+         */
+        findElementByPath(root, path, componentType) {
+            if (path === '' || path === '.') {
+                return root;
+            }
+            // Check if path ends with attribute marker (e.g., "10000000.20000000.@style")
+            const segments = path.split('.');
+            const lastSegment = segments[segments.length - 1];
+            const isAttributePath = lastSegment?.startsWith('@');
+            // If attribute path, remove the @attribute segment and find the element
+            const hexSegments = isAttributePath ? segments.slice(0, -1) : segments;
+            let current = root;
+            // Navigate through each depth using lexicographic ordering from template index
+            for (let depth = 0; depth < hexSegments.length; depth++) {
+                const targetHex = hexSegments[depth];
+                if (!current || !current.childNodes)
+                    return null;
+                // Get sorted hex codes from template index
+                const sortedHexCodes = templateState.getHexCodesAtDepth(componentType, depth);
+                if (!sortedHexCodes) {
+                    console.warn(`[HotReload] No hex codes found at depth ${depth} for ${componentType}`);
+                    return null;
+                }
+                // Map VNode hex codes to actual DOM children, skipping nulls
+                // Use the null path map to know which hex codes didn't render
+                let domChildIndex = 0; // Actual DOM child we're at
+                for (const hexCode of sortedHexCodes) {
+                    // Check if this hex code is null (didn't render)
+                    const fullPathSoFar = hexSegments.slice(0, depth).join('.') + (depth > 0 ? '.' : '') + hexCode;
+                    if (templateState.isPathNull(componentType, fullPathSoFar)) {
+                        // This path is null, skip it (don't consume a DOM child)
+                        if (hexCode === targetHex) {
+                            console.warn(`[HotReload] Target path "${fullPathSoFar}" is currently null (not rendered)`);
+                            return null;
+                        }
+                        continue;
+                    }
+                    // This hex code has a corresponding DOM child
+                    if (hexCode === targetHex) {
+                        // Found our target!
+                        current = current.childNodes[domChildIndex] || null;
+                        break;
+                    }
+                    domChildIndex++;
+                }
+                if (!current || domChildIndex >= current.childNodes.length) {
+                    console.warn(`[HotReload] Element "${targetHex}" not found in DOM at depth ${depth}`);
+                    return null;
+                }
+            }
+            return current;
+        }
+        /**
+         * Populate TSX prediction cache from server hints
+         * This integrates with the existing usePredictHint system
+         */
+        populateTsxCache(hint) {
+            if (!hint.tsxPattern || !hint.patches)
+                return;
+            const cacheKey = this.detector.buildCacheKey(hint.componentId, hint.tsxPattern);
+            this.tsxPredictionCache.set(cacheKey, hint.patches);
+            this.log('debug', `📦 Cached TSX pattern: ${cacheKey} (${hint.patches.length} patches)`);
+        }
+        /**
+         * Handle error from server
+         */
+        handleError(message) {
+            this.log('error', `Server error: ${message.error}`);
+            this.metrics.errors++;
+            this.showToast(`❌ ${message.error}`, 'error');
+        }
+        /**
+         * Compute patches between two VNodes
+         * Simple diff algorithm for MVP
+         */
+        computePatches(oldVNode, newVNode) {
+            const patches = [];
+            // For MVP, delegate to existing DOMPatcher
+            // In production, this would use a proper VNode diff algorithm
+            // Simple checks for common cases
+            if (typeof oldVNode === 'string' && typeof newVNode === 'string') {
+                if (oldVNode !== newVNode) {
+                    patches.push({
+                        type: 'text',
+                        value: newVNode
+                    });
+                }
+            }
+            else if (typeof oldVNode === 'object' && typeof newVNode === 'object') {
+                // Check tag
+                if (oldVNode.tag !== newVNode.tag) {
+                    patches.push({
+                        type: 'replace',
+                        vnode: newVNode
+                    });
+                    return patches;
+                }
+                // Check attributes
+                const oldAttrs = oldVNode.attributes || {};
+                const newAttrs = newVNode.attributes || {};
+                for (const key in newAttrs) {
+                    if (oldAttrs[key] !== newAttrs[key]) {
+                        patches.push({
+                            type: 'setAttribute',
+                            name: key,
+                            value: newAttrs[key]
+                        });
+                    }
+                }
+                for (const key in oldAttrs) {
+                    if (!(key in newAttrs)) {
+                        patches.push({
+                            type: 'removeAttribute',
+                            name: key
+                        });
+                    }
+                }
+                // Check children recursively
+                const oldChildren = oldVNode.children || [];
+                const newChildren = newVNode.children || [];
+                for (let i = 0; i < Math.max(oldChildren.length, newChildren.length); i++) {
+                    if (i >= oldChildren.length) {
+                        patches.push({
+                            type: 'appendChild',
+                            vnode: newChildren[i]
+                        });
+                    }
+                    else if (i >= newChildren.length) {
+                        patches.push({
+                            type: 'removeChild',
+                            index: i
+                        });
+                    }
+                    else {
+                        const childPatches = this.computePatches(oldChildren[i], newChildren[i]);
+                        if (childPatches.length > 0) {
+                            patches.push({
+                                type: 'patchChild',
+                                index: i,
+                                patches: childPatches
+                            });
+                        }
+                    }
+                }
+            }
+            return patches;
+        }
+        /**
+         * Check if two VNodes match
+         */
+        vnodesMatch(vnode1, vnode2) {
+            // Deep equality check
+            return JSON.stringify(vnode1) === JSON.stringify(vnode2);
+        }
+        /**
+         * Flash component to show update
+         */
+        flashComponent(element) {
+            element.style.transition = 'box-shadow 0.3s ease';
+            element.style.boxShadow = '0 0 10px 2px rgba(255, 165, 0, 0.6)';
+            setTimeout(() => {
+                element.style.boxShadow = '';
+                setTimeout(() => {
+                    element.style.transition = '';
+                }, 300);
+            }, 300);
+        }
+        /**
+         * Update metrics
+         */
+        updateMetrics(latency) {
+            this.metrics.updateCount++;
+            this.metrics.lastUpdateTime = Date.now();
+            // Running average
+            this.metrics.averageLatency =
+                (this.metrics.averageLatency * (this.metrics.updateCount - 1) + latency) /
+                    this.metrics.updateCount;
+        }
+        /**
+         * Show toast notification
+         */
+        showToast(message, type = 'info', duration = 2000) {
+            if (!this.config.showNotifications)
+                return;
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+      color: white;
+      border-radius: 6px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+    `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        /**
+         * Log message
+         */
+        log(level, ...args) {
+            const levels = { debug: 0, info: 1, warn: 2, error: 3 };
+            const configLevel = levels[this.config.logLevel];
+            const messageLevel = levels[level];
+            if (messageLevel >= configLevel) {
+                const prefix = '[Minimact HMR]';
+                console[level](prefix, ...args);
+            }
+        }
+        /**
+         * Get current metrics
+         */
+        getMetrics() {
+            return { ...this.metrics };
+        }
+        /**
+         * Enable hot reload
+         */
+        enable() {
+            if (!this.config.enabled) {
+                this.config.enabled = true;
+                this.connect();
+            }
+        }
+        /**
+         * Disable hot reload
+         */
+        disable() {
+            this.config.enabled = false;
+            if (this.ws) {
+                this.ws.close();
+                this.ws = null;
+            }
+        }
+        /**
+         * Cleanup
+         */
+        dispose() {
+            this.disable();
+            this.previousVNodes.clear();
+            this.pendingVerifications.clear();
+        }
+    }
+    // Add CSS animation for toast
+    const style = document.createElement('style');
+    style.textContent = `
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+`;
+    document.head.appendChild(style);
+
+    /**
+     * MinimactComponentRegistry
+     *
+     * First-class system for tracking component instances by type.
+     * Bridges the gap between type-based templates (ProductDetailsPage)
+     * and instance-based rendering (GUID e11850fd-...).
+     *
+     * Responsibilities:
+     * - Register component instances during hydration
+     * - Lookup instances by type (for hot reload)
+     * - Lookup instance by ID (for patches)
+     * - Unregister components on cleanup
+     */
+    class MinimactComponentRegistry {
+        constructor() {
+            /** Map: componentType → Set<ComponentMetadata> */
+            this.typeToInstances = new Map();
+            /** Map: instanceId → ComponentMetadata */
+            this.instanceToMeta = new Map();
+        }
+        /**
+         * Register a component instance
+         * Called during hydration when component is discovered
+         */
+        register(meta) {
+            const { type, instanceId } = meta;
+            // Add to instance lookup
+            this.instanceToMeta.set(instanceId, meta);
+            // Add to type lookup
+            if (!this.typeToInstances.has(type)) {
+                this.typeToInstances.set(type, new Set());
+            }
+            this.typeToInstances.get(type).add(meta);
+            console.log(`[Registry] ✅ Registered ${type} instance ${instanceId.substring(0, 8)}...`);
+        }
+        /**
+         * Unregister a component instance
+         * Called during cleanup or when component is removed
+         */
+        unregister(instanceId) {
+            const meta = this.instanceToMeta.get(instanceId);
+            if (!meta)
+                return;
+            // Remove from instance lookup
+            this.instanceToMeta.delete(instanceId);
+            // Remove from type lookup
+            const instances = this.typeToInstances.get(meta.type);
+            if (instances) {
+                instances.delete(meta);
+                if (instances.size === 0) {
+                    this.typeToInstances.delete(meta.type);
+                }
+            }
+            console.log(`[Registry] ❌ Unregistered ${meta.type} instance ${instanceId.substring(0, 8)}...`);
+        }
+        /**
+         * Get all instances of a component type
+         * Used by hot reload to apply templates to all instances
+         */
+        getByType(type) {
+            const instances = this.typeToInstances.get(type);
+            return instances ? Array.from(instances) : [];
+        }
+        /**
+         * Get a specific component instance by ID
+         * Used by patch application and state updates
+         */
+        getByInstanceId(instanceId) {
+            return this.instanceToMeta.get(instanceId);
+        }
+        /**
+         * Get all registered component types
+         */
+        getTypes() {
+            return Array.from(this.typeToInstances.keys());
+        }
+        /**
+         * Get total number of registered instances
+         */
+        getInstanceCount() {
+            return this.instanceToMeta.size;
+        }
+        /**
+         * Get statistics for debugging
+         */
+        getStats() {
+            const typeBreakdown = {};
+            for (const [type, instances] of this.typeToInstances.entries()) {
+                typeBreakdown[type] = instances.size;
+            }
+            return {
+                types: this.typeToInstances.size,
+                instances: this.instanceToMeta.size,
+                typeBreakdown
+            };
+        }
+        /**
+         * Clear all registered components
+         * Used for testing or full page reset
+         */
+        clear() {
+            this.typeToInstances.clear();
+            this.instanceToMeta.clear();
+            console.log(`[Registry] 🧹 Cleared all components`);
+        }
+    }
+
+    /**
      * Client-Computed State Manager
      *
      * Manages variables that are computed on the client using external libraries
@@ -2585,213 +4186,6 @@ var Minimact = (function (exports) {
             components
         };
     }
-
-    /**
-     * Template State Manager - Client-Side Template Rendering
-     *
-     * Manages "virtual state" for text nodes using parameterized templates.
-     * This enables instant hot reload with 100% coverage and minimal memory.
-     *
-     * Architecture:
-     * - Templates loaded from .templates.json at component init
-     * - State changes trigger template re-rendering
-     * - Hot reload updates templates without server round-trip
-     *
-     * Memory: ~2KB per component (vs 100KB with prediction-based approach)
-     * Coverage: 100% (works with any value)
-     * Latency: <5ms for template updates
-     */
-    /**
-     * Template State Manager
-     */
-    class TemplateStateManager {
-        constructor() {
-            this.templates = new Map();
-            this.componentStates = new Map();
-        }
-        /**
-         * Initialize templates from .templates.json file
-         */
-        loadTemplateMap(componentId, templateMap) {
-            console.log(`[TemplateState] Loading ${Object.keys(templateMap.templates).length} templates for ${componentId}`);
-            for (const [nodePath, template] of Object.entries(templateMap.templates)) {
-                const key = `${componentId}:${nodePath}`;
-                this.templates.set(key, template);
-            }
-            // Initialize component state tracking
-            if (!this.componentStates.has(componentId)) {
-                this.componentStates.set(componentId, new Map());
-            }
-        }
-        /**
-         * Register a template for a specific node path
-         */
-        registerTemplate(componentId, nodePath, template) {
-            const key = `${componentId}:${nodePath}`;
-            this.templates.set(key, template);
-        }
-        /**
-         * Get template by component ID and node path
-         */
-        getTemplate(componentId, nodePath) {
-            const key = `${componentId}:${nodePath}`;
-            return this.templates.get(key);
-        }
-        /**
-         * Get all templates for a component
-         */
-        getComponentTemplates(componentId) {
-            const result = new Map();
-            for (const [key, template] of this.templates.entries()) {
-                if (key.startsWith(`${componentId}:`)) {
-                    const nodePath = key.substring(componentId.length + 1);
-                    result.set(nodePath, template);
-                }
-            }
-            return result;
-        }
-        /**
-         * Get templates bound to a specific state variable
-         */
-        getTemplatesBoundTo(componentId, stateKey) {
-            const templates = [];
-            for (const [key, template] of this.templates.entries()) {
-                if (key.startsWith(`${componentId}:`) && template.bindings.includes(stateKey)) {
-                    templates.push(template);
-                }
-            }
-            return templates;
-        }
-        /**
-         * Update component state (from useState)
-         */
-        updateState(componentId, stateKey, value) {
-            let state = this.componentStates.get(componentId);
-            if (!state) {
-                state = new Map();
-                this.componentStates.set(componentId, state);
-            }
-            state.set(stateKey, value);
-        }
-        /**
-         * Get component state value
-         */
-        getStateValue(componentId, stateKey) {
-            return this.componentStates.get(componentId)?.get(stateKey);
-        }
-        /**
-         * Render template with current state values
-         */
-        render(componentId, nodePath) {
-            const template = this.getTemplate(componentId, nodePath);
-            if (!template)
-                return null;
-            // Get state values for bindings
-            const params = template.bindings.map(binding => this.getStateValue(componentId, binding));
-            return this.renderWithParams(template.template, params);
-        }
-        /**
-         * Render template with specific parameter values
-         */
-        renderWithParams(template, params) {
-            let result = template;
-            // Replace {0}, {1}, etc. with parameter values
-            params.forEach((param, index) => {
-                const placeholder = `{${index}}`;
-                const value = param !== undefined && param !== null ? String(param) : '';
-                result = result.replace(placeholder, value);
-            });
-            return result;
-        }
-        /**
-         * Apply template patch from hot reload
-         */
-        applyTemplatePatch(patch) {
-            const { componentId, path, template, params, bindings, slots, attribute } = patch;
-            // Render template with params
-            const text = this.renderWithParams(template, params);
-            // Build node path key
-            const nodePath = this.buildNodePathKey(path);
-            const key = `${componentId}:${nodePath}`;
-            // Update stored template
-            const existingTemplate = this.templates.get(key);
-            if (existingTemplate) {
-                existingTemplate.template = template;
-                existingTemplate.bindings = bindings;
-                existingTemplate.slots = slots;
-                if (attribute) {
-                    existingTemplate.attribute = attribute;
-                }
-            }
-            else {
-                // Register new template
-                this.templates.set(key, {
-                    template,
-                    bindings,
-                    slots,
-                    path,
-                    type: attribute ? 'attribute' : 'dynamic',
-                    attribute
-                });
-            }
-            console.log(`[TemplateState] Applied template patch: "${template}" → "${text}"`);
-            return { text, path };
-        }
-        /**
-         * Build node path key from path array
-         * Example: [0, 1, 0] → "0_1_0"
-         */
-        buildNodePathKey(path) {
-            return path.join('_');
-        }
-        /**
-         * Clear all templates for a component
-         */
-        clearComponent(componentId) {
-            const keysToDelete = [];
-            for (const key of this.templates.keys()) {
-                if (key.startsWith(`${componentId}:`)) {
-                    keysToDelete.push(key);
-                }
-            }
-            for (const key of keysToDelete) {
-                this.templates.delete(key);
-            }
-            this.componentStates.delete(componentId);
-        }
-        /**
-         * Clear all templates
-         */
-        clear() {
-            this.templates.clear();
-            this.componentStates.clear();
-        }
-        /**
-         * Get statistics
-         */
-        getStats() {
-            const componentCount = this.componentStates.size;
-            const templateCount = this.templates.size;
-            // Estimate memory usage (rough estimate)
-            let memoryBytes = 0;
-            for (const template of this.templates.values()) {
-                memoryBytes += template.template.length * 2; // UTF-16
-                memoryBytes += template.bindings.length * 20; // Rough estimate
-                memoryBytes += template.slots.length * 4; // 4 bytes per number
-                memoryBytes += template.path.length * 4;
-            }
-            return {
-                componentCount,
-                templateCount,
-                memoryKB: Math.round(memoryBytes / 1024),
-                avgTemplatesPerComponent: templateCount / Math.max(componentCount, 1)
-            };
-        }
-    }
-    /**
-     * Global template state manager instance
-     */
-    const templateState = new TemplateStateManager();
 
     /**
      * Server Task - Client-side representation of a long-running server task
@@ -3315,12 +4709,16 @@ var Minimact = (function (exports) {
         currentContext$1 = null;
     }
     /**
-     * Find DOM element by path array
-     * Example: [0, 1, 0] → first child, second child, first child
+     * Find DOM element by hex path string
+     * Example: "10000000.20000000.30000000" → convert to indices and navigate
      */
     function findElementByPath(root, path) {
+        if (path === '' || path === '.') {
+            return root;
+        }
         let current = root;
-        for (const index of path) {
+        const indices = path.split('.').map(hex => parseInt(hex, 16));
+        for (const index of indices) {
             if (!current || !current.childNodes)
                 return null;
             current = current.childNodes[index] || null;
@@ -3390,8 +4788,8 @@ var Minimact = (function (exports) {
             // Re-render templates bound to this state
             const boundTemplates = templateState.getTemplatesBoundTo(context.componentId, stateKey);
             for (const template of boundTemplates) {
-                // Build node path from template path array
-                const nodePath = template.path.join('_');
+                // Build node path key from hex path string
+                const nodePath = template.path.replace(/\./g, '_');
                 // Render template with new value
                 const newText = templateState.render(context.componentId, nodePath);
                 if (newText !== null) {
@@ -3665,6 +5063,43 @@ var Minimact = (function (exports) {
             context.serverReducers.set(reducerKey, reducer);
         }
         return context.serverReducers.get(reducerKey);
+    }
+    /**
+     * useMarkdown hook - for markdown content that gets parsed to HTML on server
+     *
+     * Pattern: const [content, setContent] = useMarkdown('# Hello World');
+     *
+     * Server-side behavior:
+     * - Babel transpiles this to [Markdown][State] string field
+     * - Server renders markdown → HTML via MarkdownHelper.ToHtml()
+     * - JSX references get wrapped in DivRawHtml(MarkdownHelper.ToHtml(content))
+     *
+     * Client-side behavior:
+     * - Behaves exactly like useState<string>
+     * - Receives pre-rendered HTML in patches from server
+     * - State changes sync to server (which re-renders markdown to HTML)
+     *
+     * Example:
+     * ```tsx
+     * const [content, setContent] = useMarkdown('# Title\n\n**Bold text**');
+     *
+     * return (
+     *   <div>
+     *     {content}  // Server renders as: <h1>Title</h1><p><strong>Bold text</strong></p>
+     *   </div>
+     * );
+     * ```
+     *
+     * @param initialValue - Initial markdown string
+     * @returns Tuple of [content, setContent] where content is markdown string
+     */
+    function useMarkdown(initialValue) {
+        // useMarkdown is just useState<string> on the client
+        // The magic happens on the server:
+        // 1. Babel recognizes useMarkdown and marks field as [Markdown]
+        // 2. JSX transpiler wraps references in MarkdownHelper.ToHtml()
+        // 3. Server sends pre-rendered HTML to client
+        return useState(initialValue);
     }
 
     /**
@@ -4252,6 +5687,93 @@ var Minimact = (function (exports) {
     }
 
     /**
+     * Hook: useSignalR
+     * Connects to a SignalR hub using the lightweight SignalM client
+     *
+     * This is the SignalM-based implementation of useSignalR.
+     * It connects to server-side SignalR hubs but uses the lightweight SignalM client.
+     * Bundle size: ~3 KB vs 15 KB for full SignalR client.
+     *
+     * Usage:
+     * const notifications = useSignalR('/minimact', (message) => {
+     *   console.log('New notification:', message);
+     * });
+     */
+    function useSignalR(hubUrl, onMessage, options = {}) {
+        // Create SignalM manager for this hub (lightweight client for SignalR server)
+        const manager = new SignalMManager(hubUrl, {
+            reconnectInterval: options.reconnectInterval,
+            debugLogging: options.debugLogging
+        });
+        // Initialize state
+        const state = {
+            data: null,
+            error: null,
+            connected: false,
+            connectionId: null
+        };
+        // Setup event handlers
+        manager.on('connected', ({ connectionId }) => {
+            state.connected = true;
+            state.connectionId = connectionId || null;
+            state.error = null;
+        });
+        manager.on('reconnected', ({ connectionId }) => {
+            state.connected = true;
+            state.connectionId = connectionId || null;
+            state.error = null;
+        });
+        manager.on('closed', ({ error }) => {
+            state.connected = false;
+            state.connectionId = null;
+            if (error) {
+                state.error = error.toString();
+            }
+        });
+        manager.on('error', ({ message }) => {
+            state.error = message;
+        });
+        // Setup message handler if provided
+        if (onMessage) {
+            manager.on('message', (data) => {
+                state.data = data;
+                onMessage(data);
+            });
+        }
+        // Auto-connect if enabled (default: true)
+        if (options.autoConnect !== false) {
+            manager.start().catch(error => {
+                state.error = error.message;
+                console.error('[Minimact useSignalR] Auto-connect failed:', error);
+            });
+        }
+        return {
+            state,
+            send: async (methodName, ...args) => {
+                try {
+                    await manager.invoke(methodName, ...args);
+                }
+                catch (error) {
+                    state.error = error.message;
+                    throw error;
+                }
+            },
+            on: (methodName, handler) => {
+                manager.on(methodName, handler);
+            },
+            off: (methodName, handler) => {
+                manager.off(methodName, handler);
+            },
+            connect: async () => {
+                await manager.start();
+            },
+            disconnect: async () => {
+                await manager.stop();
+            }
+        };
+    }
+
+    /**
      * Main Minimact client runtime
      * Orchestrates SignalM (lightweight WebSocket), DOM patching, state management, and hydration
      *
@@ -4259,6 +5781,7 @@ var Minimact = (function (exports) {
      */
     class Minimact {
         constructor(rootElement = document.body, options = {}) {
+            this.hotReload = null;
             this.eventDelegation = null;
             // Resolve root element
             if (typeof rootElement === 'string') {
@@ -4275,7 +5798,9 @@ var Minimact = (function (exports) {
             this.options = {
                 hubUrl: options.hubUrl || '/minimact',
                 enableDebugLogging: options.enableDebugLogging || false,
-                reconnectInterval: options.reconnectInterval || 5000
+                reconnectInterval: options.reconnectInterval || 5000,
+                enableHotReload: options.enableHotReload !== false, // Default to true
+                hotReloadWsUrl: options.hotReloadWsUrl
             };
             // Initialize subsystems (using lightweight SignalM!)
             this.signalR = new SignalMManager(this.options.hubUrl, {
@@ -4283,7 +5808,8 @@ var Minimact = (function (exports) {
                 debugLogging: this.options.enableDebugLogging
             });
             this.domPatcher = new DOMPatcher({
-                debugLogging: this.options.enableDebugLogging
+                debugLogging: this.options.enableDebugLogging,
+                templateState: templateState
             });
             this.clientState = new ClientStateManager({
                 debugLogging: this.options.enableDebugLogging
@@ -4297,19 +5823,35 @@ var Minimact = (function (exports) {
             this.playgroundBridge = new PlaygroundBridge({
                 debugLogging: this.options.enableDebugLogging
             });
+            this.componentRegistry = new MinimactComponentRegistry();
+            // Initialize hot reload if enabled
+            if (this.options.enableHotReload) {
+                this.hotReload = new HotReloadManager(this, {
+                    enabled: true,
+                    wsUrl: this.options.hotReloadWsUrl,
+                    debounceMs: 50,
+                    showNotifications: true,
+                    logLevel: this.options.enableDebugLogging ? 'debug' : 'info'
+                });
+            }
             // Enable debug logging for client-computed module
             setDebugLogging(this.options.enableDebugLogging);
-            this.setupSignalRHandlers();
             this.log('Minimact initialized', { rootElement: this.rootElement, options: this.options });
         }
         /**
          * Start the Minimact runtime
          */
         async start() {
+            // Setup SignalR handlers BEFORE starting connection
+            this.setupSignalRHandlers();
             // Connect to SignalR hub
             await this.signalR.start();
             // Hydrate all components
             this.hydration.hydrateAll();
+            // Register hydrated components in registry
+            console.log('[Minimact] 🔍 Registering hydrated components...');
+            this.registerHydratedComponents();
+            console.log('[Minimact] 📊 Registry stats:', this.componentRegistry.getStats());
             // Setup event delegation
             this.eventDelegation = new EventDelegation(this.rootElement, (componentId, methodName, args) => this.signalR.invokeComponentMethod(componentId, methodName, args), { debugLogging: this.options.enableDebugLogging });
             // Register all components with server
@@ -4343,7 +5885,7 @@ var Minimact = (function (exports) {
             this.signalR.on('applyPatches', ({ componentId, patches }) => {
                 const component = this.hydration.getComponent(componentId);
                 if (component) {
-                    this.domPatcher.applyPatches(component.element, patches);
+                    this.domPatcher.applyPatches(component.element, patches, componentId);
                     this.log('Patches applied', { componentId, patchCount: patches.length });
                 }
             });
@@ -4351,7 +5893,7 @@ var Minimact = (function (exports) {
             this.signalR.on('applyPrediction', ({ componentId, patches, confidence }) => {
                 const component = this.hydration.getComponent(componentId);
                 if (component) {
-                    this.domPatcher.applyPatches(component.element, patches);
+                    this.domPatcher.applyPatches(component.element, patches, componentId);
                     this.log(`Prediction applied (${(confidence * 100).toFixed(0)}% confident)`, { componentId, patchCount: patches.length });
                 }
             });
@@ -4359,7 +5901,7 @@ var Minimact = (function (exports) {
             this.signalR.on('applyCorrection', ({ componentId, patches }) => {
                 const component = this.hydration.getComponent(componentId);
                 if (component) {
-                    this.domPatcher.applyPatches(component.element, patches);
+                    this.domPatcher.applyPatches(component.element, patches, componentId);
                     this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
                 }
             });
@@ -4392,6 +5934,47 @@ var Minimact = (function (exports) {
                         reducer._updateFromServer(state, error);
                         this.log('Server reducer state updated', { componentId, reducerId });
                     }
+                }
+            });
+            // Handle hot reload messages
+            this.signalR.on('HotReload:TemplateMap', (data) => {
+                console.log('[Minimact] 📨 HotReload:TemplateMap received:', data);
+                console.log('[Minimact] 🔍 HotReload manager exists?', !!this.hotReload);
+                if (this.hotReload) {
+                    this.log('Received template map', { componentId: data.componentId });
+                    // Forward to hot reload manager
+                    this.hotReload.handleMessage({
+                        type: 'template-map',
+                        ...data
+                    });
+                }
+                else {
+                    console.warn('[Minimact] ⚠️ HotReload manager not initialized, cannot process template map');
+                }
+            });
+            this.signalR.on('HotReload:TemplatePatch', (data) => {
+                if (this.hotReload) {
+                    this.log('Received template patch', { componentId: data.componentId });
+                    // Forward to hot reload manager
+                    this.hotReload.handleMessage({
+                        type: 'template-patch',
+                        ...data
+                    });
+                }
+            });
+            this.signalR.on('HotReload:FileChange', (data) => {
+                if (this.hotReload) {
+                    this.log('Received file change', { componentId: data.componentId });
+                    // Forward to hot reload manager
+                    this.hotReload.handleMessage({
+                        type: 'file-change',
+                        ...data
+                    });
+                }
+            });
+            this.signalR.on('HotReload:Error', (data) => {
+                if (this.hotReload) {
+                    console.error('[Minimact Hot Reload] Error:', data.error);
                 }
             });
             // Handle errors
@@ -4428,6 +6011,40 @@ var Minimact = (function (exports) {
          */
         getComponent(componentId) {
             return this.hydration.getComponent(componentId);
+        }
+        /**
+         * Register all hydrated components in the registry
+         * Extracts component type from ViewModel metadata
+         */
+        registerHydratedComponents() {
+            // Get ViewModel with component metadata
+            const viewModel = window.__MINIMACT_VIEWMODEL__;
+            if (!viewModel || !viewModel._componentType || !viewModel._componentId) {
+                console.warn('[Minimact] ViewModel metadata missing _componentType or _componentId');
+                return;
+            }
+            const componentType = viewModel._componentType;
+            const instanceId = viewModel._componentId;
+            // Find the component element
+            const element = document.querySelector(`[data-minimact-component-id="${instanceId}"]`);
+            if (!element) {
+                console.warn(`[Minimact] Component element not found for ${instanceId}`);
+                return;
+            }
+            // Get component metadata from hydration
+            const component = this.hydration.getComponent(instanceId);
+            if (!component) {
+                console.warn(`[Minimact] Component not hydrated for ${instanceId}`);
+                return;
+            }
+            // Register in registry
+            this.componentRegistry.register({
+                type: componentType,
+                instanceId: instanceId,
+                element: element,
+                context: component.context
+            });
+            console.log(`[Minimact] Registered ${componentType} (${instanceId.substring(0, 8)}...) in registry`);
         }
         /**
          * Get client state for a component
@@ -4525,8 +6142,10 @@ var Minimact = (function (exports) {
     exports.DOMPatcher = DOMPatcher;
     exports.EventDelegation = EventDelegation;
     exports.HintQueue = HintQueue;
+    exports.HotReloadManager = HotReloadManager;
     exports.HydrationManager = HydrationManager;
     exports.Minimact = Minimact;
+    exports.MinimactComponentRegistry = MinimactComponentRegistry;
     exports.SignalMManager = SignalMManager;
     exports.TemplateRenderer = TemplateRenderer;
     exports.TemplateStateManager = TemplateStateManager;
@@ -4553,12 +6172,14 @@ var Minimact = (function (exports) {
     exports.useEffect = useEffect;
     exports.useIdleCallback = useIdleCallback;
     exports.useMacroTask = useMacroTask;
+    exports.useMarkdown = useMarkdown;
     exports.useMicroTask = useMicroTask;
     exports.usePaginatedServerTask = usePaginatedServerTask;
     exports.usePub = usePub;
     exports.useRef = useRef;
     exports.useServerReducer = useServerReducer;
     exports.useServerTask = useServerTask;
+    exports.useSignalR = useSignalR;
     exports.useState = useState;
     exports.useSub = useSub;
 

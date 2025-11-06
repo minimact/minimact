@@ -341,7 +341,7 @@ public class TemplateHotReloadManager : IDisposable
         // Build hex path from template path
         // Note: Client-side null path tracking handles null-skipping during DOM navigation,
         // so server no longer needs to adjust paths for null children
-        var hexPath = string.Join(".", template.Path);
+        var hexPath = InflateHexPath(template.Path);
 
         // Append attribute suffix if this is an attribute template
         if (template.Attribute != null)
@@ -413,7 +413,7 @@ public class TemplateHotReloadManager : IDisposable
         };
 
         // Build path with attribute suffix if present
-        var fallbackPath = string.Join(".", template.Path);
+        var fallbackPath = InflateHexPath(template.Path);
         if (template.Attribute != null)
         {
             fallbackPath = $"{fallbackPath}.@{template.Attribute}";
@@ -577,6 +577,40 @@ public class TemplateHotReloadManager : IDisposable
     private List<string> ExtractNullPaths(VNode rootVNode)
     {
         return PatchPathAdjuster.ExtractNullPaths(rootVNode);
+    }
+
+    /// <summary>
+    /// Inflate compact hex path array to full format for Rust compatibility
+    /// Converts ["1", "2", "3"] to "10000000.20000000.30000000"
+    /// This allows Babel to emit compact paths while maintaining compatibility with Rust reconciler
+    /// </summary>
+    private const uint HEX_GAP = 0x10000000;
+
+    private static string InflateHexPath(List<string> compactPathSegments)
+    {
+        if (compactPathSegments == null || compactPathSegments.Count == 0)
+            return string.Empty;
+
+        var inflatedSegments = new List<string>(compactPathSegments.Count);
+
+        foreach (var segment in compactPathSegments)
+        {
+            // Parse compact hex (e.g., "1" = 0x1)
+            if (uint.TryParse(segment, System.Globalization.NumberStyles.HexNumber, null, out uint value))
+            {
+                // Multiply by HEX_GAP to get aligned value (0x1 -> 0x10000000)
+                uint inflated = value * HEX_GAP;
+                // Format as 8-digit hex
+                inflatedSegments.Add(inflated.ToString("x8"));
+            }
+            else
+            {
+                // If parse fails, keep original segment (shouldn't happen, but handle gracefully)
+                inflatedSegments.Add(segment);
+            }
+        }
+
+        return string.Join(".", inflatedSegments);
     }
 
     public void Dispose()
