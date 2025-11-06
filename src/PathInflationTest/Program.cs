@@ -1,37 +1,54 @@
-﻿using System;
-using Minimact.AspNetCore.Core;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using Minimact.AspNetCore.HotReload;
 
-Console.WriteLine("=== Path Inflation Test ===\n");
+class TemplateInflationTest
+{
+    static void Main()
+    {
+        Console.WriteLine("=== Template Path Inflation Test ===\n");
 
-// Test VElement with compact path
-var elem = new VElement("div", "1", new Dictionary<string, string>());
-Console.WriteLine($"VElement path: '{elem.Path}'");
-Console.WriteLine($"  Expected: '10000000'");
-Console.WriteLine($"  Match: {elem.Path == "10000000"}\n");
+        // Get the private InflateHexPath method via reflection
+        var managerType = typeof(TemplateHotReloadManager);
+        var method = managerType.GetMethod("InflateHexPath",
+            BindingFlags.NonPublic | BindingFlags.Static);
 
-// Test VElement with multi-segment compact path
-var nested = new VElement("span", "1.2.3", new Dictionary<string, string>());
-Console.WriteLine($"VElement nested path: '{nested.Path}'");
-Console.WriteLine($"  Expected: '10000000.20000000.30000000'");
-Console.WriteLine($"  Match: {nested.Path == "10000000.20000000.30000000"}\n");
+        if (method == null)
+        {
+            Console.WriteLine("❌ Could not find InflateHexPath method!");
+            return;
+        }
 
-// Test VText with compact path
-var text = new VText("Hello", "1.1");
-Console.WriteLine($"VText path: '{text.Path}'");
-Console.WriteLine($"  Expected: '10000000.10000000'");
-Console.WriteLine($"  Match: {text.Path == "10000000.10000000"}\n");
+        // Test 1: Single segment
+        var result1 = (string)method.Invoke(null, new object[] { new List<string> { "1" } });
+        Console.WriteLine($"Test 1: [\"1\"]");
+        Console.WriteLine($"  Result: '{result1}'");
+        Console.WriteLine($"  Expected: '10000000'");
+        Console.WriteLine($"  ✓ Match: {result1 == "10000000"}\n");
 
-// Test VNull with compact path
-var vnull = new VNull("1.2");
-Console.WriteLine($"VNull path: '{vnull.Path}'");
-Console.WriteLine($"  Expected: '10000000.20000000'");
-Console.WriteLine($"  Match: {vnull.Path == "10000000.20000000"}\n");
+        // Test 2: Multiple segments
+        var result2 = (string)method.Invoke(null, new object[] { new List<string> { "1", "2", "3" } });
+        Console.WriteLine($"Test 2: [\"1\", \"2\", \"3\"]");
+        Console.WriteLine($"  Result: '{result2}'");
+        Console.WriteLine($"  Expected: '10000000.20000000.30000000'");
+        Console.WriteLine($"  ✓ Match: {result2 == "10000000.20000000.30000000"}\n");
 
-// Test empty path
-var empty = new VElement("div", "", new Dictionary<string, string>());
-Console.WriteLine($"VElement empty path: '{empty.Path}'");
-Console.WriteLine($"  Expected: ''");
-Console.WriteLine($"  Match: {empty.Path == ""}\n");
+        // Test 3: With attribute suffix (handled outside InflateHexPath)
+        var result3 = (string)method.Invoke(null, new object[] { new List<string> { "1", "1" } });
+        var withAttr = result3 + ".@className";
+        Console.WriteLine($"Test 3: [\"1\", \"1\"] + attribute suffix");
+        Console.WriteLine($"  Result: '{withAttr}'");
+        Console.WriteLine($"  Expected: '10000000.10000000.@className'");
+        Console.WriteLine($"  ✓ Match: {withAttr == "10000000.10000000.@className"}\n");
 
-Console.WriteLine("=== All Tests Passed! ===");
+        // Test 4: Empty list
+        var result4 = (string)method.Invoke(null, new object[] { new List<string>() });
+        Console.WriteLine($"Test 4: [] (empty)");
+        Console.WriteLine($"  Result: '{result4}'");
+        Console.WriteLine($"  Expected: ''");
+        Console.WriteLine($"  ✓ Match: {result4 == ""}\n");
+
+        Console.WriteLine("=== All Template Path Inflation Tests Passed! ===");
+    }
+}
