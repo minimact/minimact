@@ -229,17 +229,18 @@ pub enum Patch {
 }
 
 impl VNode {
-    /// Create a new element node
+    /// Create a new element node (for testing - no path)
     pub fn element(tag: impl Into<String>, props: HashMap<String, String>, children: Vec<Option<VNode>>) -> Self {
         VNode::Element(VElement {
             tag: tag.into(),
             props,
             children,
             key: None,
+            path: HexPath::root(),  // Empty path for test nodes
         })
     }
 
-    /// Create a new element node with a key
+    /// Create a new element node with a key (for testing - no path)
     pub fn keyed_element(
         tag: impl Into<String>,
         key: impl Into<String>,
@@ -251,13 +252,15 @@ impl VNode {
             props,
             children,
             key: Some(key.into()),
+            path: HexPath::root(),  // Empty path for test nodes
         })
     }
 
-    /// Create a new text node
+    /// Create a new text node (for testing - no path)
     pub fn text(content: impl Into<String>) -> Self {
         VNode::Text(VText {
             content: content.into(),
+            path: HexPath::root(),  // Empty path for test nodes
         })
     }
 
@@ -266,6 +269,16 @@ impl VNode {
         match self {
             VNode::Element(el) => el.key.as_deref(),
             VNode::Text(_) => None,
+            VNode::Null(_) => None,
+        }
+    }
+
+    /// Get the hex path of this node
+    pub fn path(&self) -> &HexPath {
+        match self {
+            VNode::Element(el) => &el.path,
+            VNode::Text(txt) => &txt.path,
+            VNode::Null(null) => &null.path,
         }
     }
 
@@ -279,19 +292,26 @@ impl VNode {
         matches!(self, VNode::Element(_))
     }
 
+    /// Check if this node is a null node
+    pub fn is_null(&self) -> bool {
+        matches!(self, VNode::Null(_))
+    }
+
     /// Get the node type as a string (for error messages)
     pub fn node_type(&self) -> &'static str {
         match self {
             VNode::Element(_) => "Element",
             VNode::Text(_) => "Text",
+            VNode::Null(_) => "Null",
         }
     }
 
-    /// Get the children of this node (empty vec for text nodes)
+    /// Get the children of this node (empty vec for text/null nodes)
     pub fn children(&self) -> &[Option<VNode>] {
         match self {
             VNode::Element(el) => &el.children,
             VNode::Text(_) => &[],
+            VNode::Null(_) => &[],
         }
     }
 
@@ -300,6 +320,7 @@ impl VNode {
         match self {
             VNode::Element(el) => el.children.len(),
             VNode::Text(_) => 0,
+            VNode::Null(_) => 0,
         }
     }
 
@@ -308,6 +329,7 @@ impl VNode {
         match self {
             VNode::Element(el) => el.children.iter().filter(|c| c.is_some()).count(),
             VNode::Text(_) => 0,
+            VNode::Null(_) => 0,
         }
     }
 }

@@ -67,6 +67,7 @@ impl VNode {
                 }
             }
             VNode::Text(_) => {}
+            VNode::Null(_) => {}  // Null nodes have no depth
         }
 
         Ok(())
@@ -93,6 +94,7 @@ impl VNode {
                     .map(|opt_c| opt_c.as_ref().map_or(0, |c| c.count_nodes()))
                     .sum::<usize>()
             }
+            VNode::Null(_) => 1,  // Null nodes count as 1 (placeholder)
         }
     }
 
@@ -141,6 +143,7 @@ impl VNode {
                     }
                 }
             }
+            VNode::Null(_) => {}  // Null nodes have no content to validate
         }
 
         Ok(())
@@ -165,6 +168,7 @@ impl VNode {
 
                 base + tag + key + props + children
             }
+            VNode::Null(_) => std::mem::size_of::<crate::vdom::VNull>(),  // Just the struct size
         }
     }
 }

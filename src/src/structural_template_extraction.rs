@@ -99,6 +99,13 @@ pub fn extract_structural_template(
 /// - Significantly different structure
 fn is_structural_change(old_node: &VNode, new_node: &VNode) -> bool {
     match (old_node, new_node) {
+        // Null to non-Null or vice versa = structural change
+        (VNode::Null(_), VNode::Element(_) | VNode::Text(_)) => true,
+        (VNode::Element(_) | VNode::Text(_), VNode::Null(_)) => true,
+
+        // Both null = no structural change
+        (VNode::Null(_), VNode::Null(_)) => false,
+
         // Text to Element or vice versa = structural change
         (VNode::Text(_), VNode::Element(_)) => true,
         (VNode::Element(_), VNode::Text(_)) => true,

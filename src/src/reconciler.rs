@@ -22,7 +22,7 @@ pub fn reconcile(old: &VNode, new: &VNode) -> Result<Vec<Patch>> {
     }
 
     let mut patches = Vec::new();
-    let result = reconcile_node(old, new, &HexPath::root(), &mut patches);
+    let result = reconcile_node(old, new, &mut patches);
 
     let duration = start.elapsed();
     match result {
@@ -48,11 +48,28 @@ pub fn reconcile_with_config(
     new.validate(config)?;
 
     let mut patches = Vec::new();
-    reconcile_node(old, new, &HexPath::root(), &mut patches)?;
+    reconcile_node(old, new, &mut patches)?;
     Ok(patches)
 }
 
-fn reconcile_node(old: &VNode, new: &VNode, path: &HexPath, patches: &mut Vec<Patch>) -> Result<()> {
+fn reconcile_node(old: &VNode, new: &VNode, patches: &mut Vec<Patch>) -> Result<()> {
+    // Get path from new VNode (paths come from transpilation)
+    let path = new.path();
+
+    // Early exit: if paths differ, nodes were moved/replaced
+    if old.path() != path {
+        patches.push(Patch::Replace {
+            path: path.clone(),
+            node: new.clone(),
+        });
+        return Ok(());
+    }
+
+    // Early exit: if nodes are identical, no changes needed (optimization for hot reload)
+    if old == new {
+        return Ok(());
+    }
+
     match (old, new) {
         // Both are text nodes
         (VNode::Text(old_text), VNode::Text(new_text)) => {
@@ -62,6 +79,11 @@ fn reconcile_node(old: &VNode, new: &VNode, path: &HexPath, patches: &mut Vec<Pa
                     content: new_text.content.clone(),
                 });
             }
+        }
+
+        // Both are null nodes - no changes needed
+        (VNode::Null(_), VNode::Null(_)) => {
+            // No-op: null → null
         }
 
         // Both are elements with the same tag
@@ -75,7 +97,7 @@ fn reconcile_node(old: &VNode, new: &VNode, path: &HexPath, patches: &mut Vec<Pa
             }
 
             // Reconcile children
-            reconcile_children(old_el, new_el, path, patches)?;
+            reconcile_children(old_el, new_el, patches)?;
         }
 
         // Different node types or different tags - replace entire subtree
@@ -92,7 +114,6 @@ fn reconcile_node(old: &VNode, new: &VNode, path: &HexPath, patches: &mut Vec<Pa
 fn reconcile_children(
     old_el: &VElement,
     new_el: &VElement,
-    path: &HexPath,
     patches: &mut Vec<Patch>,
 ) -> Result<()> {
     let old_children = &old_el.children;
@@ -118,43 +139,91 @@ fn reconcile_children(
 
     // If we have keys, use keyed reconciliation
     if !old_keyed.is_empty() || !new_keyed.is_empty() {
-        reconcile_keyed_children(old_children, new_children, &old_keyed, &new_keyed, path, patches)?;
+        reconcile_keyed_children(old_children, new_children, &old_keyed, &new_keyed, patches)?;
     } else {
-        // Simple index-based reconciliation
-        reconcile_indexed_children(old_children, new_children, path, patches)?;
+        // Path-based reconciliation (optimized - no index tracking!)
+        reconcile_children_by_path(old_children, new_children, patches)?;
     }
     Ok(())
 }
 
+/// Path-based child reconciliation - OPTIMIZED
+/// Uses VNode paths directly for O(1) lookup instead of index-based matching
+fn reconcile_children_by_path(
+    old_children: &[Option<VNode>],
+    new_children: &[Option<VNode>],
+    patches: &mut Vec<Patch>,
+) -> Result<()> {
+    // Build path-based maps for O(1) lookup
+    let old_by_path: HashMap<&HexPath, &VNode> = old_children
+        .iter()
+        .filter_map(|opt| opt.as_ref())
+        .map(|node| (node.path(), node))
+        .collect();
+
+    let new_by_path: HashMap<&HexPath, &VNode> = new_children
+        .iter()
+        .filter_map(|opt| opt.as_ref())
+        .map(|node| (node.path(), node))
+        .collect();
+
+    // Check for creates (in new but not old) or updates
+    for (path, new_node) in &new_by_path {
+        if let Some(old_node) = old_by_path.get(path) {
+            // Both exist at this path - reconcile them
+            reconcile_node(old_node, new_node, patches)?;
+        } else {
+            // New node at this path - create it (unless it's VNull)
+            if !new_node.is_null() {
+                patches.push(Patch::Create {
+                    path: (*path).clone(),
+                    node: (*new_node).clone(),
+                });
+            }
+        }
+    }
+
+    // Check for removes (in old but not new)
+    for (path, old_node) in &old_by_path {
+        if !new_by_path.contains_key(path) && !old_node.is_null() {
+            // Old node removed or became null
+            patches.push(Patch::Remove {
+                path: (*path).clone(),
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Fallback: Index-based child reconciliation (for backward compatibility)
 fn reconcile_indexed_children(
     old_children: &[Option<VNode>],
     new_children: &[Option<VNode>],
-    path: &HexPath,
     patches: &mut Vec<Patch>,
 ) -> Result<()> {
     let old_len = old_children.len();
     let new_len = new_children.len();
     let min_len = old_len.min(new_len);
 
-    // Reconcile common children (preserving VNode indices, including nulls)
+    // Reconcile common children (using VNode paths directly)
     for i in 0..min_len {
-        let child_path = path.child(i);
         match (&old_children[i], &new_children[i]) {
             (Some(old_node), Some(new_node)) => {
-                // Both exist - reconcile
-                reconcile_node(old_node, new_node, &child_path, patches)?;
+                // Both exist - reconcile (path comes from VNode)
+                reconcile_node(old_node, new_node, patches)?;
             }
             (None, Some(new_node)) => {
                 // Old was null, new exists - create
                 patches.push(Patch::Create {
-                    path: child_path,
+                    path: new_node.path().clone(),
                     node: new_node.clone(),
                 });
             }
-            (Some(_), None) => {
+            (Some(old_node), None) => {
                 // Old existed, new is null - remove
                 patches.push(Patch::Remove {
-                    path: child_path,
+                    path: old_node.path().clone(),
                 });
             }
             (None, None) => {
@@ -166,9 +235,8 @@ fn reconcile_indexed_children(
     // Handle additions (new children beyond old length)
     for i in min_len..new_len {
         if let Some(new_node) = &new_children[i] {
-            let child_path = path.child(i);
             patches.push(Patch::Create {
-                path: child_path,
+                path: new_node.path().clone(),
                 node: new_node.clone(),
             });
         }
@@ -176,10 +244,9 @@ fn reconcile_indexed_children(
 
     // Handle removals (old children beyond new length, in reverse order)
     for i in (min_len..old_len).rev() {
-        if old_children[i].is_some() {
-            let child_path = path.child(i);
+        if let Some(old_node) = &old_children[i] {
             patches.push(Patch::Remove {
-                path: child_path,
+                path: old_node.path().clone(),
             });
         }
     }
@@ -191,7 +258,6 @@ fn reconcile_keyed_children(
     new_children: &[Option<VNode>],
     old_keyed: &HashMap<&str, (usize, &VNode)>,
     new_keyed: &HashMap<&str, (usize, &VNode)>,
-    path: &HexPath,
     patches: &mut Vec<Patch>,
 ) -> Result<()> {
     let mut old_idx = 0;
@@ -203,16 +269,15 @@ fn reconcile_keyed_children(
     // Process all new children (preserving VNode indices including nulls)
     while new_idx < new_children.len() {
         if let Some(new_child) = &new_children[new_idx] {
-            let child_path = path.child(new_idx);
             if let Some(new_key) = new_child.key() {
                 // This child has a key
                 if let Some(&(_old_pos, old_node)) = old_keyed.get(new_key) {
-                    // Key exists in old children - reconcile
-                    reconcile_node(old_node, new_child, &child_path, patches)?;
+                    // Key exists in old children - reconcile (path from VNode)
+                    reconcile_node(old_node, new_child, patches)?;
                 } else {
                     // New key - create node
                     patches.push(Patch::Create {
-                        path: child_path,
+                        path: new_child.path().clone(),
                         node: new_child.clone(),
                     });
                 }
@@ -225,12 +290,12 @@ fn reconcile_keyed_children(
                 if old_idx < old_children.len() {
                     if let Some(old_child) = &old_children[old_idx] {
                         if old_child.key().is_none() {
-                            reconcile_node(old_child, new_child, &child_path, patches)?;
+                            reconcile_node(old_child, new_child, patches)?;
                             old_idx += 1;
                         } else {
                             // Create new child
                             patches.push(Patch::Create {
-                                path: child_path,
+                                path: new_child.path().clone(),
                                 node: new_child.clone(),
                             });
                         }
@@ -238,7 +303,7 @@ fn reconcile_keyed_children(
                 } else {
                     // Create new child
                     patches.push(Patch::Create {
-                        path: child_path,
+                        path: new_child.path().clone(),
                         node: new_child.clone(),
                     });
                 }
@@ -250,11 +315,10 @@ fn reconcile_keyed_children(
     }
 
     // Remove old children that don't exist in new children
-    for (old_key, &(old_pos, _)) in old_keyed.iter() {
+    for (old_key, &(old_pos, old_node)) in old_keyed.iter() {
         if !new_keys_set.contains(old_key) {
-            let child_path = path.child(old_pos);
             patches.push(Patch::Remove {
-                path: child_path,
+                path: old_node.path().clone(),
             });
         }
     }
@@ -265,11 +329,19 @@ fn reconcile_keyed_children(
         .filter_map(|opt_n| opt_n.as_ref().and_then(|n| n.key().map(String::from)))
         .collect();
 
+    // Get parent path from first non-null child
     if !new_key_order.is_empty() {
-        patches.push(Patch::ReorderChildren {
-            path: path.clone(),
-            order: new_key_order,
-        });
+        if let Some(Some(first_child)) = new_children.first() {
+            // Get parent path by removing last segment
+            let child_path = first_child.path();
+            if let Some(last_dot) = child_path.0.rfind('.') {
+                let parent_path = HexPath(child_path.0[..last_dot].to_string());
+                patches.push(Patch::ReorderChildren {
+                    path: parent_path,
+                    order: new_key_order,
+                });
+            }
+        }
     }
     Ok(())
 }

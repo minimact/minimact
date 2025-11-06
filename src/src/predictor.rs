@@ -908,6 +908,11 @@ impl Predictor {
                 // Extract element template with child templates
                 self.extract_element_item_template(element, array_items)
             }
+            VNode::Null(_) => {
+                // Null nodes in templates are not supported in loop templates
+                // They should be filtered out before template extraction
+                None
+            }
         }
     }
 
@@ -994,6 +999,9 @@ impl Predictor {
                         ) {
                             children_templates.push(element_template);
                         }
+                    }
+                    VNode::Null(_) => {
+                        // Null children are skipped in loop templates
                     }
                 }
             }
@@ -1145,6 +1153,7 @@ impl Predictor {
                 None
             }
             VNode::Text(_) => None,
+            VNode::Null(_) => None,  // Null nodes don't match selectors
         }
     }
 
@@ -1702,6 +1711,9 @@ impl Predictor {
                         Self::find_text_patches_recursive(child, old_text, new_text, &child_path, patches);
                     }
                 }
+            }
+            VNode::Null(_) => {
+                // Null nodes have no text content
             }
         }
     }

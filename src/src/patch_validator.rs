@@ -417,6 +417,12 @@ fn get_node_at_path<'a>(tree: &'a VNode, path: &HexPath) -> Result<&'a VNode> {
                     path: indices[..=depth].to_vec(),
                 });
             }
+            VNode::Null(_) => {
+                // Null nodes have no children to navigate
+                return Err(MinimactError::InvalidPatchPath {
+                    path: indices[..=depth].to_vec(),
+                });
+            }
         }
     }
 
