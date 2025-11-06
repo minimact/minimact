@@ -8,6 +8,7 @@ const { analyzeDependencies } = require('../analyzers/dependencies.cjs');
 const { classifyNode } = require('../analyzers/classification.cjs');
 const { generateRuntimeHelperForJSXNode } = require('./runtimeHelpers.cjs');
 const { generateJSXElement } = require('./jsx.cjs');
+const { getPathFromNode } = require('../utils/pathAssignment.cjs');
 
 // Module-level variable to store current component context
 // This allows useState setter detection without threading component through all calls
@@ -64,9 +65,18 @@ function generateJSXExpression(expr, component, indent) {
     const consequent = t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)
       ? generateRuntimeHelperForJSXNode(expr.consequent, component, indent)
       : generateCSharpExpression(expr.consequent, false); // Normal C# expression context
-    const alternate = t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)
-      ? generateRuntimeHelperForJSXNode(expr.alternate, component, indent)
-      : generateCSharpExpression(expr.alternate, false); // Normal C# expression context
+
+    // Handle alternate - if null literal, use VNull with path
+    let alternate;
+    if (!expr.alternate || t.isNullLiteral(expr.alternate)) {
+      const exprPath = expr.__minimactPath || '';
+      alternate = `new VNull("${exprPath}")`;
+    } else if (t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+      alternate = generateRuntimeHelperForJSXNode(expr.alternate, component, indent);
+    } else {
+      alternate = generateCSharpExpression(expr.alternate, false); // Normal C# expression context
+    }
+
     return `(${condition}) ? ${consequent} : ${alternate}`;
   }
 
@@ -77,8 +87,9 @@ function generateJSXExpression(expr, component, indent) {
     const right = t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)
       ? generateRuntimeHelperForJSXNode(expr.right, component, indent)
       : generateCSharpExpression(expr.right);
-    // Use != null for truthy check (works for bool, object, int, etc.)
-    return `(${left}) ? ${right} : null`;
+    // Get path for VNull (use the expression container's path)
+    const exprPath = expr.__minimactPath || '';
+    return `(${left}) ? ${right} : new VNull("${exprPath}")`;
   }
 
   if (t.isCallExpression(expr) &&
@@ -544,8 +555,9 @@ function generateCSharpExpression(node, inInterpolation = false) {
         return `(${left}) && (${right})`;
       } else {
         // JavaScript: a && <jsx> or a && someValue
-        // C#: a != null ? value : null (for objects)
-        return `(${left}) != null ? (${right}) : null`;
+        // C#: a != null ? value : VNull (for objects)
+        const nodePath = node.__minimactPath || '';
+        return `(${left}) != null ? (${right}) : new VNull("${nodePath}")`;
       }
     }
 

@@ -9,6 +9,11 @@ namespace Minimact.AspNetCore.Core;
 public abstract class VNode
 {
     /// <summary>
+    /// Hex path for this VNode (from transpilation)
+    /// </summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
     /// Render this VNode to HTML string
     /// </summary>
     public abstract string ToHtml();
@@ -152,6 +157,31 @@ public class VElement : VNode
         Children = children.ToList();
     }
 
+    // New constructors with path parameter (from transpilation)
+    public VElement(string tag, string path, Dictionary<string, string> props)
+    {
+        Tag = tag;
+        Path = path;
+        Props = props;
+        Children = new List<VNode>();
+    }
+
+    public VElement(string tag, string path, Dictionary<string, string> props, string textContent)
+    {
+        Tag = tag;
+        Path = path;
+        Props = props;
+        Children = new List<VNode> { new VText(textContent, "") }; // Text content path is empty for now
+    }
+
+    public VElement(string tag, string path, Dictionary<string, string> props, VNode[] children)
+    {
+        Tag = tag;
+        Path = path;
+        Props = props;
+        Children = children.ToList();
+    }
+
     public override string ToHtml()
     {
         // Convert event handler props to data-* attributes for client-runtime
@@ -214,6 +244,13 @@ public class VText : VNode
         Content = content ?? "";
     }
 
+    // Constructor with path parameter (from transpilation)
+    public VText(string content, string path)
+    {
+        Content = content ?? "";
+        Path = path;
+    }
+
     public override string ToHtml()
     {
         // Escape HTML entities
@@ -223,6 +260,28 @@ public class VText : VNode
     public override int EstimateSize()
     {
         return Content.Length;
+    }
+}
+
+/// <summary>
+/// Virtual DOM null node (for conditional rendering)
+/// Represents a JSX expression that evaluated to null/false
+/// </summary>
+public class VNull : VNode
+{
+    public VNull(string path)
+    {
+        Path = path;
+    }
+
+    public override string ToHtml()
+    {
+        return ""; // Null nodes render nothing
+    }
+
+    public override int EstimateSize()
+    {
+        return 0;
     }
 }
 
@@ -293,6 +352,7 @@ public class VNodeConverter : JsonConverter
         {
             case "Element":
                 var tag = obj["tag"]?.ToString() ?? "";
+                var elemPath = obj["path"]?.ToString() ?? "";
                 var propsObj = obj["props"] as Newtonsoft.Json.Linq.JObject;
                 var props = propsObj?.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
                 var childrenArray = obj["children"] as Newtonsoft.Json.Linq.JArray;
@@ -302,10 +362,11 @@ public class VNodeConverter : JsonConverter
                 {
                     foreach (var childToken in childrenArray)
                     {
-                        // Check if the token is null (for conditional rendering)
+                        // Check if the token is null (for conditional rendering - legacy JSON format)
                         if (childToken.Type == Newtonsoft.Json.Linq.JTokenType.Null)
                         {
-                            children.Add(null!); // Preserve null for conditional rendering
+                            // Create VNull with empty path (legacy JSON didn't have paths)
+                            children.Add(new VNull(""));
                         }
                         else
                         {
@@ -326,7 +387,7 @@ public class VNodeConverter : JsonConverter
                     }
                 }
 
-                var element = new VElement(tag, props, children.ToArray());
+                var element = new VElement(tag, elemPath, props, children.ToArray());
                 var key = obj["key"]?.ToString();
                 if (key != null)
                 {
@@ -336,7 +397,12 @@ public class VNodeConverter : JsonConverter
 
             case "Text":
                 var content = obj["content"]?.ToString() ?? "";
-                return new VText(content);
+                var textPath = obj["path"]?.ToString() ?? "";
+                return new VText(content, textPath);
+
+            case "Null":
+                var nullPath = obj["path"]?.ToString() ?? "";
+                return new VNull(nullPath);
 
             case "Fragment":
                 var fragChildrenArray = obj["children"] as Newtonsoft.Json.Linq.JArray;
@@ -346,10 +412,11 @@ public class VNodeConverter : JsonConverter
                 {
                     foreach (var childToken in fragChildrenArray)
                     {
-                        // Check if the token is null (for conditional rendering)
+                        // Check if the token is null (for conditional rendering - legacy JSON format)
                         if (childToken.Type == Newtonsoft.Json.Linq.JTokenType.Null)
                         {
-                            fragChildren.Add(null!); // Preserve null for conditional rendering
+                            // Create VNull with empty path (legacy JSON didn't have paths)
+                            fragChildren.Add(new VNull(""));
                         }
                         else
                         {
@@ -389,15 +456,19 @@ public class VNodeConverter : JsonConverter
             writer.WriteValue("Element");
             writer.WritePropertyName("tag");
             writer.WriteValue(element.Tag);
+            writer.WritePropertyName("path");
+            writer.WriteValue(element.Path);
             writer.WritePropertyName("props");
             serializer.Serialize(writer, element.Props);
             writer.WritePropertyName("children");
-            // Manually serialize children to preserve nulls
+            // Serialize children (should be VNull instead of null now)
             writer.WriteStartArray();
             foreach (var child in element.Children)
             {
                 if (child == null)
                 {
+                    // Legacy: shouldn't happen with new VNull system, but handle gracefully
+                    Console.WriteLine("[VNodeConverter] Warning: Found null child instead of VNull");
                     writer.WriteNull();
                 }
                 else
@@ -420,6 +491,17 @@ public class VNodeConverter : JsonConverter
             writer.WriteValue("Text");
             writer.WritePropertyName("content");
             writer.WriteValue(text.Content);
+            writer.WritePropertyName("path");
+            writer.WriteValue(text.Path);
+            writer.WriteEndObject();
+        }
+        else if (value is VNull vnull)
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("type");
+            writer.WriteValue("Null");
+            writer.WritePropertyName("path");
+            writer.WriteValue(vnull.Path);
             writer.WriteEndObject();
         }
         else if (value is Fragment fragment)
@@ -428,12 +510,14 @@ public class VNodeConverter : JsonConverter
             writer.WritePropertyName("type");
             writer.WriteValue("Fragment");
             writer.WritePropertyName("children");
-            // Manually serialize children to preserve nulls
+            // Serialize children (should be VNull instead of null now)
             writer.WriteStartArray();
             foreach (var child in fragment.Children)
             {
                 if (child == null)
                 {
+                    // Legacy: shouldn't happen with new VNull system, but handle gracefully
+                    Console.WriteLine("[VNodeConverter] Warning: Found null child in Fragment instead of VNull");
                     writer.WriteNull();
                 }
                 else

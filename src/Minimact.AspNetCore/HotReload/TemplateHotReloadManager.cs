@@ -573,57 +573,10 @@ public class TemplateHotReloadManager : IDisposable
     /// <summary>
     /// Extract null paths from VNode tree (recursive)
     /// </summary>
+    // Use centralized ExtractNullPaths from PatchPathAdjuster
     private List<string> ExtractNullPaths(VNode rootVNode)
     {
-        var nullPaths = new List<string>();
-        ExtractNullPathsRecursive(rootVNode, new List<int>(), nullPaths);
-        return nullPaths;
-    }
-
-    private void ExtractNullPathsRecursive(VNode node, List<int> currentPath, List<string> nullPaths)
-    {
-        List<VNode>? children = node switch
-        {
-            VElement element => element.Children,
-            Fragment fragment => fragment.Children,
-            _ => null
-        };
-
-        if (children == null) return;
-
-        for (int i = 0; i < children.Count; i++)
-        {
-            var child = children[i];
-
-            if (child == null)
-            {
-                // Generate hex path for this null child
-                var pathWithNull = new List<int>(currentPath) { i };
-                var hexPath = ConvertPathToHex(pathWithNull);
-                nullPaths.Add($"{hexPath}.null");
-            }
-            else
-            {
-                // Recurse into non-null children
-                var childPath = new List<int>(currentPath) { i };
-                ExtractNullPathsRecursive(child, childPath, nullPaths);
-            }
-        }
-    }
-
-    private string ConvertPathToHex(List<int> path)
-    {
-        if (path.Count == 0) return string.Empty;
-
-        var hexSegments = new List<string>();
-        foreach (var index in path)
-        {
-            // Convert index to hex: (index + 1) * 0x10000000
-            uint hexValue = (uint)(index + 1) * 0x10000000;
-            hexSegments.Add(hexValue.ToString("x8"));
-        }
-
-        return string.Join(".", hexSegments);
+        return PatchPathAdjuster.ExtractNullPaths(rootVNode);
     }
 
     public void Dispose()

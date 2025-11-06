@@ -108,9 +108,11 @@ public static class Minimact
         foreach (var child in children)
         {
             // Preserve null for conditional rendering (e.g., {condition && <Component />})
+            // Note: At runtime we don't have path info, so we use empty path
+            // Transpiler-generated code should create VNull with proper paths
             if (child == null)
             {
-                result.Add(null!);
+                result.Add(new VNull("")); // Runtime null - no path available
                 continue;
             }
 

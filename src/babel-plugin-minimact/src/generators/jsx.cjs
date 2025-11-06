@@ -6,6 +6,7 @@ const t = require('@babel/types');
 const { escapeCSharpString } = require('../utils/helpers.cjs');
 const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = require('../analyzers/detection.cjs');
 const { extractEventHandler } = require('../extractors/eventHandlers.cjs');
+const { getPathFromNode } = require('../utils/pathAssignment.cjs');
 // Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
 /**
@@ -39,6 +40,9 @@ function generateJSXElement(node, component, indent) {
   const tagName = node.openingElement.name.name;
   const attributes = node.openingElement.attributes;
   const children = node.children;
+
+  // Get hex path from AST node (assigned by pathAssignment.cjs)
+  const hexPath = node.__minimactPath || '';
 
   // Check if this is a Plugin element
   if (tagName === 'Plugin') {
@@ -148,29 +152,33 @@ function generateJSXElement(node, component, indent) {
   // Generate children
   const childrenCode = generateChildren(children, component, indent);
 
-  // Build VElement construction
+  // Build VElement construction with hex path
   if (childrenCode.length === 0) {
-    return `new VElement("${tagName}", ${propsStr})`;
+    return `new VElement("${tagName}", "${hexPath}", ${propsStr})`;
   } else if (childrenCode.length === 1 && (childrenCode[0].type === 'text' || childrenCode[0].type === 'mixed')) {
-    return `new VElement("${tagName}", ${propsStr}, ${childrenCode[0].code})`;
+    return `new VElement("${tagName}", "${hexPath}", ${propsStr}, ${childrenCode[0].code})`;
   } else {
     // Wrap children appropriately for VNode array
     const childrenArray = childrenCode.map(c => {
       if (c.type === 'text') {
-        // Text already has quotes, wrap in VText
-        return `new VText(${c.code})`;
+        // Text already has quotes, wrap in VText with path from node
+        const textPath = c.node.__minimactPath || '';
+        return `new VText(${c.code}, "${textPath}")`;
       } else if (c.type === 'expression') {
         // Expression needs string interpolation wrapper with extra parentheses for complex expressions
-        return `new VText($"{(${c.code})}")`;
+        const exprPath = c.node.__minimactPath || '';
+        return `new VText($"{(${c.code})}", "${exprPath}")`;
       } else if (c.type === 'mixed') {
         // Mixed content is already an interpolated string, wrap in VText
-        return `new VText(${c.code})`;
+        // Use path from first child node
+        const mixedPath = c.node ? (c.node.__minimactPath || '') : '';
+        return `new VText(${c.code}, "${mixedPath}")`;
       } else {
         // Element is already a VNode
         return c.code;
       }
     }).join(',\n' + indentStr + '    ');
-    return `new VElement("${tagName}", ${propsStr}, new VNode[]\n${indentStr}{\n${indentStr}    ${childrenArray}\n${indentStr}})`;
+    return `new VElement("${tagName}", "${hexPath}", ${propsStr}, new VNode[]\n${indentStr}{\n${indentStr}    ${childrenArray}\n${indentStr}})`;
   }
 }
 
