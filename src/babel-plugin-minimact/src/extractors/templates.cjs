@@ -559,7 +559,7 @@ function extractTemplates(renderBody, component) {
       template: templateStr,
       bindings,
       slots,
-      path: [...currentPath, textIndex],
+      path: currentPath,  // Already has full hex path from getPathSegmentsFromNode
       type: templateType
     };
 

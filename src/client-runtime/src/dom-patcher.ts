@@ -1,4 +1,5 @@
 import { Patch, VNode, VElement, VText } from './types';
+import { TemplateStateManager } from './template-state';
 
 /**
  * Applies DOM patches from the server to the actual DOM
@@ -6,16 +7,22 @@ import { Patch, VNode, VElement, VText } from './types';
  */
 export class DOMPatcher {
   private debugLogging: boolean;
+  private templateState?: TemplateStateManager;
+  private componentId?: string;
 
-  constructor(options: { debugLogging?: boolean } = {}) {
+  constructor(options: { debugLogging?: boolean; templateState?: TemplateStateManager } = {}) {
     this.debugLogging = options.debugLogging || false;
+    this.templateState = options.templateState;
   }
 
   /**
    * Apply an array of patches to a root element
    */
-  applyPatches(rootElement: HTMLElement, patches: Patch[]): void {
+  applyPatches(rootElement: HTMLElement, patches: Patch[], componentId?: string): void {
     this.log('Applying patches', { count: patches.length, patches });
+
+    // Store componentId for this patch batch
+    this.componentId = componentId;
 
     for (const patch of patches) {
       try {
@@ -24,6 +31,9 @@ export class DOMPatcher {
         console.error('[Minimact] Failed to apply patch:', patch, error);
       }
     }
+
+    // Clear componentId after batch
+    this.componentId = undefined;
   }
 
   /**
@@ -40,9 +50,17 @@ export class DOMPatcher {
     switch (patch.type) {
       case 'Create':
         this.patchCreate(rootElement, patch.path, patch.node);
+        // Update null path tracking: path now exists, remove from null paths
+        if (this.templateState && this.componentId) {
+          this.templateState.removeFromNullPaths(this.componentId, patch.path);
+        }
         break;
       case 'Remove':
         this.patchRemove(targetElement!);
+        // Update null path tracking: path now null, add to null paths
+        if (this.templateState && this.componentId) {
+          this.templateState.addToNullPaths(this.componentId, patch.path);
+        }
         break;
       case 'Replace':
         this.patchReplace(targetElement!, patch.node);

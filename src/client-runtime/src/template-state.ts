@@ -53,12 +53,20 @@ export interface TemplatePatch {
 export class TemplateStateManager {
   private templates: Map<string, Template> = new Map();
   private componentStates: Map<string, Map<string, any>> = new Map();
+  // Hex path index: componentId -> depth -> sorted hex codes
+  private hexPathIndex: Map<string, Map<number, string[]>> = new Map();
+  // Null paths: componentId -> Set of paths that are currently null
+  private nullPaths: Map<string, Set<string>> = new Map();
 
   /**
    * Initialize templates from .templates.json file
    */
   loadTemplateMap(componentId: string, templateMap: TemplateMap): void {
     console.log(`[TemplateState] Loading ${Object.keys(templateMap.templates).length} templates for ${componentId}`);
+
+    // Build hex path index for this component
+    const depthMap = new Map<number, Set<string>>();
+    const nullPaths = new Set<string>(); // Track null paths
 
     for (const [nodePath, template] of Object.entries(templateMap.templates)) {
       const key = `${componentId}:${nodePath}`;
@@ -73,12 +81,88 @@ export class TemplateStateManager {
       };
 
       this.templates.set(key, normalized);
+
+      // Extract hex path segments and build depth index
+      const pathSegments = nodePath.split('.');
+
+      // Check if this path ends with '.null' (path didn't render)
+      const isNullPath = pathSegments[pathSegments.length - 1] === 'null';
+
+      if (isNullPath) {
+        // Remove '.null' suffix and store as null path
+        const actualPath = pathSegments.slice(0, -1).join('.');
+        nullPaths.add(actualPath);
+        console.log(`[TemplateState] Null path detected: ${actualPath}`);
+        continue; // Don't add null paths to depth map
+      }
+
+      for (let depth = 0; depth < pathSegments.length; depth++) {
+        const segment = pathSegments[depth];
+        // Skip attribute markers (@style, @className, etc.)
+        if (segment.startsWith('@')) continue;
+
+        if (!depthMap.has(depth)) {
+          depthMap.set(depth, new Set());
+        }
+        depthMap.get(depth)!.add(segment);
+      }
     }
+
+    // Store null paths for this component
+    this.nullPaths.set(componentId, nullPaths);
+
+    // Convert sets to sorted arrays
+    const sortedDepthMap = new Map<number, string[]>();
+    for (const [depth, hexSet] of depthMap.entries()) {
+      sortedDepthMap.set(depth, Array.from(hexSet).sort());
+    }
+
+    this.hexPathIndex.set(componentId, sortedDepthMap);
+    console.log(`[TemplateState] Built hex path index for ${componentId}:`, sortedDepthMap);
 
     // Initialize component state tracking
     if (!this.componentStates.has(componentId)) {
       this.componentStates.set(componentId, new Map());
     }
+  }
+
+  /**
+   * Get sorted hex codes for a specific component and depth
+   */
+  getHexCodesAtDepth(componentId: string, depth: number): string[] | undefined {
+    console.log(`[TemplateState] getHexCodesAtDepth(${componentId}, ${depth}) - Available keys:`, Array.from(this.hexPathIndex.keys()));
+    return this.hexPathIndex.get(componentId)?.get(depth);
+  }
+
+  /**
+   * Check if a path is currently null (not rendered)
+   */
+  isPathNull(componentId: string, path: string): boolean {
+    return this.nullPaths.get(componentId)?.has(path) ?? false;
+  }
+
+  /**
+   * Remove a path from null paths (element was created)
+   */
+  removeFromNullPaths(componentId: string, path: string): void {
+    const nullPathsSet = this.nullPaths.get(componentId);
+    if (nullPathsSet) {
+      nullPathsSet.delete(path);
+      console.log(`[TemplateState] Removed ${path} from null paths for ${componentId}`);
+    }
+  }
+
+  /**
+   * Add a path to null paths (element was removed)
+   */
+  addToNullPaths(componentId: string, path: string): void {
+    let nullPathsSet = this.nullPaths.get(componentId);
+    if (!nullPathsSet) {
+      nullPathsSet = new Set();
+      this.nullPaths.set(componentId, nullPathsSet);
+    }
+    nullPathsSet.add(path);
+    console.log(`[TemplateState] Added ${path} to null paths for ${componentId}`);
   }
 
   /**

@@ -4691,7 +4691,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	          const firstTextChild = textChildren[0];
 	          const textPath = firstTextChild.__minimactPath || `${pathKey}.text[${textNodeIndex}]`;
 
-	          const template = extractTextTemplate(node.children, currentPath, textNodeIndex);
+	          const template = extractTextTemplate(node.children, currentPath);
 	          if (template) {
 	            console.log(`[Template Extractor] Found mixed content in <${tagName}>: "${template.template.substring(0, 50)}" (path: ${textPath})`);
 	            templates[textPath] = template;
@@ -4720,7 +4720,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	              // 🔥 USE PRE-ASSIGNED HEX PATH for expression containers
 	              const exprPath = child.__minimactPath || `${pathKey}.text[${textNodeIndex}]`;
 
-	              const template = extractTextTemplate([child], currentPath, textNodeIndex);
+	              const template = extractTextTemplate([child], currentPath);
 	              if (template) {
 	                console.log(`[Template Extractor] Found dynamic expression in <${tagName}>: "${template.template}" (path: ${exprPath})`);
 	                templates[exprPath] = template;
@@ -4890,7 +4890,7 @@ var MinimactBabelPlugin = (function (require$$0, require$$1) {
 	      template: templateStr,
 	      bindings,
 	      slots,
-	      path: [...currentPath, textIndex],
+	      path: currentPath,  // Already has full hex path from getPathSegmentsFromNode
 	      type: templateType
 	    };
 

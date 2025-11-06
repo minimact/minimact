@@ -160,13 +160,16 @@ public class TemplateHotReloadManager : IDisposable
             return;
         }
 
+        // Augment template map with null path entries
+        var augmentedTemplateMap = AugmentTemplateMapWithNullPaths(componentId, templateMap);
+
         try
         {
             await _hubContext.Clients.Client(connectionId).SendAsync("HotReload:TemplateMap", new
             {
                 type = "template-map",
                 componentId,
-                templateMap,
+                templateMap = augmentedTemplateMap,
                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             });
 
@@ -325,30 +328,15 @@ public class TemplateHotReloadManager : IDisposable
 
         var template = change.NewTemplate;
 
-        // Get component's current VNode for path adjustment
-        var component = _registry.GetComponent(componentId);
-        if (component?.CurrentVNode == null)
-        {
-            _logger.LogWarning(
-                "[Minimact Templates] Cannot adjust path for {ComponentId} - no CurrentVNode available",
-                componentId);
+        // Build hex path from template path
+        // Note: Client-side null path tracking handles null-skipping during DOM navigation,
+        // so server no longer needs to adjust paths for null children
+        var hexPath = string.Join(".", template.Path);
 
-            // Fall back to unadjusted path (may break with conditionals)
-            return CreatePatchWithUnadjustedPath(template, componentId, currentState);
-        }
-
-        // Adjust VNode path to DOM path
-        List<int> domPath;
-        try
+        // Append attribute suffix if this is an attribute template
+        if (template.Attribute != null)
         {
-            domPath = PatchPathAdjuster.VNodePathToDomPath(template.Path.ToArray(), component.CurrentVNode).ToList();
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogDebug(ex,
-                "[Minimact Templates] Failed to adjust path for {ComponentId} - element may not be visible",
-                componentId);
-            return null; // Skip this patch - element not in DOM
+            hexPath = $"{hexPath}.@{template.Attribute}";
         }
 
         // Get parameter values from current state
@@ -372,7 +360,7 @@ public class TemplateHotReloadManager : IDisposable
         {
             Type = patchType,
             ComponentId = componentId,
-            Path = domPath,  // ✅ DOM-adjusted path!
+            Path = hexPath,  // VNode hex path (client handles null-skipping)
             Template = template.TemplateString,
             Params = params_,
             Bindings = template.Bindings,
@@ -414,11 +402,18 @@ public class TemplateHotReloadManager : IDisposable
             _ => template.Attribute != null ? "UpdatePropTemplate" : "UpdateTextTemplate"
         };
 
+        // Build path with attribute suffix if present
+        var fallbackPath = string.Join(".", template.Path);
+        if (template.Attribute != null)
+        {
+            fallbackPath = $"{fallbackPath}.@{template.Attribute}";
+        }
+
         var patch = new TemplatePatch
         {
             Type = patchType,
             ComponentId = componentId,
-            Path = template.Path, // Unadjusted VNode path
+            Path = fallbackPath, // Unadjusted VNode path with attribute suffix
             Template = template.TemplateString,
             Params = params_,
             Bindings = template.Bindings,
@@ -516,6 +511,109 @@ public class TemplateHotReloadManager : IDisposable
         }
 
         throw new IOException($"Could not read file after {maxRetries} attempts: {filePath}");
+    }
+
+    /// <summary>
+    /// Augment template map with null path entries from current VNode tree
+    /// </summary>
+    private TemplateMap AugmentTemplateMapWithNullPaths(string componentId, TemplateMap templateMap)
+    {
+        var component = _registry.GetComponent(componentId);
+        if (component?.CurrentVNode == null)
+        {
+            return templateMap; // No VNode available, return original
+        }
+
+        // Extract null paths from VNode tree
+        var nullPaths = ExtractNullPaths(component.CurrentVNode);
+
+        if (nullPaths.Count == 0)
+        {
+            return templateMap; // No null paths, return original
+        }
+
+        // Create augmented template map with null path entries
+        var augmentedTemplates = new Dictionary<string, Template>(templateMap.Templates);
+
+        foreach (var nullPath in nullPaths)
+        {
+            // Add empty template with .null suffix
+            augmentedTemplates[nullPath] = new Template
+            {
+                TemplateString = "",
+                Bindings = new List<string>(),
+                Slots = new List<int>(),
+                Path = new List<string>(), // Empty path for null nodes
+                Type = "null"
+            };
+        }
+
+        _logger.LogDebug("[Minimact Templates] Added {Count} null path entries for {ComponentId}",
+            nullPaths.Count, componentId);
+
+        return new TemplateMap
+        {
+            Component = templateMap.Component,
+            Version = templateMap.Version,
+            GeneratedAt = templateMap.GeneratedAt,
+            Templates = augmentedTemplates
+        };
+    }
+
+    /// <summary>
+    /// Extract null paths from VNode tree (recursive)
+    /// </summary>
+    private List<string> ExtractNullPaths(VNode rootVNode)
+    {
+        var nullPaths = new List<string>();
+        ExtractNullPathsRecursive(rootVNode, new List<int>(), nullPaths);
+        return nullPaths;
+    }
+
+    private void ExtractNullPathsRecursive(VNode node, List<int> currentPath, List<string> nullPaths)
+    {
+        List<VNode>? children = node switch
+        {
+            VElement element => element.Children,
+            Fragment fragment => fragment.Children,
+            _ => null
+        };
+
+        if (children == null) return;
+
+        for (int i = 0; i < children.Count; i++)
+        {
+            var child = children[i];
+
+            if (child == null)
+            {
+                // Generate hex path for this null child
+                var pathWithNull = new List<int>(currentPath) { i };
+                var hexPath = ConvertPathToHex(pathWithNull);
+                nullPaths.Add($"{hexPath}.null");
+            }
+            else
+            {
+                // Recurse into non-null children
+                var childPath = new List<int>(currentPath) { i };
+                ExtractNullPathsRecursive(child, childPath, nullPaths);
+            }
+        }
+    }
+
+    private string ConvertPathToHex(List<int> path)
+    {
+        if (path.Count == 0) return string.Empty;
+
+        var hexSegments = new List<string>();
+        foreach (var index in path)
+        {
+            // Convert index to hex: (index + 1) * 0x10000000
+            uint hexValue = (uint)(index + 1) * 0x10000000;
+            hexSegments.Add(hexValue.ToString("x8"));
+        }
+
+        return string.Join(".", hexSegments);
     }
 
     public void Dispose()

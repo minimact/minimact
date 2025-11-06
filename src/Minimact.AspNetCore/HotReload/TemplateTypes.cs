@@ -30,11 +30,11 @@ public class Template
     public List<int> Slots { get; set; } = new();
 
     /// <summary>
-    /// Hex-based path to the node
-    /// Example: "10000000.20000000.30000000"
+    /// Hex-based path to the node as array
+    /// Example: ["10000000", "20000000", "30000000"]
     /// </summary>
     [JsonPropertyName("path")]
-    public string Path { get; set; } = string.Empty;
+    public List<string> Path { get; set; } = new();
 
     /// <summary>
     /// Template type: static | dynamic | attribute | loop

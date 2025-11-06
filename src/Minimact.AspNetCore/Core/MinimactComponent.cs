@@ -625,8 +625,8 @@ public abstract class MinimactComponent
         // Compute actual patches using Rust reconciliation engine
         var actualPatches = RustBridge.Reconcile(CurrentVNode, newVNode);
 
-        // ✅ Adjust VNode paths to DOM paths (for conditional rendering support)
-        PatchPathAdjuster.AdjustPatchPaths(actualPatches, newVNode);
+        // Note: Patches use VNode hex paths. Client-side null path tracking handles
+        // null-skipping during DOM navigation, so no path adjustment needed.
 
         if (actualPatches.Count > 0)
         {

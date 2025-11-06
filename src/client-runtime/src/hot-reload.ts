@@ -74,6 +74,8 @@ export class HotReloadManager {
   private pendingVerifications = new Map<string, any>();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  // Map of null paths: componentType -> Set of paths that are currently null (not rendered)
+  private nullPaths = new Map<string, Set<string>>();
 
   constructor(minimact: Minimact, config: Partial<HotReloadConfig> = {}) {
     this.minimact = minimact;
@@ -477,7 +479,7 @@ export class HotReloadManager {
 
         // Apply to each instance
         for (const instance of instances) {
-          const element = this.findElementByPath(instance.element, patch.path);
+          const element = this.findElementByPath(instance.element, patch.path, componentType);
           if (element && element.nodeType === Node.ELEMENT_NODE) {
             (element as HTMLElement).setAttribute(attrName, value);
 
@@ -511,7 +513,7 @@ export class HotReloadManager {
 
         // Apply to each instance
         for (const instance of instances) {
-          const element = this.findElementByPath(instance.element, result.path);
+          const element = this.findElementByPath(instance.element, result.path, componentType);
           if (element) {
             if (patch.type === 'UpdateTextTemplate') {
               // Update text node
@@ -552,20 +554,101 @@ export class HotReloadManager {
   }
 
   /**
+   * Check if a path is currently null (not rendered)
+   */
+  private isPathNull(componentType: string, path: string): boolean {
+    return this.nullPaths.get(componentType)?.has(path) ?? false;
+  }
+
+  /**
+   * Mark a path as null (not rendered)
+   */
+  private setPathNull(componentType: string, path: string): void {
+    if (!this.nullPaths.has(componentType)) {
+      this.nullPaths.set(componentType, new Set());
+    }
+    this.nullPaths.get(componentType)!.add(path);
+  }
+
+  /**
+   * Mark a path as non-null (rendered)
+   */
+  private setPathNonNull(componentType: string, path: string): void {
+    this.nullPaths.get(componentType)?.delete(path);
+  }
+
+  /**
+   * Update null paths from server patches
+   * The server tells us which paths are null when sending patches
+   */
+  private updateNullPaths(componentType: string, nullPathsFromServer: string[]): void {
+    this.nullPaths.set(componentType, new Set(nullPathsFromServer));
+  }
+
+  /**
    * Find DOM element by hex path string
    * Example: "10000000.20000000.30000000" → convert to indices and navigate
    */
-  private findElementByPath(root: HTMLElement, path: string): Node | null {
+  private findElementByPath(root: HTMLElement, path: string, componentType: string): Node | null {
     if (path === '' || path === '.') {
       return root;
     }
 
-    let current: Node | null = root;
-    const indices = path.split('.').map(hex => parseInt(hex, 16));
+    // Check if path ends with attribute marker (e.g., "10000000.20000000.@style")
+    const segments = path.split('.');
+    const lastSegment = segments[segments.length - 1];
+    const isAttributePath = lastSegment?.startsWith('@');
 
-    for (const index of indices) {
+    // If attribute path, remove the @attribute segment and find the element
+    const hexSegments = isAttributePath ? segments.slice(0, -1) : segments;
+
+    let current: Node | null = root;
+
+    // Navigate through each depth using lexicographic ordering from template index
+    for (let depth = 0; depth < hexSegments.length; depth++) {
+      const targetHex = hexSegments[depth];
       if (!current || !current.childNodes) return null;
-      current = current.childNodes[index] || null;
+
+      // Get sorted hex codes from template index
+      const sortedHexCodes = templateState.getHexCodesAtDepth(componentType, depth);
+
+      if (!sortedHexCodes) {
+        console.warn(`[HotReload] No hex codes found at depth ${depth} for ${componentType}`);
+        return null;
+      }
+
+      // Map VNode hex codes to actual DOM children, skipping nulls
+      // Use the null path map to know which hex codes didn't render
+
+      let domChildIndex = 0; // Actual DOM child we're at
+
+      for (const hexCode of sortedHexCodes) {
+        // Check if this hex code is null (didn't render)
+        const fullPathSoFar = hexSegments.slice(0, depth).join('.') + (depth > 0 ? '.' : '') + hexCode;
+
+        if (templateState.isPathNull(componentType, fullPathSoFar)) {
+          // This path is null, skip it (don't consume a DOM child)
+          if (hexCode === targetHex) {
+            console.warn(`[HotReload] Target path "${fullPathSoFar}" is currently null (not rendered)`);
+            return null;
+          }
+          continue;
+        }
+
+        // This hex code has a corresponding DOM child
+        if (hexCode === targetHex) {
+          // Found our target!
+          current = current.childNodes[domChildIndex] || null;
+          break;
+        }
+
+        domChildIndex++;
+      }
+
+      if (!current || domChildIndex >= current.childNodes.length) {
+        console.warn(`[HotReload] Element "${targetHex}" not found in DOM at depth ${depth}`);
+        return null;
+      }
     }
 
     return current;

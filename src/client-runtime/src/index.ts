@@ -9,6 +9,7 @@ import { HotReloadManager } from './hot-reload';
 import { MinimactComponentRegistry } from './component-registry';
 import * as ClientComputed from './client-computed';
 import { MinimactOptions, Patch } from './types';
+import { templateState } from './template-state';
 
 /**
  * Main Minimact client runtime
@@ -57,7 +58,8 @@ export class Minimact {
     });
 
     this.domPatcher = new DOMPatcher({
-      debugLogging: this.options.enableDebugLogging
+      debugLogging: this.options.enableDebugLogging,
+      templateState: templateState
     });
 
     this.clientState = new ClientStateManager({
@@ -157,7 +159,7 @@ export class Minimact {
     this.signalR.on('applyPatches', ({ componentId, patches }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[]);
+        this.domPatcher.applyPatches(component.element, patches as Patch[], componentId);
         this.log('Patches applied', { componentId, patchCount: patches.length });
       }
     });
@@ -166,7 +168,7 @@ export class Minimact {
     this.signalR.on('applyPrediction', ({ componentId, patches, confidence }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[]);
+        this.domPatcher.applyPatches(component.element, patches as Patch[], componentId);
         this.log(`Prediction applied (${(confidence * 100).toFixed(0)}% confident)`, { componentId, patchCount: patches.length });
       }
     });
@@ -175,7 +177,7 @@ export class Minimact {
     this.signalR.on('applyCorrection', ({ componentId, patches }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[]);
+        this.domPatcher.applyPatches(component.element, patches as Patch[], componentId);
         this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
       }
     });
