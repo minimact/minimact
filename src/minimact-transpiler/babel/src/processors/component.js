@@ -21,6 +21,7 @@ const path = require('path');
 const { createComponent, createRenderMethod } = require('../nodes');
 const { traverseJSX, traverseFragment } = require('../core/traverser');
 const { extractHooks } = require('../extractors/hooks');
+const { extractMethods } = require('../extractors/methods');
 const { HexPathGenerator } = require('../hexPath');
 const { processAttributes } = require('./attributes');
 const { processExpression } = require('./expressions');
@@ -86,6 +87,9 @@ function processComponent(functionNode, outputDir, hexGap, t) {
   const hooks = extractHooks(functionPath, t);
   console.log(`  [Hooks] Found ${hooks.useState.length} useState, ${hooks.useMvcState.length} useMvcState`);
 
+  const methods = extractMethods(functionPath, t);
+  console.log(`  [Methods] Found ${methods.length} helper methods`);
+
   // Find the return statement containing JSX
   const returnStatement = findReturnStatement(functionNode.body);
   if (!returnStatement) {
@@ -121,7 +125,7 @@ function processComponent(functionNode, outputDir, hexGap, t) {
   }
 
   // Generate component JSON structure
-  const componentJson = generateComponentJSON(componentName, children, hooks, componentContext.eventHandlers);
+  const componentJson = generateComponentJSON(componentName, children, hooks, methods, componentContext.eventHandlers);
 
   // Write JSON to file
   const outputPath = path.join(outputDir, `${componentName}.json`);
@@ -200,14 +204,18 @@ function findReturnStatement(body) {
  *
  * @param {string} componentName - Component name (e.g., "TodoList")
  * @param {Array} children - Processed JSX children nodes
+ * @param {Object} hooks - Extracted hooks (useState, useMvcState, etc.)
+ * @param {Array} methods - Extracted helper methods with AST bodies
+ * @param {Array} eventHandlers - Extracted event handlers
  * @returns {Object} - Component JSON node
  */
-function generateComponentJSON(componentName, children, hooks, eventHandlers) {
+function generateComponentJSON(componentName, children, hooks, methods, eventHandlers) {
   return createComponent(
     componentName,
     createRenderMethod(children),
     hooks,
-    eventHandlers
+    eventHandlers,
+    methods
   );
 }
 
