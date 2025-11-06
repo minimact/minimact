@@ -14,6 +14,45 @@ public abstract class VNode
     public string Path { get; set; } = "";
 
     /// <summary>
+    /// The gap between consecutive hex path elements (268M slots)
+    /// Must match Rust HEX_GAP constant
+    /// </summary>
+    private const uint HEX_GAP = 0x10000000;
+
+    /// <summary>
+    /// Inflate compact hex path to full 8-digit format
+    /// Converts "1.2.3" to "10000000.20000000.30000000"
+    /// This allows Babel to emit compact paths while maintaining compatibility with Rust
+    /// </summary>
+    protected static string InflatePath(string compactPath)
+    {
+        if (string.IsNullOrEmpty(compactPath))
+            return "";
+
+        var segments = compactPath.Split('.');
+        var inflatedSegments = new string[segments.Length];
+
+        for (int i = 0; i < segments.Length; i++)
+        {
+            // Parse compact hex (e.g., "1" = 0x1)
+            if (uint.TryParse(segments[i], System.Globalization.NumberStyles.HexNumber, null, out uint value))
+            {
+                // Multiply by HEX_GAP to get aligned value (0x1 -> 0x10000000)
+                uint inflated = value * HEX_GAP;
+                // Format as 8-digit hex
+                inflatedSegments[i] = inflated.ToString("x8");
+            }
+            else
+            {
+                // If parse fails, keep original segment (shouldn't happen)
+                inflatedSegments[i] = segments[i];
+            }
+        }
+
+        return string.Join(".", inflatedSegments);
+    }
+
+    /// <summary>
     /// Render this VNode to HTML string
     /// </summary>
     public abstract string ToHtml();
@@ -161,7 +200,7 @@ public class VElement : VNode
     public VElement(string tag, string path, Dictionary<string, string> props)
     {
         Tag = tag;
-        Path = path;
+        Path = InflatePath(path);
         Props = props;
         Children = new List<VNode>();
     }
@@ -169,7 +208,7 @@ public class VElement : VNode
     public VElement(string tag, string path, Dictionary<string, string> props, string textContent)
     {
         Tag = tag;
-        Path = path;
+        Path = InflatePath(path);
         Props = props;
         Children = new List<VNode> { new VText(textContent, "") }; // Text content path is empty for now
     }
@@ -177,7 +216,7 @@ public class VElement : VNode
     public VElement(string tag, string path, Dictionary<string, string> props, VNode[] children)
     {
         Tag = tag;
-        Path = path;
+        Path = InflatePath(path);
         Props = props;
         Children = children.ToList();
     }
@@ -248,7 +287,7 @@ public class VText : VNode
     public VText(string content, string path)
     {
         Content = content ?? "";
-        Path = path;
+        Path = InflatePath(path);
     }
 
     public override string ToHtml()
@@ -271,7 +310,7 @@ public class VNull : VNode
 {
     public VNull(string path)
     {
-        Path = path;
+        Path = InflatePath(path);
     }
 
     public override string ToHtml()

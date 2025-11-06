@@ -22,13 +22,13 @@ public partial class UserProfile : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        return MinimactHelpers.createElement("div", new { className = "profile" }, (new MObject(loading)) ? new VElement("div", new Dictionary<string, string> { ["class"] = "spinner" }, "Loading...") : MinimactHelpers.createElement("div", new { className = "user-info" }, new VElement("h1", new Dictionary<string, string>(), new VNode[]
+        return MinimactHelpers.createElement("div", new { className = "profile" }, (new MObject(loading)) ? new VElement("div", "1.1.1", new Dictionary<string, string> { ["class"] = "spinner" }, "Loading...") : MinimactHelpers.createElement("div", new { className = "user-info" }, new VElement("h1", "1.1.2.1", new Dictionary<string, string>(), new VNode[]
                 {
-                    new VText($"{(user.name)}")
-                }), new VElement("p", new Dictionary<string, string>(), new VNode[]
+                    new VText($"{(user.name)}", "1.1.2.1.1")
+                }), new VElement("p", "1.1.2.2", new Dictionary<string, string>(), new VNode[]
                 {
-                    new VText($"{(user.email)}")
-                }), (new MObject(user.isAdmin)) ? new VElement("span", new Dictionary<string, string> { ["class"] = "badge" }, "Admin") : null));
+                    new VText($"{(user.email)}", "1.1.2.2.1")
+                }), (new MObject(user.isAdmin)) ? new VElement("span", "1.1.2.3.1", new Dictionary<string, string> { ["class"] = "badge" }, "Admin") : new VNull("1.1.2.3")));
     }
 }
 

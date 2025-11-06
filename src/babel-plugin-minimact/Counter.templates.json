@@ -1,75 +1,53 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1762394396448,
+  "generatedAt": 1762435083772,
   "templates": {
-    "10000000.10000000.10000000": {
-      "template": "Counter Example",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "10000000",
-        "10000000",
-        "10000000"
-      ],
-      "type": "static"
-    },
-    "10000000.20000000.10000000": {
-      "template": "Current count: {0}",
+    "1.1.1": {
+      "template": "Count: {0}",
       "bindings": [
         "count"
       ],
       "slots": [
-        15
+        7
       ],
       "path": [
-        "10000000",
-        "20000000"
+        "1",
+        "1"
       ],
       "type": "dynamic"
     },
-    "10000000.30000000.10000000": {
-      "template": "Increment",
+    "1.2.1": {
+      "template": "+",
       "bindings": [],
       "slots": [],
       "path": [
-        "10000000",
-        "30000000",
-        "10000000"
+        "1",
+        "2",
+        "1"
       ],
       "type": "static"
     },
-    "10000000.40000000.10000000": {
-      "template": "Reset",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "10000000",
-        "40000000",
-        "10000000"
-      ],
-      "type": "static"
-    },
-    "10000000.@className": {
+    "1.@className": {
       "template": "counter",
       "bindings": [],
       "slots": [],
       "path": [
-        "10000000"
+        "1"
       ],
       "type": "attribute-static"
     },
-    "10000000.30000000.@ref": {
+    "1.2.@onClick": {
       "template": "{0}",
       "bindings": [
-        "buttonRef"
+        "increment"
       ],
       "slots": [
         0
       ],
       "path": [
-        "10000000",
-        "30000000"
+        "1",
+        "2"
       ],
       "type": "attribute-dynamic"
     }

@@ -19,10 +19,10 @@ public partial class Counter : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        return new VElement("div", new Dictionary<string, string> { ["class"] = "counter" }, new VNode[]
+        return new VElement("div", "1", new Dictionary<string, string> { ["class"] = "counter" }, new VNode[]
         {
-            new VElement("span", new Dictionary<string, string>(), $"Count:{(count)}"),
-            new VElement("button", new Dictionary<string, string> { ["onclick"] = "increment" }, "+")
+            new VElement("span", "1.1", new Dictionary<string, string>(), $"Count:{(count)}"),
+            new VElement("button", "1.2", new Dictionary<string, string> { ["onclick"] = "increment" }, "+")
         });
     }
 }

@@ -1,20 +1,21 @@
 {
   "component": "UserProfile",
   "version": "1.0",
-  "generatedAt": 1762358859384,
+  "generatedAt": 1762435117856,
   "templates": {
-    "[0].div[0].text[0]": {
+    "1.1.1.1": {
       "template": "Loading...",
       "bindings": [],
       "slots": [],
       "path": [
-        0,
-        0,
-        0
+        "1",
+        "1",
+        "1",
+        "1"
       ],
       "type": "static"
     },
-    "[0].[1].h1[0].text[0]": {
+    "1.1.2.1.1": {
       "template": "{0}",
       "bindings": [
         "user.name"
@@ -23,14 +24,14 @@
         0
       ],
       "path": [
-        0,
-        1,
-        0,
-        0
+        "1",
+        "1",
+        "2",
+        "1"
       ],
       "type": "dynamic"
     },
-    "[0].[1].p[0].text[0]": {
+    "1.1.2.2.1": {
       "template": "{0}",
       "bindings": [
         "user.email"
@@ -39,31 +40,33 @@
         0
       ],
       "path": [
-        0,
-        1,
-        0,
-        0
+        "1",
+        "1",
+        "2",
+        "2"
       ],
       "type": "dynamic"
     },
-    "[0].[1].span[0].text[0]": {
+    "1.1.2.3.1.1": {
       "template": "Admin",
       "bindings": [],
       "slots": [],
       "path": [
-        0,
-        1,
-        0,
-        0
+        "1",
+        "1",
+        "2",
+        "3",
+        "1",
+        "1"
       ],
       "type": "static"
     },
-    "div[0].@className": {
+    "1.@className": {
       "template": "profile",
       "bindings": [],
       "slots": [],
       "path": [
-        0
+        "1"
       ],
       "type": "attribute-static"
     }

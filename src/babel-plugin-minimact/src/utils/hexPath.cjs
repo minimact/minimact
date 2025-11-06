@@ -28,8 +28,8 @@ class HexPathGenerator {
 
   /**
    * Generate next hex code for a given parent path
-   * @param {string} parentPath - Parent path (e.g., "10000000" or "10000000.20000000")
-   * @returns {string} - Next 8-digit hex code
+   * @param {string} parentPath - Parent path (e.g., "10000000" or "10000000.1")
+   * @returns {string} - Next hex code (compact: 1, 2, 3...a, b, c...10, 11...)
    */
   next(parentPath = '') {
     if (!this.counters[parentPath]) {
@@ -37,8 +37,11 @@ class HexPathGenerator {
     }
 
     this.counters[parentPath]++;
-    const hexValue = (this.counters[parentPath] * this.gap).toString(16).padStart(8, '0');
-    return hexValue;
+    // For root level (empty parent), use gap-based spacing for components
+    // For child elements, use simple sequential hex (1, 2, 3...a, b, c...)
+    const hexValue = (parentPath === '' ? this.counters[parentPath] * this.gap : this.counters[parentPath]).toString(16);
+    // Truncate trailing zeroes to keep paths compact (1 instead of 10000000)
+    return hexValue.replace(/0+$/, '') || '0';
   }
 
   /**
