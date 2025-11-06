@@ -344,7 +344,10 @@ function generateCSharpStatement(node) {
  * @param {boolean} inInterpolation - True if this expression will be inside $"{...}"
  */
 function generateCSharpExpression(node, inInterpolation = false) {
-  if (!node) return 'null';
+  if (!node) {
+    const nodePath = node?.__minimactPath || '';
+    return `new VNull("${nodePath}")`;
+  }
 
   if (t.isStringLiteral(node)) {
     // In string interpolation context, escape the quotes: \"text\"
@@ -365,7 +368,8 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isNullLiteral(node)) {
-    return 'null';
+    const nodePath = node.__minimactPath || '';
+    return `new VNull("${nodePath}")`;
   }
 
   if (t.isIdentifier(node)) {
@@ -1020,7 +1024,9 @@ function generateCSharpExpression(node, inInterpolation = false) {
     return `${paramsString} => ${body}`;
   }
 
-  return 'null';
+  // Fallback for unknown node types
+  const nodePath = node?.__minimactPath || '';
+  return `new VNull("${nodePath}")`;
 }
 
 /**

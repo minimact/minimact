@@ -4,6 +4,7 @@
 
 const t = require('@babel/types');
 const { escapeCSharpString } = require('../utils/helpers.cjs');
+const { getPathFromNode } = require('../utils/pathAssignment.cjs');
 // Lazy load to avoid circular dependencies with jsx.cjs and expressions.cjs
 
 /**
@@ -93,9 +94,18 @@ function generateRuntimeHelperCall(tagName, attributes, children, component, ind
         const consequent = t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)
           ? generateJSXElement(expr.consequent, component, indent + 1)
           : generateCSharpExpression(expr.consequent);
-        const alternate = t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)
-          ? generateJSXElement(expr.alternate, component, indent + 1)
-          : generateCSharpExpression(expr.alternate);
+
+        // Handle alternate - if null literal, use VNull with path
+        let alternate;
+        if (!expr.alternate || t.isNullLiteral(expr.alternate)) {
+          const exprPath = child.__minimactPath || '';
+          alternate = `new VNull("${exprPath}")`;
+        } else if (t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+          alternate = generateJSXElement(expr.alternate, component, indent + 1);
+        } else {
+          alternate = generateCSharpExpression(expr.alternate);
+        }
+
         childrenArgs.push(`(${condition}) ? ${consequent} : ${alternate}`);
       }
       // Handle logical expressions with JSX: {condition && <Element/>}
@@ -105,7 +115,8 @@ function generateRuntimeHelperCall(tagName, attributes, children, component, ind
         const right = t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)
           ? generateJSXElement(expr.right, component, indent + 1)
           : generateCSharpExpression(expr.right);
-        childrenArgs.push(`(${left}) ? ${right} : null`);
+        const exprPath = child.__minimactPath || '';
+        childrenArgs.push(`(${left}) ? ${right} : new VNull("${exprPath}")`);
       }
       // Handle .map() with JSX callback
       else if (t.isCallExpression(expr) &&
@@ -169,7 +180,9 @@ function generateRuntimeHelperForJSXNode(node, component, indent) {
     return generateRuntimeHelperCall(tagName, attributes, children, component, indent);
   }
 
-  return 'null';
+  // Fallback for null/undefined nodes
+  const nodePath = node.__minimactPath || '';
+  return `new VNull("${nodePath}")`;
 }
 
 

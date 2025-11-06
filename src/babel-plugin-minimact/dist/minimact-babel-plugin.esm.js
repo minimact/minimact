@@ -531,6 +531,387 @@ var eventHandlers = {
 };
 
 /**
+ * Hex Path Generator for Minimact
+ *
+ * Generates lexicographically sortable, insertion-friendly paths using 8-digit hex codes.
+ *
+ * Benefits:
+ * - No renumbering needed when inserting elements
+ * - String comparison works for sorting
+ * - Billions of slots between any two elements
+ * - Easy to visualize tree structure
+ *
+ * Example:
+ *   div [10000000]
+ *     span [10000000.10000000]
+ *     span [10000000.20000000]
+ *     p [10000000.30000000]
+ *   section [20000000]
+ */
+
+let HexPathGenerator$1 = class HexPathGenerator {
+  /**
+   * @param {number} gap - Spacing between elements (default: 0x10000000 = 268,435,456)
+   */
+  constructor(gap = 0x10000000) {
+    this.gap = gap;
+    this.counters = {}; // Track counters per parent path
+  }
+
+  /**
+   * Generate next hex code for a given parent path
+   * @param {string} parentPath - Parent path (e.g., "10000000" or "10000000.20000000")
+   * @returns {string} - Next 8-digit hex code
+   */
+  next(parentPath = '') {
+    if (!this.counters[parentPath]) {
+      this.counters[parentPath] = 0;
+    }
+
+    this.counters[parentPath]++;
+    const hexValue = (this.counters[parentPath] * this.gap).toString(16).padStart(8, '0');
+    return hexValue;
+  }
+
+  /**
+   * Build full path by joining parent and child
+   * @param {string} parentPath - Parent path
+   * @param {string} childHex - Child hex code
+   * @returns {string} - Full path (e.g., "10000000.20000000")
+   */
+  buildPath(parentPath, childHex) {
+    return parentPath ? `${parentPath}.${childHex}` : childHex;
+  }
+
+  /**
+   * Parse path into segments
+   * @param {string} path - Full path (e.g., "10000000.20000000.30000000")
+   * @returns {string[]} - Array of hex segments
+   */
+  parsePath(path) {
+    return path.split('.');
+  }
+
+  /**
+   * Get depth of a path (number of segments)
+   * @param {string} path - Full path
+   * @returns {number} - Depth (0 for root, 1 for first level, etc.)
+   */
+  getDepth(path) {
+    return path ? this.parsePath(path).length : 0;
+  }
+
+  /**
+   * Get parent path
+   * @param {string} path - Full path
+   * @returns {string|null} - Parent path or null if root
+   */
+  getParentPath(path) {
+    const lastDot = path.lastIndexOf('.');
+    return lastDot > 0 ? path.substring(0, lastDot) : null;
+  }
+
+  /**
+   * Check if path1 is ancestor of path2
+   * @param {string} ancestorPath - Potential ancestor
+   * @param {string} descendantPath - Potential descendant
+   * @returns {boolean}
+   */
+  isAncestorOf(ancestorPath, descendantPath) {
+    return descendantPath.startsWith(ancestorPath + '.');
+  }
+
+  /**
+   * Reset counter for a specific parent (useful for testing)
+   * @param {string} parentPath - Parent path to reset
+   */
+  reset(parentPath = '') {
+    delete this.counters[parentPath];
+  }
+
+  /**
+   * Reset all counters (useful for testing)
+   */
+  resetAll() {
+    this.counters = {};
+  }
+
+  /**
+   * Generate a path between two existing paths (for future insertion)
+   * @param {string} path1 - First path
+   * @param {string} path2 - Second path
+   * @returns {string} - Midpoint path
+   */
+  static generatePathBetween(path1, path2) {
+    const segments1 = path1.split('.');
+    const segments2 = path2.split('.');
+
+    // Find common prefix length
+    let commonLength = 0;
+    while (commonLength < Math.min(segments1.length, segments2.length) &&
+           segments1[commonLength] === segments2[commonLength]) {
+      commonLength++;
+    }
+
+    // Get the differing segments
+    const seg1 = commonLength < segments1.length
+      ? parseInt(segments1[commonLength], 16)
+      : 0;
+    const seg2 = commonLength < segments2.length
+      ? parseInt(segments2[commonLength], 16)
+      : 0;
+
+    // Generate midpoint
+    const midpoint = Math.floor((seg1 + seg2) / 2);
+    const newSegment = midpoint.toString(16).padStart(8, '0');
+
+    // Build new path
+    const prefix = segments1.slice(0, commonLength).join('.');
+    return prefix ? `${prefix}.${newSegment}` : newSegment;
+  }
+
+  /**
+   * Check if there's sufficient gap between two paths
+   * @param {string} path1 - First path
+   * @param {string} path2 - Second path
+   * @param {number} minGap - Minimum required gap (default: 0x00100000)
+   * @returns {boolean}
+   */
+  static hasSufficientGap(path1, path2, minGap = 0x00100000) {
+    const seg1 = parseInt(path1.split('.').pop(), 16);
+    const seg2 = parseInt(path2.split('.').pop(), 16);
+    return Math.abs(seg2 - seg1) > minGap;
+  }
+};
+
+var hexPath = { HexPathGenerator: HexPathGenerator$1 };
+
+/**
+ * Path Assignment Pass for Minimact
+ *
+ * CRITICAL: This is the FIRST PASS that runs before any extraction.
+ * It assigns hex paths to every JSX node by mutating the AST.
+ *
+ * Problem it solves:
+ * - Old system: Each extractor recalculated paths independently
+ * - Result: Path mismatches between template/attribute/handler extractors
+ *
+ * Solution:
+ * - Single pass assigns paths and stores in node.__minimactPath
+ * - All extractors read from node.__minimactPath (no recalculation!)
+ *
+ * Usage:
+ *   const pathGen = new HexPathGenerator();
+ *   assignPathsToJSX(jsxRoot, '', pathGen, t);
+ *   // Now all JSX nodes have __minimactPath metadata
+ */
+
+/**
+ * Assign hex paths to all JSX nodes in tree
+ *
+ * Mutates AST by adding __minimactPath and __minimactPathSegments to each node.
+ * This ensures consistent paths across all subsequent extractors.
+ *
+ * @param {Object} node - Babel AST node
+ * @param {string} parentPath - Parent hex path
+ * @param {HexPathGenerator} pathGen - Hex path generator
+ * @param {Object} t - Babel types
+ */
+function assignPathsToJSX$1(node, parentPath, pathGen, t) {
+  if (t.isJSXElement(node)) {
+    // Generate hex path for this element
+    const childHex = pathGen.next(parentPath);
+    const currentPath = pathGen.buildPath(parentPath, childHex);
+    const pathSegments = pathGen.parsePath(currentPath);
+
+    // Mutate AST node with path data
+    node.__minimactPath = currentPath;
+    node.__minimactPathSegments = pathSegments;
+
+    // Process attributes (for @attributeName paths)
+    if (node.openingElement && node.openingElement.attributes) {
+      for (const attr of node.openingElement.attributes) {
+        if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
+          const attrName = attr.name.name;
+          const attrPath = `${currentPath}.@${attrName}`;
+
+          // Mutate attribute node with path
+          attr.__minimactPath = attrPath;
+          attr.__minimactPathSegments = [...pathSegments, `@${attrName}`];
+        }
+      }
+    }
+
+    // Recursively assign paths to children
+    if (node.children) {
+      assignPathsToChildren(node.children, currentPath, pathGen, t);
+    }
+  } else if (t.isJSXFragment(node)) {
+    // Fragments don't get paths - children become direct siblings
+    if (node.children) {
+      assignPathsToChildren(node.children, parentPath, pathGen, t);
+    }
+  }
+}
+
+/**
+ * Assign paths to JSX children array
+ *
+ * Handles mixed content: JSXElement, JSXText, JSXExpressionContainer, JSXFragment
+ *
+ * @param {Array} children - Array of Babel AST nodes
+ * @param {string} parentPath - Parent hex path
+ * @param {HexPathGenerator} pathGen - Hex path generator
+ * @param {Object} t - Babel types
+ */
+function assignPathsToChildren(children, parentPath, pathGen, t) {
+  for (const child of children) {
+    if (t.isJSXElement(child)) {
+      // Nested JSX element
+      assignPathsToJSX$1(child, parentPath, pathGen, t);
+    } else if (t.isJSXText(child)) {
+      // Static text node
+      const text = child.value.trim();
+      if (text) {
+        const textHex = pathGen.next(parentPath);
+        const textPath = pathGen.buildPath(parentPath, textHex);
+        const textSegments = pathGen.parsePath(textPath);
+
+        // Mutate text node with path
+        child.__minimactPath = textPath;
+        child.__minimactPathSegments = textSegments;
+      }
+    } else if (t.isJSXExpressionContainer(child)) {
+      // Expression container - assign path and recurse into structural JSX
+      const expr = child.expression;
+
+      // Generate path for the expression container
+      const exprHex = pathGen.next(parentPath);
+      const exprPath = pathGen.buildPath(parentPath, exprHex);
+      const exprSegments = pathGen.parsePath(exprPath);
+
+      // Mutate expression container with path
+      child.__minimactPath = exprPath;
+      child.__minimactPathSegments = exprSegments;
+
+      // Recurse into structural expressions (conditionals, loops)
+      assignPathsToExpression(expr, exprPath, pathGen, t);
+    } else if (t.isJSXFragment(child)) {
+      // Fragment - flatten children
+      assignPathsToJSX$1(child, parentPath, pathGen, t);
+    }
+  }
+}
+
+/**
+ * Assign paths to expressions containing JSX
+ *
+ * Handles:
+ * - Logical AND: {isVisible && <Modal />}
+ * - Ternary: {isAdmin ? <AdminPanel /> : <UserPanel />}
+ * - Array.map: {items.map(item => <li>{item}</li>)}
+ *
+ * @param {Object} expr - Babel expression node
+ * @param {string} parentPath - Parent hex path
+ * @param {HexPathGenerator} pathGen - Hex path generator
+ * @param {Object} t - Babel types
+ */
+function assignPathsToExpression(expr, parentPath, pathGen, t) {
+  if (!expr) return;
+
+  if (t.isLogicalExpression(expr) && expr.operator === '&&') {
+    // Logical AND: {isAdmin && <div>Admin Panel</div>}
+    if (t.isJSXElement(expr.right)) {
+      assignPathsToJSX$1(expr.right, parentPath, pathGen, t);
+    } else if (t.isJSXExpressionContainer(expr.right)) {
+      assignPathsToExpression(expr.right.expression, parentPath, pathGen, t);
+    }
+  } else if (t.isConditionalExpression(expr)) {
+    // Ternary: {isAdmin ? <AdminPanel/> : <UserPanel/>}
+
+    // Assign paths to consequent (true branch)
+    if (t.isJSXElement(expr.consequent)) {
+      assignPathsToJSX$1(expr.consequent, parentPath, pathGen, t);
+    } else if (t.isJSXExpressionContainer(expr.consequent)) {
+      assignPathsToExpression(expr.consequent.expression, parentPath, pathGen, t);
+    }
+
+    // Assign paths to alternate (false branch)
+    if (expr.alternate) {
+      if (t.isJSXElement(expr.alternate)) {
+        assignPathsToJSX$1(expr.alternate, parentPath, pathGen, t);
+      } else if (t.isJSXExpressionContainer(expr.alternate)) {
+        assignPathsToExpression(expr.alternate.expression, parentPath, pathGen, t);
+      }
+    }
+  } else if (t.isCallExpression(expr) &&
+             t.isMemberExpression(expr.callee) &&
+             t.isIdentifier(expr.callee.property) &&
+             expr.callee.property.name === 'map') {
+    // Array.map: {items.map(item => <li>{item}</li>)}
+
+    const callback = expr.arguments[0];
+    if (t.isArrowFunctionExpression(callback) || t.isFunctionExpression(callback)) {
+      const body = callback.body;
+
+      if (t.isJSXElement(body)) {
+        // Arrow function with JSX body: item => <li>{item}</li>
+        assignPathsToJSX$1(body, parentPath, pathGen, t);
+      } else if (t.isBlockStatement(body)) {
+        // Arrow function with block: item => { return <li>{item}</li>; }
+        const returnStmt = body.body.find(stmt => t.isReturnStatement(stmt));
+        if (returnStmt && t.isJSXElement(returnStmt.argument)) {
+          assignPathsToJSX$1(returnStmt.argument, parentPath, pathGen, t);
+        }
+      }
+    }
+  } else if (t.isJSXFragment(expr)) {
+    // Fragment
+    assignPathsToJSX$1(expr, parentPath, pathGen, t);
+  } else if (t.isJSXElement(expr)) {
+    // Direct JSX element
+    assignPathsToJSX$1(expr, parentPath, pathGen, t);
+  }
+}
+
+/**
+ * Get path from AST node (helper for extractors)
+ *
+ * Reads __minimactPath metadata assigned by this pass.
+ * Throws error if path wasn't assigned (indicates bug).
+ *
+ * @param {Object} node - Babel AST node
+ * @returns {string} - Hex path
+ */
+function getPathFromNode$1(node) {
+  if (!node.__minimactPath) {
+    throw new Error('[Minimact] Path not assigned to node! Did you forget to run assignPathsToJSX?');
+  }
+  return node.__minimactPath;
+}
+
+/**
+ * Get path segments from AST node (helper for extractors)
+ *
+ * @param {Object} node - Babel AST node
+ * @returns {string[]} - Path segments array
+ */
+function getPathSegmentsFromNode$1(node) {
+  if (!node.__minimactPathSegments) {
+    throw new Error('[Minimact] Path segments not assigned to node! Did you forget to run assignPathsToJSX?');
+  }
+  return node.__minimactPathSegments;
+}
+
+var pathAssignment = {
+  assignPathsToJSX: assignPathsToJSX$1,
+  assignPathsToChildren,
+  assignPathsToExpression,
+  getPathFromNode: getPathFromNode$1,
+  getPathSegmentsFromNode: getPathSegmentsFromNode$1
+};
+
+/**
  * Generate C# code for Plugin elements
  * Transforms <Plugin name="..." state={...} /> to C# PluginNode instances
  *
@@ -791,6 +1172,9 @@ function requireJsx () {
 	  const attributes = node.openingElement.attributes;
 	  const children = node.children;
 
+	  // Get hex path from AST node (assigned by pathAssignment.cjs)
+	  const hexPath = node.__minimactPath || '';
+
 	  // Check if this is a Plugin element
 	  if (tagName === 'Plugin') {
 	    const { generatePluginNode } = requirePlugin();
@@ -899,29 +1283,33 @@ function requireJsx () {
 	  // Generate children
 	  const childrenCode = generateChildren(children, component, indent);
 
-	  // Build VElement construction
+	  // Build VElement construction with hex path
 	  if (childrenCode.length === 0) {
-	    return `new VElement("${tagName}", ${propsStr})`;
+	    return `new VElement("${tagName}", "${hexPath}", ${propsStr})`;
 	  } else if (childrenCode.length === 1 && (childrenCode[0].type === 'text' || childrenCode[0].type === 'mixed')) {
-	    return `new VElement("${tagName}", ${propsStr}, ${childrenCode[0].code})`;
+	    return `new VElement("${tagName}", "${hexPath}", ${propsStr}, ${childrenCode[0].code})`;
 	  } else {
 	    // Wrap children appropriately for VNode array
 	    const childrenArray = childrenCode.map(c => {
 	      if (c.type === 'text') {
-	        // Text already has quotes, wrap in VText
-	        return `new VText(${c.code})`;
+	        // Text already has quotes, wrap in VText with path from node
+	        const textPath = c.node.__minimactPath || '';
+	        return `new VText(${c.code}, "${textPath}")`;
 	      } else if (c.type === 'expression') {
 	        // Expression needs string interpolation wrapper with extra parentheses for complex expressions
-	        return `new VText($"{(${c.code})}")`;
+	        const exprPath = c.node.__minimactPath || '';
+	        return `new VText($"{(${c.code})}", "${exprPath}")`;
 	      } else if (c.type === 'mixed') {
 	        // Mixed content is already an interpolated string, wrap in VText
-	        return `new VText(${c.code})`;
+	        // Use path from first child node
+	        const mixedPath = c.node ? (c.node.__minimactPath || '') : '';
+	        return `new VText(${c.code}, "${mixedPath}")`;
 	      } else {
 	        // Element is already a VNode
 	        return c.code;
 	      }
 	    }).join(',\n' + indentStr + '    ');
-	    return `new VElement("${tagName}", ${propsStr}, new VNode[]\n${indentStr}{\n${indentStr}    ${childrenArray}\n${indentStr}})`;
+	    return `new VElement("${tagName}", "${hexPath}", ${propsStr}, new VNode[]\n${indentStr}{\n${indentStr}    ${childrenArray}\n${indentStr}})`;
 	  }
 	}
 
@@ -1277,9 +1665,18 @@ function requireExpressions () {
 	    const consequent = t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent)
 	      ? generateRuntimeHelperForJSXNode(expr.consequent, component, indent)
 	      : generateCSharpExpression(expr.consequent, false); // Normal C# expression context
-	    const alternate = t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)
-	      ? generateRuntimeHelperForJSXNode(expr.alternate, component, indent)
-	      : generateCSharpExpression(expr.alternate, false); // Normal C# expression context
+
+	    // Handle alternate - if null literal, use VNull with path
+	    let alternate;
+	    if (!expr.alternate || t.isNullLiteral(expr.alternate)) {
+	      const exprPath = expr.__minimactPath || '';
+	      alternate = `new VNull("${exprPath}")`;
+	    } else if (t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+	      alternate = generateRuntimeHelperForJSXNode(expr.alternate, component, indent);
+	    } else {
+	      alternate = generateCSharpExpression(expr.alternate, false); // Normal C# expression context
+	    }
+
 	    return `(${condition}) ? ${consequent} : ${alternate}`;
 	  }
 
@@ -1290,8 +1687,9 @@ function requireExpressions () {
 	    const right = t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)
 	      ? generateRuntimeHelperForJSXNode(expr.right, component, indent)
 	      : generateCSharpExpression(expr.right);
-	    // Use != null for truthy check (works for bool, object, int, etc.)
-	    return `(${left}) ? ${right} : null`;
+	    // Get path for VNull (use the expression container's path)
+	    const exprPath = expr.__minimactPath || '';
+	    return `(${left}) ? ${right} : new VNull("${exprPath}")`;
 	  }
 
 	  if (t.isCallExpression(expr) &&
@@ -1756,8 +2154,9 @@ function requireExpressions () {
 	        return `(${left}) && (${right})`;
 	      } else {
 	        // JavaScript: a && <jsx> or a && someValue
-	        // C#: a != null ? value : null (for objects)
-	        return `(${left}) != null ? (${right}) : null`;
+	        // C#: a != null ? value : VNull (for objects)
+	        const nodePath = node.__minimactPath || '';
+	        return `(${left}) != null ? (${right}) : new VNull("${nodePath}")`;
 	      }
 	    }
 
@@ -3946,387 +4345,6 @@ function extractPropName(node) {
 
 var propTypeInference = {
   inferPropTypes: inferPropTypes$1
-};
-
-/**
- * Hex Path Generator for Minimact
- *
- * Generates lexicographically sortable, insertion-friendly paths using 8-digit hex codes.
- *
- * Benefits:
- * - No renumbering needed when inserting elements
- * - String comparison works for sorting
- * - Billions of slots between any two elements
- * - Easy to visualize tree structure
- *
- * Example:
- *   div [10000000]
- *     span [10000000.10000000]
- *     span [10000000.20000000]
- *     p [10000000.30000000]
- *   section [20000000]
- */
-
-let HexPathGenerator$1 = class HexPathGenerator {
-  /**
-   * @param {number} gap - Spacing between elements (default: 0x10000000 = 268,435,456)
-   */
-  constructor(gap = 0x10000000) {
-    this.gap = gap;
-    this.counters = {}; // Track counters per parent path
-  }
-
-  /**
-   * Generate next hex code for a given parent path
-   * @param {string} parentPath - Parent path (e.g., "10000000" or "10000000.20000000")
-   * @returns {string} - Next 8-digit hex code
-   */
-  next(parentPath = '') {
-    if (!this.counters[parentPath]) {
-      this.counters[parentPath] = 0;
-    }
-
-    this.counters[parentPath]++;
-    const hexValue = (this.counters[parentPath] * this.gap).toString(16).padStart(8, '0');
-    return hexValue;
-  }
-
-  /**
-   * Build full path by joining parent and child
-   * @param {string} parentPath - Parent path
-   * @param {string} childHex - Child hex code
-   * @returns {string} - Full path (e.g., "10000000.20000000")
-   */
-  buildPath(parentPath, childHex) {
-    return parentPath ? `${parentPath}.${childHex}` : childHex;
-  }
-
-  /**
-   * Parse path into segments
-   * @param {string} path - Full path (e.g., "10000000.20000000.30000000")
-   * @returns {string[]} - Array of hex segments
-   */
-  parsePath(path) {
-    return path.split('.');
-  }
-
-  /**
-   * Get depth of a path (number of segments)
-   * @param {string} path - Full path
-   * @returns {number} - Depth (0 for root, 1 for first level, etc.)
-   */
-  getDepth(path) {
-    return path ? this.parsePath(path).length : 0;
-  }
-
-  /**
-   * Get parent path
-   * @param {string} path - Full path
-   * @returns {string|null} - Parent path or null if root
-   */
-  getParentPath(path) {
-    const lastDot = path.lastIndexOf('.');
-    return lastDot > 0 ? path.substring(0, lastDot) : null;
-  }
-
-  /**
-   * Check if path1 is ancestor of path2
-   * @param {string} ancestorPath - Potential ancestor
-   * @param {string} descendantPath - Potential descendant
-   * @returns {boolean}
-   */
-  isAncestorOf(ancestorPath, descendantPath) {
-    return descendantPath.startsWith(ancestorPath + '.');
-  }
-
-  /**
-   * Reset counter for a specific parent (useful for testing)
-   * @param {string} parentPath - Parent path to reset
-   */
-  reset(parentPath = '') {
-    delete this.counters[parentPath];
-  }
-
-  /**
-   * Reset all counters (useful for testing)
-   */
-  resetAll() {
-    this.counters = {};
-  }
-
-  /**
-   * Generate a path between two existing paths (for future insertion)
-   * @param {string} path1 - First path
-   * @param {string} path2 - Second path
-   * @returns {string} - Midpoint path
-   */
-  static generatePathBetween(path1, path2) {
-    const segments1 = path1.split('.');
-    const segments2 = path2.split('.');
-
-    // Find common prefix length
-    let commonLength = 0;
-    while (commonLength < Math.min(segments1.length, segments2.length) &&
-           segments1[commonLength] === segments2[commonLength]) {
-      commonLength++;
-    }
-
-    // Get the differing segments
-    const seg1 = commonLength < segments1.length
-      ? parseInt(segments1[commonLength], 16)
-      : 0;
-    const seg2 = commonLength < segments2.length
-      ? parseInt(segments2[commonLength], 16)
-      : 0;
-
-    // Generate midpoint
-    const midpoint = Math.floor((seg1 + seg2) / 2);
-    const newSegment = midpoint.toString(16).padStart(8, '0');
-
-    // Build new path
-    const prefix = segments1.slice(0, commonLength).join('.');
-    return prefix ? `${prefix}.${newSegment}` : newSegment;
-  }
-
-  /**
-   * Check if there's sufficient gap between two paths
-   * @param {string} path1 - First path
-   * @param {string} path2 - Second path
-   * @param {number} minGap - Minimum required gap (default: 0x00100000)
-   * @returns {boolean}
-   */
-  static hasSufficientGap(path1, path2, minGap = 0x00100000) {
-    const seg1 = parseInt(path1.split('.').pop(), 16);
-    const seg2 = parseInt(path2.split('.').pop(), 16);
-    return Math.abs(seg2 - seg1) > minGap;
-  }
-};
-
-var hexPath = { HexPathGenerator: HexPathGenerator$1 };
-
-/**
- * Path Assignment Pass for Minimact
- *
- * CRITICAL: This is the FIRST PASS that runs before any extraction.
- * It assigns hex paths to every JSX node by mutating the AST.
- *
- * Problem it solves:
- * - Old system: Each extractor recalculated paths independently
- * - Result: Path mismatches between template/attribute/handler extractors
- *
- * Solution:
- * - Single pass assigns paths and stores in node.__minimactPath
- * - All extractors read from node.__minimactPath (no recalculation!)
- *
- * Usage:
- *   const pathGen = new HexPathGenerator();
- *   assignPathsToJSX(jsxRoot, '', pathGen, t);
- *   // Now all JSX nodes have __minimactPath metadata
- */
-
-/**
- * Assign hex paths to all JSX nodes in tree
- *
- * Mutates AST by adding __minimactPath and __minimactPathSegments to each node.
- * This ensures consistent paths across all subsequent extractors.
- *
- * @param {Object} node - Babel AST node
- * @param {string} parentPath - Parent hex path
- * @param {HexPathGenerator} pathGen - Hex path generator
- * @param {Object} t - Babel types
- */
-function assignPathsToJSX$1(node, parentPath, pathGen, t) {
-  if (t.isJSXElement(node)) {
-    // Generate hex path for this element
-    const childHex = pathGen.next(parentPath);
-    const currentPath = pathGen.buildPath(parentPath, childHex);
-    const pathSegments = pathGen.parsePath(currentPath);
-
-    // Mutate AST node with path data
-    node.__minimactPath = currentPath;
-    node.__minimactPathSegments = pathSegments;
-
-    // Process attributes (for @attributeName paths)
-    if (node.openingElement && node.openingElement.attributes) {
-      for (const attr of node.openingElement.attributes) {
-        if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
-          const attrName = attr.name.name;
-          const attrPath = `${currentPath}.@${attrName}`;
-
-          // Mutate attribute node with path
-          attr.__minimactPath = attrPath;
-          attr.__minimactPathSegments = [...pathSegments, `@${attrName}`];
-        }
-      }
-    }
-
-    // Recursively assign paths to children
-    if (node.children) {
-      assignPathsToChildren(node.children, currentPath, pathGen, t);
-    }
-  } else if (t.isJSXFragment(node)) {
-    // Fragments don't get paths - children become direct siblings
-    if (node.children) {
-      assignPathsToChildren(node.children, parentPath, pathGen, t);
-    }
-  }
-}
-
-/**
- * Assign paths to JSX children array
- *
- * Handles mixed content: JSXElement, JSXText, JSXExpressionContainer, JSXFragment
- *
- * @param {Array} children - Array of Babel AST nodes
- * @param {string} parentPath - Parent hex path
- * @param {HexPathGenerator} pathGen - Hex path generator
- * @param {Object} t - Babel types
- */
-function assignPathsToChildren(children, parentPath, pathGen, t) {
-  for (const child of children) {
-    if (t.isJSXElement(child)) {
-      // Nested JSX element
-      assignPathsToJSX$1(child, parentPath, pathGen, t);
-    } else if (t.isJSXText(child)) {
-      // Static text node
-      const text = child.value.trim();
-      if (text) {
-        const textHex = pathGen.next(parentPath);
-        const textPath = pathGen.buildPath(parentPath, textHex);
-        const textSegments = pathGen.parsePath(textPath);
-
-        // Mutate text node with path
-        child.__minimactPath = textPath;
-        child.__minimactPathSegments = textSegments;
-      }
-    } else if (t.isJSXExpressionContainer(child)) {
-      // Expression container - assign path and recurse into structural JSX
-      const expr = child.expression;
-
-      // Generate path for the expression container
-      const exprHex = pathGen.next(parentPath);
-      const exprPath = pathGen.buildPath(parentPath, exprHex);
-      const exprSegments = pathGen.parsePath(exprPath);
-
-      // Mutate expression container with path
-      child.__minimactPath = exprPath;
-      child.__minimactPathSegments = exprSegments;
-
-      // Recurse into structural expressions (conditionals, loops)
-      assignPathsToExpression(expr, exprPath, pathGen, t);
-    } else if (t.isJSXFragment(child)) {
-      // Fragment - flatten children
-      assignPathsToJSX$1(child, parentPath, pathGen, t);
-    }
-  }
-}
-
-/**
- * Assign paths to expressions containing JSX
- *
- * Handles:
- * - Logical AND: {isVisible && <Modal />}
- * - Ternary: {isAdmin ? <AdminPanel /> : <UserPanel />}
- * - Array.map: {items.map(item => <li>{item}</li>)}
- *
- * @param {Object} expr - Babel expression node
- * @param {string} parentPath - Parent hex path
- * @param {HexPathGenerator} pathGen - Hex path generator
- * @param {Object} t - Babel types
- */
-function assignPathsToExpression(expr, parentPath, pathGen, t) {
-  if (!expr) return;
-
-  if (t.isLogicalExpression(expr) && expr.operator === '&&') {
-    // Logical AND: {isAdmin && <div>Admin Panel</div>}
-    if (t.isJSXElement(expr.right)) {
-      assignPathsToJSX$1(expr.right, parentPath, pathGen, t);
-    } else if (t.isJSXExpressionContainer(expr.right)) {
-      assignPathsToExpression(expr.right.expression, parentPath, pathGen, t);
-    }
-  } else if (t.isConditionalExpression(expr)) {
-    // Ternary: {isAdmin ? <AdminPanel/> : <UserPanel/>}
-
-    // Assign paths to consequent (true branch)
-    if (t.isJSXElement(expr.consequent)) {
-      assignPathsToJSX$1(expr.consequent, parentPath, pathGen, t);
-    } else if (t.isJSXExpressionContainer(expr.consequent)) {
-      assignPathsToExpression(expr.consequent.expression, parentPath, pathGen, t);
-    }
-
-    // Assign paths to alternate (false branch)
-    if (expr.alternate) {
-      if (t.isJSXElement(expr.alternate)) {
-        assignPathsToJSX$1(expr.alternate, parentPath, pathGen, t);
-      } else if (t.isJSXExpressionContainer(expr.alternate)) {
-        assignPathsToExpression(expr.alternate.expression, parentPath, pathGen, t);
-      }
-    }
-  } else if (t.isCallExpression(expr) &&
-             t.isMemberExpression(expr.callee) &&
-             t.isIdentifier(expr.callee.property) &&
-             expr.callee.property.name === 'map') {
-    // Array.map: {items.map(item => <li>{item}</li>)}
-
-    const callback = expr.arguments[0];
-    if (t.isArrowFunctionExpression(callback) || t.isFunctionExpression(callback)) {
-      const body = callback.body;
-
-      if (t.isJSXElement(body)) {
-        // Arrow function with JSX body: item => <li>{item}</li>
-        assignPathsToJSX$1(body, parentPath, pathGen, t);
-      } else if (t.isBlockStatement(body)) {
-        // Arrow function with block: item => { return <li>{item}</li>; }
-        const returnStmt = body.body.find(stmt => t.isReturnStatement(stmt));
-        if (returnStmt && t.isJSXElement(returnStmt.argument)) {
-          assignPathsToJSX$1(returnStmt.argument, parentPath, pathGen, t);
-        }
-      }
-    }
-  } else if (t.isJSXFragment(expr)) {
-    // Fragment
-    assignPathsToJSX$1(expr, parentPath, pathGen, t);
-  } else if (t.isJSXElement(expr)) {
-    // Direct JSX element
-    assignPathsToJSX$1(expr, parentPath, pathGen, t);
-  }
-}
-
-/**
- * Get path from AST node (helper for extractors)
- *
- * Reads __minimactPath metadata assigned by this pass.
- * Throws error if path wasn't assigned (indicates bug).
- *
- * @param {Object} node - Babel AST node
- * @returns {string} - Hex path
- */
-function getPathFromNode$1(node) {
-  if (!node.__minimactPath) {
-    throw new Error('[Minimact] Path not assigned to node! Did you forget to run assignPathsToJSX?');
-  }
-  return node.__minimactPath;
-}
-
-/**
- * Get path segments from AST node (helper for extractors)
- *
- * @param {Object} node - Babel AST node
- * @returns {string[]} - Path segments array
- */
-function getPathSegmentsFromNode$1(node) {
-  if (!node.__minimactPathSegments) {
-    throw new Error('[Minimact] Path segments not assigned to node! Did you forget to run assignPathsToJSX?');
-  }
-  return node.__minimactPathSegments;
-}
-
-var pathAssignment = {
-  assignPathsToJSX: assignPathsToJSX$1,
-  assignPathsToChildren,
-  assignPathsToExpression,
-  getPathFromNode: getPathFromNode$1,
-  getPathSegmentsFromNode: getPathSegmentsFromNode$1
 };
 
 /**
