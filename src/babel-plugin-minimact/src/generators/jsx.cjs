@@ -209,10 +209,15 @@ function generateChildren(children, component, indent) {
       childList.push({ type: 'element', code: generateJSXElement(child, component, indent + 1), node: child });
     } else if (t.isJSXExpressionContainer(child)) {
       const expr = child.expression;
+
+      // Skip JSX comments (empty expressions like {/* comment */})
+      if (t.isJSXEmptyExpression(expr)) {
+        continue; // Don't add to childList - comments are ignored
+      }
+
       // Skip structural JSX
       const isStructural = t.isJSXElement(expr) ||
                            t.isJSXFragment(expr) ||
-                           t.isJSXEmptyExpression(expr) ||
                            (t.isLogicalExpression(expr) && (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right))) ||
                            (t.isConditionalExpression(expr) &&
                             (t.isJSXElement(expr.consequent) || t.isJSXElement(expr.alternate) ||

@@ -99,6 +99,12 @@ function assignPathsToChildren(children, parentPath, pathGen, t) {
       // Expression container - assign path and recurse into structural JSX
       const expr = child.expression;
 
+      // Skip JSX comments (empty expressions like {/* comment */})
+      if (t.isJSXEmptyExpression(expr)) {
+        // Don't assign path, don't increment counter - comments are ignored
+        continue;
+      }
+
       // Generate path for the expression container
       const exprHex = pathGen.next(parentPath);
       const exprPath = pathGen.buildPath(parentPath, exprHex);
