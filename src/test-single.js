@@ -39,7 +39,7 @@ async function transpileComponent(jsxPath) {
 
       const result = babel.transformSync(code, {
         presets: ['@babel/preset-typescript', '@babel/preset-react'],
-        plugins: ['./index-full.cjs'],
+        plugins: ['./index.cjs'],
         filename: filename
       });
 
@@ -53,11 +53,13 @@ async function transpileComponent(jsxPath) {
       // The babel plugin uses the component NAME (not filename) for templates
       // Extract component name from C# code: "public partial class ComponentName"
       let templatesJson = null;
+      let sourceMapJson = null;
       const componentNameMatch = csharpCode.match(/(?:public )?(?:partial )?class (\\w+)/);
 
       if (componentNameMatch) {
         const componentName = componentNameMatch[1];
         const templatesPath = path.join(__dirname, componentName + '.templates.json');
+        const sourceMapPath = path.join(__dirname, componentName + '.sourcemap.json');
 
         try {
           if (fs.existsSync(templatesPath)) {
@@ -66,10 +68,18 @@ async function transpileComponent(jsxPath) {
         } catch (err) {
           // Templates file not found or invalid
         }
+
+        try {
+          if (fs.existsSync(sourceMapPath)) {
+            sourceMapJson = JSON.parse(fs.readFileSync(sourceMapPath, 'utf-8'));
+          }
+        } catch (err) {
+          // Source map file not found or invalid
+        }
       }
 
-      // Output both as JSON so we can parse them
-      console.log(JSON.stringify({ csharpCode, templatesJson }));
+      // Output all as JSON so we can parse them
+      console.log(JSON.stringify({ csharpCode, templatesJson, sourceMapJson }));
     `;
 
     const proc = spawn('node', ['-e', nodeScript], {
@@ -141,7 +151,7 @@ async function main() {
   try {
     log(`Transpiling ${filename}...`, colors.yellow);
     const result = await transpileComponent(jsxPath);
-    const { csharpCode, templatesJson } = result;
+    const { csharpCode, templatesJson, sourceMapJson } = result;
 
     log(`\n✓ Transpiled successfully\n`, colors.green);
 
@@ -276,6 +286,47 @@ ${cleanedCode}
       }
     } else {
       log(`\n⚠ No templates JSON generated`, colors.yellow);
+    }
+
+    // Display Source Map JSON
+    if (sourceMapJson) {
+      log(`\n${'━'.repeat(80)}`, colors.cyan);
+      log(`\nGenerated Source Map JSON:\n`, colors.cyan);
+      log(`${'='.repeat(80)}`, colors.cyan);
+
+      // Pretty print JSON with syntax highlighting
+      const formattedJson = JSON.stringify(sourceMapJson, null, 2);
+      const jsonLines = formattedJson.split('\n');
+      jsonLines.forEach((line, idx) => {
+        const lineNum = String(idx + 1).padStart(4, ' ');
+        console.log(`${colors.yellow}${lineNum}${colors.reset} ${line}`);
+      });
+
+      log(`${'='.repeat(80)}\n`, colors.cyan);
+
+      // Write Source Map JSON to output file
+      const sourceMapOutputFilename = filename.replace(/\.(jsx|tsx)$/, '.sourcemap.json');
+      const sourceMapOutputPath = path.join(__dirname, 'test-output', sourceMapOutputFilename);
+      fs.writeFileSync(sourceMapOutputPath, JSON.stringify(sourceMapJson, null, 2), 'utf-8');
+      log(`✓ Wrote source map JSON to: ${sourceMapOutputPath}`, colors.green);
+
+      // Count nodes and text nodes
+      function countNodes(node) {
+        let count = 1;
+        let textCount = node.tagName === '#text' ? 1 : 0;
+        for (const child of node.children || []) {
+          const childCounts = countNodes(child);
+          count += childCounts.total;
+          textCount += childCounts.text;
+        }
+        return { total: count, text: textCount };
+      }
+
+      const counts = countNodes(sourceMapJson.rootNode);
+      log(`✓ Total nodes: ${counts.total}`, colors.green);
+      log(`✓ Text nodes (with length): ${counts.text}`, colors.green);
+    } else {
+      log(`\n⚠ No source map JSON generated`, colors.yellow);
     }
 
   } catch (err) {

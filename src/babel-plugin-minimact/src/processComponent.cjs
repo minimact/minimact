@@ -194,9 +194,30 @@ function processComponent(path, state) {
   if (component.renderBody) {
     // 🔥 CRITICAL: Assign hex paths to all JSX nodes FIRST
     // This ensures all extractors use the same paths (no recalculation!)
+    // ALSO builds self-contained source map tree for structural hot reload
     const pathGen = new HexPathGenerator();
-    assignPathsToJSX(component.renderBody, '', pathGen, t);
-    console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree`);
+
+    // Get source code for calculating tag lengths (preLength/postLength)
+    const sourceCode = state.file.code || null;
+
+    const sourceMapRoot = assignPathsToJSX(component.renderBody, '', pathGen, t, 0, sourceCode);
+
+    if (sourceMapRoot) {
+      // Wrap in root node for component
+      component.sourceMap = {
+        component: componentName,
+        version: "1.0",
+        sourceFile: state.filename || 'unknown.tsx',
+        generatedAt: Date.now(),
+        rootNode: sourceMapRoot
+      };
+
+      console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree`);
+      console.log(`[Minimact Source Map] ✅ Generated self-contained source map for ${componentName}`);
+    } else {
+      console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree`);
+      console.log(`[Minimact Source Map] ⚠ No source map root generated (renderBody might not be JSXElement)`);
+    }
 
     const textTemplates = extractTemplates(component.renderBody, component);
     const attrTemplates = extractAttributeTemplates(component.renderBody, component);

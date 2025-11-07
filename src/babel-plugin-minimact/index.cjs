@@ -79,6 +79,19 @@ module.exports = function(babel) {
                     console.error(`[Minimact Templates] Failed to write ${templateFilePath}:`, error);
                   }
                 }
+
+                // Generate .sourcemap.json file for structural hot reload
+                if (component.sourceMap) {
+                  const outputDir = nodePath.dirname(inputFilePath);
+                  const sourceMapFilePath = nodePath.join(outputDir, `${component.name}.sourcemap.json`);
+
+                  try {
+                    fs.writeFileSync(sourceMapFilePath, JSON.stringify(component.sourceMap, null, 2));
+                    console.log(`[Minimact Source Map] Generated ${sourceMapFilePath}`);
+                  } catch (error) {
+                    console.error(`[Minimact Source Map] Failed to write ${sourceMapFilePath}:`, error);
+                  }
+                }
               }
             }
           }
