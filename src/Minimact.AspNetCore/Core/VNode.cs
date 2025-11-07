@@ -35,7 +35,11 @@ public abstract class VNode
         for (int i = 0; i < segments.Length; i++)
         {
             // Parse compact hex (e.g., "1" = 0x1)
-            if (uint.TryParse(segments[i], System.Globalization.NumberStyles.HexNumber, null, out uint value))
+            if (segments[0].Length >= 8)
+            {
+                inflatedSegments[i] = segments[i]; // already inflated
+            }
+            else if (uint.TryParse(segments[i], System.Globalization.NumberStyles.HexNumber, null, out uint value))
             {
                 // Multiply by HEX_GAP to get aligned value (0x1 -> 0x10000000)
                 uint inflated = value * HEX_GAP;
@@ -101,7 +105,7 @@ public abstract class VNode
                 normalizedChildren.Add(new VText(pendingText));
             }
 
-            return new VElement(element.Tag, element.Props, normalizedChildren.ToArray())
+            return new VElement(element.Tag, element.Path, element.Props, normalizedChildren.ToArray())
             {
                 Key = element.Key
             };
