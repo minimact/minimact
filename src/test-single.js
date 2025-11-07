@@ -33,9 +33,11 @@ async function transpileComponent(jsxPath) {
       const code = fs.readFileSync('${jsxPath.replace(/\\/g, '\\\\')}', 'utf-8');
       const filename = '${path.basename(jsxPath)}';
 
-      // Suppress console logs from Babel plugin
+      // Suppress console logs from Babel plugin (but keep errors)
       const originalLog = console.log;
-      console.log = () => {};
+      const originalError = console.error;
+      const logs = [];
+      console.log = (...args) => logs.push(args.join(' '));
 
       const result = babel.transformSync(code, {
         presets: ['@babel/preset-typescript', '@babel/preset-react'],
@@ -43,8 +45,10 @@ async function transpileComponent(jsxPath) {
         filename: filename
       });
 
-      // Restore console.log
+      // Restore console.log and output collected logs to stderr for debugging
       console.log = originalLog;
+      console.error = originalError;
+      logs.forEach(log => console.error('[Babel Log]', log));
 
       // The C# code is in metadata
       const csharpCode = result.metadata?.minimactCSharp || result.code;

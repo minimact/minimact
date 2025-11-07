@@ -115,6 +115,9 @@ function assignPathsToJSX(node, parentPath, pathGen, t, childIndex = 0, sourceCo
       ? node.openingElement.name.name
       : 'UnknownElement';
 
+    // Debug: Log path assignment
+    console.log(`[DEBUG] Assigned path ${currentPath} to <${tagName}>`);
+
     let preLength = 0;
     let postLength = 0;
 
@@ -301,7 +304,7 @@ function assignPathsToChildren(children, parentPath, pathGen, t, sourceCode = nu
       child.__minimactPathSegments = exprSegments;
 
       // Recurse into structural expressions (conditionals, loops)
-      const exprSourceMap = assignPathsToExpression(expr, exprPath, pathGen, t, childIndex, sourceCode);
+      const exprSourceMap = assignPathsToExpression(expr, exprPath, pathGen, t, childIndex, sourceCode, null);
       if (exprSourceMap) {
         // Structural JSX (conditional/loop) - use its source map
         sourceMapChildren.push(exprSourceMap);
@@ -368,38 +371,56 @@ function assignPathsToChildren(children, parentPath, pathGen, t, sourceCode = nu
  * @param {Object} t - Babel types
  * @param {number} childIndex - Position among siblings
  * @param {string} sourceCode - Original source code
+ * @param {Object} previousEndLoc - End location of previous sibling (for leading whitespace)
  * @returns {Object|null} - Source map node or null
  */
-function assignPathsToExpression(expr, parentPath, pathGen, t, childIndex = 0, sourceCode = null) {
+function assignPathsToExpression(expr, parentPath, pathGen, t, childIndex = 0, sourceCode = null, previousEndLoc = null) {
   if (!expr) return null;
 
   if (t.isLogicalExpression(expr) && expr.operator === '&&') {
     // Logical AND: {isAdmin && <div>Admin Panel</div>}
     if (t.isJSXElement(expr.right)) {
-      return assignPathsToJSX(expr.right, parentPath, pathGen, t, childIndex, sourceCode);
+      return assignPathsToJSX(expr.right, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
     } else if (t.isJSXExpressionContainer(expr.right)) {
-      return assignPathsToExpression(expr.right.expression, parentPath, pathGen, t, childIndex, sourceCode);
+      return assignPathsToExpression(expr.right.expression, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
     }
   } else if (t.isConditionalExpression(expr)) {
-    // Ternary: {isAdmin ? <AdminPanel/> : <UserPanel/>}
+    // Ternary: {loading ? <Spinner/> : <Content/>}
     // Both branches share the same path (conditional rendering)
+    // We need to assign paths to BOTH branches so template extractors can find them
+    // BUT they should get the SAME path since they're mutually exclusive
 
-    // For source map, we'll use the consequent's structure
-    // (In reality, only one branch exists at runtime)
+    let sourceMapNode = null;
+
+    // Assign paths to consequent (true branch)
     if (t.isJSXElement(expr.consequent)) {
-      return assignPathsToJSX(expr.consequent, parentPath, pathGen, t, childIndex, sourceCode);
+      sourceMapNode = assignPathsToJSX(expr.consequent, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
     } else if (t.isJSXExpressionContainer(expr.consequent)) {
-      return assignPathsToExpression(expr.consequent.expression, parentPath, pathGen, t, childIndex, sourceCode);
+      sourceMapNode = assignPathsToExpression(expr.consequent.expression, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
     }
 
-    // If consequent is null/literal, try alternate
+    // Assign paths to alternate (false branch)
+    // IMPORTANT: Reset the counter so alternate gets the SAME paths as consequent
     if (expr.alternate) {
+      // Save and reset the counter for this parent path
+      const savedCounter = pathGen.counters[parentPath];
+      const counterBeforeConsequent = savedCounter - (sourceMapNode ? 1 : 0);
+      pathGen.counters[parentPath] = counterBeforeConsequent;
+
       if (t.isJSXElement(expr.alternate)) {
-        return assignPathsToJSX(expr.alternate, parentPath, pathGen, t, childIndex, sourceCode);
+        const alternateSourceMap = assignPathsToJSX(expr.alternate, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
+        // Use consequent for source map if available, otherwise alternate
+        sourceMapNode = sourceMapNode || alternateSourceMap;
       } else if (t.isJSXExpressionContainer(expr.alternate)) {
-        return assignPathsToExpression(expr.alternate.expression, parentPath, pathGen, t, childIndex, sourceCode);
+        const alternateSourceMap = assignPathsToExpression(expr.alternate.expression, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
+        sourceMapNode = sourceMapNode || alternateSourceMap;
       }
+
+      // Restore the counter to where it was after consequent
+      pathGen.counters[parentPath] = savedCounter;
     }
+
+    return sourceMapNode;
   } else if (t.isCallExpression(expr) &&
              t.isMemberExpression(expr.callee) &&
              t.isIdentifier(expr.callee.property) &&
@@ -412,21 +433,21 @@ function assignPathsToExpression(expr, parentPath, pathGen, t, childIndex = 0, s
 
       if (t.isJSXElement(body)) {
         // Arrow function with JSX body: item => <li>{item}</li>
-        return assignPathsToJSX(body, parentPath, pathGen, t, childIndex, sourceCode);
+        return assignPathsToJSX(body, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
       } else if (t.isBlockStatement(body)) {
         // Arrow function with block: item => { return <li>{item}</li>; }
         const returnStmt = body.body.find(stmt => t.isReturnStatement(stmt));
         if (returnStmt && t.isJSXElement(returnStmt.argument)) {
-          return assignPathsToJSX(returnStmt.argument, parentPath, pathGen, t, childIndex, sourceCode);
+          return assignPathsToJSX(returnStmt.argument, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
         }
       }
     }
   } else if (t.isJSXFragment(expr)) {
     // Fragment
-    return assignPathsToJSX(expr, parentPath, pathGen, t, childIndex, sourceCode);
+    return assignPathsToJSX(expr, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
   } else if (t.isJSXElement(expr)) {
     // Direct JSX element
-    return assignPathsToJSX(expr, parentPath, pathGen, t, childIndex, sourceCode);
+    return assignPathsToJSX(expr, parentPath, pathGen, t, childIndex, sourceCode, previousEndLoc);
   }
 
   return null;

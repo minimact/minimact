@@ -1,0 +1,31 @@
+{
+  "component": "UserProfile",
+  "version": "1.0",
+  "sourceFile": "J:\\projects\\minimact\\src\\babel-plugin-minimact\\ConditionalRendering.jsx",
+  "generatedAt": 1762533745181,
+  "rootNode": {
+    "hexPath": "1",
+    "tagName": "div",
+    "childIndex": 0,
+    "preLength": 32,
+    "postLength": 6,
+    "children": [
+      {
+        "hexPath": "1.1.1",
+        "tagName": "div",
+        "childIndex": 0,
+        "preLength": 25,
+        "postLength": 6,
+        "children": [
+          {
+            "hexPath": "1.1.1.1",
+            "tagName": "#text",
+            "length": 10,
+            "childIndex": 0,
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}
