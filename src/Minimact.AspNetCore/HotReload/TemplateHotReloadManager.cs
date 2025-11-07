@@ -100,7 +100,7 @@ public class TemplateHotReloadManager : IDisposable
                 PropertyNameCaseInsensitive = true
             });
 
-            // Post-process: Extract attribute names from node paths like "div[0].@style"
+            // Post-process: Extract attribute names and inflate compact hex paths
             if (templateMap != null)
             {
                 foreach (var (nodePath, template) in templateMap.Templates)
@@ -111,6 +111,36 @@ public class TemplateHotReloadManager : IDisposable
                     {
                         // Extract attribute name after @ (e.g., "@style" -> "style")
                         template.Attribute = nodePath.Substring(atIndex + 1);
+                    }
+
+                    // Inflate compact hex paths (e.g., ["1", "2"] -> ["10000000", "20000000"])
+                    // This ensures the client receives full 8-digit hex paths for matching
+                    if (template.Path != null && template.Path.Count > 0)
+                    {
+                        // Check if paths are already inflated (8 characters or more)
+                        bool alreadyInflated = template.Path.All(segment => segment.Length >= 8);
+
+                        if (!alreadyInflated)
+                        {
+                            var inflatedPath = new List<string>(template.Path.Count);
+                            foreach (var segment in template.Path)
+                            {
+                                // Parse compact hex (e.g., "1" = 0x1)
+                                if (uint.TryParse(segment, System.Globalization.NumberStyles.HexNumber, null, out uint value))
+                                {
+                                    // Multiply by HEX_GAP to get aligned value (0x1 -> 0x10000000)
+                                    uint inflated = value * HEX_GAP;
+                                    // Format as 8-digit hex
+                                    inflatedPath.Add(inflated.ToString("x8"));
+                                }
+                                else
+                                {
+                                    // If parse fails, keep original segment (shouldn't happen, but handle gracefully)
+                                    inflatedPath.Add(segment);
+                                }
+                            }
+                            template.Path = inflatedPath;
+                        }
                     }
                 }
             }

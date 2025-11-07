@@ -35,7 +35,7 @@ public abstract class VNode
         for (int i = 0; i < segments.Length; i++)
         {
             // Parse compact hex (e.g., "1" = 0x1)
-            if (segments[0].Length >= 8)
+            if (segments[i].Length >= 8)
             {
                 inflatedSegments[i] = segments[i]; // already inflated
             }
