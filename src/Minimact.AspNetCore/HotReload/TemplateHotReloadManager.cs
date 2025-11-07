@@ -638,6 +638,13 @@ public class TemplateHotReloadManager : IDisposable
 
         foreach (var segment in compactPathSegments)
         {
+            // Check if already inflated (8+ characters)
+            if (segment.Length >= 8)
+            {
+                inflatedSegments.Add(segment);
+                continue;
+            }
+
             // Parse compact hex (e.g., "1" = 0x1)
             if (uint.TryParse(segment, System.Globalization.NumberStyles.HexNumber, null, out uint value))
             {

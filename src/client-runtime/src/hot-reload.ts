@@ -604,32 +604,34 @@ export class HotReloadManager {
 
     let current: Node | null = root;
 
-    // Navigate through each depth using lexicographic ordering from template index
-    for (let depth = 0; depth < hexSegments.length; depth++) {
-      const targetHex = hexSegments[depth];
+    // Navigate through each segment using hierarchical parent-child lookup
+    for (let i = 0; i < hexSegments.length; i++) {
+      const targetHex = hexSegments[i];
       if (!current || !current.childNodes) return null;
 
-      // Get sorted hex codes from template index
-      const sortedHexCodes = templateState.getHexCodesAtDepth(componentType, depth);
+      // Get parent path (everything before current segment)
+      const parentPath = i > 0 ? hexSegments.slice(0, i).join('.') : '';
+
+      // Get sorted children for this parent from template hierarchy
+      const sortedHexCodes = templateState.getChildrenAtPath(componentType, parentPath);
 
       if (!sortedHexCodes) {
-        console.warn(`[HotReload] No hex codes found at depth ${depth} for ${componentType}`);
+        console.warn(`[HotReload] No children found for parent path "${parentPath}" in ${componentType}`);
         return null;
       }
 
       // Map VNode hex codes to actual DOM children, skipping nulls
-      // Use the null path map to know which hex codes didn't render
-
       let domChildIndex = 0; // Actual DOM child we're at
+      let found = false;
 
       for (const hexCode of sortedHexCodes) {
-        // Check if this hex code is null (didn't render)
-        const fullPathSoFar = hexSegments.slice(0, depth).join('.') + (depth > 0 ? '.' : '') + hexCode;
+        // Build full path to this child
+        const fullPath = parentPath ? `${parentPath}.${hexCode}` : hexCode;
 
-        if (templateState.isPathNull(componentType, fullPathSoFar)) {
+        if (templateState.isPathNull(componentType, fullPath)) {
           // This path is null, skip it (don't consume a DOM child)
           if (hexCode === targetHex) {
-            console.warn(`[HotReload] Target path "${fullPathSoFar}" is currently null (not rendered)`);
+            console.warn(`[HotReload] Target path "${fullPath}" is currently null (not rendered)`);
             return null;
           }
           continue;
@@ -639,14 +641,15 @@ export class HotReloadManager {
         if (hexCode === targetHex) {
           // Found our target!
           current = current.childNodes[domChildIndex] || null;
+          found = true;
           break;
         }
 
         domChildIndex++;
       }
 
-      if (!current || domChildIndex >= current.childNodes.length) {
-        console.warn(`[HotReload] Element "${targetHex}" not found in DOM at depth ${depth}`);
+      if (!found || !current) {
+        console.warn(`[HotReload] Element "${targetHex}" not found in DOM at parent path "${parentPath}"`);
         return null;
       }
     }

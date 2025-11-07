@@ -53,8 +53,8 @@ export interface TemplatePatch {
 export class TemplateStateManager {
   private templates: Map<string, Template> = new Map();
   private componentStates: Map<string, Map<string, any>> = new Map();
-  // Hex path index: componentId -> depth -> sorted hex codes
-  private hexPathIndex: Map<string, Map<number, string[]>> = new Map();
+  // Hierarchical hex path index: componentId -> parent path -> sorted children hex codes
+  private hexPathIndex: Map<string, Map<string, string[]>> = new Map();
   // Null paths: componentId -> Set of paths that are currently null
   private nullPaths: Map<string, Set<string>> = new Map();
 
@@ -64,8 +64,8 @@ export class TemplateStateManager {
   loadTemplateMap(componentId: string, templateMap: TemplateMap): void {
     console.log(`[TemplateState] Loading ${Object.keys(templateMap.templates).length} templates for ${componentId}`);
 
-    // Build hex path index for this component
-    const depthMap = new Map<number, Set<string>>();
+    // Build hierarchical hex path index: parent path -> children hex codes
+    const hierarchyMap = new Map<string, Set<string>>();
     const nullPaths = new Set<string>(); // Track null paths
 
     for (const [nodePath, template] of Object.entries(templateMap.templates)) {
@@ -82,7 +82,7 @@ export class TemplateStateManager {
 
       this.templates.set(key, normalized);
 
-      // Extract hex path segments and build depth index
+      // Extract hex path segments
       const pathSegments = nodePath.split('.');
 
       // Check if this path ends with '.null' (path didn't render)
@@ -94,28 +94,34 @@ export class TemplateStateManager {
         nullPaths.add(actualPath);
         console.log(`[TemplateState] Null path detected: ${actualPath}`);
 
-        // Still add null path segments to depth map for navigation
-        // (remove the '.null' suffix first)
+        // Add to hierarchy map so we know this child exists (even though it's null)
         const actualSegments = pathSegments.slice(0, -1);
-        for (let depth = 0; depth < actualSegments.length; depth++) {
-          const segment = actualSegments[depth];
-          if (!depthMap.has(depth)) {
-            depthMap.set(depth, new Set());
+        if (actualSegments.length > 0) {
+          const childHex = actualSegments[actualSegments.length - 1];
+          const parentPath = actualSegments.length > 1 ? actualSegments.slice(0, -1).join('.') : '';
+
+          if (!hierarchyMap.has(parentPath)) {
+            hierarchyMap.set(parentPath, new Set());
           }
-          depthMap.get(depth)!.add(segment);
+          hierarchyMap.get(parentPath)!.add(childHex);
         }
         continue; // Don't add to templates
       }
 
-      for (let depth = 0; depth < pathSegments.length; depth++) {
-        const segment = pathSegments[depth];
+      // Build parent -> children relationships
+      for (let i = 0; i < pathSegments.length; i++) {
+        const segment = pathSegments[i];
+
         // Skip attribute markers (@style, @className, etc.)
         if (segment.startsWith('@')) continue;
 
-        if (!depthMap.has(depth)) {
-          depthMap.set(depth, new Set());
+        // Parent path is everything before this segment
+        const parentPath = i > 0 ? pathSegments.slice(0, i).join('.') : '';
+
+        if (!hierarchyMap.has(parentPath)) {
+          hierarchyMap.set(parentPath, new Set());
         }
-        depthMap.get(depth)!.add(segment);
+        hierarchyMap.get(parentPath)!.add(segment);
       }
     }
 
@@ -123,13 +129,13 @@ export class TemplateStateManager {
     this.nullPaths.set(componentId, nullPaths);
 
     // Convert sets to sorted arrays
-    const sortedDepthMap = new Map<number, string[]>();
-    for (const [depth, hexSet] of depthMap.entries()) {
-      sortedDepthMap.set(depth, Array.from(hexSet).sort());
+    const sortedHierarchyMap = new Map<string, string[]>();
+    for (const [parentPath, childrenSet] of hierarchyMap.entries()) {
+      sortedHierarchyMap.set(parentPath, Array.from(childrenSet).sort());
     }
 
-    this.hexPathIndex.set(componentId, sortedDepthMap);
-    console.log(`[TemplateState] Built hex path index for ${componentId}:`, sortedDepthMap);
+    this.hexPathIndex.set(componentId, sortedHierarchyMap);
+    console.log(`[TemplateState] Built hierarchical hex path index for ${componentId}:`, sortedHierarchyMap);
 
     // Initialize component state tracking
     if (!this.componentStates.has(componentId)) {
@@ -138,11 +144,21 @@ export class TemplateStateManager {
   }
 
   /**
-   * Get sorted hex codes for a specific component and depth
+   * Get sorted hex codes (children) for a specific parent path
+   * @param componentId - Component identifier
+   * @param parentPath - Parent path (empty string for root children)
+   * @returns Sorted array of child hex codes
    */
-  getHexCodesAtDepth(componentId: string, depth: number): string[] | undefined {
-    console.log(`[TemplateState] getHexCodesAtDepth(${componentId}, ${depth}) - Available keys:`, Array.from(this.hexPathIndex.keys()));
-    return this.hexPathIndex.get(componentId)?.get(depth);
+  getChildrenAtPath(componentId: string, parentPath: string): string[] | undefined {
+    const hierarchy = this.hexPathIndex.get(componentId);
+    if (!hierarchy) {
+      console.warn(`[TemplateState] No hierarchy found for component ${componentId}`);
+      return undefined;
+    }
+
+    const children = hierarchy.get(parentPath);
+    console.log(`[TemplateState] getChildrenAtPath(${componentId}, "${parentPath}") -> ${children?.length || 0} children:`, children);
+    return children;
   }
 
   /**
