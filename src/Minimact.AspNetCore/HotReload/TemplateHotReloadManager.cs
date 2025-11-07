@@ -103,6 +103,9 @@ public class TemplateHotReloadManager : IDisposable
             // Post-process: Extract attribute names and inflate compact hex paths
             if (templateMap != null)
             {
+                // Rebuild the template dictionary with inflated keys
+                var inflatedTemplates = new Dictionary<string, Template>();
+
                 foreach (var (nodePath, template) in templateMap.Templates)
                 {
                     // Check if node path contains attribute marker (@)
@@ -115,6 +118,8 @@ public class TemplateHotReloadManager : IDisposable
 
                     // Inflate compact hex paths (e.g., ["1", "2"] -> ["10000000", "20000000"])
                     // This ensures the client receives full 8-digit hex paths for matching
+                    string inflatedKey = nodePath;
+
                     if (template.Path != null && template.Path.Count > 0)
                     {
                         // Check if paths are already inflated (8 characters or more)
@@ -140,9 +145,16 @@ public class TemplateHotReloadManager : IDisposable
                                 }
                             }
                             template.Path = inflatedPath;
+
+                            // Also inflate the dictionary key (e.g., "1.2" -> "10000000.20000000")
+                            inflatedKey = string.Join(".", inflatedPath);
                         }
                     }
+
+                    inflatedTemplates[inflatedKey] = template;
                 }
+
+                templateMap.Templates = inflatedTemplates;
             }
 
             return templateMap;
@@ -208,12 +220,12 @@ public class TemplateHotReloadManager : IDisposable
             await _hubContext.Clients.Client(connectionId).SendAsync("HotReload:TemplateMap", new
             {
                 type = "template-map",
-                componentId,
+                componentId = componentTypeName, // Send type name, not instance ID
                 templateMap = augmentedTemplateMap,
                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             });
 
-            _logger.LogDebug("[Minimact Templates] Sent template map to client for {ComponentId}", componentId);
+            _logger.LogDebug("[Minimact Templates] Sent template map to client for {ComponentType}", componentTypeName);
         }
         catch (Exception ex)
         {
@@ -577,8 +589,9 @@ public class TemplateHotReloadManager : IDisposable
 
         foreach (var nullPath in nullPaths)
         {
-            // Add empty template with .null suffix
-            augmentedTemplates[nullPath] = new Template
+            // Add empty template with .null suffix to the key
+            // Client expects "10000000.20000000.null" format for null path detection
+            augmentedTemplates[$"{nullPath}.null"] = new Template
             {
                 TemplateString = "",
                 Bindings = new List<string>(),
