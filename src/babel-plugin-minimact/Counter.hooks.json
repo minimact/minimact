@@ -1,0 +1,16 @@
+{
+  "componentName": "Counter",
+  "timestamp": "2025-11-08T18:46:00.473Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "message",
+      "index": 1
+    }
+  ]
+}

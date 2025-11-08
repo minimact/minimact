@@ -15,6 +15,9 @@ public partial class Counter : MinimactComponent
     [State]
     private int count = 0;
 
+    [State]
+    private string message = "Hello";
+
     protected override VNode Render()
     {
         StateManager.SyncMembersToState(this);

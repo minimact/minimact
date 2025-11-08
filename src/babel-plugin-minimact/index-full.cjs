@@ -183,66 +183,99 @@ module.exports = function(babel) {
                   }
                 }
 
-                // Generate .structural-changes.json files for hot reload
-                if (component.structuralChanges && component.structuralChanges.length > 0) {
-                  // Read previous .tsx.keys to detect deletions
-                  const keysFilePath = inputFilePath + '.keys';
-                  let previousKeys = new Set();
+                // 🔥 HOOK CHANGE DETECTION
+                // Extract hook signature and compare with previous to detect hook changes
+                const {
+                  extractHookSignature,
+                  writeHookSignature,
+                  readPreviousHookSignature,
+                  compareHookSignatures
+                } = require('./src/extractors/hookSignature.cjs');
 
-                  if (fs.existsSync(keysFilePath)) {
-                    try {
-                      const previousSource = fs.readFileSync(keysFilePath, 'utf-8');
-                      previousKeys = extractAllKeysFromSource(previousSource);
-                      console.log(`[Hot Reload] Read ${previousKeys.size} keys from previous transpilation`);
-                    } catch (error) {
-                      console.error(`[Hot Reload] Failed to read ${keysFilePath}:`, error);
-                    }
+                // Extract current hook signature
+                const currentHooks = extractHookSignature(component);
+
+                // Read previous signature BEFORE writing new one
+                const previousHooks = readPreviousHookSignature(component.name, inputFilePath);
+
+                // Write current signature to file (for next comparison)
+                writeHookSignature(component.name, currentHooks, inputFilePath);
+
+                // Compare signatures and detect hook changes
+                let hookChanges = [];
+                if (previousHooks) {
+                  hookChanges = compareHookSignatures(previousHooks, currentHooks);
+                  if (hookChanges.length > 0) {
+                    console.log(`[Hook Changes] Detected ${hookChanges.length} hook change(s) in ${component.name}`);
                   }
+                } else {
+                  console.log(`[Hook Signature] No previous signature found for ${component.name} (first transpilation)`);
+                }
 
-                  // Collect current keys from the newly generated .tsx.keys file
-                  const currentKeys = new Set();
-                  const newKeysFilePath = inputFilePath + '.keys';
-                  if (fs.existsSync(newKeysFilePath)) {
-                    try {
-                      const currentSource = fs.readFileSync(newKeysFilePath, 'utf-8');
-                      const extractedKeys = extractAllKeysFromSource(currentSource);
-                      extractedKeys.forEach(key => currentKeys.add(key));
-                      console.log(`[Hot Reload] Read ${currentKeys.size} keys from current transpilation`);
-                    } catch (error) {
-                      console.error(`[Hot Reload] Failed to read current keys:`, error);
-                    }
+                // 🔥 JSX STRUCTURAL CHANGE DETECTION
+                // Combine JSX changes + hook changes into single structural changes array
+                const jsxChanges = component.structuralChanges || [];
+
+                // Read previous .tsx.keys to detect JSX deletions
+                const keysFilePath = inputFilePath + '.keys';
+                let previousKeys = new Set();
+
+                if (fs.existsSync(keysFilePath)) {
+                  try {
+                    const previousSource = fs.readFileSync(keysFilePath, 'utf-8');
+                    previousKeys = extractAllKeysFromSource(previousSource);
+                    console.log(`[Hot Reload] Read ${previousKeys.size} keys from previous transpilation`);
+                  } catch (error) {
+                    console.error(`[Hot Reload] Failed to read ${keysFilePath}:`, error);
                   }
+                }
 
-                  // Detect deletions
-                  const allChanges = [...component.structuralChanges];
-                  for (const prevKey of previousKeys) {
-                    if (!currentKeys.has(prevKey)) {
-                      console.log(`[Hot Reload] 🗑️  Deletion detected at path "${prevKey}"`);
-                      allChanges.push({
-                        type: 'delete',
-                        path: prevKey
-                      });
-                    }
+                // Collect current keys from the newly generated .tsx.keys file
+                const currentKeys = new Set();
+                const newKeysFilePath = inputFilePath + '.keys';
+                if (fs.existsSync(newKeysFilePath)) {
+                  try {
+                    const currentSource = fs.readFileSync(newKeysFilePath, 'utf-8');
+                    const extractedKeys = extractAllKeysFromSource(currentSource);
+                    extractedKeys.forEach(key => currentKeys.add(key));
+                    console.log(`[Hot Reload] Read ${currentKeys.size} keys from current transpilation`);
+                  } catch (error) {
+                    console.error(`[Hot Reload] Failed to read current keys:`, error);
                   }
+                }
 
-                  // Write structural changes file if there are any changes
-                  if (allChanges.length > 0) {
-                    const structuralChangesJSON = {
-                      componentName: component.name,
-                      timestamp: new Date().toISOString(),
-                      sourceFile: inputFilePath,
-                      changes: allChanges
-                    };
+                // Detect JSX deletions
+                const jsxDeletions = [];
+                for (const prevKey of previousKeys) {
+                  if (!currentKeys.has(prevKey)) {
+                    console.log(`[Hot Reload] 🗑️  JSX deletion detected at path "${prevKey}"`);
+                    jsxDeletions.push({
+                      type: 'delete',
+                      path: prevKey
+                    });
+                  }
+                }
 
-                    const outputDir = nodePath.dirname(inputFilePath);
-                    const changesFilePath = nodePath.join(outputDir, `${component.name}.structural-changes.json`);
+                // Combine ALL structural changes (JSX insertions + JSX deletions + hook changes)
+                const allChanges = [...jsxChanges, ...jsxDeletions, ...hookChanges];
 
-                    try {
-                      fs.writeFileSync(changesFilePath, JSON.stringify(structuralChangesJSON, null, 2));
-                      console.log(`[Hot Reload] ✅ Generated ${changesFilePath} with ${allChanges.length} changes`);
-                    } catch (error) {
-                      console.error(`[Hot Reload] Failed to write ${changesFilePath}:`, error);
-                    }
+                // Write structural changes file if there are any changes
+                if (allChanges.length > 0) {
+                  const structuralChangesJSON = {
+                    componentName: component.name,
+                    timestamp: new Date().toISOString(),
+                    sourceFile: inputFilePath,
+                    changes: allChanges
+                  };
+
+                  const outputDir = nodePath.dirname(inputFilePath);
+                  const changesFilePath = nodePath.join(outputDir, `${component.name}.structural-changes.json`);
+
+                  try {
+                    fs.writeFileSync(changesFilePath, JSON.stringify(structuralChangesJSON, null, 2));
+                    console.log(`[Hot Reload] ✅ Generated ${changesFilePath} with ${allChanges.length} changes (${jsxChanges.length} JSX insertions, ${jsxDeletions.length} JSX deletions, ${hookChanges.length} hook changes)`);
+                  } catch (error) {
+                    console.error(`[Hot Reload] Failed to write ${changesFilePath}:`, error);
                   }
                 }
               }
