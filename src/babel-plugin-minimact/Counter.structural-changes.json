@@ -1,0 +1,40 @@
+{
+  "componentName": "Counter",
+  "timestamp": "2025-11-08T15:40:57.032Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\babel-plugin-minimact\\CounterModified.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1.18",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.18",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.18.1",
+            "value": "This is a new element!"
+          }
+        ]
+      }
+    },
+    {
+      "type": "delete",
+      "path": "1"
+    },
+    {
+      "type": "delete",
+      "path": "1.1"
+    },
+    {
+      "type": "delete",
+      "path": "1.18"
+    },
+    {
+      "type": "delete",
+      "path": "1.2"
+    }
+  ]
+}

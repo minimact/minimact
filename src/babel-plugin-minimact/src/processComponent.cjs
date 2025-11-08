@@ -196,8 +196,15 @@ function processComponent(path, state) {
     // 🔥 CRITICAL: Assign hex paths to all JSX nodes FIRST
     // This ensures all extractors use the same paths (no recalculation!)
     const pathGen = new HexPathGenerator();
-    assignPathsToJSX(component.renderBody, '', pathGen, t);
+    const structuralChanges = []; // Track insertions for hot reload
+    assignPathsToJSX(component.renderBody, '', pathGen, t, null, null, structuralChanges);
     console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree`);
+
+    // Store structural changes on component for later processing
+    if (structuralChanges.length > 0) {
+      component.structuralChanges = structuralChanges;
+      console.log(`[Hot Reload] Found ${structuralChanges.length} structural changes in ${componentName}`);
+    }
 
     const textTemplates = extractTemplates(component.renderBody, component);
     const attrTemplates = extractAttributeTemplates(component.renderBody, component);

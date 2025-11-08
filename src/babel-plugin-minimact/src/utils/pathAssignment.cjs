@@ -32,8 +32,9 @@ const { HexPathGenerator } = require('./hexPath.cjs');
  * @param {Object} t - Babel types
  * @param {string|null} previousSiblingKey - Previous sibling's key for sort validation
  * @param {string|null} nextSiblingKey - Next sibling's key for sort validation
+ * @param {Array} structuralChanges - Array to collect structural changes for hot reload
  */
-function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = null, nextSiblingKey = null) {
+function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = null, nextSiblingKey = null, structuralChanges = []) {
   if (t.isJSXElement(node)) {
     let currentPath;
     let pathSegments;
@@ -70,10 +71,25 @@ function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = nul
 
     // If no valid existing key, generate a new one
     if (!useExistingKey) {
+      const isNewInsertion = !!(previousSiblingKey || nextSiblingKey);
+
       // If we have previous and next siblings, generate a half-gap between them
       if (previousSiblingKey && nextSiblingKey) {
         currentPath = generateHalfGap(previousSiblingKey, nextSiblingKey, parentPath);
         console.log(`[Path Assignment] ⚡ Generated half-gap key="${currentPath}" between "${previousSiblingKey}" and "${nextSiblingKey}"`);
+
+        // Track insertion for hot reload
+        if (isNewInsertion) {
+          console.log(`[Hot Reload] 🆕 Insertion detected at path "${currentPath}"`);
+          const vnode = generateVNodeRepresentation(node, currentPath, t);
+          if (vnode) {
+            structuralChanges.push({
+              type: 'insert',
+              path: currentPath,
+              vnode: vnode
+            });
+          }
+        }
       } else {
         // Normal sequential generation
         const childHex = pathGen.next(parentPath);
@@ -125,12 +141,12 @@ function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = nul
 
     // Recursively assign paths to children
     if (node.children) {
-      assignPathsToChildren(node.children, currentPath, pathGen, t);
+      assignPathsToChildren(node.children, currentPath, pathGen, t, structuralChanges);
     }
   } else if (t.isJSXFragment(node)) {
     // Fragments don't get paths - children become direct siblings
     if (node.children) {
-      assignPathsToChildren(node.children, parentPath, pathGen, t);
+      assignPathsToChildren(node.children, parentPath, pathGen, t, structuralChanges);
     }
   }
 }
@@ -144,8 +160,9 @@ function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = nul
  * @param {string} parentPath - Parent hex path
  * @param {HexPathGenerator} pathGen - Hex path generator
  * @param {Object} t - Babel types
+ * @param {Array} structuralChanges - Array to collect structural changes for hot reload
  */
-function assignPathsToChildren(children, parentPath, pathGen, t) {
+function assignPathsToChildren(children, parentPath, pathGen, t, structuralChanges = []) {
   let previousKey = null; // Track previous sibling's key for sort order validation
 
   for (let i = 0; i < children.length; i++) {
@@ -167,7 +184,7 @@ function assignPathsToChildren(children, parentPath, pathGen, t) {
       }
 
       // Nested JSX element - pass previous and next keys for validation
-      assignPathsToJSX(child, parentPath, pathGen, t, previousKey, nextKey);
+      assignPathsToJSX(child, parentPath, pathGen, t, previousKey, nextKey, structuralChanges);
 
       // Update previousKey for next sibling
       if (child.__minimactPath) {
@@ -205,10 +222,10 @@ function assignPathsToChildren(children, parentPath, pathGen, t) {
       child.__minimactPathSegments = exprSegments;
 
       // Recurse into structural expressions (conditionals, loops)
-      assignPathsToExpression(expr, exprPath, pathGen, t);
+      assignPathsToExpression(expr, exprPath, pathGen, t, structuralChanges);
     } else if (t.isJSXFragment(child)) {
       // Fragment - flatten children
-      assignPathsToJSX(child, parentPath, pathGen, t);
+      assignPathsToJSX(child, parentPath, pathGen, t, null, null, structuralChanges);
     }
   }
 }
@@ -225,33 +242,34 @@ function assignPathsToChildren(children, parentPath, pathGen, t) {
  * @param {string} parentPath - Parent hex path
  * @param {HexPathGenerator} pathGen - Hex path generator
  * @param {Object} t - Babel types
+ * @param {Array} structuralChanges - Array to collect structural changes for hot reload
  */
-function assignPathsToExpression(expr, parentPath, pathGen, t) {
+function assignPathsToExpression(expr, parentPath, pathGen, t, structuralChanges = []) {
   if (!expr) return;
 
   if (t.isLogicalExpression(expr) && expr.operator === '&&') {
     // Logical AND: {isAdmin && <div>Admin Panel</div>}
     if (t.isJSXElement(expr.right)) {
-      assignPathsToJSX(expr.right, parentPath, pathGen, t);
+      assignPathsToJSX(expr.right, parentPath, pathGen, t, null, null, structuralChanges);
     } else if (t.isJSXExpressionContainer(expr.right)) {
-      assignPathsToExpression(expr.right.expression, parentPath, pathGen, t);
+      assignPathsToExpression(expr.right.expression, parentPath, pathGen, t, structuralChanges);
     }
   } else if (t.isConditionalExpression(expr)) {
     // Ternary: {isAdmin ? <AdminPanel/> : <UserPanel/>}
 
     // Assign paths to consequent (true branch)
     if (t.isJSXElement(expr.consequent)) {
-      assignPathsToJSX(expr.consequent, parentPath, pathGen, t);
+      assignPathsToJSX(expr.consequent, parentPath, pathGen, t, null, null, structuralChanges);
     } else if (t.isJSXExpressionContainer(expr.consequent)) {
-      assignPathsToExpression(expr.consequent.expression, parentPath, pathGen, t);
+      assignPathsToExpression(expr.consequent.expression, parentPath, pathGen, t, structuralChanges);
     }
 
     // Assign paths to alternate (false branch)
     if (expr.alternate) {
       if (t.isJSXElement(expr.alternate)) {
-        assignPathsToJSX(expr.alternate, parentPath, pathGen, t);
+        assignPathsToJSX(expr.alternate, parentPath, pathGen, t, null, null, structuralChanges);
       } else if (t.isJSXExpressionContainer(expr.alternate)) {
-        assignPathsToExpression(expr.alternate.expression, parentPath, pathGen, t);
+        assignPathsToExpression(expr.alternate.expression, parentPath, pathGen, t, structuralChanges);
       }
     }
   } else if (t.isCallExpression(expr) &&
@@ -266,21 +284,21 @@ function assignPathsToExpression(expr, parentPath, pathGen, t) {
 
       if (t.isJSXElement(body)) {
         // Arrow function with JSX body: item => <li>{item}</li>
-        assignPathsToJSX(body, parentPath, pathGen, t);
+        assignPathsToJSX(body, parentPath, pathGen, t, null, null, structuralChanges);
       } else if (t.isBlockStatement(body)) {
         // Arrow function with block: item => { return <li>{item}</li>; }
         const returnStmt = body.body.find(stmt => t.isReturnStatement(stmt));
         if (returnStmt && t.isJSXElement(returnStmt.argument)) {
-          assignPathsToJSX(returnStmt.argument, parentPath, pathGen, t);
+          assignPathsToJSX(returnStmt.argument, parentPath, pathGen, t, null, null, structuralChanges);
         }
       }
     }
   } else if (t.isJSXFragment(expr)) {
     // Fragment
-    assignPathsToJSX(expr, parentPath, pathGen, t);
+    assignPathsToJSX(expr, parentPath, pathGen, t, null, null, structuralChanges);
   } else if (t.isJSXElement(expr)) {
     // Direct JSX element
-    assignPathsToJSX(expr, parentPath, pathGen, t);
+    assignPathsToJSX(expr, parentPath, pathGen, t, null, null, structuralChanges);
   }
 }
 
@@ -442,11 +460,87 @@ function generateHalfGap(prevKey, nextKey, parentPath) {
   return parentPath ? `${parentPath}.${midHex}` : midHex;
 }
 
+/**
+ * Convert a Babel JSX AST node to VNode JSON representation for hot reload
+ *
+ * @param {Object} node - Babel JSX element node
+ * @param {string} path - Hex path for this node
+ * @param {Object} t - Babel types
+ * @returns {Object} - VNode representation for C#
+ */
+function generateVNodeRepresentation(node, path, t) {
+  if (!t.isJSXElement(node)) {
+    return null;
+  }
+
+  const tagName = node.openingElement.name.name;
+  const attributes = {};
+
+  // Extract attributes
+  for (const attr of node.openingElement.attributes) {
+    if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
+      const attrName = attr.name.name;
+
+      if (attrName === 'key') continue; // Skip key attribute
+
+      if (t.isStringLiteral(attr.value)) {
+        attributes[attrName] = attr.value.value;
+      } else if (t.isJSXExpressionContainer(attr.value)) {
+        // For expressions, mark as dynamic
+        attributes[attrName] = '__DYNAMIC__';
+      } else if (attr.value === null) {
+        // Boolean attribute (e.g., <input disabled />)
+        attributes[attrName] = true;
+      }
+    }
+  }
+
+  // Extract children (simplified - only static content and basic structure)
+  const children = [];
+  if (node.children) {
+    for (const child of node.children) {
+      if (t.isJSXText(child)) {
+        const text = child.value.trim();
+        if (text) {
+          children.push({
+            type: 'text',
+            path: child.__minimactPath || `${path}.${children.length + 1}`,
+            value: text
+          });
+        }
+      } else if (t.isJSXElement(child)) {
+        // Nested element - include path and tag
+        children.push({
+          type: 'element',
+          path: child.__minimactPath || `${path}.${children.length + 1}`,
+          tag: child.openingElement.name.name
+        });
+      } else if (t.isJSXExpressionContainer(child)) {
+        // Expression - mark as dynamic
+        children.push({
+          type: 'expression',
+          path: child.__minimactPath || `${path}.${children.length + 1}`,
+          value: '__DYNAMIC__'
+        });
+      }
+    }
+  }
+
+  return {
+    type: 'element',
+    tag: tagName,
+    path: path,
+    attributes: attributes,
+    children: children
+  };
+}
+
 module.exports = {
   assignPathsToJSX,
   assignPathsToChildren,
   assignPathsToExpression,
   getPathFromNode,
   getPathSegmentsFromNode,
-  isValidHexPath
+  isValidHexPath,
+  generateVNodeRepresentation
 };

@@ -22,6 +22,31 @@ const { processComponent } = require('./src/processComponent.cjs');
 const { generateCSharpFile } = require('./src/generators/csharpFile.cjs');
 const { generateTemplateMapJSON } = require('./src/extractors/templates.cjs');
 
+/**
+ * Extract all key attribute values from TSX source code
+ *
+ * @param {string} sourceCode - TSX source code
+ * @returns {Set<string>} - Set of all key values
+ */
+function extractAllKeysFromSource(sourceCode) {
+  const keys = new Set();
+
+  // Match key="value" or key='value' or key={value}
+  const keyRegex = /key=(?:"([^"]+)"|'([^']+)'|\{([^}]+)\})/g;
+  let match;
+
+  while ((match = keyRegex.exec(sourceCode)) !== null) {
+    const keyValue = match[1] || match[2] || match[3];
+
+    // Only include string literal keys (not expressions)
+    if (match[1] || match[2]) {
+      keys.add(keyValue);
+    }
+  }
+
+  return keys;
+}
+
 module.exports = function(babel) {
   const generate = require('@babel/generator').default;
 
@@ -155,6 +180,68 @@ module.exports = function(babel) {
                     console.log(`[Minimact Templates] Generated ${templateFilePath}`);
                   } catch (error) {
                     console.error(`[Minimact Templates] Failed to write ${templateFilePath}:`, error);
+                  }
+                }
+
+                // Generate .structural-changes.json files for hot reload
+                if (component.structuralChanges && component.structuralChanges.length > 0) {
+                  // Read previous .tsx.keys to detect deletions
+                  const keysFilePath = inputFilePath + '.keys';
+                  let previousKeys = new Set();
+
+                  if (fs.existsSync(keysFilePath)) {
+                    try {
+                      const previousSource = fs.readFileSync(keysFilePath, 'utf-8');
+                      previousKeys = extractAllKeysFromSource(previousSource);
+                      console.log(`[Hot Reload] Read ${previousKeys.size} keys from previous transpilation`);
+                    } catch (error) {
+                      console.error(`[Hot Reload] Failed to read ${keysFilePath}:`, error);
+                    }
+                  }
+
+                  // Collect current keys from AST
+                  const currentKeys = new Set();
+                  programPath.traverse({
+                    JSXElement(jsxPath) {
+                      const keyAttr = jsxPath.node.openingElement.attributes.find(attr =>
+                        t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name) && attr.name.name === 'key'
+                      );
+                      if (keyAttr && t.isStringLiteral(keyAttr.value)) {
+                        currentKeys.add(keyAttr.value.value);
+                      }
+                    }
+                  });
+
+                  // Detect deletions
+                  const allChanges = [...component.structuralChanges];
+                  for (const prevKey of previousKeys) {
+                    if (!currentKeys.has(prevKey)) {
+                      console.log(`[Hot Reload] 🗑️  Deletion detected at path "${prevKey}"`);
+                      allChanges.push({
+                        type: 'delete',
+                        path: prevKey
+                      });
+                    }
+                  }
+
+                  // Write structural changes file if there are any changes
+                  if (allChanges.length > 0) {
+                    const structuralChangesJSON = {
+                      componentName: component.name,
+                      timestamp: new Date().toISOString(),
+                      sourceFile: inputFilePath,
+                      changes: allChanges
+                    };
+
+                    const outputDir = nodePath.dirname(inputFilePath);
+                    const changesFilePath = nodePath.join(outputDir, `${component.name}.structural-changes.json`);
+
+                    try {
+                      fs.writeFileSync(changesFilePath, JSON.stringify(structuralChangesJSON, null, 2));
+                      console.log(`[Hot Reload] ✅ Generated ${changesFilePath} with ${allChanges.length} changes`);
+                    } catch (error) {
+                      console.error(`[Hot Reload] Failed to write ${changesFilePath}:`, error);
+                    }
                   }
                 }
               }
