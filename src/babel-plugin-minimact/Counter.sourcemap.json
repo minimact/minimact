@@ -1,34 +1,27 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "sourceFile": "J:\\projects\\minimact\\src\\babel-plugin-minimact\\Counter.jsx",
-  "generatedAt": 1762532852602,
+  "sourceFile": "J:\\projects\\minimact\\src\\babel-plugin-minimact\\Counter.tsx",
+  "generatedAt": 1762555796383,
   "rootNode": {
     "hexPath": "1",
     "tagName": "div",
     "childIndex": 0,
-    "preLength": 32,
+    "preLength": 30,
     "postLength": 6,
     "children": [
       {
         "hexPath": "1.1",
         "tagName": "span",
         "childIndex": 0,
-        "preLength": 13,
+        "preLength": 32,
         "postLength": 7,
         "children": [
           {
             "hexPath": "1.1.1",
-            "tagName": "#text",
-            "length": 6,
-            "childIndex": 0,
-            "children": []
-          },
-          {
-            "hexPath": "1.1.2",
             "tagName": "#expression",
             "length": 7,
-            "childIndex": 1,
+            "childIndex": 0,
             "children": []
           }
         ]
@@ -37,13 +30,13 @@
         "hexPath": "1.2",
         "tagName": "button",
         "childIndex": 1,
-        "preLength": 35,
+        "preLength": 115,
         "postLength": 9,
         "children": [
           {
             "hexPath": "1.2.1",
             "tagName": "#text",
-            "length": 1,
+            "length": 9,
             "childIndex": 0,
             "children": []
           }

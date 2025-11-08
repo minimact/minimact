@@ -1,15 +1,15 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1762532852605,
+  "generatedAt": 1762555796386,
   "templates": {
     "1.1.1": {
-      "template": "Count: {0}",
+      "template": "{0}",
       "bindings": [
         "count"
       ],
       "slots": [
-        7
+        0
       ],
       "path": [
         "1",
@@ -18,7 +18,7 @@
       "type": "dynamic"
     },
     "1.2.1": {
-      "template": "+",
+      "template": "Increment",
       "bindings": [],
       "slots": [],
       "path": [
@@ -28,8 +28,8 @@
       ],
       "type": "static"
     },
-    "1.@className": {
-      "template": "counter",
+    "1.@id": {
+      "template": "counter-root",
       "bindings": [],
       "slots": [],
       "path": [
@@ -37,19 +37,35 @@
       ],
       "type": "attribute-static"
     },
-    "1.2.@onClick": {
-      "template": "{0}",
-      "bindings": [
-        "increment"
+    "1.1.@id": {
+      "template": "counter-value",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
       ],
-      "slots": [
-        0
-      ],
+      "type": "attribute-static"
+    },
+    "1.2.@id": {
+      "template": "increment-btn",
+      "bindings": [],
+      "slots": [],
       "path": [
         "1",
         "2"
       ],
-      "type": "attribute-dynamic"
+      "type": "attribute-static"
+    },
+    "1.2.@type": {
+      "template": "button",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
     }
   }
 }
