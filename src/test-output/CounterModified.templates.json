@@ -1,7 +1,7 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1762616457032,
+  "generatedAt": 1762620975875,
   "templates": {
     "1.1.1": {
       "template": "{0}",

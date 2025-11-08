@@ -199,18 +199,19 @@ module.exports = function(babel) {
                     }
                   }
 
-                  // Collect current keys from AST
+                  // Collect current keys from the newly generated .tsx.keys file
                   const currentKeys = new Set();
-                  programPath.traverse({
-                    JSXElement(jsxPath) {
-                      const keyAttr = jsxPath.node.openingElement.attributes.find(attr =>
-                        t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name) && attr.name.name === 'key'
-                      );
-                      if (keyAttr && t.isStringLiteral(keyAttr.value)) {
-                        currentKeys.add(keyAttr.value.value);
-                      }
+                  const newKeysFilePath = inputFilePath + '.keys';
+                  if (fs.existsSync(newKeysFilePath)) {
+                    try {
+                      const currentSource = fs.readFileSync(newKeysFilePath, 'utf-8');
+                      const extractedKeys = extractAllKeysFromSource(currentSource);
+                      extractedKeys.forEach(key => currentKeys.add(key));
+                      console.log(`[Hot Reload] Read ${currentKeys.size} keys from current transpilation`);
+                    } catch (error) {
+                      console.error(`[Hot Reload] Failed to read current keys:`, error);
                     }
-                  });
+                  }
 
                   // Detect deletions
                   const allChanges = [...component.structuralChanges];

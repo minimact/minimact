@@ -1,6 +1,6 @@
 {
   "componentName": "Counter",
-  "timestamp": "2025-11-08T15:40:57.032Z",
+  "timestamp": "2025-11-08T16:56:15.876Z",
   "sourceFile": "J:\\projects\\minimact\\src\\babel-plugin-minimact\\CounterModified.tsx",
   "changes": [
     {
@@ -19,22 +19,6 @@
           }
         ]
       }
-    },
-    {
-      "type": "delete",
-      "path": "1"
-    },
-    {
-      "type": "delete",
-      "path": "1.1"
-    },
-    {
-      "type": "delete",
-      "path": "1.18"
-    },
-    {
-      "type": "delete",
-      "path": "1.2"
     }
   ]
 }
