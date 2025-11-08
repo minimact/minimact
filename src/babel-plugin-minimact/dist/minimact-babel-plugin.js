@@ -17805,11 +17805,11 @@ Please specify the "importAttributesKeyword" generator option, whose value can b
 	                // Extract current hook signature
 	                const currentHooks = extractHookSignature(component);
 
+	                // Read previous signature BEFORE writing new one
+	                const previousHooks = readPreviousHookSignature(component.name, inputFilePath);
+
 	                // Write current signature to file (for next comparison)
 	                writeHookSignature(component.name, currentHooks, inputFilePath);
-
-	                // Read previous signature
-	                const previousHooks = readPreviousHookSignature(component.name, inputFilePath);
 
 	                // Compare signatures and detect hook changes
 	                let hookChanges = [];
