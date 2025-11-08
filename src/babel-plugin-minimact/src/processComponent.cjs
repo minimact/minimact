@@ -180,8 +180,9 @@ function processComponent(path, state) {
 
     ReturnStatement(returnPath) {
       if (returnPath.getFunctionParent() === path) {
-        // Deep clone the AST node to preserve it before we replace JSX with null
-        component.renderBody = t.cloneNode(returnPath.node.argument, true);
+        // Store a REFERENCE to the actual live AST node (not a clone!)
+        // We'll add keys to THIS node, and it will persist in the Program tree
+        component.renderBody = returnPath.node.argument;
       }
     }
   });
@@ -298,14 +299,11 @@ function processComponent(path, state) {
     }
   }
 
-  // Now replace JSX to prevent @babel/preset-react from transforming it
-  path.traverse({
-    ReturnStatement(returnPath) {
-      if (returnPath.getFunctionParent() === path) {
-        returnPath.node.argument = t.nullLiteral();
-      }
-    }
-  });
+  // Store the component path so we can nullify JSX later (after .tsx.keys generation)
+  if (!state.file.componentPathsToNullify) {
+    state.file.componentPathsToNullify = [];
+  }
+  state.file.componentPathsToNullify.push(path);
 
   state.file.minimactComponents.push(component);
 }

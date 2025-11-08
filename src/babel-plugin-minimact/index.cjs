@@ -51,6 +51,31 @@ module.exports = function(babel) {
         },
 
         exit(path, state) {
+          // Generate .tsx.keys file with all JSX elements having key props
+          const inputFilePath = state.file.opts.filename;
+          console.log(`[Minimact Keys Debug] inputFilePath =`, inputFilePath);
+          if (inputFilePath) {
+            const generate = require('@babel/generator').default;
+            console.log(`[Minimact Keys Debug] Generating code from AST...`);
+            const output = generate(path.node, {
+              retainLines: false,
+              comments: true,
+              retainFunctionParens: true
+            });
+
+            const keysFilePath = inputFilePath + '.keys';
+            const fs = require('fs');
+            const nodePath = require('path');
+            try {
+              fs.writeFileSync(keysFilePath, output.code);
+              console.log(`[Minimact Keys] ✅ Generated ${nodePath.basename(keysFilePath)}`);
+            } catch (error) {
+              console.error(`[Minimact Keys] Failed to write ${keysFilePath}:`, error);
+            }
+          } else {
+            console.log(`[Minimact Keys Debug] No filename, skipping .tsx.keys generation`);
+          }
+
           if (state.file.minimactComponents && state.file.minimactComponents.length > 0) {
             const csharpCode = generateCSharpFile(state.file.minimactComponents, state);
 
