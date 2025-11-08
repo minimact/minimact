@@ -11,6 +11,7 @@ public class ComponentRegistry
     private readonly ConcurrentDictionary<string, MinimactComponent> _components = new();
     private readonly ConcurrentDictionary<string, HashSet<string>> _connectionComponents = new();
     private readonly ConcurrentDictionary<string, HashSet<string>> _contextUsage = new();
+    private readonly ConcurrentDictionary<string, Type> _componentTypes = new();
 
     /// <summary>
     /// Register a component instance
@@ -124,5 +125,36 @@ public class ComponentRegistry
         }
 
         return Enumerable.Empty<string>();
+    }
+
+    /// <summary>
+    /// Register a component type (for hot reload)
+    /// </summary>
+    /// <param name="componentTypeName">Component type name (e.g., "Counter")</param>
+    /// <param name="componentType">Component type</param>
+    public void RegisterComponentType(string componentTypeName, Type componentType)
+    {
+        _componentTypes[componentTypeName] = componentType;
+    }
+
+    /// <summary>
+    /// Resolve a component type by name
+    /// </summary>
+    /// <param name="componentTypeName">Component type name</param>
+    /// <returns>Component type or null if not found</returns>
+    public Type? ResolveComponentType(string componentTypeName)
+    {
+        _componentTypes.TryGetValue(componentTypeName, out var type);
+        return type;
+    }
+
+    /// <summary>
+    /// Get all component instances by type name
+    /// </summary>
+    /// <param name="typeName">Component type name</param>
+    /// <returns>All instances of this component type</returns>
+    public IEnumerable<MinimactComponent> GetComponentsByTypeName(string typeName)
+    {
+        return _components.Values.Where(c => c.ComponentTypeName == typeName);
     }
 }

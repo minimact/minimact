@@ -74,6 +74,11 @@ public abstract class MinimactComponent
     internal ArrayOperation? LastArrayOperation { get; set; }
 
     /// <summary>
+    /// Component type name (for hot reload type resolution)
+    /// </summary>
+    public string ComponentTypeName => GetType().Name;
+
+    /// <summary>
     /// MVC ViewModel instance (if provided by controller via MVC Bridge)
     /// </summary>
     internal object? MvcViewModel { get; private set; }

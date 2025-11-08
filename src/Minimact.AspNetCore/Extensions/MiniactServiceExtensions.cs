@@ -71,6 +71,17 @@ public static class MinimactServiceExtensions
             return manager;
         });
 
+        services.AddSingleton<StructuralChangeManager>(sp =>
+        {
+            var hubContext = sp.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<MinimactHub>>();
+            var registry = sp.GetRequiredService<ComponentRegistry>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StructuralChangeManager>>();
+            var watchPath = System.IO.Directory.GetCurrentDirectory();
+            var manager = new StructuralChangeManager(hubContext, registry, logger, watchPath);
+            // Force instantiation by returning it
+            return manager;
+        });
+
         // Register hosted service to eagerly instantiate hot reload services
         services.AddHostedService<HotReloadInitializationService>();
 
