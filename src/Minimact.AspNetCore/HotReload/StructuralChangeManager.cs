@@ -21,6 +21,7 @@ public class StructuralChangeManager : IDisposable
     private readonly DynamicRoslynCompiler _compiler;
     private readonly FileSystemWatcher _watcher;
     private readonly Dictionary<string, DateTime> _lastChangeTime = new();
+    private readonly Dictionary<string, DateTime> _lastProcessedTimestamp = new(); // Track JSON timestamp to prevent duplicate processing
     private readonly TimeSpan _debounceDelay = TimeSpan.FromMilliseconds(50);
     private readonly string _watchPath;
     private bool _isDisposed;
@@ -87,6 +88,15 @@ public class StructuralChangeManager : IDisposable
                 _logger.LogDebug("[Minimact Structural] No changes in file, skipping");
                 return;
             }
+
+            // Check if we've already processed this exact change (prevent duplicate events)
+            var changeKey = $"{changes.ComponentName}:{changes.Timestamp}";
+            if (_lastProcessedTimestamp.TryGetValue(changes.ComponentName, out var lastTimestamp) && lastTimestamp == changes.Timestamp)
+            {
+                _logger.LogDebug("[Minimact Structural] Already processed timestamp {Timestamp} for {Component}, skipping duplicate", changes.Timestamp, changes.ComponentName);
+                return;
+            }
+            _lastProcessedTimestamp[changes.ComponentName] = changes.Timestamp;
 
             _logger.LogInformation(
                 "[Minimact Structural] 🔄 Detected {Count} structural change(s) in {Component}",
@@ -188,16 +198,22 @@ public class StructuralChangeManager : IDisposable
                 // 5. Sync state to [State] fields
                 StateManager.SyncStateToMembers(newInstance);
 
-                // 6. Replace in registry
+                // 6. Copy CurrentVNode from old instance so TriggerRender can reconcile
+                // Without this, TriggerRender thinks it's a first render and sends no patches!
+                newInstance.CurrentVNode = oldInstance.CurrentVNode;
+                newInstance.PreviousState = new Dictionary<string, object>(oldInstance.State);
+
+                // 7. Replace in registry
                 _registry.RegisterComponent(newInstance);
 
-                // 7. Trigger full re-render
+                // 8. Trigger full re-render (will reconcile old VNode vs new render)
+                // Pass forceRender=true to bypass state change check (structure changed!)
                 _logger.LogInformation(
                     "[Minimact Structural] ✅ Re-rendering {ComponentType} [{ComponentId}]",
                     componentTypeName,
                     componentId
                 );
-                newInstance.TriggerRender();
+                newInstance.TriggerRender(forceRender: true);
             }
             catch (Exception ex)
             {

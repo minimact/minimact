@@ -537,7 +537,8 @@ public abstract class MinimactComponent
     /// <summary>
     /// Trigger a re-render cycle with predictive patching
     /// </summary>
-    internal void TriggerRender()
+    /// <param name="forceRender">If true, bypasses state change check (used after structural changes)</param>
+    internal void TriggerRender(bool forceRender = false)
     {
         if (CurrentVNode == null || PatchSender == null || ConnectionId == null)
         {
@@ -570,9 +571,9 @@ public abstract class MinimactComponent
             .Where(k => !PreviousState.ContainsKey(k) || !Equals(State[k], PreviousState[k]))
             .ToArray();
 
-        if (changedKeys.Length == 0)
+        if (changedKeys.Length == 0 && !forceRender)
         {
-            return; // No state changes
+            return; // No state changes and not forced
         }
 
         // Call lifecycle hook
