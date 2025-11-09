@@ -71,13 +71,21 @@ public static class MinimactServiceExtensions
             return manager;
         });
 
+        services.AddSingleton<DynamicRoslynCompiler>(sp =>
+        {
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<DynamicRoslynCompiler>>();
+            return new DynamicRoslynCompiler(logger);
+        });
+
         services.AddSingleton<StructuralChangeManager>(sp =>
         {
             var hubContext = sp.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<MinimactHub>>();
             var registry = sp.GetRequiredService<ComponentRegistry>();
             var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StructuralChangeManager>>();
+            var templateManager = sp.GetRequiredService<TemplateHotReloadManager>();
+            var compiler = sp.GetRequiredService<DynamicRoslynCompiler>();
             var watchPath = System.IO.Directory.GetCurrentDirectory();
-            var manager = new StructuralChangeManager(hubContext, registry, logger, watchPath);
+            var manager = new StructuralChangeManager(hubContext, registry, logger, templateManager, compiler, watchPath);
             // Force instantiation by returning it
             return manager;
         });

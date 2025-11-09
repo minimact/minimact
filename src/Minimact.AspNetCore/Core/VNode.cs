@@ -77,6 +77,7 @@ public abstract class VNode
             // Normalize children and combine adjacent text nodes
             var normalizedChildren = new List<VNode>();
             string? pendingText = null;
+            string? pendingTextPath = null; // Preserve path from first text node
 
             foreach (var child in element.Children)
             {
@@ -85,6 +86,11 @@ public abstract class VNode
                 if (normalizedChild is VText text)
                 {
                     // Accumulate adjacent text nodes
+                    if (pendingText == null)
+                    {
+                        // First text node - preserve its path
+                        pendingTextPath = text.Path;
+                    }
                     pendingText = (pendingText ?? "") + text.Content;
                 }
                 else
@@ -92,8 +98,12 @@ public abstract class VNode
                     // Flush pending text if any
                     if (pendingText != null)
                     {
-                        normalizedChildren.Add(new VText(pendingText));
+                        // Create VText with preserved path from first text node
+                        var combinedText = new VText(pendingText);
+                        combinedText.Path = pendingTextPath ?? "";
+                        normalizedChildren.Add(combinedText);
                         pendingText = null;
+                        pendingTextPath = null;
                     }
                     normalizedChildren.Add(normalizedChild);
                 }
@@ -102,7 +112,9 @@ public abstract class VNode
             // Flush any remaining pending text
             if (pendingText != null)
             {
-                normalizedChildren.Add(new VText(pendingText));
+                var combinedText = new VText(pendingText);
+                combinedText.Path = pendingTextPath ?? "";
+                normalizedChildren.Add(combinedText);
             }
 
             return new VElement(element.Tag, element.Path, element.Props, normalizedChildren.ToArray())
@@ -115,6 +127,7 @@ public abstract class VNode
             // Normalize fragment children too
             var normalizedChildren = new List<VNode>();
             string? pendingText = null;
+            string? pendingTextPath = null; // Preserve path from first text node
 
             foreach (var child in fragment.Children)
             {
@@ -122,14 +135,22 @@ public abstract class VNode
 
                 if (normalizedChild is VText text)
                 {
+                    if (pendingText == null)
+                    {
+                        // First text node - preserve its path
+                        pendingTextPath = text.Path;
+                    }
                     pendingText = (pendingText ?? "") + text.Content;
                 }
                 else
                 {
                     if (pendingText != null)
                     {
-                        normalizedChildren.Add(new VText(pendingText));
+                        var combinedText = new VText(pendingText);
+                        combinedText.Path = pendingTextPath ?? "";
+                        normalizedChildren.Add(combinedText);
                         pendingText = null;
+                        pendingTextPath = null;
                     }
                     normalizedChildren.Add(normalizedChild);
                 }
@@ -137,7 +158,9 @@ public abstract class VNode
 
             if (pendingText != null)
             {
-                normalizedChildren.Add(new VText(pendingText));
+                var combinedText = new VText(pendingText);
+                combinedText.Path = pendingTextPath ?? "";
+                normalizedChildren.Add(combinedText);
             }
 
             return new Fragment(normalizedChildren.ToArray());
@@ -214,7 +237,7 @@ public class VElement : VNode
         Tag = tag;
         Path = InflatePath(path);
         Props = props;
-        Children = new List<VNode> { new VText(textContent, "") }; // Text content path is empty for now
+        Children = new List<VNode> { new VText(textContent, $"{path}.1") }; // Generate child text path
     }
 
     public VElement(string tag, string path, Dictionary<string, string> props, VNode[] children)
@@ -292,6 +315,7 @@ public class VText : VNode
     {
         Content = content ?? "";
         Path = InflatePath(path);
+        System.Diagnostics.Debug.WriteLine($"[VText DEBUG] Created with content='{content}', deflated='{path}', inflated='{Path}'");
     }
 
     public override string ToHtml()

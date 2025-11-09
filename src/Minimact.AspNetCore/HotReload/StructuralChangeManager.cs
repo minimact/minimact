@@ -17,20 +17,28 @@ public class StructuralChangeManager : IDisposable
     private readonly IHubContext<MinimactHub> _hubContext;
     private readonly ComponentRegistry _registry;
     private readonly ILogger<StructuralChangeManager> _logger;
+    private readonly TemplateHotReloadManager _templateManager;
+    private readonly DynamicRoslynCompiler _compiler;
     private readonly FileSystemWatcher _watcher;
     private readonly Dictionary<string, DateTime> _lastChangeTime = new();
     private readonly TimeSpan _debounceDelay = TimeSpan.FromMilliseconds(50);
+    private readonly string _watchPath;
     private bool _isDisposed;
 
     public StructuralChangeManager(
         IHubContext<MinimactHub> hubContext,
         ComponentRegistry registry,
         ILogger<StructuralChangeManager> logger,
+        TemplateHotReloadManager templateManager,
+        DynamicRoslynCompiler compiler,
         string watchPath)
     {
         _hubContext = hubContext;
         _registry = registry;
         _logger = logger;
+        _templateManager = templateManager;
+        _compiler = compiler;
+        _watchPath = watchPath;
 
         _watcher = new FileSystemWatcher
         {
@@ -101,8 +109,11 @@ public class StructuralChangeManager : IDisposable
     /// </summary>
     private async Task ReplaceComponentInstancesAsync(string componentTypeName)
     {
+        _logger.LogInformation("[Minimact Structural] 🔍 ReplaceComponentInstancesAsync called for {ComponentType}", componentTypeName);
+
         // Get all instances of this component type
         var instances = _registry.GetComponentsByTypeName(componentTypeName).ToList();
+        _logger.LogInformation("[Minimact Structural] 🔍 Found {Count} instances", instances.Count);
 
         if (instances.Count == 0)
         {
@@ -110,13 +121,32 @@ public class StructuralChangeManager : IDisposable
             return;
         }
 
-        // Get the new type (should already be registered by transpilation pipeline)
-        var newType = _registry.ResolveComponentType(componentTypeName);
-        if (newType == null)
+        _logger.LogInformation("[Minimact Structural] 🔍 About to find CS file for {ComponentType}", componentTypeName);
+
+        // Find and compile the corresponding C# file
+        var csFilePath = FindCsFile(componentTypeName);
+        _logger.LogInformation("[Minimact Structural] 🔍 FindCsFile returned: {Path}", csFilePath ?? "NULL");
+
+        if (csFilePath == null)
         {
-            _logger.LogWarning("[Minimact Structural] Type not found in registry: {ComponentType}", componentTypeName);
+            _logger.LogError("[Minimact Structural] ❌ Could not find C# file for {ComponentType}", componentTypeName);
             return;
         }
+
+        _logger.LogInformation("[Minimact Structural] 🔍 About to compile {Path}", csFilePath);
+
+        // Compile the C# file using Roslyn
+        var newType = _compiler.CompileAndLoadType(csFilePath, componentTypeName);
+        _logger.LogInformation("[Minimact Structural] 🔍 Compilation returned type: {TypeName}", newType?.Name ?? "NULL");
+
+        if (newType == null)
+        {
+            _logger.LogError("[Minimact Structural] ❌ Failed to compile {ComponentType}", componentTypeName);
+            return;
+        }
+
+        // Register the new type in the registry
+        _registry.RegisterComponentType(componentTypeName, newType);
 
         _logger.LogInformation(
             "[Minimact Structural] 🔁 Replacing {Count} instance(s) of {ComponentType}",
@@ -177,6 +207,56 @@ public class StructuralChangeManager : IDisposable
                 );
             }
         }
+
+        // After all instances are replaced, process queued template patches
+        // These patches were waiting for the structural change to complete
+        _logger.LogInformation(
+            "[Minimact Structural] ✅ Instance replacement complete. Processing queued patches for {ComponentType}",
+            componentTypeName
+        );
+        await _templateManager.ProcessQueuedPatchesAsync(componentTypeName);
+    }
+
+    /// <summary>
+    /// Find the C# file for a component
+    /// Searches common locations: Pages/, Components/, Generated/
+    /// </summary>
+    private string? FindCsFile(string componentTypeName)
+    {
+        var possiblePaths = new[]
+        {
+            Path.Combine(_watchPath, "Pages", $"{componentTypeName}.cs"),
+            Path.Combine(_watchPath, "Components", $"{componentTypeName}.cs"),
+            Path.Combine(_watchPath, "Generated", $"{componentTypeName}.cs"),
+            Path.Combine(_watchPath, "Generated", "Pages", $"{componentTypeName}.cs"),
+            Path.Combine(_watchPath, "Generated", "Components", $"{componentTypeName}.cs")
+        };
+
+        foreach (var path in possiblePaths)
+        {
+            if (File.Exists(path))
+            {
+                _logger.LogDebug("[Minimact Structural] Found C# file: {Path}", path);
+                return path;
+            }
+        }
+
+        // Try recursive search as fallback
+        try
+        {
+            var files = Directory.GetFiles(_watchPath, $"{componentTypeName}.cs", SearchOption.AllDirectories);
+            if (files.Length > 0)
+            {
+                _logger.LogDebug("[Minimact Structural] Found C# file via search: {Path}", files[0]);
+                return files[0];
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[Minimact Structural] Error searching for C# file");
+        }
+
+        return null;
     }
 
     /// <summary>

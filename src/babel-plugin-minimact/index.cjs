@@ -169,6 +169,20 @@ module.exports = function(babel) {
             state.file.metadata = state.file.metadata || {};
             state.file.metadata.minimactCSharp = csharpCode;
 
+            // 🔥 CRITICAL: Write C# file BEFORE structural-changes.json
+            // This ensures the StructuralChangeManager can find and compile the C# file
+            if (inputFilePath) {
+              const outputDir = nodePath.dirname(inputFilePath);
+              const csFilePath = nodePath.join(outputDir, `${state.file.minimactComponents[0].name}.cs`);
+
+              try {
+                fs.writeFileSync(csFilePath, csharpCode);
+                console.log(`[Minimact C#] ✅ Generated ${csFilePath}`);
+              } catch (error) {
+                console.error(`[Minimact C#] Failed to write ${csFilePath}:`, error);
+              }
+            }
+
             // Generate .templates.json files for hot reload
             const inputFilePath2 = state.file.opts.filename;
             if (inputFilePath) {

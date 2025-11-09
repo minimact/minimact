@@ -25,6 +25,9 @@ public class TemplateHotReloadManager : IDisposable
     private readonly Dictionary<string, DateTime> _lastChangeTime = new();
     private readonly TimeSpan _debounceDelay = TimeSpan.FromMilliseconds(50);
 
+    // Queue for patches waiting for structural changes
+    private readonly Dictionary<string, List<TemplatePatch>> _queuedPatches = new();
+
     private bool _isDisposed;
 
     public TemplateHotReloadManager(
@@ -294,6 +297,7 @@ public class TemplateHotReloadManager : IDisposable
             // Get component state for parameterizing patches
             var component = _registry.GetComponent(componentId);
             var currentState = component?.GetState() ?? new Dictionary<string, object>();
+            var componentTypeName = component?.GetType().Name ?? componentId;
 
             // Generate and send template patches
             foreach (var change in changes)
@@ -301,7 +305,7 @@ public class TemplateHotReloadManager : IDisposable
                 var patch = CreateTemplatePatch(componentId, change, currentState);
                 if (patch != null)
                 {
-                    await SendTemplatePatch(patch);
+                    await SendTemplatePatchAsync(componentTypeName, patch);
                 }
             }
 
@@ -484,10 +488,51 @@ public class TemplateHotReloadManager : IDisposable
     }
 
     /// <summary>
-    /// Send template patch to all clients
+    /// Send template patch to clients (or queue if path doesn't exist yet)
     /// </summary>
-    private async Task SendTemplatePatch(TemplatePatch patch)
+    private async Task SendTemplatePatchAsync(string componentTypeName, TemplatePatch patch)
     {
+        // Check if hex path exists in any component instance
+        var instances = _registry.GetComponentsByTypeName(componentTypeName);
+
+        _logger.LogInformation(
+            "[Minimact Templates] 🔍 Checking path existence. Component: {ComponentType}, Instances: {Count}, Path: {Path}",
+            componentTypeName,
+            instances.Count(),
+            patch.Path
+        );
+
+        bool pathExists = false;
+
+        foreach (var instance in instances)
+        {
+            _logger.LogInformation("[Minimact Templates] 🔍 Checking instance {InstanceId}", instance.ComponentId);
+
+            if (DoesPathExist(instance, patch.Path))
+            {
+                pathExists = true;
+                break;
+            }
+        }
+
+        if (!pathExists)
+        {
+            // Path doesn't exist - queue patch for after structural change
+            _logger.LogInformation(
+                "[Minimact Templates] ⏸️  Path not found, queuing patch for {ComponentType}: {Path}",
+                componentTypeName,
+                patch.Path
+            );
+
+            if (!_queuedPatches.ContainsKey(componentTypeName))
+            {
+                _queuedPatches[componentTypeName] = new List<TemplatePatch>();
+            }
+            _queuedPatches[componentTypeName].Add(patch);
+            return;
+        }
+
+        // Path exists - send immediately
         try
         {
             await _hubContext.Clients.All.SendAsync("HotReload:TemplatePatch", new
@@ -661,6 +706,111 @@ public class TemplateHotReloadManager : IDisposable
         }
 
         return string.Join(".", inflatedSegments);
+    }
+
+    /// <summary>
+    /// Check if a hex path exists in a component's VNode tree
+    /// </summary>
+    private bool DoesPathExist(MinimactComponent component, string hexPath)
+    {
+        // Component's CurrentVNode contains the rendered tree
+        if (component.CurrentVNode == null)
+        {
+            _logger.LogInformation("[Path Check] CurrentVNode is null for path: {HexPath}", hexPath);
+            return false;
+        }
+
+        // Inflate the path first (10000000.30000000 → 1.3)
+        // Template paths are deflated, but VNode paths are inflated
+        var pathSegments = hexPath.Split('.').ToList();
+        var inflatedPath = InflateHexPath(pathSegments);
+
+        // Strip attribute suffix if present (e.g., "1.3.2.@value" → "1.3.2")
+        var pathWithoutAttr = inflatedPath;
+        if (inflatedPath.Contains(".@"))
+        {
+            pathWithoutAttr = inflatedPath.Substring(0, inflatedPath.IndexOf(".@"));
+        }
+
+        _logger.LogInformation(
+            "[Path Check] Looking for path. Deflated: {Deflated}, Inflated: {Inflated}, Without Attr: {WithoutAttr}",
+            hexPath,
+            inflatedPath,
+            pathWithoutAttr
+        );
+
+        // Recursively search for a VNode with this path
+        var found = FindVNodeByPath(component.CurrentVNode, pathWithoutAttr);
+
+        _logger.LogInformation("[Path Check] Path {Path} found: {Found}", pathWithoutAttr, found);
+
+        return found;
+    }
+
+    /// <summary>
+    /// Recursively search for a VNode with a specific path
+    /// </summary>
+    private bool FindVNodeByPath(VNode node, string targetPath)
+    {
+        if (node == null) return false;
+
+        // Debug: Log this node's path
+        _logger.LogInformation("[Path Check] Checking node path: {NodePath} vs target: {TargetPath}", node.Path ?? "(null)", targetPath);
+
+        // Check if this node's path matches
+        if (node.Path == targetPath) return true;
+
+        // Recursively search children
+        if (node is VElement element && element.Children != null)
+        {
+            foreach (var child in element.Children)
+            {
+                if (FindVNodeByPath(child, targetPath))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Process queued patches for a component after structural change completes
+    /// Called by StructuralChangeManager after instance replacement
+    /// </summary>
+    public async Task ProcessQueuedPatchesAsync(string componentTypeName)
+    {
+        if (!_queuedPatches.TryGetValue(componentTypeName, out var patches) || patches.Count == 0)
+        {
+            return;
+        }
+
+        _logger.LogInformation(
+            "[Minimact Templates] 📤 Processing {Count} queued patch(es) for {ComponentType}",
+            patches.Count,
+            componentTypeName
+        );
+
+        // Create a copy to avoid collection modified exception
+        // (SendTemplatePatchAsync might re-queue patches if paths still don't exist)
+        var patchesToProcess = patches.ToList();
+
+        // Clear the queue before processing
+        _queuedPatches.Remove(componentTypeName);
+
+        // Process patches (might re-queue some if paths still don't exist)
+        foreach (var patch in patchesToProcess)
+        {
+            try
+            {
+                await SendTemplatePatchAsync(componentTypeName, patch);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Minimact Templates] Failed to process queued patch for {ComponentType}", componentTypeName);
+            }
+        }
     }
 
     public void Dispose()
