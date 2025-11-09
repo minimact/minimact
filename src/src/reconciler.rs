@@ -66,7 +66,9 @@ fn reconcile_node(old: &VNode, new: &VNode, patches: &mut Vec<Patch>) -> Result<
     }
 
     // Early exit: if nodes are identical, no changes needed (optimization for hot reload)
-    if old == new {
+    // Extract to variable to prevent compiler over-optimization (fixes Heisenbug)
+    let nodes_equal = old == new;
+    if nodes_equal {
         return Ok(());
     }
 

@@ -19,11 +19,11 @@ export class HydrationManager {
   /**
    * Hydrate a component root element
    */
-  hydrateComponent(componentId: string, rootElement: HTMLElement): void {
-    this.log('Hydrating component', { componentId });
+  hydrateComponent(componentId: string, rootElement: HTMLElement, componentType?: string): void {
+    this.log('Hydrating component', { componentId, componentType });
 
-    // The actual component element is the first child of the container
-    // (rootElement is #minimact-root, first child is the actual component div)
+    // rootElement is the container (e.g., #minimact-root) that holds the component tree
+    // The first child is the actual component root element (e.g., the "10000000" element)
     const componentElement = rootElement.firstElementChild as HTMLElement;
     if (!componentElement) {
       console.error('[Minimact Hydration] No component element found in root');
@@ -33,7 +33,8 @@ export class HydrationManager {
     // Create component metadata
     const metadata: ComponentMetadata = {
       componentId,
-      element: componentElement,  // Use the actual component element, not the container
+      type: componentType,
+      element: rootElement,  // Store the container so patches can navigate from the first child
       clientState: {},
       serverState: {}
     };

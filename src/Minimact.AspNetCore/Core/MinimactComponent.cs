@@ -629,7 +629,40 @@ public abstract class MinimactComponent
         }
 
         // Compute actual patches using Rust reconciliation engine
+
+        // 🔍 DEBUG: Log VNode trees to file for inspection
+        try
+        {
+            var debugDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug-vnodes");
+            Directory.CreateDirectory(debugDir);
+
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
+            var oldVNodeJson = Newtonsoft.Json.JsonConvert.SerializeObject(CurrentVNode, Newtonsoft.Json.Formatting.Indented);
+            var newVNodeJson = Newtonsoft.Json.JsonConvert.SerializeObject(newVNode, Newtonsoft.Json.Formatting.Indented);
+
+            var debugFile = Path.Combine(debugDir, $"{timestamp}_{ComponentId}_reconcile.json");
+            File.WriteAllText(debugFile, $@"{{
+  ""componentId"": ""{ComponentId}"",
+  ""timestamp"": ""{timestamp}"",
+  ""oldVNode"": {oldVNodeJson},
+  ""newVNode"": {newVNodeJson}
+}}");
+
+            Console.WriteLine($"[DEBUG] VNode comparison logged to: {debugFile}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DEBUG] Failed to log VNode trees: {ex.Message}");
+        }
+
         var actualPatches = RustBridge.Reconcile(CurrentVNode, newVNode);
+
+        // 🔍 DEBUG: Log patches result
+        Console.WriteLine($"[DEBUG] Reconcile returned {actualPatches.Count} patches for component {ComponentId}");
+        if (actualPatches.Count == 0)
+        {
+            Console.WriteLine("[DEBUG] ⚠️ ZERO PATCHES - Trees might be identical or Rust reconciliation bug!");
+        }
 
         // Note: Patches use VNode hex paths. Client-side null path tracking handles
         // null-skipping during DOM navigation, so no path adjustment needed.

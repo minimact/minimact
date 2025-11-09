@@ -122,6 +122,7 @@ export interface MinimactOptions {
 
 export interface ComponentMetadata {
   componentId: string;
+  type?: string;  // Component type (e.g., "ProductPage")
   connectionId?: string;
   element: HTMLElement;
   clientState: ComponentState;

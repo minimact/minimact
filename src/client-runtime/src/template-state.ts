@@ -169,6 +169,65 @@ export class TemplateStateManager {
   }
 
   /**
+   * Navigate to a DOM element by hex path, skipping over null nodes
+   * @param rootElement - Root DOM element (container) to start navigation from
+   * @param componentId - Component identifier (component type like "ProductPage")
+   * @param path - Absolute hex path (e.g., "10000000.20000000.30000000")
+   * @returns DOM node at the path, or null if not found
+   */
+  navigateToPath(rootElement: HTMLElement, componentId: string, path: string): Node | null {
+    if (path === '' || path === '.') {
+      return rootElement;
+    }
+
+    let current: Node = rootElement;
+    const hexSegments = path.split('.');
+    let currentPath = '';
+
+    for (let i = 0; i < hexSegments.length; i++) {
+      const hexSegment = hexSegments[i];
+
+      // Build the full path up to this point
+      currentPath = currentPath ? `${currentPath}.${hexSegment}` : hexSegment;
+
+      // Get all children at this level (sorted hex codes)
+      const parentPath = i > 0 ? hexSegments.slice(0, i).join('.') : '';
+      const children = this.getChildrenAtPath(componentId, parentPath);
+
+      if (!children) {
+        console.error(`[TemplateState] No children found at parent path "${parentPath}"`);
+        return null;
+      }
+
+      // Find the DOM index by counting non-null siblings before this hex
+      let domIndex = 0;
+      for (const childHex of children) {
+        const siblingPath = parentPath ? `${parentPath}.${childHex}` : childHex;
+
+        // If this is our target segment, use this domIndex
+        if (childHex === hexSegment) {
+          break;
+        }
+
+        // Only increment DOM index if sibling is NOT null
+        if (!this.isPathNull(componentId, siblingPath)) {
+          domIndex++;
+        }
+      }
+
+      // Navigate to the child at domIndex
+      if (domIndex >= current.childNodes.length) {
+        console.error(`[TemplateState] DOM index ${domIndex} out of bounds (${current.childNodes.length} children) at path "${currentPath}"`);
+        return null;
+      }
+
+      current = current.childNodes[domIndex];
+    }
+
+    return current;
+  }
+
+  /**
    * Remove a path from null paths (element was created)
    */
   removeFromNullPaths(componentId: string, path: string): void {

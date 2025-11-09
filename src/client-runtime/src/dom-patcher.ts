@@ -8,7 +8,7 @@ import { TemplateStateManager } from './template-state';
 export class DOMPatcher {
   private debugLogging: boolean;
   private templateState?: TemplateStateManager;
-  private componentId?: string;
+  private componentType?: string;  // Component type (e.g., "ProductPage")
 
   constructor(options: { debugLogging?: boolean; templateState?: TemplateStateManager } = {}) {
     this.debugLogging = options.debugLogging || false;
@@ -18,11 +18,11 @@ export class DOMPatcher {
   /**
    * Apply an array of patches to a root element
    */
-  applyPatches(rootElement: HTMLElement, patches: Patch[], componentId?: string): void {
+  applyPatches(rootElement: HTMLElement, patches: Patch[], componentType?: string): void {
     this.log('Applying patches', { count: patches.length, patches });
 
-    // Store componentId for this patch batch
-    this.componentId = componentId;
+    // Store componentType for this patch batch
+    this.componentType = componentType;
 
     for (const patch of patches) {
       try {
@@ -32,8 +32,8 @@ export class DOMPatcher {
       }
     }
 
-    // Clear componentId after batch
-    this.componentId = undefined;
+    // Clear componentType after batch
+    this.componentType = undefined;
   }
 
   /**
@@ -51,15 +51,15 @@ export class DOMPatcher {
       case 'Create':
         this.patchCreate(rootElement, patch.path, patch.node);
         // Update null path tracking: path now exists, remove from null paths
-        if (this.templateState && this.componentId) {
-          this.templateState.removeFromNullPaths(this.componentId, patch.path);
+        if (this.templateState && this.componentType) {
+          this.templateState.removeFromNullPaths(this.componentType, patch.path);
         }
         break;
       case 'Remove':
         this.patchRemove(targetElement!);
         // Update null path tracking: path now null, add to null paths
-        if (this.templateState && this.componentId) {
-          this.templateState.addToNullPaths(this.componentId, patch.path);
+        if (this.templateState && this.componentType) {
+          this.templateState.addToNullPaths(this.componentType, patch.path);
         }
         break;
       case 'Replace':
@@ -91,14 +91,36 @@ export class DOMPatcher {
       // Insert at path
       const pathParts = path.split('.');
       const parentPath = pathParts.slice(0, -1).join('.');
-      const index = parseInt(pathParts[pathParts.length - 1], 16);
+      const targetHex = pathParts[pathParts.length - 1];
       const parent = this.getElementByPath(rootElement, parentPath) as HTMLElement;
 
-      if (parent) {
-        if (index >= parent.childNodes.length) {
+      if (parent && this.templateState && this.componentType) {
+        // Calculate DOM insertion index using null-aware navigation
+        const siblings = this.templateState.getChildrenAtPath(this.componentType, parentPath);
+
+        if (!siblings) {
+          console.error('[DOMPatcher] Cannot find siblings for insertion at path:', path);
+          return;
+        }
+
+        // Find the DOM index by counting non-null siblings before this hex
+        let domIndex = 0;
+        for (const siblingHex of siblings) {
+          if (siblingHex === targetHex) {
+            break;
+          }
+
+          const siblingPath = parentPath ? `${parentPath}.${siblingHex}` : siblingHex;
+          if (!this.templateState.isPathNull(this.componentType, siblingPath)) {
+            domIndex++;
+          }
+        }
+
+        // Insert at the calculated DOM index
+        if (domIndex >= parent.childNodes.length) {
           parent.appendChild(newElement);
         } else {
-          parent.insertBefore(newElement, parent.childNodes[index]);
+          parent.insertBefore(newElement, parent.childNodes[domIndex]);
         }
       }
     }
@@ -203,24 +225,21 @@ export class DOMPatcher {
   }
 
   /**
-   * Get a DOM element by its hex path (e.g., "10000000.20000000.30000000")
+   * Get a DOM element by its hex path
+   * Uses null path tracking from TemplateStateManager to skip over removed nodes
    */
   private getElementByPath(rootElement: HTMLElement, path: string): Node | null {
     if (path === '' || path === '.') {
       return rootElement;
     }
 
-    let current: Node = rootElement;
-    const indices = path.split('.').map(hex => parseInt(hex, 16));
-
-    for (const index of indices) {
-      if (index >= current.childNodes.length) {
-        return null;
-      }
-      current = current.childNodes[index];
+    // Use template state manager for null-aware navigation
+    if (!this.templateState || !this.componentType) {
+      console.error('[DOMPatcher] Cannot navigate path without TemplateStateManager and componentType');
+      return null;
     }
 
-    return current;
+    return this.templateState.navigateToPath(rootElement, this.componentType, path);
   }
 
   /**

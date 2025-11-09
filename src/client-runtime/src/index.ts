@@ -159,7 +159,7 @@ export class Minimact {
     this.signalR.on('applyPatches', ({ componentId, patches }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[], componentId);
+        this.domPatcher.applyPatches(component.element, patches as Patch[], component.type);
         this.log('Patches applied', { componentId, patchCount: patches.length });
       }
     });
@@ -168,7 +168,7 @@ export class Minimact {
     this.signalR.on('applyPrediction', ({ componentId, patches, confidence }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[], componentId);
+        this.domPatcher.applyPatches(component.element, patches as Patch[], component.type);
         this.log(`Prediction applied (${(confidence * 100).toFixed(0)}% confident)`, { componentId, patchCount: patches.length });
       }
     });
@@ -177,7 +177,7 @@ export class Minimact {
     this.signalR.on('applyCorrection', ({ componentId, patches }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[], componentId);
+        this.domPatcher.applyPatches(component.element, patches as Patch[], component.type);
         this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
       }
     });
@@ -328,6 +328,9 @@ export class Minimact {
       console.warn(`[Minimact] Component not hydrated for ${instanceId}`);
       return;
     }
+
+    // Update component metadata with type
+    component.type = componentType;
 
     // Register in registry
     this.componentRegistry.register({
