@@ -8,6 +8,8 @@ export interface ProjectFile {
   extension?: string
   kind?: 'tsx' | 'jsx' | 'ts' | 'js' | 'cs' | 'csproj' | 'json' | 'other'
   children?: ProjectFile[]
+  nestedFiles?: ProjectFile[]  // Related files (e.g., .cs, .keys, .json)
+  isNested?: boolean  // Whether this file is nested under another
 }
 
 interface FileTreeProps {
@@ -24,15 +26,75 @@ interface FileTreeItemProps {
   selectedFile?: ProjectFile | null
 }
 
+// Helper: Group related files under their source file
+function nestRelatedFiles(files: ProjectFile[]): ProjectFile[] {
+  const fileMap = new Map<string, ProjectFile>()
+  const nested = new Set<string>()
+
+  // First pass: index all files
+  files.forEach(file => {
+    if (file.type === 'file') {
+      fileMap.set(file.path, file)
+    }
+  })
+
+  // Second pass: find related files and nest them
+  files.forEach(file => {
+    if (file.type === 'file') {
+      const baseName = file.name.replace(/\.(tsx|jsx)$/, '')
+
+      // Only process TSX/JSX source files
+      if (file.extension === 'tsx' || file.extension === 'jsx') {
+        const relatedPatterns = [
+          `${baseName}.cs`,
+          `${file.name}.keys`,
+          `${baseName}.hooks.json`,
+          `${baseName}.structural-changes.json`,
+          `${baseName}.templates.json`
+        ]
+
+        const nestedFiles: ProjectFile[] = []
+
+        relatedPatterns.forEach(pattern => {
+          const relatedFile = Array.from(fileMap.values()).find(f => f.name === pattern)
+          if (relatedFile) {
+            nestedFiles.push({ ...relatedFile, isNested: true })
+            nested.add(relatedFile.path)
+          }
+        })
+
+        if (nestedFiles.length > 0) {
+          file.nestedFiles = nestedFiles
+        }
+      }
+    }
+  })
+
+  // Filter out nested files from top level
+  return files.map(file => {
+    if (file.type === 'directory' && file.children) {
+      return { ...file, children: nestRelatedFiles(file.children) }
+    }
+    return file
+  }).filter(file => !nested.has(file.path))
+}
+
 function FileTreeItem({ file, level, onFileClick, selectedFile }: FileTreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(level < 2) // Auto-expand first 2 levels
+  const [isNestedExpanded, setIsNestedExpanded] = useState(false) // Nested files collapsed by default
 
   const handleClick = () => {
     if (file.type === 'directory') {
       setIsExpanded(!isExpanded)
     } else {
+      // Always open files when clicked (even if they have nested files)
       onFileClick(file)
     }
+  }
+
+  const handleNestedToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsNestedExpanded(!isNestedExpanded)
   }
 
   const isSelected = selectedFile?.path === file.path
@@ -61,6 +123,8 @@ function FileTreeItem({ file, level, onFileClick, selectedFile }: FileTreeItemPr
     return <File className={`w-4 h-4 ${color}`} />
   }
 
+  const hasNestedFiles = file.nestedFiles && file.nestedFiles.length > 0
+
   return (
     <div>
       <div
@@ -70,7 +134,7 @@ function FileTreeItem({ file, level, onFileClick, selectedFile }: FileTreeItemPr
         style={{ paddingLeft }}
         onClick={handleClick}
       >
-        {file.type === 'directory' && (
+        {file.type === 'directory' ? (
           <span className="flex-shrink-0">
             {isExpanded ? (
               <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -78,14 +142,56 @@ function FileTreeItem({ file, level, onFileClick, selectedFile }: FileTreeItemPr
               <ChevronRight className="w-4 h-4 text-gray-400" />
             )}
           </span>
+        ) : hasNestedFiles ? (
+          <span className="flex-shrink-0" onClick={handleNestedToggle}>
+            {isNestedExpanded ? (
+              <ChevronDown className="w-3 h-3 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-3 h-3 text-gray-500" />
+            )}
+          </span>
+        ) : (
+          <span className="w-4" />
         )}
-        {file.type === 'file' && <span className="w-4" />}
         {getFileIcon()}
         <span className={`text-sm truncate ${isSelected ? 'text-white font-medium' : 'text-gray-300'}`}>
           {file.name}
+          {hasNestedFiles && (
+            <span className="ml-1 text-xs text-gray-500">({file.nestedFiles.length})</span>
+          )}
         </span>
       </div>
 
+      {/* Nested files (generated files) */}
+      {hasNestedFiles && isNestedExpanded && (
+        <div>
+          {file.nestedFiles.map((nestedFile) => (
+            <div
+              key={nestedFile.path}
+              className={`flex items-center gap-2 py-1 px-2 cursor-pointer hover:bg-gray-700/50 transition-colors ${
+                selectedFile?.path === nestedFile.path ? 'bg-blue-600/30 border-l-2 border-l-blue-500' : ''
+              }`}
+              style={{ paddingLeft: `${level * 16 + 32}px` }}
+              onClick={() => onFileClick(nestedFile)}
+            >
+              <span className="w-3" />
+              <File className={`w-3 h-3 ${
+                nestedFile.extension === 'cs' ? 'text-purple-400' :
+                nestedFile.extension === 'json' ? 'text-green-400' :
+                nestedFile.name.endsWith('.keys') ? 'text-cyan-400' :
+                'text-gray-400'
+              }`} />
+              <span className={`text-xs truncate ${
+                selectedFile?.path === nestedFile.path ? 'text-white font-medium' : 'text-gray-400'
+              }`}>
+                {nestedFile.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Directory children */}
       {file.type === 'directory' && isExpanded && file.children && (
         <div>
           {file.children.map((child) => (
@@ -119,7 +225,9 @@ export default function FileTree({ projectPath, onFileClick, selectedFile, refre
       const result = await window.api.project.scanFiles(projectPath)
 
       if (result.success) {
-        setFiles(result.data)
+        // Apply file nesting to group related files
+        const nestedFiles = nestRelatedFiles(result.data)
+        setFiles(nestedFiles)
       } else {
         setError(result.error || 'Failed to load files')
       }
