@@ -93,46 +93,55 @@ module.exports = function(babel) {
           const inputFilePath = state.file.opts.filename;
           console.log(`[Minimact Keys] inputFilePath: ${inputFilePath}, originalCode exists: ${!!state.file.originalCode}`);
           if (inputFilePath && state.file.originalCode) {
-            const babelCore = require('@babel/core');
+            const recast = require('recast');
+            const babelParser = require('@babel/parser');
             const babelTypes = require('@babel/types');
             const { HexPathGenerator } = require('./src/utils/hexPath.cjs');
             const { assignPathsToJSX } = require('./src/utils/pathAssignment.cjs');
 
             try {
-              // Parse the original code (with JSX, not createElement)
-              const originalAst = babelCore.parseSync(state.file.originalCode, {
-                filename: inputFilePath,
-                presets: ['@babel/preset-typescript'], // Only TypeScript, NO React preset!
-                plugins: []
+              // Parse with Recast using Babel parser
+              // Recast preserves original formatting, whitespace, and comments
+              const originalAst = recast.parse(state.file.originalCode, {
+                parser: require('recast/parsers/babel-ts')
               });
 
-              // Now add keys to this fresh AST
-              babelCore.traverse(originalAst, {
-                FunctionDeclaration(funcPath) {
+              // Now add keys to this AST using Recast's traverse
+              recast.visit(originalAst, {
+                visitFunctionDeclaration(funcPath) {
                   // Find components (must have JSX return)
-                  funcPath.traverse({
-                    ReturnStatement(returnPath) {
-                      if (returnPath.getFunctionParent() === funcPath &&
-                          babelTypes.isJSXElement(returnPath.node.argument)) {
-                        // This is a component! Add keys to its JSX
-                        const pathGen = new HexPathGenerator();
-                        assignPathsToJSX(returnPath.node.argument, '', pathGen, babelTypes);
+                  this.traverse(funcPath);
+
+                  recast.visit(funcPath, {
+                    visitReturnStatement(returnPath) {
+                      // Check if this return is directly in the component function
+                      if (returnPath.parent && returnPath.parent.value.type === 'BlockStatement') {
+                        const returnNode = returnPath.value;
+                        if (returnNode.argument && babelTypes.isJSXElement(returnNode.argument)) {
+                          // This is a component! Add keys to its JSX
+                          const pathGen = new HexPathGenerator();
+                          assignPathsToJSX(returnNode.argument, '', pathGen, babelTypes);
+                        }
                       }
+                      return false; // Don't traverse deeper
                     }
                   });
+
+                  return false; // Don't traverse deeper
                 }
               });
 
-              // Generate code from the keyed AST
-              const output = generate(originalAst, {
-                retainLines: false,
-                comments: true,
-                retainFunctionParens: true
+              // Generate code with Recast - preserves original formatting!
+              const output = recast.print(originalAst, {
+                tabWidth: 2,
+                useTabs: false,
+                quote: 'single',
+                trailingComma: false
               });
 
               const keysFilePath = inputFilePath + '.keys';
               fs.writeFileSync(keysFilePath, output.code);
-              console.log(`[Minimact Keys] ✅ Generated ${nodePath.basename(keysFilePath)} with JSX syntax`);
+              console.log(`[Minimact Keys] ✅ Generated ${nodePath.basename(keysFilePath)} with preserved formatting`);
             } catch (error) {
               console.error(`[Minimact Keys] ❌ Failed to generate .tsx.keys:`, error);
             }

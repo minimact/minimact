@@ -209,6 +209,9 @@ export default function Dashboard() {
       try {
         await window.api.transpiler.transpileFile(selectedFile.path)
         console.log('File transpiled successfully')
+
+        // Refresh file tree to show generated files (.cs, .structural-changes.json, .hooks.json, etc.)
+        setFileTreeRefreshKey((prev) => prev + 1)
       } catch (err) {
         console.error('Transpilation failed:', err)
       }

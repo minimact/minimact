@@ -24,7 +24,13 @@ module.exports = {
         'index.cjs',
         'package.json',
         'README.md',
-        'node_modules/@babel/types/**/*'  // Include @babel/types dependency
+        'node_modules/@babel/types/**/*',  // Include @babel/types dependency
+        'node_modules/recast/**/*',  // Include recast for formatting preservation
+        'node_modules/@babel/parser/**/*',  // Include @babel/parser (recast dependency)
+        'node_modules/ast-types/**/*',  // Include ast-types (recast dependency)
+        'node_modules/source-map/**/*',  // Include source-map (recast dependency)
+        'node_modules/esprima/**/*',  // Include esprima (recast dependency)
+        'node_modules/tslib/**/*'  // Include tslib (recast dependency)
       ],
 
       // Files/folders to exclude

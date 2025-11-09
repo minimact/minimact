@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Editor, { type Monaco, loader } from '@monaco-editor/react'
 import monaco from '../../lib/monaco'
 
@@ -14,6 +14,7 @@ export default function CodeEditor({ filePath, onSave }: CodeEditorProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const editorRef = useRef<any>(null)
 
   useEffect(() => {
     loadFile()
@@ -54,7 +55,35 @@ export default function CodeEditor({ filePath, onSave }: CodeEditorProps) {
       if (result.success) {
         setHasUnsavedChanges(false)
         if (onSave) {
-          onSave(content)
+          // Save cursor position and scroll position before reload
+          const editor = editorRef.current
+          const position = editor?.getPosition()
+          const scrollTop = editor?.getScrollTop()
+          const scrollLeft = editor?.getScrollLeft()
+
+          await onSave(content)
+
+          // Reload file after save callback completes
+          // This is needed because transpiler may have modified the file (e.g., adding hex path keys)
+          const fileResult = await window.api.file.readFile(filePath)
+          if (fileResult.success && fileResult.data) {
+            setContent(fileResult.data)
+
+            // Restore cursor position and scroll after content updates
+            // Use setTimeout to ensure DOM has updated
+            setTimeout(() => {
+              if (editor && position) {
+                editor.setPosition(position)
+                editor.revealPositionInCenter(position)
+              }
+              if (editor && scrollTop !== undefined) {
+                editor.setScrollTop(scrollTop)
+              }
+              if (editor && scrollLeft !== undefined) {
+                editor.setScrollLeft(scrollLeft)
+              }
+            }, 0)
+          }
         }
         console.log('File saved successfully')
       } else {
@@ -95,6 +124,9 @@ export default function CodeEditor({ filePath, onSave }: CodeEditorProps) {
   }
 
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+    // Store editor reference for cursor position restoration
+    editorRef.current = editor
+
     // Configure TypeScript compiler options for JSX
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       jsx: monaco.languages.typescript.JsxEmit.React,
