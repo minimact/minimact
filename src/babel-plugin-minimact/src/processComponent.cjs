@@ -197,8 +197,16 @@ function processComponent(path, state) {
     // This ensures all extractors use the same paths (no recalculation!)
     const pathGen = new HexPathGenerator();
     const structuralChanges = []; // Track insertions for hot reload
-    assignPathsToJSX(component.renderBody, '', pathGen, t, null, null, structuralChanges);
-    console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree`);
+
+    // Check if this is a hot reload by looking for previous .tsx.keys file
+    const fs = require('fs');
+    const nodePath = require('path');
+    const inputFilePath = state.file.opts.filename;
+    const keysFilePath = inputFilePath ? inputFilePath + '.keys' : null;
+    const isHotReload = keysFilePath && fs.existsSync(keysFilePath);
+
+    assignPathsToJSX(component.renderBody, '', pathGen, t, null, null, structuralChanges, isHotReload);
+    console.log(`[Minimact Hex Paths] ✅ Assigned hex paths to ${componentName} JSX tree${isHotReload ? ' (hot reload mode)' : ''}`);
 
     // Store structural changes on component for later processing
     if (structuralChanges.length > 0) {

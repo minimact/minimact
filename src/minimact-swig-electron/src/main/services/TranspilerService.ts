@@ -95,8 +95,8 @@ export class TranspilerService {
           }]
         ],
         // Presets run AFTER plugins (and in reverse order)
+        // NOTE: NO React preset - we handle JSX ourselves and generate C# code!
         presets: [
-          ['@babel/preset-react', { runtime: 'automatic' }],
           '@babel/preset-typescript'
         ]
       });

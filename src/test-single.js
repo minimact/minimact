@@ -38,7 +38,7 @@ async function transpileComponent(jsxPath) {
       console.log = () => {};
 
       const result = babel.transformSync(code, {
-        presets: ['@babel/preset-typescript', '@babel/preset-react'],
+        presets: ['@babel/preset-typescript'], // NO React preset - we handle JSX ourselves!
         plugins: ['./index-full.cjs'],
         filename: filename
       });

@@ -33,8 +33,9 @@ const { HexPathGenerator } = require('./hexPath.cjs');
  * @param {string|null} previousSiblingKey - Previous sibling's key for sort validation
  * @param {string|null} nextSiblingKey - Next sibling's key for sort validation
  * @param {Array} structuralChanges - Array to collect structural changes for hot reload
+ * @param {boolean} isHotReload - Whether this is a hot reload (keys file exists)
  */
-function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = null, nextSiblingKey = null, structuralChanges = []) {
+function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = null, nextSiblingKey = null, structuralChanges = [], isHotReload = false) {
   if (t.isJSXElement(node)) {
     let currentPath;
     let pathSegments;
@@ -71,29 +72,27 @@ function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = nul
 
     // If no valid existing key, generate a new one
     if (!useExistingKey) {
-      const isNewInsertion = !!(previousSiblingKey || nextSiblingKey);
-
       // If we have previous and next siblings, generate a half-gap between them
       if (previousSiblingKey && nextSiblingKey) {
         currentPath = generateHalfGap(previousSiblingKey, nextSiblingKey, parentPath);
         console.log(`[Path Assignment] ⚡ Generated half-gap key="${currentPath}" between "${previousSiblingKey}" and "${nextSiblingKey}"`);
-
-        // Track insertion for hot reload
-        if (isNewInsertion) {
-          console.log(`[Hot Reload] 🆕 Insertion detected at path "${currentPath}"`);
-          const vnode = generateVNodeRepresentation(node, currentPath, t);
-          if (vnode) {
-            structuralChanges.push({
-              type: 'insert',
-              path: currentPath,
-              vnode: vnode
-            });
-          }
-        }
       } else {
         // Normal sequential generation
         const childHex = pathGen.next(parentPath);
         currentPath = pathGen.buildPath(parentPath, childHex);
+      }
+
+      // Track insertion ONLY during hot reload (when keys file exists)
+      if (isHotReload) {
+        console.log(`[Hot Reload] 🆕 Insertion detected at path "${currentPath}"`);
+        const vnode = generateVNodeRepresentation(node, currentPath, t);
+        if (vnode) {
+          structuralChanges.push({
+            type: 'insert',
+            path: currentPath,
+            vnode: vnode
+          });
+        }
       }
 
       pathSegments = pathGen.parsePath(currentPath);
@@ -141,7 +140,7 @@ function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = nul
 
     // Recursively assign paths to children
     if (node.children) {
-      assignPathsToChildren(node.children, currentPath, pathGen, t, structuralChanges);
+      assignPathsToChildren(node.children, currentPath, pathGen, t, structuralChanges, isHotReload);
     }
   } else if (t.isJSXFragment(node)) {
     // Fragments don't get paths - children become direct siblings
@@ -162,7 +161,7 @@ function assignPathsToJSX(node, parentPath, pathGen, t, previousSiblingKey = nul
  * @param {Object} t - Babel types
  * @param {Array} structuralChanges - Array to collect structural changes for hot reload
  */
-function assignPathsToChildren(children, parentPath, pathGen, t, structuralChanges = []) {
+function assignPathsToChildren(children, parentPath, pathGen, t, structuralChanges = [], isHotReload = false) {
   let previousKey = null; // Track previous sibling's key for sort order validation
 
   for (let i = 0; i < children.length; i++) {
@@ -184,7 +183,7 @@ function assignPathsToChildren(children, parentPath, pathGen, t, structuralChang
       }
 
       // Nested JSX element - pass previous and next keys for validation
-      assignPathsToJSX(child, parentPath, pathGen, t, previousKey, nextKey, structuralChanges);
+      assignPathsToJSX(child, parentPath, pathGen, t, previousKey, nextKey, structuralChanges, isHotReload);
 
       // Update previousKey for next sibling
       if (child.__minimactPath) {

@@ -31,6 +31,11 @@ function generateRuntimeHelperCall(tagName, attributes, children, component, ind
       const name = attr.name.name;
       const value = attr.value;
 
+      // Skip 'key' attribute - it's only for hot reload detection in .tsx.keys files
+      if (name === 'key') {
+        continue;
+      }
+
       // Convert attribute value to C# expression
       let propValue;
       if (t.isStringLiteral(value)) {

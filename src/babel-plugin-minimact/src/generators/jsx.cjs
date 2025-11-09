@@ -108,6 +108,11 @@ function generateJSXElement(node, component, indent) {
       const name = attr.name.name;
       const value = attr.value;
 
+      // Skip 'key' attribute - it's only for hot reload detection in .tsx.keys files
+      if (name === 'key') {
+        continue;
+      }
+
       // Convert className to class for HTML compatibility
       const htmlAttrName = name === 'className' ? 'class' : name;
 
