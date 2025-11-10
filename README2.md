@@ -22,6 +22,20 @@
 
 ---
 
+## 📚 Quick Nav
+
+🚀 [Quick Start](#quick-start) •
+💡 [Why Minimact?](#why-minimact) •
+🧠 [Core Innovations](#core-innovations) •
+🌳 [Lifted State](#-lifted-state-components) •
+🔐 [Protected State](#-useprotectedstate) •
+🎨 [Swig IDE](#-minimact-swig---desktop-ide-for-minimact) •
+🏗️ [Architecture](#architecture-overview) •
+📊 [Comparison](#comparison) •
+🧪 [Examples](#examples)
+
+---
+
 ## What is Minimact?
 
 **Write React. Render on the server. Update instantly with predictive patches.**
@@ -43,6 +57,18 @@ export function Counter() {
 **That's it.** Write familiar React code, get server-rendered HTML with 2-3ms perceived latency.
 
 > **The cactus doesn't hydrate — it stores.** 🌵
+
+## How It Works (in 5 seconds)
+
+```
+User clicks →
+[Browser checks prediction cache] →
+✅ Patch found →
+⏱️ 2ms DOM update →
+🚀 Server verified in background
+```
+
+**No hydration. No diffing. Just pure speed.**
 
 ---
 
@@ -68,6 +94,17 @@ export function Counter() {
 
 ### Better Than Blazor
 Blazor requires learning Razor syntax. Minimact uses React — the syntax millions of developers already know. Lower barrier, faster adoption, bigger talent pool.
+
+### SSR vs CSR vs Minimact
+
+| Feature | React (CSR) | Next.js (SSR) | Minimact (Prediction) |
+|---------|-------------|---------------|----------------------|
+| **First Paint** | ⚠️ Depends on JS | ✅ Fast | ✅ Fast |
+| **Interactivity** | ✅ JS required | ⚠️ Re-hydration | ✅ Instant (2-3ms) |
+| **State Sync** | 🔄 Manual | 🔄 Manual | ✅ Auto |
+| **Bundle Size** | ~45 KB | ~45 KB | **13.33 KB** |
+| **Server Logic** | ❌ None | ⚠️ API routes | ✅ Native C# |
+| **Offline Friendly** | ✅ Yes | ⚠️ Partial | ⚠️ Prediction-only |
 
 ### Key Benefits
 - ⚡ **2-3ms interactions** - Predictive patches cached before user clicks
@@ -103,6 +140,12 @@ That's it! From zero to running app in under 2 minutes.
 - `@minimact/core` — 13.33 KB gzipped (WebSocket-based, modern browsers)
 - `@minimact/core/r` — 25.03 KB gzipped (Full SignalR with fallbacks)
 
+**📦 Real-world examples:**
+- [✅ TodoMVC](./examples/todo) - Classic todo app
+- [📊 Dashboard](./examples/dashboard) - Admin dashboard with templates
+- [📝 Blog](./examples/blog) - Markdown blog with EF Core
+- [📋 Forms](./examples/forms) - Validation and semantic hooks
+
 **[📚 Full Getting Started Guide →](./docs/getting-started.md)**
 
 ---
@@ -130,6 +173,16 @@ Pre-computed parameterized patches for 100% state coverage:
 
 ### 🌳 Lifted State Components
 All child state automatically lives in parent. Zero prop drilling:
+
+```
+Dashboard
+└── UserProfile (Component)
+    ├── isEditing (lifted ✅ visible)
+    ├── username (lifted ✅ visible)
+    └── cache (lifted 🔒 protected)
+
+Access: state["UserProfile.isEditing"]
+```
 
 ```typescript
 // Parent sees ALL child state
@@ -180,15 +233,23 @@ const queue = state["Counter.animationQueue"];  // ❌ Runtime error
 ### 🎨 Minimact Swig IDE
 Desktop development environment with real-time component inspection:
 
+<p align="center">
+  <img src="./docs/assets/swig-screenshot.png" alt="Minimact Swig IDE" width="800">
+</p>
+
+**Features:**
 - Monaco editor with full TSX support
 - Auto-transpilation watch mode
 - Live component state inspector
 - Visual prediction analytics
 - Integrated terminal and file tree
 
+**Quick Start:**
 ```bash
-npm install -g minimact-swig
-minimact-swig new my-app
+git clone https://github.com/minimact/swig
+cd swig
+npm install
+npm start
 ```
 
 **[🎨 Swig IDE Guide →](./docs/MINIMACT_SWIG_ELECTRON_PLAN.md)**
@@ -322,6 +383,18 @@ const box = useDomElementState('.container');
 - [API Reference](./docs/api-reference.md)
 - [Babel Plugin Guide](./docs/babel-plugin.md)
 - [Deployment Guide](./docs/deployment.md)
+
+---
+
+## Why the Name Minimact?
+
+**Minimact** stands for **MINIMal Anticipatory Client Technology**.
+
+- **Minimal** — Tiny 13.33 KB runtime, minimal client logic
+- **Anticipatory** — Predictive patches pre-sent before user interaction
+- **Client Technology** — Smart client that applies cached patches instantly
+
+And yes — the cactus 🌵 doesn't hydrate. It stores.
 
 ---
 
