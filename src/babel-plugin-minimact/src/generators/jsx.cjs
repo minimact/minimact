@@ -135,6 +135,10 @@ function generateJSXElement(node, component, indent) {
             const { convertStyleObjectToCss } = require('../utils/styleConverter.cjs');
             const cssString = convertStyleObjectToCss(value.expression);
             props.push(`["style"] = "${cssString}"`);
+          } else if (name === 'ref' && t.isIdentifier(value.expression)) {
+            // ref attribute - just use the identifier name as a string, no interpolation
+            const refName = value.expression.name;
+            props.push(`["ref"] = "${refName}"`);
           } else {
             // Expression - wrap in string interpolation
             const expr = _generateCSharpExpression(value.expression);

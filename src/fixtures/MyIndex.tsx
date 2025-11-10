@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState, useEffect, useRef } from 'minimact';
 
 /**
  * Hook Examples Index
@@ -8,15 +8,46 @@ import { useState } from 'minimact';
  */
 export function Index() {
   const [activeExample, setActiveExample] = useState<string | null>(null);
+  const [viewCount, setViewCount] = useState(0);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<number>(0);
+
+  // Effect 1: Log when active example changes
+  useEffect(() => {
+    if (activeExample) {
+      console.log(`Opened example: ${activeExample}`);
+    }
+  }, [activeExample]);
+
+  // Effect 2: Track view count on mount
+  useEffect(() => {
+    setViewCount(viewCount + 1);
+    console.log('Index page mounted');
+  }, []);
+
+  // Effect 3: Focus modal when it opens
+  useEffect(() => {
+    if (activeExample && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [activeExample]);
+
+  // Effect 4: Set up a timer that runs on every render
+  useEffect(() => {
+    timerRef.current = Date.now();
+  });
 
   return (
     <div
       key='1'
       style={{ padding: '20px', fontFamily: 'system-ui, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
       <h1 key='1.1' style={{ marginBottom: '10px' }}>Minimact Hook Examples</h1>
-      <p key='1.2' style={{ color: '#666', marginBottom: '30px' }}>
+      <p key='1.2' style={{ color: '#666', marginBottom: '10px' }}>
         This project includes examples for 3 hooks.
         Select an example below to see the code in action.
+      </p>
+      <p key='1.2.1' style={{ color: '#999', fontSize: '14px', marginBottom: '30px' }}>
+        Page views: {viewCount} | Timer ref: {timerRef.current}
       </p>
       {/* Hook Categories */}
       <div key='1.3' style={{ display: 'grid', gap: '30px' }}>
@@ -148,6 +179,8 @@ export function Index() {
           onClick={() => setActiveExample(null)}>
           <div
             key='1.4.1.1'
+            ref={modalRef}
+            tabIndex={-1}
             style={{
               backgroundColor: 'white',
               padding: '30px',
@@ -155,7 +188,8 @@ export function Index() {
               maxWidth: '90%',
               maxHeight: '90%',
               overflow: 'auto',
-              position: 'relative'
+              position: 'relative',
+              outline: 'none'
             }}
             onClick={(e) => e.stopPropagation()}>
             <button

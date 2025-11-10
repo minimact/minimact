@@ -347,10 +347,17 @@ function generateComponent(component) {
       }
     }
 
-    // Generate [OnStateChanged] for each dependency
-    for (const dep of deps) {
-      lines.push(`    [OnStateChanged("${dep}")]`);
+    // Generate [OnStateChanged] for each dependency, or [OnMounted] if no dependencies
+    if (deps.length === 0 && effect.dependencies && t.isArrayExpression(effect.dependencies) && effect.dependencies.elements.length === 0) {
+      // Empty dependency array [] means run only on mount
+      lines.push(`    [OnMounted]`);
+    } else if (deps.length > 0) {
+      // Run when these dependencies change
+      for (const dep of deps) {
+        lines.push(`    [OnStateChanged("${dep}")]`);
+      }
     }
+    // If no dependency array provided (undefined), no attribute needed - runs on every render
 
     lines.push(`    private void Effect_${effectIndex}()`);
     lines.push('    {');

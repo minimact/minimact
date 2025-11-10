@@ -15,11 +15,20 @@ public partial class Index : MinimactComponent
     [State]
     private dynamic activeExample = new VNull("");
 
+    [State]
+    private int viewCount = 0;
+
+    [Ref]
+    private object modalRef = new VNull("");
+
+    [Ref]
+    private object timerRef = 0;
+
     protected override VNode Render()
     {
         StateManager.SyncMembersToState(this);
 
-        return MinimactHelpers.createElement("div", new { style = "padding: 20px; font-family: system-ui, sans-serif; max-width: 1200px; margin: 0 auto" }, new VElement("h1", "1.1", new Dictionary<string, string> { ["style"] = "margin-bottom: 10px" }, "Minimact Hook Examples"), new VElement("p", "1.2", new Dictionary<string, string> { ["style"] = "color: #666; margin-bottom: 30px" }, "This project includes examples for 3 hooks.\n        Select an example below to see the code in action."), new VElement("div", "1.3", new Dictionary<string, string> { ["style"] = "display: grid; gap: 30px" }, new VNode[]
+        return MinimactHelpers.createElement("div", new { style = "padding: 20px; font-family: system-ui, sans-serif; max-width: 1200px; margin: 0 auto" }, new VElement("h1", "1.1", new Dictionary<string, string> { ["style"] = "margin-bottom: 10px" }, "Minimact Hook Examples"), new VElement("p", "1.2", new Dictionary<string, string> { ["style"] = "color: #666; margin-bottom: 10px" }, "This project includes examples for 3 hooks.\n        Select an example below to see the code in action."), new VElement("p", "1.2.1", new Dictionary<string, string> { ["style"] = "color: #999; font-size: 14px; margin-bottom: 30px" }, $"Page views:{(viewCount)}| Timer ref:{(timerRef)}"), new VElement("div", "1.3", new Dictionary<string, string> { ["style"] = "display: grid; gap: 30px" }, new VNode[]
             {
                 new VElement("div", "1.3.1", new Dictionary<string, string>(), new VNode[]
                 {
@@ -45,7 +54,7 @@ public partial class Index : MinimactComponent
                 })
             }), (new MObject(activeExample)) ? new VElement("div", "1.4.1", new Dictionary<string, string> { ["style"] = "position: fixed; top: 0px; left: 0px; right: 0px; bottom: 0px; background-color: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000px", ["onclick"] = "Handle9" }, new VNode[]
             {
-                new VElement("div", "1.4.1.1", new Dictionary<string, string> { ["style"] = "background-color: white; padding: 30px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow: auto; position: relative", ["onclick"] = "@client:Handle10" }, new VNode[]
+                new VElement("div", "1.4.1.1", new Dictionary<string, string> { ["ref"] = "modalRef", ["tabIndex"] = $"{-1}", ["style"] = "background-color: white; padding: 30px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow: auto; position: relative; outline: none", ["onclick"] = "@client:Handle10" }, new VNode[]
                 {
                     new VElement("button", "1.4.1.1.1", new Dictionary<string, string> { ["style"] = "position: absolute; top: 10px; right: 10px; padding: 5px 10px; border: none; background: #f0f0f0; border-radius: 4px; cursor: pointer", ["onclick"] = "Handle11" }, "Close"),
                     new VElement("h2", "1.4.1.1.2", new Dictionary<string, string>(), $"Active Example:{(activeExample)}"),
@@ -57,6 +66,34 @@ public partial class Index : MinimactComponent
                     })
                 })
             }) : new VNull("1.4"));
+    }
+
+    [OnStateChanged("activeExample")]
+    private void Effect_0()
+    {
+        if (activeExample) {
+    Console.WriteLine($"Opened example: {activeExample}");
+}
+    }
+
+    [OnMounted]
+    private void Effect_1()
+    {
+        SetState(nameof(viewCount), viewCount + 1);
+        Console.WriteLine("Index page mounted");
+    }
+
+    [OnStateChanged("activeExample")]
+    private void Effect_2()
+    {
+        if ((activeExample) != null ? (modalRef) : new VNull("")) {
+    modalRef.focus();
+}
+    }
+
+    private void Effect_3()
+    {
+        timerRef = DateTimeOffset.Now.ToUnixTimeMilliseconds();
     }
 
     public void Handle0()

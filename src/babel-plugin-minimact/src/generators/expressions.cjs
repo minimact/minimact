@@ -376,6 +376,13 @@ function generateCSharpExpression(node, inInterpolation = false) {
     return node.name;
   }
 
+  if (t.isAssignmentExpression(node)) {
+    const left = generateCSharpExpression(node.left, inInterpolation);
+    const right = generateCSharpExpression(node.right, inInterpolation);
+    const operator = node.operator; // =, +=, -=, etc.
+    return `${left} ${operator} ${right}`;
+  }
+
   if (t.isAwaitExpression(node)) {
     return `await ${generateCSharpExpression(node.argument, inInterpolation)}`;
   }
@@ -410,6 +417,14 @@ function generateCSharpExpression(node, inInterpolation = false) {
   if (t.isMemberExpression(node)) {
     const object = generateCSharpExpression(node.object);
     const propertyName = t.isIdentifier(node.property) ? node.property.name : null;
+
+    // Handle ref.current → just ref (refs in C# are the value itself, not a container)
+    if (propertyName === 'current' && !node.computed && t.isIdentifier(node.object)) {
+      // Check if the object is a ref variable (ends with "Ref")
+      if (node.object.name.endsWith('Ref')) {
+        return object;  // Return just the ref variable name without .current
+      }
+    }
 
     // Handle JavaScript to C# API conversions
     if (propertyName === 'length' && !node.computed) {
@@ -668,6 +683,13 @@ function generateCSharpExpression(node, inInterpolation = false) {
         // For dynamic objects, cast to IDictionary and get Keys
         return `((IDictionary<string, object>)${obj}).Keys`;
       }
+    }
+
+    // Handle Date.now() → DateTimeOffset.Now.ToUnixTimeMilliseconds()
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Date' }) &&
+        t.isIdentifier(node.callee.property, { name: 'now' })) {
+      return 'DateTimeOffset.Now.ToUnixTimeMilliseconds()';
     }
 
     // Handle console.log → Console.WriteLine
