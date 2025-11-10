@@ -112,6 +112,96 @@ public class TemplateLoader
             _logger.LogInformation("[TemplateLoader] Cache cleared for {Component}", componentName);
         }
     }
+
+    /// <summary>
+    /// Load templates for a parent component and all its child components
+    /// Used for lifted state prediction where parent needs child templates
+    /// </summary>
+    /// <param name="parentComponent">The parent component instance</param>
+    /// <param name="basePath">Base path to search for template files</param>
+    /// <returns>Dictionary mapping component names to their templates</returns>
+    public Dictionary<string, TemplateManifest> LoadAllForParent(
+        MinimactComponent parentComponent,
+        string? basePath = null)
+    {
+        var allTemplates = new Dictionary<string, TemplateManifest>();
+
+        // Load parent's templates
+        var parentName = parentComponent.GetType().Name;
+        var parentTemplates = LoadTemplates(parentName, basePath);
+        if (parentTemplates != null)
+        {
+            allTemplates["__parent"] = parentTemplates;
+            _logger.LogDebug(
+                "[TemplateLoader] Loaded parent templates for {Component}",
+                parentName
+            );
+        }
+
+        // Find and load child component templates
+        if (parentComponent.CurrentVNode != null)
+        {
+            FindAndLoadChildTemplates(parentComponent.CurrentVNode, allTemplates, basePath);
+        }
+
+        _logger.LogInformation(
+            "[TemplateLoader] ✓ Loaded templates for {Parent} and {ChildCount} child component(s)",
+            parentName,
+            allTemplates.Count - 1 // Subtract parent
+        );
+
+        return allTemplates;
+    }
+
+    /// <summary>
+    /// Recursively find VComponentWrapper nodes and load their templates
+    /// </summary>
+    private void FindAndLoadChildTemplates(
+        VNode node,
+        Dictionary<string, TemplateManifest> allTemplates,
+        string? basePath)
+    {
+        if (node is VComponentWrapper wrapper)
+        {
+            // Load templates for this child component
+            if (!allTemplates.ContainsKey(wrapper.ComponentName))
+            {
+                var childTemplates = LoadTemplates(wrapper.ComponentType, basePath);
+                if (childTemplates != null)
+                {
+                    allTemplates[wrapper.ComponentName] = childTemplates;
+                    _logger.LogDebug(
+                        "[TemplateLoader] Loaded child templates for {Component} (namespace: {Namespace})",
+                        wrapper.ComponentType,
+                        wrapper.ComponentName
+                    );
+                }
+            }
+
+            // Recursively render child to find nested components
+            try
+            {
+                var childVNode = wrapper.RenderChild();
+                FindAndLoadChildTemplates(childVNode, allTemplates, basePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "[TemplateLoader] Failed to render child component {Component} for template discovery",
+                    wrapper.ComponentName
+                );
+            }
+        }
+        else if (node is VElement element)
+        {
+            // Recursively search element children
+            foreach (var child in element.Children)
+            {
+                FindAndLoadChildTemplates(child, allTemplates, basePath);
+            }
+        }
+    }
 }
 
 /// <summary>

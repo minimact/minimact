@@ -399,6 +399,210 @@ public class Fragment : VNode
 }
 
 /// <summary>
+/// Wrapper for components using the Lifted State pattern
+/// State lives in parent component, child accesses via namespaced keys
+///
+/// Example:
+///   <Component name="Counter" state={{ count: 0 }}>
+///     <Counter />
+///   </Component>
+///
+/// Generates:
+///   new VComponentWrapper {
+///     ComponentName = "Counter",
+///     ComponentType = "Counter",
+///     HexPath = "1.2",
+///     InitialState = new Dictionary<string, object> { ["count"] = 0 }
+///   }
+/// </summary>
+public class VComponentWrapper : VNode
+{
+    /// <summary>
+    /// Component name for state namespacing (e.g., "Counter")
+    /// Used to prefix all state keys: "Counter.count"
+    /// </summary>
+    public string ComponentName { get; set; } = "";
+
+    /// <summary>
+    /// Actual component type to instantiate (e.g., "Counter")
+    /// Must be a valid MinimactComponent class name
+    /// </summary>
+    public string ComponentType { get; set; } = "";
+
+    /// <summary>
+    /// Hex path for this wrapper node
+    /// Child paths will be prefixed with this (e.g., "1.2:1")
+    /// </summary>
+    public string HexPath { get; set; } = "";
+
+    /// <summary>
+    /// Initial state values (applied on first render only)
+    /// Keys will be namespaced: "Counter.count" = 0
+    /// </summary>
+    public Dictionary<string, object> InitialState { get; set; } = new();
+
+    /// <summary>
+    /// Reference to parent component (owns the state)
+    /// </summary>
+    public MinimactComponent? ParentComponent { get; set; }
+
+    /// <summary>
+    /// Cached child component instance
+    /// Created once and reused across renders
+    /// </summary>
+    private MinimactComponent? _childInstance;
+
+    /// <summary>
+    /// Cached rendered VNode from child
+    /// </summary>
+    private VNode? _cachedChildVNode;
+
+    /// <summary>
+    /// Render the wrapped component with lifted state access
+    /// </summary>
+    public VNode RenderChild()
+    {
+        if (ParentComponent == null)
+        {
+            throw new InvalidOperationException(
+                $"[Lifted State] VComponentWrapper.ParentComponent must be set before rendering"
+            );
+        }
+
+        // Create child instance on first render
+        if (_childInstance == null)
+        {
+            _childInstance = CreateChildInstance();
+
+            // Inject state namespace and parent reference
+            _childInstance.SetStateNamespace(ComponentName, ParentComponent);
+
+            // Initialize lifted state in parent (first render only)
+            InitializeLiftedState();
+
+            Console.WriteLine(
+                $"[Lifted State] ✅ Created instance of {ComponentType} " +
+                $"with namespace '{ComponentName}' in parent {ParentComponent.GetType().Name}"
+            );
+        }
+
+        // Render child component
+        var childVNode = _childInstance.RenderComponent();
+
+        // Prefix all child paths with this wrapper's path
+        // e.g., "1.2" (wrapper) → "1.2:1", "1.2:1.1" (child nodes)
+        PrefixChildPaths(childVNode, HexPath);
+
+        _cachedChildVNode = childVNode;
+        return childVNode;
+    }
+
+    /// <summary>
+    /// Create an instance of the child component
+    /// </summary>
+    private MinimactComponent CreateChildInstance()
+    {
+        var componentType = ComponentTypeRegistry.GetType(ComponentType);
+
+        if (componentType == null)
+        {
+            throw new InvalidOperationException(
+                $"[Lifted State] Component type '{ComponentType}' not found. " +
+                $"Make sure the component is registered or the assembly is loaded."
+            );
+        }
+
+        var instance = Activator.CreateInstance(componentType) as MinimactComponent;
+
+        if (instance == null)
+        {
+            throw new InvalidOperationException(
+                $"[Lifted State] Failed to create instance of '{ComponentType}'. " +
+                $"Component must inherit from MinimactComponent."
+            );
+        }
+
+        // Set metadata
+        instance.ComponentId = $"{ParentComponent!.ComponentId}_{ComponentName}";
+
+        return instance;
+    }
+
+    /// <summary>
+    /// Initialize lifted state in parent component
+    /// Only sets keys that don't already exist (preserves state across renders)
+    /// </summary>
+    private void InitializeLiftedState()
+    {
+        foreach (var kvp in InitialState)
+        {
+            // Namespace the key
+            var namespacedKey = $"{ComponentName}.{kvp.Key}";
+
+            // Only set if not already present (preserve state across renders)
+            if (!ParentComponent!.State.ContainsKey(namespacedKey))
+            {
+                ParentComponent.State[namespacedKey] = kvp.Value;
+
+                Console.WriteLine(
+                    $"[Lifted State] Initialized {namespacedKey} = {kvp.Value}"
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Prefix all child VNode paths with parent path
+    /// Converts "1" → "1.2:1" (parent:child notation)
+    /// </summary>
+    private void PrefixChildPaths(VNode node, string prefix)
+    {
+        if (node == null || string.IsNullOrEmpty(prefix)) return;
+
+        // Add namespace separator and prefix
+        if (!string.IsNullOrEmpty(node.Path))
+        {
+            node.Path = $"{prefix}:{node.Path}";
+        }
+
+        // Recursively prefix children
+        if (node is VElement element)
+        {
+            foreach (var child in element.Children)
+            {
+                PrefixChildPaths(child, prefix);
+            }
+        }
+        else if (node is Fragment fragment)
+        {
+            foreach (var child in fragment.Children)
+            {
+                PrefixChildPaths(child, prefix);
+            }
+        }
+    }
+
+    public override string ToHtml()
+    {
+        // Render child and return its HTML
+        var childVNode = RenderChild();
+        return childVNode.ToHtml();
+    }
+
+    public override int EstimateSize()
+    {
+        // Size of child VNode
+        if (_cachedChildVNode != null)
+        {
+            return _cachedChildVNode.EstimateSize();
+        }
+
+        // Estimate if not yet rendered
+        return 100; // Small overhead
+    }
+}
+
+/// <summary>
 /// Custom JSON converter for VNode polymorphism
 /// </summary>
 public class VNodeConverter : JsonConverter
@@ -570,6 +774,13 @@ public class VNodeConverter : JsonConverter
             writer.WritePropertyName("path");
             writer.WriteValue(vnull.Path);
             writer.WriteEndObject();
+        }
+        else if (value is VComponentWrapper wrapper)
+        {
+            // Render child and serialize the result
+            // VComponentWrapper is transparent - client sees the child VNode
+            var childVNode = wrapper.RenderChild();
+            WriteJson(writer, childVNode, serializer);
         }
         else if (value is Fragment fragment)
         {

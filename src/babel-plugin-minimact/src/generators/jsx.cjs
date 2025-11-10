@@ -66,6 +66,11 @@ function generateJSXElement(node, component, indent) {
     }
   }
 
+  // Check if this is a Component element (Lifted State Pattern)
+  if (tagName === 'Component') {
+    return generateComponentWrapper(node, component, indent);
+  }
+
   // Check if this element has markdown attribute and markdown content
   const hasMarkdownAttr = attributes.some(attr =>
     t.isJSXAttribute(attr) && attr.name.name === 'markdown'
@@ -285,6 +290,108 @@ function generateChildren(children, component, indent) {
   }
 
   return result;
+}
+
+/**
+ * Generate VComponentWrapper for <Component> element (Lifted State Pattern)
+ *
+ * Example:
+ *   <Component name="Counter" state={{ count: 0 }}>
+ *     <Counter />
+ *   </Component>
+ *
+ * Generates:
+ *   new VComponentWrapper {
+ *     ComponentName = "Counter",
+ *     ComponentType = "Counter",
+ *     HexPath = "1.2",
+ *     InitialState = new Dictionary<string, object> { ["count"] = 0 }
+ *   }
+ */
+function generateComponentWrapper(node, parentComponent, indent) {
+  const generate = require('@babel/generator').default;
+
+  const attributes = node.openingElement.attributes;
+  const hexPath = node.__minimactPath || '';
+
+  // Extract name="..." attribute
+  const nameAttr = attributes.find(attr =>
+    t.isJSXAttribute(attr) && t.isIdentifier(attr.name) && attr.name.name === 'name'
+  );
+
+  if (!nameAttr) {
+    throw new Error('[Lifted State] <Component> element must have a "name" attribute');
+  }
+
+  const componentName = t.isStringLiteral(nameAttr.value)
+    ? nameAttr.value.value
+    : null;
+
+  if (!componentName) {
+    throw new Error('[Lifted State] <Component> name attribute must be a string literal');
+  }
+
+  // Extract state={...} attribute
+  const stateAttr = attributes.find(attr =>
+    t.isJSXAttribute(attr) && t.isIdentifier(attr.name) && attr.name.name === 'state'
+  );
+
+  let stateCode = 'new Dictionary<string, object>()';
+
+  if (stateAttr && t.isJSXExpressionContainer(stateAttr.value)) {
+    const stateExpr = stateAttr.value.expression;
+
+    if (t.isObjectExpression(stateExpr)) {
+      // Track lifted state keys in parent component
+      if (!parentComponent.liftedComponentState) {
+        parentComponent.liftedComponentState = [];
+      }
+
+      for (const prop of stateExpr.properties) {
+        if (t.isObjectProperty(prop) && t.isIdentifier(prop.key)) {
+          const localKey = prop.key.name;
+          const namespacedKey = `${componentName}.${localKey}`;
+          const initialValue = generate(prop.value).code;
+
+          parentComponent.liftedComponentState.push({
+            componentName,
+            localKey,
+            namespacedKey,
+            initialValue
+          });
+        }
+      }
+
+      // Generate C# dictionary initializer
+      const { generateCSharpExpression } = require('./expressions.cjs');
+      stateCode = generateCSharpExpression(stateExpr, parentComponent, 0);
+    }
+  }
+
+  // Extract child component JSX (should be single element)
+  const childComponents = node.children.filter(c => t.isJSXElement(c));
+
+  if (childComponents.length === 0) {
+    throw new Error(`[Lifted State] <Component name="${componentName}"> must have exactly one child element`);
+  }
+
+  if (childComponents.length > 1) {
+    throw new Error(`[Lifted State] <Component name="${componentName}"> must have exactly one child element, found ${childComponents.length}`);
+  }
+
+  const childComponent = childComponents[0];
+  const childTagName = childComponent.openingElement.name.name;
+
+  console.log(`[Lifted State] ✅ Detected <Component name="${componentName}"> wrapping <${childTagName} />`);
+
+  // Generate VComponentWrapper instantiation
+  return `new VComponentWrapper
+{
+    ComponentName = "${componentName}",
+    ComponentType = "${childTagName}",
+    HexPath = "${hexPath}",
+    InitialState = ${stateCode}
+}`;
 }
 
 module.exports = {

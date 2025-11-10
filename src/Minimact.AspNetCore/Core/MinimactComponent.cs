@@ -100,6 +100,19 @@ public abstract class MinimactComponent
     /// </summary>
     internal static Services.TemplateLoader? GlobalTemplateLoader { get; set; }
 
+    /// <summary>
+    /// Namespace prefix for lifted state access (Lifted State Pattern)
+    /// When set, all GetState/SetState calls are automatically prefixed
+    /// Example: "Counter" → all state keys become "Counter.key"
+    /// </summary>
+    protected string? StateNamespace { get; private set; }
+
+    /// <summary>
+    /// Reference to parent component (for Lifted State Pattern)
+    /// When set, state operations affect parent's state dictionary
+    /// </summary>
+    protected MinimactComponent? ParentComponent { get; private set; }
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();
@@ -234,23 +247,20 @@ public abstract class MinimactComponent
     protected void SetState(string key, object value) => SetStateInternal(key, value);
 
     /// <summary>
-    /// Get current state value
-    /// </summary>
-    protected T? GetState<T>(string key)
-    {
-        if (State.TryGetValue(key, out var value))
-        {
-            return (T)value;
-        }
-        return default;
-    }
-
-    /// <summary>
     /// Get current state value (non-generic)
+    /// Used by generated code for dynamic state access
     /// </summary>
     protected object? GetState(string key)
     {
-        return State.TryGetValue(key, out var value) ? value : null;
+        // Apply namespace prefix if configured
+        var actualKey = StateNamespace != null
+            ? $"{StateNamespace}.{key}"
+            : key;
+
+        // Read from parent state if available, otherwise local
+        var stateSource = ParentComponent?.State ?? State;
+
+        return stateSource.TryGetValue(actualKey, out var value) ? value : null;
     }
 
     /// <summary>
@@ -1502,6 +1512,141 @@ public abstract class MinimactComponent
             Console.WriteLine($"[Minimact] Transform expression evaluation failed: {ex.Message}");
             return value?.ToString() ?? "";
         }
+    }
+
+    #endregion
+
+    #region Lifted State Pattern
+
+    /// <summary>
+    /// Configure this component to use lifted state pattern
+    /// Called by VComponentWrapper during initialization
+    /// </summary>
+    /// <param name="ns">Namespace prefix (e.g., "Counter")</param>
+    /// <param name="parent">Parent component that owns the state</param>
+    public void SetStateNamespace(string ns, MinimactComponent parent)
+    {
+        StateNamespace = ns;
+        ParentComponent = parent;
+
+        Console.WriteLine(
+            $"[Lifted State] Component {GetType().Name} " +
+            $"using namespace '{ns}' in parent {parent.GetType().Name}"
+        );
+    }
+
+    /// <summary>
+    /// Get state value with automatic namespace prefixing
+    /// </summary>
+    /// <typeparam name="T">Type of value to retrieve</typeparam>
+    /// <param name="key">State key (will be prefixed if namespace is set)</param>
+    /// <returns>State value or default(T)</returns>
+    /// <example>
+    /// // Inside child component with namespace "Counter":
+    /// var count = GetState&lt;int&gt;("count");
+    /// // Actually reads: ParentComponent.State["Counter.count"]
+    /// </example>
+    protected T GetState<T>(string key)
+    {
+        // Apply namespace prefix if configured
+        var actualKey = StateNamespace != null
+            ? $"{StateNamespace}.{key}"
+            : key;
+
+        // Read from parent state if available, otherwise local
+        var stateSource = ParentComponent?.State ?? State;
+
+        if (stateSource.TryGetValue(actualKey, out var value))
+        {
+            // Type-safe conversion
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+
+            // Attempt conversion for primitives
+            try
+            {
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"[Lifted State] Warning: Cannot convert state key '{actualKey}' " +
+                    $"from {value.GetType().Name} to {typeof(T).Name}: {ex.Message}"
+                );
+                return default(T)!;
+            }
+        }
+
+        // Return default if not found
+        return default(T)!;
+    }
+
+    /// <summary>
+    /// Set state value with automatic namespace prefixing
+    /// Triggers parent re-render when using lifted state
+    /// </summary>
+    /// <typeparam name="T">Type of value to set</typeparam>
+    /// <param name="key">State key (will be prefixed if namespace is set)</param>
+    /// <param name="value">New value</param>
+    /// <example>
+    /// // Inside child component with namespace "Counter":
+    /// SetState("count", 5);
+    /// // Actually writes: ParentComponent.State["Counter.count"] = 5
+    /// // And triggers: ParentComponent.TriggerRender()
+    /// </example>
+    protected void SetState<T>(string key, T value)
+    {
+        // Apply namespace prefix if configured
+        var actualKey = StateNamespace != null
+            ? $"{StateNamespace}.{key}"
+            : key;
+
+        if (ParentComponent != null)
+        {
+            // Store previous value for diffing
+            if (ParentComponent.State.TryGetValue(actualKey, out var oldValue))
+            {
+                ParentComponent.PreviousState[actualKey] = oldValue;
+            }
+
+            // Update parent state
+            ParentComponent.State[actualKey] = value!;
+
+            Console.WriteLine(
+                $"[Lifted State] {StateNamespace}.{key} = {value}"
+            );
+
+            // Trigger parent re-render (state changed)
+            ParentComponent.TriggerRender();
+        }
+        else
+        {
+            // Local state (no parent)
+            if (State.TryGetValue(actualKey, out var oldValue))
+            {
+                PreviousState[actualKey] = oldValue;
+            }
+
+            State[actualKey] = value!;
+            TriggerRender();
+        }
+    }
+
+    /// <summary>
+    /// Check if a state key exists (with automatic namespace prefixing)
+    /// </summary>
+    /// <param name="key">State key</param>
+    /// <returns>True if key exists in state</returns>
+    protected bool HasState(string key)
+    {
+        var actualKey = StateNamespace != null
+            ? $"{StateNamespace}.{key}"
+            : key;
+
+        var stateSource = ParentComponent?.State ?? State;
+        return stateSource.ContainsKey(actualKey);
     }
 
     #endregion
