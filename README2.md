@@ -27,69 +27,81 @@
 **Write React. Render on the server. Update instantly with predictive patches.**
 
 ```typescript
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
     const [count, setCount] = useState(0);
 
     return (
-        <div>
-            <p>Count: {count}</p>
-            <button onClick={() => setCount(count + 1)}>
-                Increment
-            </button>
-        </div>
+        <button onClick={() => setCount(count + 1)}>
+            Count: {count}
+        </button>
     );
 }
 ```
 
-**That's it.** Write familiar React code, get server-rendered HTML with <5ms perceived latency.
+**That's it.** Write familiar React code, get server-rendered HTML with 2-3ms perceived latency.
+
+> **The cactus doesn't hydrate — it stores.** 🌵
 
 ---
 
 ## Why Minimact?
 
-### ⚡ Instant Interactions
-- **Predictive patches** pre-sent to client before user clicks
-- **0ms network latency** - patches already cached
-- **95-98% cache hit rate** with template system
-- Faster than client-side React (no reconciliation overhead)
+### For React Developers
+**Finally, a path to .NET without learning Razor.** Keep writing React — get ASP.NET Core's power, security, and enterprise features.
 
-### 📦 Tiny Bundle
-- **13.33 KB** client (71% smaller than React)
-- Optional 25.03 KB version with full SignalR fallbacks
-- No hydration code needed
-- Works without JavaScript (progressive enhancement)
+**Bundle size:** 13.33 KB vs React's 45 KB (71% smaller!)
 
-### 🏗️ Familiar DX
-- Write JSX/TSX like always
-- React hooks: `useState`, `useEffect`, `useRef`
-- Full TypeScript → C# type safety
-- Hot reload in < 50ms
+### For .NET Teams
+**Modern frontend DX without abandoning your stack.** Your team already knows C# and EF Core. Now they can build UIs with React syntax.
 
-### 🔐 Secure by Default
-- Business logic stays on server
-- Direct database access (EF Core, Dapper)
-- ASP.NET Core authentication/authorization
-- No API endpoints needed
+**Performance:** 2-3ms interactions vs 47ms traditional SSR
+
+### For CTOs
+**Solve the "React DX + .NET backend" problem.** One stack, one deployment, full type safety from database to DOM. Rust-powered performance makes ASP.NET Core shine.
+
+**Comparison:**
+- React 18: 45 KB gzipped
+- Vue 3: 34 KB gzipped
+- **Minimact: 13.33 KB gzipped** (71% smaller than React)
+
+### Better Than Blazor
+Blazor requires learning Razor syntax. Minimact uses React — the syntax millions of developers already know. Lower barrier, faster adoption, bigger talent pool.
+
+### Key Benefits
+- ⚡ **2-3ms interactions** - Predictive patches cached before user clicks
+- 📦 **13.33 KB bundle** - 71% smaller than React
+- 🏗️ **Familiar syntax** - Write JSX/TSX with React hooks
+- 🔐 **Secure by default** - Business logic stays on server
+- 🚀 **15× faster** than traditional SSR on 3G networks
 
 ---
 
 ## Quick Start
 
 ```bash
-# Install CLI
-npm install -g minimact-cli
-
-# Create new project
-minimact new my-app
-cd my-app
-
-# Start development
-minimact dev
+# Clone and run Swig - the official Minimact IDE
+git clone https://github.com/minimact/swig
+cd swig
+npm install
+npm start
 ```
 
-Visit `http://localhost:5000` - your component is live!
+### Create Your First App
+
+Once Swig launches:
+
+1. **Create Project** - Click "New Project" and choose a directory
+2. **Edit Components** - Write TSX in Monaco editor (auto-transpiles to C#)
+3. **Build** - Click "Build" to compile your app
+4. **Run** - Click "Run" and open in browser
+
+That's it! From zero to running app in under 2 minutes.
+
+**Two runtime versions available:**
+- `@minimact/core` — 13.33 KB gzipped (WebSocket-based, modern browsers)
+- `@minimact/core/r` — 25.03 KB gzipped (Full SignalR with fallbacks)
 
 **[📚 Full Getting Started Guide →](./docs/getting-started.md)**
 
