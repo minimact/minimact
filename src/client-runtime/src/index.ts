@@ -449,6 +449,9 @@ export { TemplateRenderer } from './template-renderer';
 // Core hooks
 export { useState, useEffect, useRef, useServerTask, useServerReducer, useMarkdown, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
 
+// State proxy (compile-time only for TypeScript IntelliSense)
+export { state, setState, ComponentState, State } from './state-proxy';
+
 // useComputed hook (for client-side computation with browser APIs/libraries)
 export { useComputed } from './useComputed';
 export type { UseComputedOptions } from './useComputed';

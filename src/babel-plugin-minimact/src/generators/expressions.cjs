@@ -373,6 +373,14 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isIdentifier(node)) {
+    // Special case: 'state' identifier (state proxy)
+    // Note: This should only happen as part of member expression (state.key or state["key"])
+    // Standalone 'state' reference is unusual - warn but transpile to 'State'
+    if (node.name === 'state') {
+      console.warn('[Babel Plugin] Naked state reference detected (should be state.key or state["key"])');
+      return 'State';
+    }
+
     return node.name;
   }
 
@@ -415,6 +423,19 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isMemberExpression(node)) {
+    // Special case: state.key or state["key"] (state proxy)
+    if (t.isIdentifier(node.object, { name: 'state' })) {
+      if (node.computed) {
+        // state["someKey"] or state["Child.key"] → State["someKey"] or State["Child.key"]
+        const key = generateCSharpExpression(node.property, inInterpolation);
+        return `State[${key}]`;
+      } else {
+        // state.someKey → State["someKey"]
+        const key = node.property.name;
+        return `State["${key}"]`;
+      }
+    }
+
     const object = generateCSharpExpression(node.object);
     const propertyName = t.isIdentifier(node.property) ? node.property.name : null;
 
@@ -628,6 +649,19 @@ function generateCSharpExpression(node, inInterpolation = false) {
     if (t.isIdentifier(node.callee, { name: 'encodeURIComponent' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
       return `Uri.EscapeDataString(${args})`;
+    }
+
+    // Handle setState(key, value) → SetState(key, value)
+    // This is the compile-time state proxy function for lifted state
+    if (t.isIdentifier(node.callee, { name: 'setState' })) {
+      if (node.arguments.length >= 2) {
+        const key = generateCSharpExpression(node.arguments[0]);
+        const value = generateCSharpExpression(node.arguments[1]);
+        return `SetState(${key}, ${value})`;
+      } else {
+        console.warn('[Babel Plugin] setState requires 2 arguments (key, value)');
+        return `SetState("", null)`;
+      }
     }
 
     // Handle fetch() → HttpClient call
