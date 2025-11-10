@@ -148,8 +148,127 @@ public class Counter : MinimactComponent
 
 **Core Hooks:**
 - `useState<T>()` - Component state management
-- `useEffect()` - Side effects with cleanup
+- `useEffect()` - Side effects with cleanup (see details below)
 - `useRef<T>()` - Persistent references
+
+**useEffect Hook - Detailed Behavior**
+
+Minimact implements `useEffect` with a **dual-execution model**: effects run on the client with full dependency tracking, while server-side attributes are used for logging and hint generation.
+
+**Client-Side Execution (Source of Truth):**
+
+```typescript
+// 1. Mount only - Empty dependency array []
+useEffect(() => {
+  console.log('Component mounted!');
+  // Runs ONCE when component first renders
+  // Never runs again, even on re-renders
+}, []); // Empty array = mount only
+
+// 2. On dependency change - Specific dependencies
+const [count, setCount] = useState(0);
+useEffect(() => {
+  document.title = `Count: ${count}`;
+  // Runs when 'count' changes (shallow comparison)
+}, [count]); // Watches 'count'
+
+// 3. Every render - No dependency array
+useEffect(() => {
+  analytics.trackRender();
+  // Runs after EVERY render
+  // Use sparingly - most expensive option
+}); // No second argument
+```
+
+**Dependency Tracking:**
+- Uses shallow comparison (`!==`) to detect changes
+- Effects execute via `queueMicrotask()` - after render, before paint
+- Cleanup functions run before re-execution and on unmount
+
+**Cleanup Pattern:**
+
+```typescript
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCount(c => c + 1);
+  }, 1000);
+
+  // Cleanup runs:
+  // 1. Before effect re-runs (when deps change)
+  // 2. When component unmounts
+  return () => {
+    clearInterval(timer);
+    console.log('Timer cleaned up');
+  };
+}, []); // Cleanup runs on unmount
+```
+
+**Server-Side Attributes (For Hints & Logging):**
+
+The Babel plugin generates C# methods with attributes indicating dependency patterns:
+
+```csharp
+// Empty deps [] → [OnMounted]
+[OnMounted]
+private void Effect_0()
+{
+    Console.WriteLine("Component mounted");
+}
+
+// Specific deps [state] → [OnStateChanged]
+[OnStateChanged("count")]
+private void Effect_1()
+{
+    Console.WriteLine($"Count changed to: {count}");
+}
+
+// No deps → No attribute (every render)
+private void Effect_2()
+{
+    timerRef = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+}
+```
+
+**Key Principle:** Client-runtime handles all effect execution. Server attributes are for:
+- ✅ Prediction hint generation
+- ✅ Template pre-computation
+- ✅ Server-side logging/debugging
+- ❌ NOT for executing client-side effects
+
+**Common Patterns:**
+
+```typescript
+// Data fetching on mount
+useEffect(() => {
+  async function fetchData() {
+    const data = await fetch('/api/users');
+    setUsers(await data.json());
+  }
+  fetchData();
+}, []); // Fetch once
+
+// Sync with external system
+useEffect(() => {
+  const subscription = eventEmitter.subscribe(setData);
+  return () => subscription.unsubscribe();
+}, []); // Setup/teardown
+
+// Respond to state changes
+useEffect(() => {
+  if (userId) {
+    loadUserProfile(userId);
+  }
+}, [userId]); // Re-fetch when userId changes
+```
+
+**Performance Tips:**
+- ✅ Use specific dependencies - avoid unnecessary runs
+- ✅ Use empty deps `[]` for mount-only setup
+- ✅ Always provide cleanup for subscriptions/timers
+- ❌ Avoid no-deps effects - they run every render
+- ❌ Don't omit dependencies - leads to stale closures
+
+**See:** [USEEFFECT_ARCHITECTURE.md](./USEEFFECT_ARCHITECTURE.md) for complete implementation details.
 
 **Advanced Hooks:**
 - `useServerTask<T>()` - Async server operations with loading/error states
