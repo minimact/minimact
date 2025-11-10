@@ -194,6 +194,29 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
 }
 
 /**
+ * useProtectedState hook - like useState but parent cannot access via state proxy
+ *
+ * Protected state is still lifted to parent (visible for debugging/prediction)
+ * but parent components cannot read/write it via state["Child.key"] or setState("Child.key", value)
+ *
+ * Use this for internal component state that should be encapsulated (caches, buffers, etc.)
+ *
+ * @example
+ * ```tsx
+ * function UserProfile() {
+ *   const [email, setEmail] = useState("");  // Public - parent can access
+ *   const [cache, setCache] = useProtectedState({});  // Protected - parent CANNOT access
+ * }
+ * ```
+ */
+export function useProtectedState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T)) => void] {
+  // useProtectedState is identical to useState on the client
+  // The protection is enforced on the server (C# GetState/SetState)
+  // The Babel plugin marks these keys as protected in VComponentWrapper
+  return useState(initialValue);
+}
+
+/**
  * useEffect hook - runs side effects after render
  */
 export function useEffect(callback: () => void | (() => void), deps?: any[]): void {

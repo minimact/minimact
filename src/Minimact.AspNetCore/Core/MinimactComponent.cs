@@ -114,6 +114,14 @@ public abstract class MinimactComponent
     protected MinimactComponent? ParentComponent { get; private set; }
 
     /// <summary>
+    /// Protected state keys registry (for useProtectedState hook)
+    /// Format: "ComponentName.keyName" → true
+    /// Parent components cannot access these keys via GetState/SetState
+    /// Keys are still lifted (visible for debugging/prediction) but access is blocked
+    /// </summary>
+    private Dictionary<string, bool> _protectedKeys = new();
+
+    /// <summary>
     /// Internal accessor for StateNamespace (for StateManager)
     /// </summary>
     internal string? GetStateNamespace() => StateNamespace;
@@ -1546,6 +1554,36 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Register protected state keys from a child component
+    /// Called by VComponentWrapper when child has useProtectedState hooks
+    /// </summary>
+    /// <param name="componentName">Child component name (e.g., "Counter")</param>
+    /// <param name="protectedKeys">Set of protected key names</param>
+    public void RegisterProtectedKeys(string componentName, HashSet<string> protectedKeys)
+    {
+        foreach (var key in protectedKeys)
+        {
+            var namespacedKey = $"{componentName}.{key}";
+            _protectedKeys[namespacedKey] = true;
+        }
+
+        Console.WriteLine(
+            $"[useProtectedState] Registered {protectedKeys.Count} protected key(s) " +
+            $"for {componentName}: {string.Join(", ", protectedKeys)}"
+        );
+    }
+
+    /// <summary>
+    /// Check if a state key is protected (parent cannot access)
+    /// </summary>
+    /// <param name="key">Namespaced key to check (e.g., "Counter.cache")</param>
+    /// <returns>True if key is protected</returns>
+    private bool IsProtectedKey(string key)
+    {
+        return _protectedKeys.ContainsKey(key);
+    }
+
+    /// <summary>
     /// Get state value with automatic namespace prefixing
     /// </summary>
     /// <typeparam name="T">Type of value to retrieve</typeparam>
@@ -1562,6 +1600,15 @@ public abstract class MinimactComponent
         var actualKey = StateNamespace != null
             ? $"{StateNamespace}.{key}"
             : key;
+
+        // Check if parent is trying to access protected child state
+        if (StateNamespace == null && IsProtectedKey(actualKey))
+        {
+            throw new InvalidOperationException(
+                $"Cannot access protected state: {actualKey}. " +
+                $"This state was declared with useProtectedState() and is only accessible within the child component."
+            );
+        }
 
         // Read from parent state if available, otherwise local
         var stateSource = ParentComponent?.State ?? State;
@@ -1612,6 +1659,15 @@ public abstract class MinimactComponent
         var actualKey = StateNamespace != null
             ? $"{StateNamespace}.{key}"
             : key;
+
+        // Check if parent is trying to modify protected child state
+        if (StateNamespace == null && IsProtectedKey(actualKey))
+        {
+            throw new InvalidOperationException(
+                $"Cannot modify protected state: {actualKey}. " +
+                $"This state was declared with useProtectedState() and is only accessible within the child component."
+            );
+        }
 
         if (ParentComponent != null)
         {

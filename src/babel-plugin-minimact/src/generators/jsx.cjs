@@ -403,13 +403,36 @@ function generateComponentWrapper(node, parentComponent, indent) {
 
   console.log(`[Lifted State] ✅ Detected <Component name="${componentName}"> wrapping <${childTagName} />`);
 
+  // Detect protected state keys (from child component's useProtectedState)
+  // We need to find the child component in the processed components
+  const protectedKeys = [];
+
+  // Look through processed components for a component matching childTagName
+  if (parentComponent._childComponents) {
+    const childComp = parentComponent._childComponents.find(c => c.name === childTagName);
+
+    if (childComp && childComp.useProtectedState) {
+      for (const protectedState of childComp.useProtectedState) {
+        protectedKeys.push(protectedState.name);
+        console.log(`[Lifted State] 🔒 Protected state detected: ${protectedState.name} in ${childTagName}`);
+      }
+    }
+  }
+
+  // Generate ProtectedKeys code
+  const protectedKeysCode = protectedKeys.length > 0
+    ? `    ProtectedKeys = new HashSet<string> { ${protectedKeys.map(k => `"${k}"`).join(', ')} },`
+    : '';
+
   // Generate VComponentWrapper instantiation
   return `new VComponentWrapper
 {
     ComponentName = "${componentName}",
     ComponentType = "${childTagName}",
     HexPath = "${hexPath}",
-    InitialState = ${stateCode}
+    InitialState = ${stateCode},
+${protectedKeysCode}
+    ParentComponent = this
 }`;
 }
 

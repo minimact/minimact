@@ -442,6 +442,14 @@ public class VComponentWrapper : VNode
     public Dictionary<string, object> InitialState { get; set; } = new();
 
     /// <summary>
+    /// Set of protected state keys (from useProtectedState hook)
+    /// Parent cannot access these keys via state proxy
+    /// These keys are still lifted (visible for debugging/prediction)
+    /// but access is blocked at GetState/SetState level
+    /// </summary>
+    public HashSet<string> ProtectedKeys { get; set; } = new();
+
+    /// <summary>
     /// Reference to parent component (owns the state)
     /// </summary>
     public MinimactComponent? ParentComponent { get; set; }
@@ -476,6 +484,17 @@ public class VComponentWrapper : VNode
 
             // Inject state namespace and parent reference
             _childInstance.SetStateNamespace(ComponentName, ParentComponent);
+
+            // Register protected keys with parent (if any)
+            if (ProtectedKeys.Count > 0)
+            {
+                ParentComponent.RegisterProtectedKeys(ComponentName, ProtectedKeys);
+
+                Console.WriteLine(
+                    $"[Lifted State] 🔒 Registered {ProtectedKeys.Count} protected key(s) " +
+                    $"for {ComponentName}: {string.Join(", ", ProtectedKeys)}"
+                );
+            }
 
             // Initialize lifted state in parent (first render only)
             InitializeLiftedState();

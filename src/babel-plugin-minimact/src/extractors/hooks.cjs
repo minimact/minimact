@@ -24,6 +24,9 @@ function extractHook(path, component) {
     case 'useClientState':
       extractUseState(path, component, 'useClientState');
       break;
+    case 'useProtectedState':
+      extractUseProtectedState(path, component);
+      break;
     case 'useStateX':
       extractUseStateX(path, component);
       break;
@@ -127,6 +130,53 @@ function extractUseState(path, component, hookType) {
     component.useClientState.push(stateInfo);
     component.stateTypes.set(stateVar.name, 'client');
   }
+}
+
+/**
+ * Extract useProtectedState (lifted but parent cannot access)
+ */
+function extractUseProtectedState(path, component) {
+  const parent = path.parent;
+
+  if (!t.isVariableDeclarator(parent)) return;
+  if (!t.isArrayPattern(parent.id)) return;
+
+  const [stateVar, setterVar] = parent.id.elements;
+  const initialValue = path.node.arguments[0];
+
+  // Handle read-only state (no setter): const [value] = useProtectedState(...)
+  if (!stateVar) {
+    console.log(`[useProtectedState] Skipping invalid destructuring (no state variable)`);
+    return;
+  }
+
+  // Check if there's a generic type parameter (e.g., useProtectedState<decimal>(0))
+  let explicitType = null;
+  if (path.node.typeParameters && path.node.typeParameters.params.length > 0) {
+    const typeParam = path.node.typeParameters.params[0];
+    explicitType = tsTypeToCSharpType(typeParam);
+    console.log(`[useProtectedState] Found explicit type parameter for '${stateVar.name}': ${explicitType}`);
+  }
+
+  const stateInfo = {
+    name: stateVar.name,
+    setter: setterVar ? setterVar.name : null,
+    initialValue: generateCSharpExpression(initialValue),
+    type: explicitType || inferType(initialValue),
+    isProtected: true  // ← Key flag marking this as protected
+  };
+
+  // Initialize useProtectedState array if it doesn't exist
+  if (!component.useProtectedState) {
+    component.useProtectedState = [];
+  }
+
+  component.useProtectedState.push(stateInfo);
+
+  // Track state type (protected is a special kind of server state)
+  component.stateTypes.set(stateVar.name, 'protected');
+
+  console.log(`[useProtectedState] ✅ Extracted protected state: ${stateVar.name} (type: ${stateInfo.type})`);
 }
 
 /**
@@ -894,6 +944,7 @@ function findViewModelPropertyType(path, propertyName, component) {
 module.exports = {
   extractHook,
   extractUseState,
+  extractUseProtectedState,
   extractUseEffect,
   extractUseRef,
   extractUseMarkdown,

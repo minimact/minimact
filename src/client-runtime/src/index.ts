@@ -447,7 +447,7 @@ export type { Template, TemplateMap } from './template-state';
 export { TemplateRenderer } from './template-renderer';
 
 // Core hooks
-export { useState, useEffect, useRef, useServerTask, useServerReducer, useMarkdown, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
+export { useState, useProtectedState, useEffect, useRef, useServerTask, useServerReducer, useMarkdown, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
 
 // State proxy (compile-time only for TypeScript IntelliSense)
 export { state, setState, ComponentState, State } from './state-proxy';
