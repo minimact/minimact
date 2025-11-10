@@ -242,6 +242,9 @@ public class MinimactPageRenderer
             document.getElementById('minimact-viewmodel').textContent
         );
 
+        // Register client-only event handlers
+        window.MinimactHandlers = window.MinimactHandlers || {{}};
+{GenerateClientHandlersScript(component)}
         // Initialize Minimact client runtime
         const minimact = new Minimact.Minimact('#minimact-root', {{
             enableDebugLogging: {enableDebugLogging}
@@ -284,6 +287,31 @@ public class MinimactPageRenderer
             .Replace(">", "&gt;")
             .Replace("\"", "&quot;")
             .Replace("'", "&#39;");
+    }
+
+    /// <summary>
+    /// Generate JavaScript to register client-only event handlers
+    /// </summary>
+    private string GenerateClientHandlersScript(MinimactComponent component)
+    {
+        var clientHandlers = component.GetClientHandlers();
+        if (clientHandlers == null || clientHandlers.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var script = new System.Text.StringBuilder();
+        foreach (var handler in clientHandlers)
+        {
+            // Escape the JavaScript code for embedding in HTML
+            var escapedJs = handler.Value
+                .Replace("\\", "\\\\")  // Escape backslashes
+                .Replace("\"", "\\\""); // Escape quotes
+
+            script.AppendLine($"        window.MinimactHandlers['{handler.Key}'] = {escapedJs};");
+        }
+
+        return script.ToString();
     }
 }
 

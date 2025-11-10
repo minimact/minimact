@@ -436,6 +436,31 @@ function generateComponent(component) {
     lines.push('    }');
   }
 
+  // GetClientHandlers method - returns JavaScript code for client-only event handlers
+  if (component.clientHandlers && component.clientHandlers.length > 0) {
+    lines.push('');
+    lines.push('    protected override Dictionary<string, string> GetClientHandlers()');
+    lines.push('    {');
+    lines.push('        return new Dictionary<string, string>');
+    lines.push('        {');
+
+    for (let i = 0; i < component.clientHandlers.length; i++) {
+      const handler = component.clientHandlers[i];
+      // Escape the JavaScript code for C# string literal
+      const escapedJs = handler.jsCode
+        .replace(/\\/g, '\\\\')  // Escape backslashes
+        .replace(/"/g, '\\"')    // Escape quotes
+        .replace(/\n/g, '\\n')   // Escape newlines
+        .replace(/\r/g, '');     // Remove carriage returns
+
+      const comma = i < component.clientHandlers.length - 1 ? ',' : '';
+      lines.push(`            ["${handler.name}"] = @"${escapedJs}"${comma}`);
+    }
+
+    lines.push('        };');
+    lines.push('    }');
+  }
+
   // MVC State setter methods (useMvcState)
   // MVC State setter methods - REMOVED
   // These are now generated at the end of the class (after event handlers)

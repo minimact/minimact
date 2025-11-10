@@ -174,6 +174,20 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Returns JavaScript code for client-only event handlers
+    /// These handlers run entirely in the browser (DOM manipulation, e.stopPropagation, etc.)
+    /// and don't require server communication.
+    ///
+    /// Override this method in components that have client-only handlers.
+    /// The page renderer will include this JavaScript in the initial payload.
+    /// </summary>
+    /// <returns>Dictionary mapping handler IDs to JavaScript function code</returns>
+    protected internal virtual Dictionary<string, string> GetClientHandlers()
+    {
+        return new Dictionary<string, string>();
+    }
+
+    /// <summary>
     /// Render with dynamic bindings compiled
     /// Server evaluates binding functions and inserts values into VNode tree
     /// </summary>

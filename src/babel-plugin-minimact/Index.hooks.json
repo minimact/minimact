@@ -1,0 +1,11 @@
+{
+  "componentName": "Index",
+  "timestamp": "2025-11-10T15:17:05.340Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "activeExample",
+      "index": 0
+    }
+  ]
+}
