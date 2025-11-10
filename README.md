@@ -72,6 +72,33 @@ User clicks →
 
 ---
 
+## 🧩 Minimact: Problem-Solution Matrix
+
+| ❌ Problem | ✅ Minimact's Solution | 🧪 How It Works | 🧠 Why Others Struggle |
+|-----------|----------------------|-----------------|----------------------|
+| **1. Hydration Slowness** | No hydration at all 🌵 | Predictive patches render instantly | React/Next.js re-hydrates entire DOM; costly |
+| **2. Prop Drilling Hell** | Lifted State Components | Auto-lifted state with full tree access | React/Redux requires boilerplate or context abuse |
+| **3. Client-side Logic Leaks** | Server-first execution | All logic runs server-side unless specified | CSR frameworks must expose logic to client |
+| **4. Slow First Interaction** | ~2ms latency on first click | Precomputed patches + cache | SSR/CSR require JS boot or roundtrips |
+| **5. State Loss on Hot Reload** | State survives reloads 🔥 | Hex Paths + Lifted State mapping | React Fast Refresh loses local state |
+| **6. Global State Bloat** | Localized, queryable state | Scoped lifted state, useProtectedState | Redux/Zustand/global context leaks over time |
+| **7. Razor Lock-in for .NET Devs** | Full React DX with C# backend | TSX transpiled → C# | Blazor forces Razor syntax, slow to adopt |
+| **8. DX Disconnect Between Frontend/Backend** | TS ↔ C# type safety | Shared schema + transpilation | API routes are brittle and disjointed |
+| **9. Flicker from DOM Rewrites** | Targeted micro-patches | Hex path diffing + VNull nodes | HTMX, traditional SSR re-render full nodes |
+| **10. Debugging React State Is Opaque** | Visual state tree in Swig IDE | SignalR-backed live state inspector | React DevTools doesn't show prop origins or server state |
+| **11. Complex Interop Between MVC + React** | Drop-in MVC embedding | MVC Controllers → ViewModels → React | React + MVC usually fight each other |
+| **12. Large Bundle Sizes** | 13.33 KB runtime ⚡ | Minimal SignalM WebSocket client | React 45KB+, Vue 34KB+, Blazor ~300KB |
+| **13. Untrackable Component Drift** | Predictive metrics in real-time | Hit rate, rollback %, false positives | Most frameworks don't measure this at all |
+| **14. CSS/DOM State Blindness** | DOM as reactive source | useDomElementState() (80+ props) | React treats DOM as opaque output |
+| **15. Developer Setup Time** | 2-minute setup w/ Swig | Desktop IDE w/ hot reload, TSX editor | Next.js/Blazor setups often slow and brittle |
+| **16. Poor Offline Support** | Cached patches, local state | Prediction-first runtime | SSR apps break offline, HTMX needs server |
+| **17. Dev/Prod Divergence** | Single runtime model | Same prediction engine used in both | Many frameworks do hydration/dev tricks |
+| **18. No Secure Way to Hide Internal State** | useProtectedState() 🔒 | Cannot be accessed by parents/devtools | Most state is inspectable if global/lifted |
+| **19. Inconsistent Re-rendering from Conditions** | VNull conditional representation | Structural placeholders for predictability | React reconciler shifts indices, leading to bugs |
+| **20. Implicit DOM identity issues** | Stable Hex Paths | Elements never re-identified | Key/index bugs in React are common |
+
+---
+
 ## Why Minimact?
 
 ### For React Developers
