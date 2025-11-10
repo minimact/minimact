@@ -150,6 +150,19 @@ That's it! From zero to running app in under 2 minutes.
 
 ---
 
+## Why You'll Love Minimact
+
+🧠 **React syntax, C# backend** — No Razor needed
+⚡ **Instant interactions** — <3ms click-to-DOM
+🌵 **No hydration** — Predictive updates instead
+🛠️ **Desktop IDE** with live state + TSX editing
+🧬 **Full state tree visibility** — Perfect prediction
+🔐 **Secure by default** — Logic runs server-side
+📦 **71% smaller** than React (13.33 KB vs 45 KB)
+🔌 **Plugin system** via NuGet packages
+
+---
+
 ## Core Innovations
 
 ### 🎯 Template Prediction System
@@ -252,6 +265,13 @@ npm install
 npm start
 ```
 
+**What Makes Swig Special:**
+- **Hot reload preserves state** - State lives in parent, survives reloads
+- **Real-time component inspector** - See state changes as they happen via SignalR
+- **Visual prediction analytics** - Green/red cache hit overlay shows prediction accuracy
+- **Performance dashboard** - Hit rate, latencies, and metrics in real-time
+- **Zero configuration** - From clone to running app in 2 minutes
+
 **[🎨 Swig IDE Guide →](./docs/MINIMACT_SWIG_ELECTRON_PLAN.md)**
 
 ---
@@ -271,14 +291,54 @@ const box = useDomElementState('.container');
 
 ---
 
+## Official Extensions
+
+**The Minimact Quantum Stack** - Transform the DOM into a queryable, reactive, distributed database.
+
+| Extension | Description | Key Feature |
+|-----------|-------------|-------------|
+| **🥊 minimact-punch** | DOM as reactive data source (80+ properties) | `useDomElementState('.card')` |
+| **🗃️ minimact-query** | SQL for the DOM with full query syntax | `.from('.card').where().orderBy()` |
+| **🌌 minimact-quantum** | Multi-client DOM identity sync (7-17ms) | Mutation vectors, not data sync |
+| **🎯 minimact-bundle** | Declarative control without wrappers | Apply styles/classes to any selector |
+| **📐 minimact-spatial** | Viewport regions as 2D database | Query spatial areas reactively |
+| **🌳 minimact-trees** | Universal decision trees (0-1ms predicted) | XState but declarative & minimal |
+
+**Philosophy:** *"The DOM is no longer a view layer - it's a queryable, reactive, distributed database."*
+
+**[🌌 Explore Extensions →](./extensions)**
+
+---
+
 ## Advanced Features
+
+### 🔌 Plugin System - Extend via NuGet
+**Distribute reusable UI components as NuGet packages. Auto-discovered. Type-safe. Zero config.**
+
+```bash
+# Install plugin
+dotnet add package Minimact.Plugin.Clock
+
+# Use in TSX
+<Plugin name="Clock" state={{ hours: 14, theme: 'dark' }} />
+```
+
+**Benefits:**
+- ✅ Auto-discovery via `[MinimactPlugin]` attribute
+- ✅ Type-safe state contracts (JSON Schema validation)
+- ✅ Versioned assets with cache optimization
+- ✅ Works with template prediction system
+- ✅ Server-rendered, no client JavaScript required
+
+**[🔌 Plugin System Guide →](./docs/PLUGIN_SYSTEM_PHASE2_COMPLETE.md)**
+
+### More Advanced Features
 
 | Feature | Description | Learn More |
 |---------|-------------|------------|
 | **useServerTask** | TypeScript → C#/Rust transpilation for async tasks | [📄 Docs](./docs/server-tasks.md) |
 | **useContext** | Redis-like server-side cache (session/request/url scoped) | [📄 Docs](./docs/use-context.md) |
 | **useComputed** | Client-side computation with server rendering | [📄 Docs](./docs/use-computed.md) |
-| **Plugin System** | Third-party components via NuGet packages | [🔌 Plugin Guide](./docs/PLUGIN_SYSTEM_PHASE2_COMPLETE.md) |
 | **MVC Bridge** | Integrate with traditional ASP.NET MVC | [🎯 MVC Bridge](./docs/MVC_BRIDGE_IMPLEMENTATION_PLAN.md) |
 | **Semantic Hooks** | High-level abstractions (useModal, useDropdown, etc.) | [🎯 Hooks API](./docs/api-reference.md) |
 
@@ -313,7 +373,77 @@ const box = useDomElementState('.container');
 6. **Minimact Punch** - DOM state extensions
 7. **Minimact Swig** - Desktop IDE
 
+### Technical Innovations
+
+**SignalM - Minimal WebSocket Protocol**
+- Custom lightweight protocol (vs full SignalR)
+- **13.33 KB** runtime with SignalM
+- **25.03 KB** runtime with full SignalR (fallbacks for older browsers)
+- Real-time bidirectional communication
+- Optimized for patch delivery
+
+**Hex Paths - Stable Element Identifiers**
+- Hexadecimal gap-based allocation (0x10000000, 0x20000000, 0x30000000...)
+- Example: "10000000.30000000.20000000" (stable IDs, not DOM indices)
+- Elements keep stable IDs across insertions/deletions
+- Enables precise DOM targeting without re-indexing
+- PathConverter translates hex paths → DOM indices (accounts for VNull)
+
+**VNull Nodes - Explicit Conditionals**
+- Represents `{condition && <Component />}` explicitly in VNode tree
+- Rust reconciler understands conditional rendering
+- Patches target exact positions, not shifting indices
+- Eliminates "DOM shift" bugs from traditional reconcilers
+
 **[📖 Complete Architecture →](./docs/MINIMACT_COMPLETE_ARCHITECTURE.md)**
+
+---
+
+## Core Technical Innovations
+
+### Hex Paths - Stable Element Identity
+Every element gets a persistent hex path ID (e.g., `1.2.F.3`). Unlike DOM indices that shift when elements are added/removed, hex paths use **gap-based allocation** to maintain stability.
+
+**Why it matters:**
+- Patches target exact elements, even as DOM changes
+- Hot reload works perfectly (paths don't shift)
+- Prediction system can reference elements precisely
+
+### VNull Nodes - Explicit Conditional Rendering
+Minimact represents `{condition && <Component />}` with explicit `VNull` nodes instead of omitting them from the tree.
+
+**Why it matters:**
+- PathConverter can accurately map hex paths → DOM indices
+- Accounts for conditionally rendered elements
+- Makes reconciliation deterministic and predictable
+
+**[🔧 Technical Deep Dive →](./docs/HEX_PATH_SYSTEM.md)**
+
+---
+
+## Runtime Comparison: SignalM vs SignalR
+
+Minimact offers two runtime versions optimized for different scenarios:
+
+| Feature | `@minimact/core` (SignalM) | `@minimact/core/r` (SignalR) |
+|---------|---------------------------|------------------------------|
+| **Size** | 13.33 KB gzipped | 25.03 KB gzipped |
+| **Protocol** | Custom WebSocket | Full SignalR with fallbacks |
+| **Use Case** | Modern browsers, micro-patches | IE11+, corporate networks |
+| **Fallbacks** | None | Long polling, SSE, forever frame |
+| **Latency** | ~2ms | ~3-5ms |
+
+**SignalM** is a custom WebSocket protocol optimized specifically for Minimact's patch delivery system. It's 47% smaller than SignalR and designed for predictive micro-patch streaming.
+
+**When to use SignalM:**
+- Modern browser support (Chrome 90+, Firefox 88+, Safari 14+)
+- Public-facing apps with controlled environments
+- Maximum performance is critical
+
+**When to use SignalR:**
+- Enterprise environments with older browsers
+- Corporate networks with WebSocket restrictions
+- Need guaranteed compatibility
 
 ---
 
@@ -336,11 +466,28 @@ const box = useDomElementState('.container');
 | Feature | Minimact | Next.js | Blazor Server | HTMX |
 |---------|----------|---------|---------------|------|
 | **Bundle Size** | **13.33 KB** | ~45 KB | ~300 KB | ~14 KB |
-| **Syntax** | React JSX | React JSX | Razor C# | HTML |
+| **Syntax** | React JSX | React JSX | Razor C# | HTML attrs |
 | **Hydration** | None | Required | None | None |
+| **Update Model** | **Predictive (client)** | Reactive (client) | Reactive (server) | **Triggered (server)** |
 | **Prediction** | ✅ Rust | ❌ | ❌ | ❌ |
 | **Hybrid State** | ✅ | ❌ | ❌ | Manual |
 | **Type Safety** | ✅ TS→C# | ✅ TS | ✅ C# | ❌ |
+| **Client Interactivity** | ✅ Full | ✅ Full | ✅ Full | ❌ Server-only |
+
+### Why Minimact > HTMX
+
+**HTMX is server-triggered** (user clicks → server responds → HTML swaps)
+**Minimact is predictively client-updated** (patches pre-cached → instant apply)
+
+**Key differences:**
+- ✅ **No flicker** - Patches already cached, apply instantly
+- ✅ **No hydration** - But full client interactivity (unlike HTMX)
+- ✅ **Optimistic updates** - UI responds before server confirms
+- ✅ **95-98% instant** - Most interactions hit cache, no network wait
+- ✅ **React DX** - Familiar hooks and component model
+
+**HTMX use case:** Simple server-driven apps, minimal JS
+**Minimact use case:** Complex UIs with instant feedback and React DX
 
 ---
 
