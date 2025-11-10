@@ -315,9 +315,12 @@ function generateComponentWrapper(node, parentComponent, indent) {
   const hexPath = node.__minimactPath || '';
 
   // Extract name="..." attribute
-  const nameAttr = attributes.find(attr =>
-    t.isJSXAttribute(attr) && t.isIdentifier(attr.name) && attr.name.name === 'name'
-  );
+  const nameAttr = attributes.find(attr => {
+    if (!t.isJSXAttribute(attr)) return false;
+    // attr.name is JSXIdentifier, not regular Identifier
+    const attrName = t.isJSXIdentifier(attr.name) ? attr.name.name : null;
+    return attrName === 'name';
+  });
 
   if (!nameAttr) {
     throw new Error('[Lifted State] <Component> element must have a "name" attribute');
@@ -332,9 +335,11 @@ function generateComponentWrapper(node, parentComponent, indent) {
   }
 
   // Extract state={...} attribute
-  const stateAttr = attributes.find(attr =>
-    t.isJSXAttribute(attr) && t.isIdentifier(attr.name) && attr.name.name === 'state'
-  );
+  const stateAttr = attributes.find(attr => {
+    if (!t.isJSXAttribute(attr)) return false;
+    const attrName = t.isJSXIdentifier(attr.name) ? attr.name.name : null;
+    return attrName === 'state';
+  });
 
   let stateCode = 'new Dictionary<string, object>()';
 
@@ -363,8 +368,22 @@ function generateComponentWrapper(node, parentComponent, indent) {
       }
 
       // Generate C# dictionary initializer
+      // Force Dictionary format for VComponentWrapper.InitialState
       const { generateCSharpExpression } = require('./expressions.cjs');
-      stateCode = generateCSharpExpression(stateExpr, parentComponent, 0);
+      const properties = stateExpr.properties.map(prop => {
+        if (t.isObjectProperty(prop)) {
+          const key = t.isIdentifier(prop.key) ? prop.key.name : prop.key.value;
+          const value = generateCSharpExpression(prop.value, parentComponent, 0);
+          return `["${key}"] = ${value}`;
+        }
+        return '';
+      }).filter(p => p !== '');
+
+      if (properties.length === 0) {
+        stateCode = 'new Dictionary<string, object>()';
+      } else {
+        stateCode = `new Dictionary<string, object> { ${properties.join(', ')} }`;
+      }
     }
   }
 

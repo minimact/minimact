@@ -33,9 +33,13 @@ async function transpileComponent(jsxPath) {
       const code = fs.readFileSync('${jsxPath.replace(/\\/g, '\\\\')}', 'utf-8');
       const filename = '${path.basename(jsxPath)}';
 
-      // Suppress console logs from Babel plugin
+      // Suppress console logs from Babel plugin (except DEBUG logs)
       const originalLog = console.log;
-      console.log = () => {};
+      console.log = (...args) => {
+        if (args[0] && args[0].includes('[DEBUG]')) {
+          originalLog(...args);
+        }
+      };
 
       const result = babel.transformSync(code, {
         presets: ['@babel/preset-typescript'], // NO React preset - we handle JSX ourselves!

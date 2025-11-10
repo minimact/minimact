@@ -1,10 +1,10 @@
 {
-  "component": "UserProfile",
+  "component": "ShoppingCart",
   "version": "1.0",
-  "generatedAt": 1762798573001,
+  "generatedAt": 1762798573003,
   "templates": {
     "1.1.1": {
-      "template": "User Profile",
+      "template": "Shopping Cart",
       "bindings": [],
       "slots": [],
       "path": [
@@ -15,7 +15,7 @@
       "type": "static"
     },
     "1.2.1": {
-      "template": "Refresh Profile",
+      "template": "Refresh Cart",
       "bindings": [],
       "slots": [],
       "path": [
@@ -47,7 +47,7 @@
       "type": "attribute-static"
     },
     "1.@className": {
-      "template": "user-profile",
+      "template": "shopping-cart",
       "bindings": [],
       "slots": [],
       "path": [
@@ -76,7 +76,7 @@
       "type": "attribute-static"
     },
     "1.2.@id": {
-      "template": "refresh-profile-btn",
+      "template": "refresh-cart-btn",
       "bindings": [],
       "slots": [],
       "path": [

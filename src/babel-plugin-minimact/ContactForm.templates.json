@@ -1,10 +1,10 @@
 {
-  "component": "UserProfile",
+  "component": "ContactForm",
   "version": "1.0",
-  "generatedAt": 1762798573001,
+  "generatedAt": 1762798573004,
   "templates": {
     "1.1.1": {
-      "template": "User Profile",
+      "template": "Contact Form",
       "bindings": [],
       "slots": [],
       "path": [
@@ -15,7 +15,7 @@
       "type": "static"
     },
     "1.2.1": {
-      "template": "Refresh Profile",
+      "template": "Submit Form",
       "bindings": [],
       "slots": [],
       "path": [
@@ -47,7 +47,7 @@
       "type": "attribute-static"
     },
     "1.@className": {
-      "template": "user-profile",
+      "template": "contact-form",
       "bindings": [],
       "slots": [],
       "path": [
@@ -76,7 +76,7 @@
       "type": "attribute-static"
     },
     "1.2.@id": {
-      "template": "refresh-profile-btn",
+      "template": "submit-form-btn",
       "bindings": [],
       "slots": [],
       "path": [
@@ -98,7 +98,7 @@
     "1.2.@onClick": {
       "template": "{0}",
       "bindings": [
-        "handleRefresh"
+        "handleSubmit"
       ],
       "slots": [
         0
