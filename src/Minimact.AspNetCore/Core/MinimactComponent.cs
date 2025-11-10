@@ -113,6 +113,16 @@ public abstract class MinimactComponent
     /// </summary>
     protected MinimactComponent? ParentComponent { get; private set; }
 
+    /// <summary>
+    /// Internal accessor for StateNamespace (for StateManager)
+    /// </summary>
+    internal string? GetStateNamespace() => StateNamespace;
+
+    /// <summary>
+    /// Internal accessor for ParentComponent (for StateManager)
+    /// </summary>
+    internal MinimactComponent? GetParentComponent() => ParentComponent;
+
     protected MinimactComponent()
     {
         ComponentId = Guid.NewGuid().ToString();

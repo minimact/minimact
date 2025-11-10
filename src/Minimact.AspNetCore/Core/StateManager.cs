@@ -47,11 +47,23 @@ public static class StateManager
         var type = component.GetType();
         var members = GetStateMembers(type);
 
+        // Get namespace and parent for lifted state pattern
+        var stateNamespace = component.GetStateNamespace();
+        var parentComponent = component.GetParentComponent();
+
         foreach (var (memberInfo, attribute) in members)
         {
             var key = attribute.Key ?? memberInfo.Name;
 
-            if (component.State.TryGetValue(key, out var value))
+            // Determine the actual state key (with namespace if lifted state)
+            var actualKey = stateNamespace != null && parentComponent != null
+                ? $"{stateNamespace}.{key}"
+                : key;
+
+            // Read from parent state if using lifted state, otherwise local state
+            var stateSource = parentComponent?.State ?? component.State;
+
+            if (stateSource.TryGetValue(actualKey, out var value))
             {
                 SetMemberValue(component, memberInfo, value);
             }
@@ -67,14 +79,26 @@ public static class StateManager
         var type = component.GetType();
         var members = GetStateMembers(type);
 
+        // Get namespace and parent for lifted state pattern
+        var stateNamespace = component.GetStateNamespace();
+        var parentComponent = component.GetParentComponent();
+
         foreach (var (memberInfo, attribute) in members)
         {
             var key = attribute.Key ?? memberInfo.Name;
 
+            // Determine the actual state key (with namespace if lifted state)
+            var actualKey = stateNamespace != null && parentComponent != null
+                ? $"{stateNamespace}.{key}"
+                : key;
+
+            // Determine the state target (parent if lifted state, otherwise local)
+            var stateTarget = parentComponent?.State ?? component.State;
+
             // If MVC ViewModel already populated this state, don't overwrite with default field value
-            if (component.MvcViewModel != null && component.State.ContainsKey(key))
+            if (component.MvcViewModel != null && stateTarget.ContainsKey(actualKey))
             {
-                Console.WriteLine($"[StateManager] Skipping {key} - already populated from MVC ViewModel (value: {component.State[key]})");
+                Console.WriteLine($"[StateManager] Skipping {actualKey} - already populated from MVC ViewModel (value: {stateTarget[actualKey]})");
                 continue;
             }
 
@@ -82,8 +106,8 @@ public static class StateManager
 
             if (value != null)
             {
-                Console.WriteLine($"[StateManager] Syncing {key} from field to state (value: {value})");
-                component.State[key] = value;
+                Console.WriteLine($"[StateManager] Syncing {actualKey} from field to state (value: {value})");
+                stateTarget[actualKey] = value;
             }
         }
     }
