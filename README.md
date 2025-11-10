@@ -13,12 +13,24 @@
   <em>The cactus doesn't hydrate — it stores.</em> 🌵
 </p>
 
+
 <p align="center">
   <a href="https://docs.minimact.com"><img src="https://img.shields.io/badge/docs-minimact.com-blue.svg" alt="Documentation"></a>
+  <a href="https://app.netlify.com/sites/minimact/deploys"><img src="https://api.netlify.com/api/v1/badges/4c1c36b7-74a4-4558-94b8-64a6996d1e64/deploy-status" alt="Netlify Status"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white" alt="Rust"></a>
   <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white" alt=".NET"></a>
+  <a href="https://dotnet.microsoft.com/apps/aspnet/signalr"><img src="https://img.shields.io/badge/SignalR-Real--time-purple.svg?style=flat&logo=.net&logoColor=white" alt="SignalR"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white" alt="TypeScript"></a>
 </p>
+
+They’re treading water in a sea of hydration, clinging to their VDOM life vests while Minimact is out here desert-gliding on predictive patches like some kind of reactive dune worm🌵
+Seriously though—client hydration has become the default religion in web dev, and not because it's ideal. It’s just familiar. You’re tossing a wrench (made of Rust, no less 🦀) into that belief system and saying:
+“What if we didn’t need to hydrate anything at all because we already know what’s going to happen?”
+
+<br>
+
+Minimact brings the familiar React developer experience to server-side rendering with ASP.NET Core, powered by a Rust reconciliation engine and intelligent predictive updates.
 
 ---
 
@@ -99,17 +111,38 @@ User clicks →
 
 ---
 
-## Why Minimact?
+## ✨ Why Minimact?
+
+Traditional UI frameworks like React must reconcile every state change on the client, leading to CPU overhead and slower interactions — especially on low-end devices or in high-frequency apps.
+
+**Minimact flips the model:**
+- You write UI in **TSX/JSX**
+- Minimact compiles it to **C# classes**
+- C# renders the HTML on the server
+- A **Rust engine predicts state changes** and pre-sends patches to the client
+- Client caches predicted patches **before user interaction**
+- User clicks → **Client applies cached patch instantly (0ms network latency)**
+- **SignalR verifies in background** and corrects only if needed
+- **No diffing, no runtime VDOM, zero client reconciliation**
 
 ### For React Developers
-**Finally, a path to .NET without learning Razor.** Keep writing React — get ASP.NET Core's power, security, and enterprise features.
+- ✅ **Familiar syntax** - Write JSX/TSX like you always have
+- ✅ **React hooks** - `useState`, `useEffect`, `useRef`, plus powerful semantic hooks
+- ✅ **No hydration** - No client-side JavaScript frameworks to load
+- ✅ **Instant feedback** - Hybrid client/server state for optimal UX
 
-**Bundle size:** 13.33 KB vs React's 45 KB (71% smaller!)
+### For .NET Developers
+- ✅ **ASP.NET Core integration** - Use EF Core, dependency injection, and your favorite .NET tools
+- ✅ **Type safety** - Full TypeScript → C# type inference
+- ✅ **Secure by default** - Business logic stays on the server
+- ✅ **Easy deployment** - Standard ASP.NET Core hosting
+- ✅ **Performance:** 2-3ms interactions vs 47ms traditional SSR
 
-### For .NET Teams
-**Modern frontend DX without abandoning your stack.** Your team already knows C# and EF Core. Now they can build UIs with React syntax.
-
-**Performance:** 2-3ms interactions vs 47ms traditional SSR
+### For End Users
+- ✅ **Fast initial load** - 13.33 KB client (71% smaller than React)
+- ✅ **Instant interactions** - Predictive updates feel native
+- ✅ **Works without JS** - Progressive enhancement built-in
+- ✅ **Low bandwidth** - Only patches sent over the wire
 
 ### For CTOs
 **Solve the "React DX + .NET backend" problem.** One stack, one deployment, full type safety from database to DOM. Rust-powered performance makes ASP.NET Core shine.
