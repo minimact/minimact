@@ -16,7 +16,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>Minimact.AspNetCore</PackageId>
-    <Version>0.1.4</Version>
+    <Version>0.1.5</Version>
     <Authors>Minimact Contributors</Authors>
     <Company>Minimact</Company>
     <Description>Server-first reactive web framework for ASP.NET Core with Rust-powered reconciliation and predictive DOM updates</Description>
