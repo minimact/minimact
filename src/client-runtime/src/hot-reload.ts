@@ -586,72 +586,38 @@ export class HotReloadManager {
   }
 
   /**
-   * Find DOM element by hex path string
-   * Example: "10000000.20000000.30000000" → convert to indices and navigate
+   * Find DOM element by path (using DOM indices from server)
+   * Path can be either number[] or string representation
    */
-  private findElementByPath(root: HTMLElement, path: string, componentType: string): Node | null {
-    if (path === '' || path === '.') {
+  private findElementByPath(root: HTMLElement, path: string | number[], componentType: string): Node | null {
+    if (path === '' || path === '.' || (Array.isArray(path) && path.length === 0)) {
       return root;
     }
 
-    // Check if path ends with attribute marker (e.g., "10000000.20000000.@style")
-    const segments = path.split('.');
-    const lastSegment = segments[segments.length - 1];
-    const isAttributePath = lastSegment?.startsWith('@');
+    // Parse path - server now sends DOM indices directly
+    let indices: number[];
+    if (typeof path === 'string') {
+      // Check if it's an attribute path
+      if (path.includes('@')) {
+        const segments = path.split('.');
+        const nonAttrSegments = segments.filter(s => !s.startsWith('@'));
+        indices = nonAttrSegments.map(s => parseInt(s, 10));
+      } else {
+        // Simple dot-separated indices
+        indices = path.split('.').map(s => parseInt(s, 10));
+      }
+    } else {
+      indices = path;
+    }
 
-    // If attribute path, remove the @attribute segment and find the element
-    const hexSegments = isAttributePath ? segments.slice(0, -1) : segments;
-
-    let current: Node | null = root;
-
-    // Navigate through each segment using hierarchical parent-child lookup
-    for (let i = 0; i < hexSegments.length; i++) {
-      const targetHex = hexSegments[i];
-      if (!current || !current.childNodes) return null;
-
-      // Get parent path (everything before current segment)
-      const parentPath = i > 0 ? hexSegments.slice(0, i).join('.') : '';
-
-      // Get sorted children for this parent from template hierarchy
-      const sortedHexCodes = templateState.getChildrenAtPath(componentType, parentPath);
-
-      if (!sortedHexCodes) {
-        console.warn(`[HotReload] No children found for parent path "${parentPath}" in ${componentType}`);
+    // Navigate using simple array indexing
+    let current: Node = root;
+    for (const index of indices) {
+      if (!current.childNodes || index >= current.childNodes.length) {
+        console.warn(`[HotReload] Index ${index} out of bounds (${current.childNodes?.length || 0} children)`);
         return null;
       }
-
-      // Map VNode hex codes to actual DOM children, skipping nulls
-      let domChildIndex = 0; // Actual DOM child we're at
-      let found = false;
-
-      for (const hexCode of sortedHexCodes) {
-        // Build full path to this child
-        const fullPath = parentPath ? `${parentPath}.${hexCode}` : hexCode;
-
-        if (templateState.isPathNull(componentType, fullPath)) {
-          // This path is null, skip it (don't consume a DOM child)
-          if (hexCode === targetHex) {
-            console.warn(`[HotReload] Target path "${fullPath}" is currently null (not rendered)`);
-            return null;
-          }
-          continue;
-        }
-
-        // This hex code has a corresponding DOM child
-        if (hexCode === targetHex) {
-          // Found our target!
-          current = current.childNodes[domChildIndex] || null;
-          found = true;
-          break;
-        }
-
-        domChildIndex++;
-      }
-
-      if (!found || !current) {
-        console.warn(`[HotReload] Element "${targetHex}" not found in DOM at parent path "${parentPath}"`);
-        return null;
-      }
+      current = current.childNodes[index];
     }
 
     return current;

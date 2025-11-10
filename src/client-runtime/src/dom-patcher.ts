@@ -1,28 +1,21 @@
 import { Patch, VNode, VElement, VText } from './types';
-import { TemplateStateManager } from './template-state';
 
 /**
  * Applies DOM patches from the server to the actual DOM
- * Handles surgical updates for minimal DOM manipulation
+ * Server sends DOM index-based patches - client just does simple array indexing!
  */
 export class DOMPatcher {
   private debugLogging: boolean;
-  private templateState?: TemplateStateManager;
-  private componentType?: string;  // Component type (e.g., "ProductPage")
 
-  constructor(options: { debugLogging?: boolean; templateState?: TemplateStateManager } = {}) {
+  constructor(options: { debugLogging?: boolean } = {}) {
     this.debugLogging = options.debugLogging || false;
-    this.templateState = options.templateState;
   }
 
   /**
    * Apply an array of patches to a root element
    */
-  applyPatches(rootElement: HTMLElement, patches: Patch[], componentType?: string): void {
+  applyPatches(rootElement: HTMLElement, patches: Patch[]): void {
     this.log('Applying patches', { count: patches.length, patches });
-
-    // Store componentType for this patch batch
-    this.componentType = componentType;
 
     for (const patch of patches) {
       try {
@@ -31,9 +24,6 @@ export class DOMPatcher {
         console.error('[Minimact] Failed to apply patch:', patch, error);
       }
     }
-
-    // Clear componentType after batch
-    this.componentType = undefined;
   }
 
   /**
@@ -50,17 +40,9 @@ export class DOMPatcher {
     switch (patch.type) {
       case 'Create':
         this.patchCreate(rootElement, patch.path, patch.node);
-        // Update null path tracking: path now exists, remove from null paths
-        if (this.templateState && this.componentType) {
-          this.templateState.removeFromNullPaths(this.componentType, patch.path);
-        }
         break;
       case 'Remove':
         this.patchRemove(targetElement!);
-        // Update null path tracking: path now null, add to null paths
-        if (this.templateState && this.componentType) {
-          this.templateState.addToNullPaths(this.componentType, patch.path);
-        }
         break;
       case 'Replace':
         this.patchReplace(targetElement!, patch.node);
@@ -79,53 +61,52 @@ export class DOMPatcher {
 
   /**
    * Create and insert a new node
+   * The path is in node.path (converted DOM index path from server)
    */
-  private patchCreate(rootElement: HTMLElement, path: string, node: VNode): void {
+  private patchCreate(rootElement: HTMLElement, path: string | number[], node: VNode): void {
     const newElement = this.createElementFromVNode(node);
 
-    if (path === '' || path === '.') {
-      // Replace root
-      rootElement.innerHTML = '';
-      rootElement.appendChild(newElement);
-    } else {
-      // Insert at path
-      const pathParts = path.split('.');
-      const parentPath = pathParts.slice(0, -1).join('.');
-      const targetHex = pathParts[pathParts.length - 1];
-      const parent = this.getElementByPath(rootElement, parentPath) as HTMLElement;
-
-      if (parent && this.templateState && this.componentType) {
-        // Calculate DOM insertion index using null-aware navigation
-        const siblings = this.templateState.getChildrenAtPath(this.componentType, parentPath);
-
-        if (!siblings) {
-          console.error('[DOMPatcher] Cannot find siblings for insertion at path:', path);
-          return;
-        }
-
-        // Find the DOM index by counting non-null siblings before this hex
-        let domIndex = 0;
-        for (const siblingHex of siblings) {
-          if (siblingHex === targetHex) {
-            break;
-          }
-
-          const siblingPath = parentPath ? `${parentPath}.${siblingHex}` : siblingHex;
-          if (!this.templateState.isPathNull(this.componentType, siblingPath)) {
-            domIndex++;
-          }
-        }
-
-        // Insert at the calculated DOM index
-        if (domIndex >= parent.childNodes.length) {
-          parent.appendChild(newElement);
-        } else {
-          parent.insertBefore(newElement, parent.childNodes[domIndex]);
-        }
-      }
+    // Get path from node.path (it's a string like "0.1.1.2")
+    const nodePath = node.path;
+    if (!nodePath) {
+      console.error('[DOMPatcher] Node has no path for Create');
+      return;
     }
 
-    this.log('Created node', { path, node });
+    // Convert string path to number array
+    const indices = nodePath.split('.').map(s => parseInt(s, 10));
+
+    if (indices.length === 0) {
+      console.error('[DOMPatcher] Invalid empty path for Create');
+      return;
+    }
+
+    // Handle root insertion
+    if (indices.length === 1 && indices[0] === 0) {
+      rootElement.innerHTML = '';
+      rootElement.appendChild(newElement);
+      this.log('Created root node', { node });
+      return;
+    }
+
+    // Navigate to parent using all but last index
+    const parentIndices = indices.slice(0, -1);
+    const insertionIndex = indices[indices.length - 1];
+    const parent = this.getElementByPath(rootElement, parentIndices) as HTMLElement;
+
+    if (!parent) {
+      console.error('[DOMPatcher] Parent not found for Create at path:', nodePath);
+      return;
+    }
+
+    // Insert at the specified index
+    if (insertionIndex >= parent.childNodes.length) {
+      parent.appendChild(newElement);
+    } else {
+      parent.insertBefore(newElement, parent.childNodes[insertionIndex]);
+    }
+
+    this.log('Created node', { path: nodePath, node });
   }
 
   /**
@@ -225,21 +206,29 @@ export class DOMPatcher {
   }
 
   /**
-   * Get a DOM element by its hex path
-   * Uses null path tracking from TemplateStateManager to skip over removed nodes
+   * Get a DOM element by its DOM index path
+   * Simple array indexing through childNodes - server handles all null path complexity!
    */
-  private getElementByPath(rootElement: HTMLElement, path: string): Node | null {
-    if (path === '' || path === '.') {
+  private getElementByPath(rootElement: HTMLElement, path: string | number[]): Node | null {
+    // Handle empty path
+    if (!path || (Array.isArray(path) && path.length === 0)) {
       return rootElement;
     }
 
-    // Use template state manager for null-aware navigation
-    if (!this.templateState || !this.componentType) {
-      console.error('[DOMPatcher] Cannot navigate path without TemplateStateManager and componentType');
-      return null;
+    // Path should be number array from server (DomPatch)
+    const indices = Array.isArray(path) ? path : [];
+
+    // Simple navigation through childNodes using indices
+    let current: Node = rootElement;
+    for (const index of indices) {
+      if (index >= current.childNodes.length) {
+        console.error(`[DOMPatcher] Index ${index} out of bounds (${current.childNodes.length} children)`);
+        return null;
+      }
+      current = current.childNodes[index];
     }
 
-    return this.templateState.navigateToPath(rootElement, this.componentType, path);
+    return current;
   }
 
   /**

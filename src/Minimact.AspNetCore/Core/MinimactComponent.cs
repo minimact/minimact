@@ -601,8 +601,15 @@ public abstract class MinimactComponent
             {
                 Console.WriteLine($"[Minimact] Prediction: {prediction.Patches.Count} patches with {prediction.Confidence:F2} confidence");
 
+                // Render with predicted state to get VNode tree for path conversion
+                var predictedVNode = VNode.Normalize(Render());
+
+                // Convert hex paths to DOM index paths for client-side navigation
+                var predictionPathConverter = new PathConverter(predictedVNode);
+                var predictionDomPatches = DomPatch.FromPatches(prediction.Patches, predictionPathConverter);
+
                 // Send prediction immediately for instant UI feedback
-                _ = PatchSender.SendHintAsync(ComponentId, $"predict_{key}", prediction.Patches, prediction.Confidence);
+                _ = PatchSender.SendHintAsync(ComponentId, $"predict_{key}", predictionDomPatches, prediction.Confidence);
             }
         }
 
@@ -664,10 +671,11 @@ public abstract class MinimactComponent
             Console.WriteLine("[DEBUG] ⚠️ ZERO PATCHES - Trees might be identical or Rust reconciliation bug!");
         }
 
-        // Note: Patches use VNode hex paths. Client-side null path tracking handles
-        // null-skipping during DOM navigation, so no path adjustment needed.
+        // Convert hex paths to DOM index paths for client-side navigation
+        var pathConverter = new PathConverter(newVNode);
+        var domPatches = DomPatch.FromPatches(actualPatches, pathConverter);
 
-        if (actualPatches.Count > 0)
+        if (domPatches.Count > 0)
         {
             // Check if prediction was correct
             bool predictionCorrect = prediction != null &&
@@ -677,13 +685,13 @@ public abstract class MinimactComponent
             {
                 Console.WriteLine($"[Minimact] Prediction was wrong, sending correction");
 
-                // Send correction as regular patches
-                _ = PatchSender.SendPatchesAsync(ComponentId, actualPatches);
+                // Send correction as DOM patches
+                _ = PatchSender.SendPatchesAsync(ComponentId, domPatches);
             }
             else if (prediction == null)
             {
-                // No prediction was made, send patches normally
-                _ = PatchSender.SendPatchesAsync(ComponentId, actualPatches);
+                // No prediction was made, send DOM patches normally
+                _ = PatchSender.SendPatchesAsync(ComponentId, domPatches);
             }
             // If prediction was correct, do nothing - client already has the correct state!
         }
@@ -847,8 +855,30 @@ public abstract class MinimactComponent
         {
             Console.WriteLine($"[Minimact] Hint '{hintId}': {result.Data.Patches.Count} patches queued with {result.Data.Confidence:F2} confidence");
 
+            // Temporarily apply predicted state and render to get VNode tree
+            var originalState = new Dictionary<string, object>();
+            foreach (var (key, value) in predictedState)
+            {
+                if (State.ContainsKey(key))
+                {
+                    originalState[key] = State[key];
+                }
+                SetStateInternal(key, value);
+            }
+            var predictedVNode = VNode.Normalize(Render());
+
+            // Restore original state
+            foreach (var (key, value) in originalState)
+            {
+                SetStateInternal(key, value);
+            }
+
+            // Convert hex paths to DOM index paths for client-side navigation
+            var predictedPathConverter = new PathConverter(predictedVNode);
+            var domPatches = DomPatch.FromPatches(result.Data.Patches, predictedPathConverter);
+
             // Send hint to client to queue
-            _ = PatchSender.SendHintAsync(ComponentId, hintId, result.Data.Patches, result.Data.Confidence);
+            _ = PatchSender.SendHintAsync(ComponentId, hintId, domPatches, result.Data.Confidence);
         }
         else
         {

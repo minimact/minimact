@@ -4,6 +4,7 @@
 
 export interface VNode {
   type: 'Element' | 'Text' | 'Fragment' | 'RawHtml';
+  path?: string;
 }
 
 export interface VElement extends VNode {
@@ -93,20 +94,20 @@ export type ItemTemplate =
     };
 
 export type Patch =
-  | { type: 'Create'; path: string; node: VNode }
-  | { type: 'Remove'; path: string }
-  | { type: 'Replace'; path: string; node: VNode }
-  | { type: 'UpdateText'; path: string; content: string }
-  | { type: 'UpdateProps'; path: string; props: Record<string, string> }
-  | { type: 'ReorderChildren'; path: string; order: string[] }
+  | { type: 'Create'; path: string | number[]; node: VNode }
+  | { type: 'Remove'; path: string | number[] }
+  | { type: 'Replace'; path: string | number[]; node: VNode }
+  | { type: 'UpdateText'; path: string | number[]; content: string }
+  | { type: 'UpdateProps'; path: string | number[]; props: Record<string, string> }
+  | { type: 'ReorderChildren'; path: string | number[]; order: string[] }
   // Template patches for runtime prediction (100% coverage with minimal memory)
-  | { type: 'UpdateTextTemplate'; path: string; templatePatch: TemplatePatch }
-  | { type: 'UpdatePropsTemplate'; path: string; propName: string; templatePatch: TemplatePatch }
+  | { type: 'UpdateTextTemplate'; path: string | number[]; templatePatch: TemplatePatch }
+  | { type: 'UpdatePropsTemplate'; path: string | number[]; propName: string; templatePatch: TemplatePatch }
   // Loop template patch for array rendering (.map patterns)
-  | { type: 'UpdateListTemplate'; path: string; loopTemplate: LoopTemplate }
+  | { type: 'UpdateListTemplate'; path: string | number[]; loopTemplate: LoopTemplate }
   // Attribute template patches for static and dynamic attributes (className, style, etc.)
-  | { type: 'UpdateAttributeStatic'; path: string; attrName: string; value: string }
-  | { type: 'UpdateAttributeDynamic'; path: string; attrName: string; templatePatch: TemplatePatch };
+  | { type: 'UpdateAttributeStatic'; path: string | number[]; attrName: string; value: string }
+  | { type: 'UpdateAttributeDynamic'; path: string | number[]; attrName: string; templatePatch: TemplatePatch };
 
 export interface ComponentState {
   [key: string]: any;

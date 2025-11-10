@@ -532,22 +532,63 @@ public class TemplateHotReloadManager : IDisposable
             return;
         }
 
-        // Path exists - send immediately
+        // Path exists - convert hex path to DOM index path and send
         try
         {
+            // Get a component instance to build PathConverter
+            var instance = instances.FirstOrDefault();
+            if (instance?.CurrentVNode == null)
+            {
+                _logger.LogWarning("[Minimact Templates] Cannot convert path - no CurrentVNode available for {ComponentType}", componentTypeName);
+                return;
+            }
+
+            // Create PathConverter from CurrentVNode
+            var pathConverter = new PathConverter(instance.CurrentVNode);
+
+            // Strip attribute suffix if present (e.g., "10000000.30000000.@value" → "10000000.30000000")
+            var hexPath = patch.Path;
+            var attributeSuffix = "";
+            if (hexPath.Contains(".@"))
+            {
+                var atIndex = hexPath.IndexOf(".@");
+                attributeSuffix = hexPath.Substring(atIndex); // Save ".@value"
+                hexPath = hexPath.Substring(0, atIndex); // Get "10000000.30000000"
+            }
+
+            // Convert hex path to DOM index path
+            var domIndexPath = pathConverter.HexPathToDomPath(hexPath);
+
+            // Create patch with DOM index path
+            var patchWithDomPath = new
+            {
+                type = patch.Type,
+                componentId = patch.ComponentId,
+                path = domIndexPath, // DOM index path [0, 2, 1]
+                hexPath = patch.Path, // Keep original hex path for debugging
+                template = patch.Template,
+                params_ = patch.Params,
+                bindings = patch.Bindings,
+                slots = patch.Slots,
+                attribute = patch.Attribute,
+                loopTemplate = patch.LoopTemplate,
+                attrName = patch.AttrName,
+                value = patch.Value
+            };
+
             await _hubContext.Clients.All.SendAsync("HotReload:TemplatePatch", new
             {
                 type = "template-patch",
-                componentId = patch.ComponentId,
-                templatePatch = patch,
+                componentId = componentTypeName,
+                templatePatch = patchWithDomPath,
                 timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             });
 
             _logger.LogInformation(
-                "[Minimact Templates] 🚀 Sent template patch for {ComponentId}: \"{OldTemplate}\" → \"{NewTemplate}\"",
-                patch.ComponentId,
-                "template",
-                patch.Template
+                "[Minimact Templates] 🚀 Sent template patch for {ComponentId}: hex={HexPath}, dom={DomPath}",
+                componentTypeName,
+                patch.Path,
+                string.Join(".", domIndexPath)
             );
         }
         catch (Exception ex)

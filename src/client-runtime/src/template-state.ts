@@ -39,7 +39,7 @@ export interface TemplateMap {
 export interface TemplatePatch {
   type: 'UpdateTextTemplate' | 'UpdatePropTemplate';
   componentId: string;
-  path: string;
+  path: number[]; // DOM index path [0, 2, 1]
   template: string;
   params: any[];
   bindings: string[];
@@ -48,25 +48,18 @@ export interface TemplatePatch {
 }
 
 /**
- * Template State Manager
+ * Template State Manager - Simplified for template rendering only
+ * Server now handles all path navigation via DOM indices
  */
 export class TemplateStateManager {
   private templates: Map<string, Template> = new Map();
   private componentStates: Map<string, Map<string, any>> = new Map();
-  // Hierarchical hex path index: componentId -> parent path -> sorted children hex codes
-  private hexPathIndex: Map<string, Map<string, string[]>> = new Map();
-  // Null paths: componentId -> Set of paths that are currently null
-  private nullPaths: Map<string, Set<string>> = new Map();
 
   /**
    * Initialize templates from .templates.json file
    */
   loadTemplateMap(componentId: string, templateMap: TemplateMap): void {
     console.log(`[TemplateState] Loading ${Object.keys(templateMap.templates).length} templates for ${componentId}`);
-
-    // Build hierarchical hex path index: parent path -> children hex codes
-    const hierarchyMap = new Map<string, Set<string>>();
-    const nullPaths = new Set<string>(); // Track null paths
 
     for (const [nodePath, template] of Object.entries(templateMap.templates)) {
       const key = `${componentId}:${nodePath}`;
@@ -81,174 +74,12 @@ export class TemplateStateManager {
       };
 
       this.templates.set(key, normalized);
-
-      // Extract hex path segments
-      const pathSegments = nodePath.split('.');
-
-      // Check if this path ends with '.null' (path didn't render)
-      const isNullPath = pathSegments[pathSegments.length - 1] === 'null';
-
-      if (isNullPath) {
-        // Remove '.null' suffix and store as null path
-        const actualPath = pathSegments.slice(0, -1).join('.');
-        nullPaths.add(actualPath);
-        console.log(`[TemplateState] Null path detected: ${actualPath}`);
-
-        // Add to hierarchy map so we know this child exists (even though it's null)
-        const actualSegments = pathSegments.slice(0, -1);
-        if (actualSegments.length > 0) {
-          const childHex = actualSegments[actualSegments.length - 1];
-          const parentPath = actualSegments.length > 1 ? actualSegments.slice(0, -1).join('.') : '';
-
-          if (!hierarchyMap.has(parentPath)) {
-            hierarchyMap.set(parentPath, new Set());
-          }
-          hierarchyMap.get(parentPath)!.add(childHex);
-        }
-        continue; // Don't add to templates
-      }
-
-      // Build parent -> children relationships
-      for (let i = 0; i < pathSegments.length; i++) {
-        const segment = pathSegments[i];
-
-        // Skip attribute markers (@style, @className, etc.)
-        if (segment.startsWith('@')) continue;
-
-        // Parent path is everything before this segment
-        const parentPath = i > 0 ? pathSegments.slice(0, i).join('.') : '';
-
-        if (!hierarchyMap.has(parentPath)) {
-          hierarchyMap.set(parentPath, new Set());
-        }
-        hierarchyMap.get(parentPath)!.add(segment);
-      }
     }
-
-    // Store null paths for this component
-    this.nullPaths.set(componentId, nullPaths);
-
-    // Convert sets to sorted arrays
-    const sortedHierarchyMap = new Map<string, string[]>();
-    for (const [parentPath, childrenSet] of hierarchyMap.entries()) {
-      sortedHierarchyMap.set(parentPath, Array.from(childrenSet).sort());
-    }
-
-    this.hexPathIndex.set(componentId, sortedHierarchyMap);
-    console.log(`[TemplateState] Built hierarchical hex path index for ${componentId}:`, sortedHierarchyMap);
 
     // Initialize component state tracking
     if (!this.componentStates.has(componentId)) {
       this.componentStates.set(componentId, new Map());
     }
-  }
-
-  /**
-   * Get sorted hex codes (children) for a specific parent path
-   * @param componentId - Component identifier
-   * @param parentPath - Parent path (empty string for root children)
-   * @returns Sorted array of child hex codes
-   */
-  getChildrenAtPath(componentId: string, parentPath: string): string[] | undefined {
-    const hierarchy = this.hexPathIndex.get(componentId);
-    if (!hierarchy) {
-      console.warn(`[TemplateState] No hierarchy found for component ${componentId}`);
-      return undefined;
-    }
-
-    const children = hierarchy.get(parentPath);
-    console.log(`[TemplateState] getChildrenAtPath(${componentId}, "${parentPath}") -> ${children?.length || 0} children:`, children);
-    return children;
-  }
-
-  /**
-   * Check if a path is currently null (not rendered)
-   */
-  isPathNull(componentId: string, path: string): boolean {
-    return this.nullPaths.get(componentId)?.has(path) ?? false;
-  }
-
-  /**
-   * Navigate to a DOM element by hex path, skipping over null nodes
-   * @param rootElement - Root DOM element (container) to start navigation from
-   * @param componentId - Component identifier (component type like "ProductPage")
-   * @param path - Absolute hex path (e.g., "10000000.20000000.30000000")
-   * @returns DOM node at the path, or null if not found
-   */
-  navigateToPath(rootElement: HTMLElement, componentId: string, path: string): Node | null {
-    if (path === '' || path === '.') {
-      return rootElement;
-    }
-
-    let current: Node = rootElement;
-    const hexSegments = path.split('.');
-    let currentPath = '';
-
-    for (let i = 0; i < hexSegments.length; i++) {
-      const hexSegment = hexSegments[i];
-
-      // Build the full path up to this point
-      currentPath = currentPath ? `${currentPath}.${hexSegment}` : hexSegment;
-
-      // Get all children at this level (sorted hex codes)
-      const parentPath = i > 0 ? hexSegments.slice(0, i).join('.') : '';
-      const children = this.getChildrenAtPath(componentId, parentPath);
-
-      if (!children) {
-        console.error(`[TemplateState] No children found at parent path "${parentPath}"`);
-        return null;
-      }
-
-      // Find the DOM index by counting non-null siblings before this hex
-      let domIndex = 0;
-      for (const childHex of children) {
-        const siblingPath = parentPath ? `${parentPath}.${childHex}` : childHex;
-
-        // If this is our target segment, use this domIndex
-        if (childHex === hexSegment) {
-          break;
-        }
-
-        // Only increment DOM index if sibling is NOT null
-        if (!this.isPathNull(componentId, siblingPath)) {
-          domIndex++;
-        }
-      }
-
-      // Navigate to the child at domIndex
-      if (domIndex >= current.childNodes.length) {
-        console.error(`[TemplateState] DOM index ${domIndex} out of bounds (${current.childNodes.length} children) at path "${currentPath}"`);
-        return null;
-      }
-
-      current = current.childNodes[domIndex];
-    }
-
-    return current;
-  }
-
-  /**
-   * Remove a path from null paths (element was created)
-   */
-  removeFromNullPaths(componentId: string, path: string): void {
-    const nullPathsSet = this.nullPaths.get(componentId);
-    if (nullPathsSet) {
-      nullPathsSet.delete(path);
-      console.log(`[TemplateState] Removed ${path} from null paths for ${componentId}`);
-    }
-  }
-
-  /**
-   * Add a path to null paths (element was removed)
-   */
-  addToNullPaths(componentId: string, path: string): void {
-    let nullPathsSet = this.nullPaths.get(componentId);
-    if (!nullPathsSet) {
-      nullPathsSet = new Set();
-      this.nullPaths.set(componentId, nullPathsSet);
-    }
-    nullPathsSet.add(path);
-    console.log(`[TemplateState] Added ${path} to null paths for ${componentId}`);
   }
 
   /**
@@ -355,7 +186,7 @@ export class TemplateStateManager {
   /**
    * Apply template patch from hot reload
    */
-  applyTemplatePatch(patch: TemplatePatch): { text: string; path: string } | null {
+  applyTemplatePatch(patch: TemplatePatch): { text: string; path: number[] } | null {
     const { componentId, path, template, params, bindings, slots, attribute } = patch;
 
     // Get current state values from client (not stale params from server!)
@@ -368,7 +199,8 @@ export class TemplateStateManager {
     // Render template with current client state
     const text = this.renderWithParams(template, currentParams);
 
-    // Build node path key (use hex path as-is, replace dots with underscores)
+    // Build node path key from DOM index path array
+    // Example: [0, 2, 1] → "0_2_1"
     const nodePath = this.buildNodePathKey(path);
     const key = `${componentId}:${nodePath}`;
 
@@ -387,7 +219,7 @@ export class TemplateStateManager {
         template,
         bindings,
         slots,
-        path,
+        path: path.join('.'), // Store as string for compatibility
         type: attribute ? 'attribute' : 'dynamic',
         attribute
       });
@@ -399,11 +231,11 @@ export class TemplateStateManager {
   }
 
   /**
-   * Build node path key from hex path string
-   * Example: "10000000.20000000" → "10000000_20000000"
+   * Build node path key from DOM index path array
+   * Example: [0, 2, 1] → "0_2_1"
    */
-  private buildNodePathKey(path: string): string {
-    return path.replace(/\./g, '_');
+  private buildNodePathKey(path: number[]): string {
+    return path.join('_');
   }
 
   /**

@@ -19,7 +19,7 @@ public class SignalRPatchSender : IPatchSender
         _registry = registry;
     }
 
-    public async Task SendPatchesAsync(string componentId, List<Patch> patches)
+    public async Task SendPatchesAsync(string componentId, List<DomPatch> patches)
     {
         if (patches.Count == 0)
             return;
@@ -32,7 +32,7 @@ public class SignalRPatchSender : IPatchSender
             .SendAsync("ApplyPatches", componentId, patches);
     }
 
-    public async Task SendHintAsync(string componentId, string hintId, List<Patch> patches, double confidence)
+    public async Task SendHintAsync(string componentId, string hintId, List<DomPatch> patches, double confidence)
     {
         if (patches.Count == 0)
             return;

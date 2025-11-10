@@ -360,6 +360,106 @@ public class Patch
 }
 
 /// <summary>
+/// DOM patch with index-based path for client-side navigation
+/// Overrides hex path with DOM index array for simple childNodes navigation
+/// </summary>
+public class DomPatch : Patch
+{
+    /// <summary>
+    /// DOM index path (e.g., [0, 2, 1]) for direct childNodes navigation
+    /// REPLACES the hex path for simpler client-side navigation
+    /// </summary>
+    [JsonProperty("path")]
+    public new List<int> Path { get; set; } = new();
+
+    /// <summary>
+    /// Convert a list of Patches to DomPatches using PathConverter from the new tree
+    /// </summary>
+    /// <param name="patches">Patches from Rust reconciliation</param>
+    /// <param name="pathConverter">PathConverter from NEW VNode tree</param>
+    public static List<DomPatch> FromPatches(List<Patch> patches, PathConverter pathConverter)
+    {
+        var domPatches = new List<DomPatch>();
+
+        foreach (var patch in patches)
+        {
+            var domPatch = new DomPatch
+            {
+                Type = patch.Type,
+                Content = patch.Content,
+                Props = patch.Props,
+                Order = patch.Order
+            };
+
+            // Convert VNode paths - all patches must have a VNode
+            // The VNode contains the path information, patch.path is redundant
+            if (patch.Node != null)
+            {
+                domPatch.Node = ConvertVNodePaths(patch.Node, pathConverter);
+            }
+
+            domPatches.Add(domPatch);
+        }
+
+        return domPatches;
+    }
+
+    /// <summary>
+    /// Recursively convert hex paths to DOM paths in a VNode tree
+    /// </summary>
+    private static VNode ConvertVNodePaths(VNode node, PathConverter pathConverter)
+    {
+        if (node is VElement element)
+        {
+            var converted = new VElement(element.Tag, element.Props, Array.Empty<VNode>())
+            {
+                Key = element.Key
+            };
+
+            // Convert this element's path
+            if (!string.IsNullOrEmpty(element.Path))
+            {
+                var domPath = pathConverter.HexPathToDomPath(element.Path);
+                converted.Path = string.Join(".", domPath);
+            }
+
+            // Recursively convert children
+            converted.Children = element.Children.Select(child => ConvertVNodePaths(child, pathConverter)).ToList();
+
+            return converted;
+        }
+        else if (node is VText text)
+        {
+            var converted = new VText(text.Content);
+
+            // Convert this text's path
+            if (!string.IsNullOrEmpty(text.Path))
+            {
+                var domPath = pathConverter.HexPathToDomPath(text.Path);
+                converted.Path = string.Join(".", domPath);
+            }
+
+            return converted;
+        }
+        else if (node is VNull vnull)
+        {
+            var converted = new VNull("");
+
+            // Convert this null's path
+            if (!string.IsNullOrEmpty(vnull.Path))
+            {
+                var domPath = pathConverter.HexPathToDomPath(vnull.Path);
+                converted.Path = string.Join(".", domPath);
+            }
+
+            return converted;
+        }
+
+        return node;
+    }
+}
+
+/// <summary>
 /// Prediction result from the Rust engine
 /// </summary>
 public class Prediction

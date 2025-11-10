@@ -25,7 +25,8 @@ public static class Minimact
         var propsDict = ConvertProps(props);
         var vnodeChildren = ConvertChildren(children);
 
-        return new VElement(tagOrComponent, propsDict, vnodeChildren);
+        // Root element defaults to path "1" (will be inflated to "10000000")
+        return new VElement(tagOrComponent, "1", propsDict, vnodeChildren);
     }
 
     /// <summary>

@@ -17,12 +17,12 @@ public interface IPatchSender
     /// <summary>
     /// Send patches to client for a specific component
     /// </summary>
-    Task SendPatchesAsync(string componentId, List<Patch> patches);
+    Task SendPatchesAsync(string componentId, List<DomPatch> patches);
 
     /// <summary>
     /// Send prediction hint to client for instant feedback
     /// </summary>
-    Task SendHintAsync(string componentId, string hintId, List<Patch> patches, double confidence);
+    Task SendHintAsync(string componentId, string hintId, List<DomPatch> patches, double confidence);
 
     /// <summary>
     /// Send error message to client

@@ -58,8 +58,7 @@ export class Minimact {
     });
 
     this.domPatcher = new DOMPatcher({
-      debugLogging: this.options.enableDebugLogging,
-      templateState: templateState
+      debugLogging: this.options.enableDebugLogging
     });
 
     this.clientState = new ClientStateManager({
@@ -159,7 +158,7 @@ export class Minimact {
     this.signalR.on('applyPatches', ({ componentId, patches }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[], component.type);
+        this.domPatcher.applyPatches(component.element, patches as Patch[]);
         this.log('Patches applied', { componentId, patchCount: patches.length });
       }
     });
@@ -168,7 +167,7 @@ export class Minimact {
     this.signalR.on('applyPrediction', ({ componentId, patches, confidence }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[], component.type);
+        this.domPatcher.applyPatches(component.element, patches as Patch[]);
         this.log(`Prediction applied (${(confidence * 100).toFixed(0)}% confident)`, { componentId, patchCount: patches.length });
       }
     });
@@ -177,7 +176,7 @@ export class Minimact {
     this.signalR.on('applyCorrection', ({ componentId, patches }) => {
       const component = this.hydration.getComponent(componentId);
       if (component) {
-        this.domPatcher.applyPatches(component.element, patches as Patch[], component.type);
+        this.domPatcher.applyPatches(component.element, patches as Patch[]);
         this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
       }
     });
