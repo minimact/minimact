@@ -276,10 +276,8 @@ export class ProjectManager {
     await fs.mkdir(path.join(projectPath, 'Pages'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'Components'), { recursive: true });
 
-    // 4. Replace Program.cs with Minimact setup (template-specific)
-    const programCs = (template === 'MVC' || template === 'MVC-Dashboard')
-      ? this.getMvcProgramCs()
-      : this.getStandardProgramCs();
+    // 4. Replace Program.cs with Minimact setup (all templates now use MVC routing)
+    const programCs = this.getMvcProgramCs();
 
     await fs.writeFile(path.join(projectPath, 'Program.cs'), programCs, 'utf-8');
 
@@ -296,15 +294,18 @@ export class ProjectManager {
       // Enable browser launching
       profile.launchBrowser = true;
 
-      // Set launch URL based on template
+      // Set launch URL based on template (all templates now use MVC routing)
       if (template === 'MVC') {
         profile.launchUrl = 'Products/1';
         // Keep default ports for MVC (HTTPS: 7038, HTTP: 5035)
       } else if (template === 'MVC-Dashboard') {
         profile.launchUrl = 'Dashboard';
         // Keep default ports for MVC (HTTPS: 7038, HTTP: 5035)
-      } else {
-        // Standard Minimact templates use port 5000
+      } else if (template === 'Counter' || template === 'TodoList' || template === 'Dashboard') {
+        // Simple templates use port 5000 and root URL
+        profile.applicationUrl = 'http://localhost:5000';
+        profile.launchUrl = '';
+      } else if (template === 'Electron-FileManager') {
         profile.applicationUrl = 'http://localhost:5000';
       }
     }
@@ -328,32 +329,7 @@ export class ProjectManager {
   }
 
   /**
-   * Get standard Program.cs for non-MVC projects
-   */
-  private getStandardProgramCs(): string {
-    return `using Minimact.AspNetCore.Extensions;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add Minimact services
-builder.Services.AddMinimact();
-
-// Add SignalR (required for Minimact real-time communication)
-builder.Services.AddSignalR();
-
-var app = builder.Build();
-
-app.UseStaticFiles(); // Serve wwwroot/js and wwwroot/css
-app.UseMinimact(); // Auto-discovers pages from ./Generated/routes.json
-
-app.MapHub<Minimact.AspNetCore.SignalR.MinimactHub>("/minimact");
-
-app.Run();
-`;
-  }
-
-  /**
-   * Get MVC-specific Program.cs
+   * Get MVC-based Program.cs (now used for all templates)
    */
   private getMvcProgramCs(): string {
     return `using Minimact.AspNetCore.Extensions;
@@ -383,23 +359,57 @@ app.Run();
   }
 
   /**
-   * Create Counter template files
+   * Create Counter template files (MVC-based)
    */
   private async createCounterTemplate(projectPath: string): Promise<void> {
     // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'Controllers'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
 
-    // Create Pages/Index.tsx
-    const indexTsx = `import { useState } from 'minimact';
+    // Create HomeController.cs
+    const homeControllerCs = `using Microsoft.AspNetCore.Mvc;
+using Minimact.AspNetCore.Rendering;
 
-export function Index() {
+namespace ${path.basename(projectPath)}.Controllers;
+
+[ApiController]
+[Route("")]
+public class HomeController : ControllerBase
+{
+    private readonly MinimactPageRenderer _renderer;
+
+    public HomeController(MinimactPageRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        return await _renderer.RenderPage<Minimact.Components.CounterPage>(
+            pageTitle: "Counter - Minimact"
+        );
+    }
+}
+`;
+
+    await fs.writeFile(
+      path.join(projectPath, 'Controllers', 'HomeController.cs'),
+      homeControllerCs,
+      'utf-8'
+    );
+
+    // Create Pages/CounterPage.tsx
+    const counterPageTsx = `import { useState } from 'minimact';
+
+export function CounterPage() {
   const [count, setCount] = useState(0);
 
   return (
-    <div>
+    <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
       <h1>Counter</h1>
       <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>
+      <button onClick={() => setCount(count + 1)} style={{ padding: '8px 16px', cursor: 'pointer' }}>
         Increment
       </button>
     </div>
@@ -407,21 +417,55 @@ export function Index() {
 }
 `;
 
-    await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
+    await fs.writeFile(path.join(projectPath, 'Pages', 'CounterPage.tsx'), counterPageTsx, 'utf-8');
 
     // Copy Minimact client runtime to wwwroot/js
     await this.copyClientRuntimeToProject(projectPath);
   }
 
   /**
-   * Create TodoList template files
+   * Create TodoList template files (MVC-based)
    */
   private async createTodoListTemplate(projectPath: string): Promise<void> {
     // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'Controllers'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
 
-    // Create Pages/Index.tsx
-    const indexTsx = `import { useState } from 'minimact';
+    // Create HomeController.cs
+    const homeControllerCs = `using Microsoft.AspNetCore.Mvc;
+using Minimact.AspNetCore.Rendering;
+
+namespace ${path.basename(projectPath)}.Controllers;
+
+[ApiController]
+[Route("")]
+public class HomeController : ControllerBase
+{
+    private readonly MinimactPageRenderer _renderer;
+
+    public HomeController(MinimactPageRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        return await _renderer.RenderPage<Minimact.Components.TodoListPage>(
+            pageTitle: "Todo List - Minimact"
+        );
+    }
+}
+`;
+
+    await fs.writeFile(
+      path.join(projectPath, 'Controllers', 'HomeController.cs'),
+      homeControllerCs,
+      'utf-8'
+    );
+
+    // Create Pages/TodoListPage.tsx
+    const todoListPageTsx = `import { useState } from 'minimact';
 
 interface Todo {
   id: number;
@@ -429,7 +473,7 @@ interface Todo {
   done: boolean;
 }
 
-export function Index() {
+export function TodoListPage() {
   const [todos, setTodos] = useState<Todo[]>([
     { id: 1, text: 'Learn Minimact', done: false },
     { id: 2, text: 'Build an app', done: false }
@@ -520,21 +564,55 @@ export function Index() {
 }
 `;
 
-    await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
+    await fs.writeFile(path.join(projectPath, 'Pages', 'TodoListPage.tsx'), todoListPageTsx, 'utf-8');
 
     // Copy Minimact client runtime to wwwroot/js
     await this.copyClientRuntimeToProject(projectPath);
   }
 
   /**
-   * Create Dashboard template files
+   * Create Dashboard template files (MVC-based)
    */
   private async createDashboardTemplate(projectPath: string): Promise<void> {
     // Create directory structure
+    await fs.mkdir(path.join(projectPath, 'Controllers'), { recursive: true });
     await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
 
-    // Create Pages/Index.tsx with enhanced charts
-    const indexTsx = `import { useState } from 'minimact';
+    // Create HomeController.cs
+    const homeControllerCs = `using Microsoft.AspNetCore.Mvc;
+using Minimact.AspNetCore.Rendering;
+
+namespace ${path.basename(projectPath)}.Controllers;
+
+[ApiController]
+[Route("")]
+public class HomeController : ControllerBase
+{
+    private readonly MinimactPageRenderer _renderer;
+
+    public HomeController(MinimactPageRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        return await _renderer.RenderPage<Minimact.Components.DashboardPage>(
+            pageTitle: "Dashboard - Minimact"
+        );
+    }
+}
+`;
+
+    await fs.writeFile(
+      path.join(projectPath, 'Controllers', 'HomeController.cs'),
+      homeControllerCs,
+      'utf-8'
+    );
+
+    // Create Pages/DashboardPage.tsx with enhanced charts
+    const dashboardPageTsx = `import { useState } from 'minimact';
 import type { DataPoint } from '@minimact/charts';
 
 interface MetricData {
@@ -544,7 +622,7 @@ interface MetricData {
   positive: boolean;
 }
 
-export function Index() {
+export function DashboardPage() {
   // Time range selector
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
 
@@ -805,7 +883,7 @@ export function Index() {
 }
 `;
 
-    await fs.writeFile(path.join(projectPath, 'Pages', 'Index.tsx'), indexTsx, 'utf-8');
+    await fs.writeFile(path.join(projectPath, 'Pages', 'DashboardPage.tsx'), dashboardPageTsx, 'utf-8');
 
     // Copy Minimact client runtime and plugin packages to wwwroot/js
     await this.copyClientRuntimeToProject(projectPath);
