@@ -117,6 +117,90 @@ Blazor requires learning Razor syntax. Minimact uses React — the syntax millio
 
 ## Quick Start
 
+**Minimact uses the familiar ASP.NET MVC pattern as the default architecture.** Controllers pass ViewModels to React components - zero learning curve for .NET developers.
+
+### The Standard Pattern (MVC Bridge)
+
+**1. Controller (C#) - Familiar MVC**
+```csharp
+public class ProductsController : ControllerBase
+{
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Details(int id)
+    {
+        var viewModel = new ProductViewModel
+        {
+            ProductName = product.Name,    // Immutable (server authority)
+            Price = product.Price,         // Immutable (server authority)
+            InitialQuantity = 1            // [Mutable] (client can change)
+        };
+
+        return await _renderer.RenderPage<ProductPage>(viewModel);
+    }
+}
+```
+
+**2. Component (TSX) - Mix MVC State + Client State**
+```typescript
+import { useMvcState, useMvcViewModel } from '@minimact/mvc';
+import { useState } from '@minimact/core';
+
+interface ProductViewModel {
+  productName: string;
+  price: number;
+  isAdminRole: boolean;
+  initialQuantity: number;  // [Mutable] in C#
+}
+
+export function ProductPage() {
+    // From ViewModel (server-controlled)
+    const [productName] = useMvcState<string>('productName');  // Immutable
+    const [price] = useMvcState<number>('price');              // Immutable
+    const [isAdmin] = useMvcState<boolean>('isAdminRole');     // Immutable
+    const [quantity, setQuantity] = useMvcState<number>('initialQuantity'); // Mutable
+
+    // Pure client state (never sent to server)
+    const [cartTotal, setCartTotal] = useState(0);
+    const [showDetails, setShowDetails] = useState(false);
+
+    const handleAddToCart = () => {
+        setCartTotal(price * quantity);  // Client-only calculation
+    };
+
+    return (
+        <div>
+            <h1>{productName}</h1>
+            <div>${price.toFixed(2)}</div>
+
+            <button onClick={() => setQuantity(quantity + 1)}>
+                Quantity: {quantity}
+            </button>
+
+            <button onClick={handleAddToCart}>
+                Add to Cart - ${cartTotal.toFixed(2)}
+            </button>
+
+            {/* Server-controlled visibility */}
+            {isAdmin && <button>Edit Product</button>}
+
+            {/* Client-controlled visibility */}
+            <button onClick={() => setShowDetails(!showDetails)}>
+                {showDetails ? 'Hide' : 'Show'} Details
+            </button>
+        </div>
+    );
+}
+```
+
+**That's it!** Standard MVC Controllers + React Components + Instant Updates (2-3ms).
+
+**Key Pattern:**
+- `useMvcState` → Bound to ViewModel property (from controller)
+- `useState` → Component-owned state (not from ViewModel)
+- **Both sync to server** for accurate rendering and prediction
+
+### Using Minimact Swig IDE
+
 ```bash
 # Clone and run Swig - the official Minimact IDE
 git clone https://github.com/minimact/swig
@@ -125,8 +209,6 @@ npm install
 npm start
 ```
 
-### Create Your First App
-
 Once Swig launches:
 
 1. **Create Project** - Click "New Project" and choose a directory
@@ -134,7 +216,7 @@ Once Swig launches:
 3. **Build** - Click "Build" to compile your app
 4. **Run** - Click "Run" and open in browser
 
-That's it! From zero to running app in under 2 minutes.
+From zero to running app in under 2 minutes.
 
 **Two runtime versions available:**
 - `@minimact/core` — 13.33 KB gzipped (WebSocket-based, modern browsers)

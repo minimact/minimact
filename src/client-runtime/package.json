@@ -1,6 +1,6 @@
 {
   "name": "@minimact/core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Client-side runtime for Minimact framework - Available in lightweight (SignalM) and full (SignalR) versions",
   "main": "dist/core.js",
   "module": "dist/core.esm.js",
