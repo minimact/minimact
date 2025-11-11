@@ -25,7 +25,7 @@ const generate = require('@babel/generator').default;
  *   "1.2": {
  *     type: "conditional-element",
  *     conditionExpression: "myState1",
- *     conditionBindings: ["myState1"],
+ *     conditionBindings: ["state_0"],  // ← Resolved to state keys!
  *     branches: {
  *       true: { element structure },
  *       false: null
@@ -37,6 +37,30 @@ function extractConditionalElementTemplates(renderBody, component) {
   if (!renderBody) return {};
 
   const conditionalTemplates = {};
+
+  // Build mapping from variable name → state key
+  const stateKeyMap = new Map();
+
+  // Map useState variables to state_N keys
+  if (component.useState) {
+    component.useState.forEach((state, index) => {
+      stateKeyMap.set(state.name, `state_${index}`);
+    });
+  }
+
+  // Map useRef variables to ref_N keys
+  if (component.useRef) {
+    component.useRef.forEach((ref, index) => {
+      stateKeyMap.set(ref.name, `ref_${index}`);
+    });
+  }
+
+  // Map props (they use the prop name as-is)
+  if (component.props) {
+    component.props.forEach((prop) => {
+      stateKeyMap.set(prop.name, prop.name);
+    });
+  }
 
   /**
    * Traverse JSX tree to find conditional expressions
@@ -92,11 +116,21 @@ function extractConditionalElementTemplates(renderBody, component) {
     const condition = extractLeftSideOfAnd(expr);
     const conditionCode = generate(condition).code;
 
-    // Extract bindings from condition
-    const bindings = extractBindingsFromCondition(condition);
+    // Extract bindings from condition (variable names)
+    const variableNames = extractBindingsFromCondition(condition);
+
+    // Build mapping from variable names to state keys
+    const conditionMapping = {};
+    const stateKeys = [];
+
+    for (const varName of variableNames) {
+      const stateKey = stateKeyMap.get(varName) || varName;
+      conditionMapping[varName] = stateKey;
+      stateKeys.push(stateKey);
+    }
 
     // Can we evaluate this condition client-side?
-    const isEvaluable = isConditionEvaluableClientSide(condition, bindings);
+    const isEvaluable = isConditionEvaluableClientSide(condition, variableNames);
 
     // Extract element structure
     const elementStructure = extractElementStructure(right);
@@ -108,7 +142,8 @@ function extractConditionalElementTemplates(renderBody, component) {
     return {
       type: "conditional-element",
       conditionExpression: conditionCode,
-      conditionBindings: bindings,
+      conditionBindings: stateKeys, // ["state_0", "state_1"]
+      conditionMapping: conditionMapping, // { "myState1": "state_0", "myState2": "state_1" }
       evaluable: isEvaluable,
       branches: {
         true: elementStructure,
@@ -137,8 +172,19 @@ function extractConditionalElementTemplates(renderBody, component) {
 
     // Extract condition
     const conditionCode = generate(test).code;
-    const bindings = extractBindingsFromCondition(test);
-    const isEvaluable = isConditionEvaluableClientSide(test, bindings);
+    const variableNames = extractBindingsFromCondition(test);
+
+    // Build mapping from variable names to state keys
+    const conditionMapping = {};
+    const stateKeys = [];
+
+    for (const varName of variableNames) {
+      const stateKey = stateKeyMap.get(varName) || varName;
+      conditionMapping[varName] = stateKey;
+      stateKeys.push(stateKey);
+    }
+
+    const isEvaluable = isConditionEvaluableClientSide(test, variableNames);
 
     // Extract both branches
     const branches = {};
@@ -158,7 +204,8 @@ function extractConditionalElementTemplates(renderBody, component) {
     return {
       type: "conditional-element",
       conditionExpression: conditionCode,
-      conditionBindings: bindings,
+      conditionBindings: stateKeys, // ["state_0", "state_1"]
+      conditionMapping: conditionMapping, // { "myState1": "state_0", "myState2": "state_1" }
       evaluable: isEvaluable,
       branches,
       operator: "?"

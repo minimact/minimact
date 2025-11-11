@@ -17,6 +17,9 @@ public class ConditionalElementTemplate
     [JsonPropertyName("conditionBindings")]
     public List<string> ConditionBindings { get; set; } = new();
 
+    [JsonPropertyName("conditionMapping")]
+    public Dictionary<string, string>? ConditionMapping { get; set; }
+
     [JsonPropertyName("evaluable")]
     public bool Evaluable { get; set; }
 
@@ -25,6 +28,13 @@ public class ConditionalElementTemplate
 
     [JsonPropertyName("operator")]
     public string Operator { get; set; } = "&&";
+
+    /// <summary>
+    /// DOM path indices for insertion point (augmented by server at runtime)
+    /// Example: [0, 2] means parent.childNodes[0].childNodes[2]
+    /// </summary>
+    [JsonPropertyName("domPath")]
+    public List<int>? DomPath { get; set; }
 }
 
 /// <summary>

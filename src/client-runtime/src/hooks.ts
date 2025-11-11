@@ -180,6 +180,42 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
       }
     }
 
+    // Check for conditional element templates bound to this state
+    const conditionals = templateState.getConditionalElementsBoundTo(context.componentId, stateKey);
+    if (conditionals.length > 0) {
+      // Get all current state for condition evaluation
+      const currentState = templateState.getAllComponentState(context.componentId);
+
+      for (const { template } of conditionals) {
+        // Only process if template is evaluable client-side and has DOM path
+        if (!template.evaluable || !template.domPath) {
+          continue;
+        }
+
+        try {
+          // Navigate to parent element using DOM path
+          let parentElement: HTMLElement | ChildNode = context.element;
+          for (let i = 0; i < template.domPath.length - 1; i++) {
+            parentElement = parentElement.childNodes[template.domPath[i]];
+          }
+
+          const insertIndex = template.domPath[template.domPath.length - 1];
+
+          // Render conditional element (will insert/remove as needed)
+          context.conditionalRenderer.render(
+            template,
+            currentState,
+            parentElement as HTMLElement,
+            insertIndex
+          );
+
+          console.log(`[Minimact] 🔀 Conditional element updated at DOM path [${template.domPath.join(', ')}] (${stateKey} changed)`);
+        } catch (error) {
+          console.error(`[Minimact] Failed to render conditional element at DOM path [${template.domPath.join(', ')}]:`, error);
+        }
+      }
+    }
+
     // Sync state to server to prevent stale data
     context.signalR.updateComponentState(context.componentId, stateKey, actualNewValue)
       .catch(err => {

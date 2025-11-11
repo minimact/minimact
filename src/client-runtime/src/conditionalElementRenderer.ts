@@ -19,13 +19,15 @@
 export interface ConditionalElementTemplate {
   type: 'conditional-element';
   conditionExpression: string;
-  conditionBindings: string[];
+  conditionBindings: string[]; // State keys: ["state_0", "state_1"]
+  conditionMapping?: Record<string, string>; // Variable name → state key: { "myState1": "state_0" }
   evaluable: boolean;
   branches: {
     true?: ElementStructure | null;
     false?: ElementStructure | null;
   };
   operator: '&&' | '?';
+  domPath?: number[]; // DOM indices for insertion point (augmented by server)
 }
 
 export interface ElementStructure {
@@ -54,14 +56,19 @@ export class ConditionalElementRenderer {
    */
   evaluateCondition(
     expression: string,
-    bindings: string[],
+    mapping: Record<string, string> | undefined,
     state: Record<string, any>
   ): boolean {
     try {
-      // Build evaluation context with only the required bindings
+      // Build evaluation context using variable names from mapping
       const context: Record<string, any> = {};
-      for (const binding of bindings) {
-        context[binding] = this.resolveBinding(state, binding);
+
+      if (mapping) {
+        // Map: { "myState1": "state_0", "myState2": "state_1" }
+        // Context: { "myState1": <value of state_0>, "myState2": <value of state_1> }
+        for (const [varName, stateKey] of Object.entries(mapping)) {
+          context[varName] = this.resolveBinding(state, stateKey);
+        }
       }
 
       // Simple expression evaluation for common patterns
@@ -263,7 +270,7 @@ export class ConditionalElementRenderer {
   ): HTMLElement | null {
     // 1. Evaluate condition
     const conditionResult = template.evaluable
-      ? this.evaluateCondition(template.conditionExpression, template.conditionBindings, state)
+      ? this.evaluateCondition(template.conditionExpression, template.conditionMapping, state)
       : false; // If not evaluable, wait for server
 
     if (!template.evaluable) {

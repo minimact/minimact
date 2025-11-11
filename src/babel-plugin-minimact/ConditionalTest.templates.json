@@ -1,7 +1,7 @@
 {
   "component": "ConditionalTest",
   "version": "1.0",
-  "generatedAt": 1762822319522,
+  "generatedAt": 1762825981111,
   "templates": {
     "1.1.1": {
       "template": "Conditional Element Test",
@@ -125,7 +125,7 @@
       "type": "conditional-element",
       "conditionExpression": "myState1",
       "conditionBindings": [
-        "myState1"
+        "state_0"
       ],
       "evaluable": true,
       "branches": {
@@ -152,8 +152,8 @@
       "type": "conditional-element",
       "conditionExpression": "myState1 && !myState2",
       "conditionBindings": [
-        "myState1",
-        "myState2"
+        "state_0",
+        "state_1"
       ],
       "evaluable": true,
       "branches": {
@@ -206,7 +206,7 @@
       "type": "conditional-element",
       "conditionExpression": "myState1",
       "conditionBindings": [
-        "myState1"
+        "state_0"
       ],
       "evaluable": true,
       "branches": {

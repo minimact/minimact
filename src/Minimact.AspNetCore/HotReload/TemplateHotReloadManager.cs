@@ -690,13 +690,66 @@ public class TemplateHotReloadManager : IDisposable
         _logger.LogDebug("[Minimact Templates] Added {Count} null path entries for {ComponentId}",
             nullPaths.Count, componentId);
 
+        // Augment conditional elements with DOM paths
+        var augmentedConditionals = AugmentConditionalElementsWithDomPaths(
+            templateMap.ConditionalElements,
+            component
+        );
+
         return new TemplateMap
         {
             Component = templateMap.Component,
             Version = templateMap.Version,
             GeneratedAt = templateMap.GeneratedAt,
-            Templates = augmentedTemplates
+            Templates = augmentedTemplates,
+            ConditionalElements = augmentedConditionals
         };
+    }
+
+    /// <summary>
+    /// Augment conditional element templates with DOM path indices
+    /// Converts hex paths to DOM indices using PathConverter
+    /// </summary>
+    private Dictionary<string, ConditionalElementTemplate>? AugmentConditionalElementsWithDomPaths(
+        Dictionary<string, ConditionalElementTemplate>? conditionalElements,
+        MinimactComponent component)
+    {
+        if (conditionalElements == null || conditionalElements.Count == 0)
+        {
+            return conditionalElements;
+        }
+
+        var pathConverter = new PathConverter(component.CurrentVNode);
+        var augmented = new Dictionary<string, ConditionalElementTemplate>();
+
+        foreach (var (hexPath, template) in conditionalElements)
+        {
+            // Inflate compact hex path to full format
+            // "1.3" → "10000000.30000000"
+            var segments = hexPath.Split('.');
+            var inflatedPath = InflateHexPath(segments.ToList());
+
+            // Convert to DOM indices
+            var domPath = pathConverter.HexPathToDomPath(inflatedPath);
+
+            // Create augmented template with DOM path
+            augmented[hexPath] = new ConditionalElementTemplate
+            {
+                Type = template.Type,
+                ConditionExpression = template.ConditionExpression,
+                ConditionBindings = template.ConditionBindings,
+                ConditionMapping = template.ConditionMapping,
+                Evaluable = template.Evaluable,
+                Branches = template.Branches,
+                Operator = template.Operator,
+                DomPath = domPath
+            };
+        }
+
+        _logger.LogDebug("[Minimact Templates] Augmented {Count} conditional elements with DOM paths",
+            augmented.Count);
+
+        return augmented;
     }
 
     /// <summary>
