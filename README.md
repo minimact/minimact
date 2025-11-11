@@ -152,6 +152,39 @@ Traditional UI frameworks like React must reconcile every state change on the cl
 - Vue 3: 34 KB gzipped
 - **Minimact: 13.33 KB gzipped** (71% smaller than React)
 
+---
+
+## 🤔 Why React Critics Were Right (Without Knowing Why)
+
+Many developers felt React was overcomplicated — they just couldn't articulate it:
+
+> *"Re-rendering seems wasteful."*
+> *"Virtual DOM feels unnecessary."*
+> *"It's declarative, but... heavy."*
+
+Here's what they were sensing:
+
+**🧭 JSX + useState = a finite state automaton.**
+
+- Every `useState` creates a known state space.
+- JSX describes a static view for each state.
+
+That means:
+- ✅ You can precompute all transitions.
+- 🚫 You don't need runtime diffing or reconciliation.
+
+**But React built a ship — Virtual DOM — to navigate a path that could have been walked directly with precomputed patches.**
+
+Minimact is that direct path:
+
+- **No hydration**
+- **No reconciliation**
+- **Finite state → Predictive patches → Instant updates (2–3ms)**
+
+**React gave you the compass. Minimact teaches you how to use it.**
+
+---
+
 ### Better Than Blazor
 Blazor requires learning Razor syntax. Minimact uses React — the syntax millions of developers already know. Lower barrier, faster adoption, bigger talent pool.
 
