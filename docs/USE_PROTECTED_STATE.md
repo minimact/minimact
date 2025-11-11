@@ -44,7 +44,7 @@ function App() {
 ## Solution: useProtectedState
 
 ```tsx
-import { useState, useProtectedState } from 'minimact';
+import { useState, useProtectedState } from '@minimact/core';
 
 function Counter() {
   // Public state (parent can access)

@@ -351,7 +351,7 @@ my-app/
 
 #### Example 1: Counter (Hello World)
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -373,7 +373,7 @@ export function Counter() {
 
 #### Example 2: Todo List
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -404,7 +404,7 @@ export function TodoList() {
 
 #### Example 3: Blog with EF Core
 ```tsx
-import { useState, useMarkdown, useTemplate } from 'minimact';
+import { useState, useMarkdown, useTemplate } from '@minimact/core';
 
 export function BlogPost() {
   const [post, setPost] = useState(null);
@@ -451,7 +451,7 @@ public partial class BlogPost
 
 #### Example 4: Hybrid Search Box
 ```tsx
-import { useState, useClientState } from 'minimact';
+import { useState, useClientState } from '@minimact/core';
 
 export function SearchBox() {
   const [results, setResults] = useState([]);

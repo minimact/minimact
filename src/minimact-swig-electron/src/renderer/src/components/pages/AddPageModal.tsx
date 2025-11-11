@@ -382,7 +382,7 @@ export default function AddPageModal({ isOpen, onClose, projectPath, onPageCreat
  * Generate page content based on template
  */
 function generatePageContent(pageName: string, templateId: string, parameters: RouteParameter[]): string {
-  const imports = "import { useState } from 'minimact';"
+  const imports = "import { useState } from '@minimact/core';"
   const propsInterface = parameters.length > 0
     ? `\ninterface ${pageName}Props {\n${parameters.map(p => `  ${p.name}${p.optional ? '?' : ''}: string;`).join('\n')}\n}\n`
     : ''
@@ -407,7 +407,7 @@ ${propsInterface}export function ${pageName}(${propsParam}) {
 `;
 
     case 'punch':
-      return `import { useState, useDomElementState } from 'minimact';
+      return `import { useState, useDomElementState } from '@minimact/core';
 
 ${propsInterface}export function ${pageName}(${propsParam}) {
   const [items, setItems] = useState(['Item 1', 'Item 2', 'Item 3']);
@@ -467,7 +467,7 @@ ${propsInterface}export function ${pageName}(${propsParam}) {
 `;
 
     case 'query':
-      return `import { useState, useDomQuery } from 'minimact';
+      return `import { useState, useDomQuery } from '@minimact/core';
 
 ${propsInterface}export function ${pageName}(${propsParam}) {
   const [products] = useState([

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'minimact';
+import { useRef, useEffect, useState } from '@minimact/core';
 
 export function QuantumSlider() {
   const sliderRef = useRef<HTMLInputElement>(null);

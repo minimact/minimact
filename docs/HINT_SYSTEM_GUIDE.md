@@ -47,7 +47,7 @@ A **developer-controlled hint** that explicitly tells Minimact to pre-compute an
 ### Basic Usage
 
 ```tsx
-import { usePredictHint } from 'minimact';
+import { usePredictHint } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);

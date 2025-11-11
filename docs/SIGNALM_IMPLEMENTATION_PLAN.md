@@ -1487,7 +1487,7 @@ npm install minimact
 ```
 
 ```typescript
-import { Minimact } from 'minimact';
+import { Minimact } from '@minimact/core';
 ```
 
 Includes full SignalR client with:

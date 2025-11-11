@@ -124,7 +124,7 @@ Click eye icon in editor title bar
 2. **Add missing imports**
    - Appears when: Hooks are used but not imported
    - Action: Auto-adds missing hooks to import statement
-   - Example: Detects `useState` usage → adds to `import { useState } from 'minimact'`
+   - Example: Detects `useState` usage → adds to `import { useState } from '@minimact/core'`
 
 3. **Add usePredictHint**
    - Appears when: setState call detected without prediction
@@ -138,7 +138,7 @@ Click eye icon in editor title bar
 
 4. **Convert to Minimact component**
    - Appears when: React imports detected
-   - Action: Replaces `from 'react'` with `from 'minimact'`
+   - Action: Replaces `from 'react'` with `from '@minimact/core'`
 
 **Usage**:
 ```

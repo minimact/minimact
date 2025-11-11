@@ -1034,7 +1034,7 @@ public class ProductDetailsViewModel
 **TSX Component:**
 ```tsx
 import { useMvcState, useMvcViewModel } from '@minimact/mvc-bridge';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface ProductDetailsViewModel {
     productName: string;

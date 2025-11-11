@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export default function Counter() {
   const [count, setCount] = useState(0);

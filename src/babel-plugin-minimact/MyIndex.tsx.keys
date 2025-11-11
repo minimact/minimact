@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'minimact';
+import { useState, useEffect, useRef } from '@minimact/core';
 
 /**
  * Hook Examples Index

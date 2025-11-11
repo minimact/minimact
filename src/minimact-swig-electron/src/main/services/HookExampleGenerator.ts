@@ -154,7 +154,7 @@ export default ${functionName.replace('Example', '')};
       categories.push(this.buildCategorySection(categoryLabel, hooks, imports));
     }
 
-    return `import { useState } from 'minimact';
+    return `import { useState } from '@minimact/core';
 
 ${imports.join('\n')}
 

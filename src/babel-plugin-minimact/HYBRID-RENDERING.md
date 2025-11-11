@@ -288,7 +288,7 @@ document.querySelector('[data-bind="clientInput.length"]').textContent = clientI
 ### Input (TSX)
 
 ```tsx
-import { useState, useClientState } from 'minimact';
+import { useState, useClientState } from '@minimact/core';
 
 export function SearchBox() {
   const [results, setResults] = useState([]);        // Server

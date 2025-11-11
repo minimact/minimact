@@ -1,4 +1,4 @@
-import { useModal } from 'minimact';
+import { useModal } from '@minimact/core';
 
 function ModalExample() {
   const modal = useModal();

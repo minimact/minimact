@@ -1,4 +1,4 @@
-import { useDropdown, Routes } from 'minimact';
+import { useDropdown, Routes } from '@minimact/core';
 
 function UnitSelector() {
   const dropdown = useDropdown(Routes.Api.Units.GetAll);

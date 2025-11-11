@@ -1001,7 +1001,7 @@ export function TemporalGraphVisualizer() {
 
 ```typescript
 export const PerformanceDashboard = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function PerformanceDashboard() {
   const widgets = useDomElementState('.widget');
@@ -1058,7 +1058,7 @@ export function PerformanceDashboard() {
 
 ```typescript
 export const DataFreshnessMonitor = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function StockPriceWidget() {
   const price = useDomElementState('.stock-price');
@@ -1113,7 +1113,7 @@ export function StockPriceWidget() {
 
 ```typescript
 export const FormEngagementTracker = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function SmartForm() {
   const form = useDomElementState('form');
@@ -1178,7 +1178,7 @@ export function SmartForm() {
 
 ```typescript
 export const AutoSaveSystem = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function DocumentEditor() {
   const editor = useDomElementState('.editor');

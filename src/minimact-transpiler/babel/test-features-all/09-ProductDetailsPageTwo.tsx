@@ -1,5 +1,5 @@
 import { useMvcState, useMvcViewModel, decimal, int } from '@minimact/mvc';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 // TypeScript interface matching C# ViewModel
 // IMPORTANT: Use C# type mappings (decimal, int, etc.) to ensure correct code generation

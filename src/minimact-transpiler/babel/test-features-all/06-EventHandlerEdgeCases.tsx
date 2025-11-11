@@ -8,7 +8,7 @@
  * - Complex event handler bodies
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface Task {
   id: number;

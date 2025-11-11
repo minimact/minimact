@@ -5,8 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import splashPage from '../../resources/splash.html?asset'
 
 // Import services
-import { ProjectManager } from './services/ProjectManager'
-import { TranspilerService } from './services/TranspilerService'
+import { ProjectManager, TranspilerService } from '@minimact/swig-shared'
 import { ProcessController } from './services/ProcessController'
 import { SignalRClient } from './services/SignalRClient'
 

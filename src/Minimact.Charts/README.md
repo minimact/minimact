@@ -25,7 +25,7 @@ dotnet add package Minimact.Charts
 ## Quick Start
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Dashboard() {
   const [salesData] = useState([

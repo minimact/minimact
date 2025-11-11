@@ -8,7 +8,7 @@
  *
  * @example
  * // Basic usage
- * import { state } from 'minimact';
+ * import { state } from '@minimact/core';
  * const value = state.myKey;  // → State["myKey"] in C#
  *
  * @example
@@ -90,7 +90,7 @@ export type State<T = Record<string, any>> = ComponentState<T>;
  *
  * @example
  * // Set own state
- * import { setState } from 'minimact';
+ * import { setState } from '@minimact/core';
  * setState('myKey', 'myValue');  // → SetState("myKey", "myValue") in C#
  *
  * @example

@@ -1,4 +1,4 @@
-import { useState, useServerTask } from 'minimact';
+import { useState, useServerTask } from '@minimact/core';
 
 interface AnalysisResult {
   totalItems: number;

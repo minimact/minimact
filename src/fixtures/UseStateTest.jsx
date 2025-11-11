@@ -2,7 +2,7 @@
  * Test: useState hook transformation
  * Expected: [State] attribute on private fields
  */
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function UseStateTest() {
   const [count, setCount] = useState(0);

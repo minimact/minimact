@@ -230,7 +230,7 @@ private void Effect_3()
 ### TSX Code
 
 ```tsx
-import { useState, useEffect, useRef } from 'minimact';
+import { useState, useEffect, useRef } from '@minimact/core';
 
 export function Timer() {
   const [count, setCount] = useState(0);

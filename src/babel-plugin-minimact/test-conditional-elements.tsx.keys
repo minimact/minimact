@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function ConditionalTest() {
   const [myState1, setMyState1] = useState(false);

@@ -5,7 +5,7 @@
  * Key Issue: Loop template system may not handle nested iteration correctly
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface Item {
   id: number;

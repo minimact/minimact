@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 import _ from 'lodash';
 import moment from 'moment';
 import 'bootstrap/dist/css/bootstrap.min.css';

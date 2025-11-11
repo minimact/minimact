@@ -2236,7 +2236,7 @@ Add `useDataGrid` to Swig's hook library for project scaffolding.
   name: 'useDataGrid',
   description: 'Server-side JSX templates with surgical client-side patching for data grids',
   category: 'advanced',
-  imports: ["import { useDataGrid } from 'minimact';", "import { useState } from 'minimact';"],
+  imports: ["import { useDataGrid } from '@minimact/core';", "import { useState } from '@minimact/core';"],
   example: `interface User {
   id: number;
   name: string;

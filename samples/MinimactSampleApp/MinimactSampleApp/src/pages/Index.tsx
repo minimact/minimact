@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Index() {
     const [count, setCount] = useState(0);

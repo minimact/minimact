@@ -134,7 +134,7 @@ export class MinimactCodeActionProvider implements vscode.CodeActionProvider {
       // Update existing import
       const existingImports = match[1].split(',').map(s => s.trim());
       const allImports = [...new Set([...existingImports, ...hooks])].sort();
-      const newImport = `import { ${allImports.join(', ')} } from 'minimact'`;
+      const newImport = `import { ${allImports.join(', ')} } from '@minimact/core'`;
 
       edit = new vscode.WorkspaceEdit();
       const importRange = new vscode.Range(
@@ -145,7 +145,7 @@ export class MinimactCodeActionProvider implements vscode.CodeActionProvider {
     } else {
       // Create new import at top
       edit = new vscode.WorkspaceEdit();
-      const newImport = `import { ${hooks.join(', ')} } from 'minimact';\n`;
+      const newImport = `import { ${hooks.join(', ')} } from '@minimact/core';\n`;
       edit.insert(document.uri, new vscode.Position(0, 0), newImport);
     }
 
@@ -224,7 +224,7 @@ export class MinimactCodeActionProvider implements vscode.CodeActionProvider {
         document.positionAt(match.index),
         document.positionAt(match.index + match[0].length)
       );
-      edit.replace(document.uri, range, `from 'minimact'`);
+      edit.replace(document.uri, range, `from '@minimact/core'`);
     }
 
     action.edit = edit;
@@ -291,7 +291,7 @@ export function registerAddPredictHintCommand(context: vscode.ExtensionContext) 
         if (importMatch) {
           const imports = importMatch[1].split(',').map(s => s.trim());
           imports.push('usePredictHint');
-          const newImport = `import { ${imports.join(', ')} } from 'minimact'`;
+          const newImport = `import { ${imports.join(', ')} } from '@minimact/core'`;
 
           await editor.edit(editBuilder => {
             const importRange = new vscode.Range(

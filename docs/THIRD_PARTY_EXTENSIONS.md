@@ -98,7 +98,7 @@ export function useYourHook() {
 To integrate with Minimact's predictive system:
 
 ```typescript
-import { HintQueue, DOMPatcher, PlaygroundBridge } from 'minimact';
+import { HintQueue, DOMPatcher, PlaygroundBridge } from '@minimact/core';
 
 export function useYourHook() {
   const context = currentContext;
@@ -1006,7 +1006,7 @@ For advanced extensions that need deeper integration:
 
 ```typescript
 // Public API (stable)
-import { useState, useEffect, useRef } from 'minimact';
+import { useState, useEffect, useRef } from '@minimact/core';
 
 // Advanced API (use with caution - may change)
 import type {

@@ -26,7 +26,7 @@ npm install @minimact/grid
 
 ```tsx
 import { useDataGrid } from '@minimact/grid';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface User {
   id: number;

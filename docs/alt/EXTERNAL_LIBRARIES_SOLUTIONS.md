@@ -230,7 +230,7 @@ protected override VNode Render()
 **JSX:**
 
 ```jsx
-import { useState, useClientComputed } from 'minimact';
+import { useState, useClientComputed } from '@minimact/core';
 import _ from 'lodash';
 
 function ExternalLibrariesTest() {

@@ -1,7 +1,7 @@
 // Pattern 1.2: Parent Observing Child State - Form Validation Summary
 // Parent observes validation state from all form sections and shows summary
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 // Child component: PersonalInfoForm
 export function PersonalInfoForm() {

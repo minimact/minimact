@@ -184,7 +184,7 @@ console.log('Current step:', wizard.lifecycle.lifecycleState);
 ## Example 4: Modal (with Predictive Hints)
 
 ```tsx
-import { useDomElementState, usePredictHint } from 'minimact';
+import { useDomElementState, usePredictHint } from '@minimact/core';
 
 function Modal() {
   const modal = useDomElementState('#modal', {

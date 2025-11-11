@@ -121,7 +121,7 @@ public class DiamondRanger : RangerTest
         report.RecordStep("Testing Phase 2: Conditional Templates (Boolean Toggles)...");
 
         // Create a simple toggle component TSX
-        var toggleTsx = @"import { useState } from 'minimact';
+        var toggleTsx = @"import { useState } from '@minimact/core';
 
 export default function ConnectionStatus() {
   const [isOnline, setIsOnline] = useState(true);
@@ -166,7 +166,7 @@ export default function ConnectionStatus() {
     {
         report.RecordStep("Testing Phase 3: Multi-Variable Templates...");
 
-        var userTsx = @"import { useState } from 'minimact';
+        var userTsx = @"import { useState } from '@minimact/core';
 
 export default function UserProfile() {
   const [firstName, setFirstName] = useState('John');
@@ -211,7 +211,7 @@ export default function UserProfile() {
     {
         report.RecordStep("Testing Phase 4: Loop Templates (.map() Support)...");
 
-        var todoTsx = @"import { useState } from 'minimact';
+        var todoTsx = @"import { useState } from '@minimact/core';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([
@@ -347,7 +347,7 @@ export default function TodoList() {
     {
         report.RecordStep("Testing Phase 5: Structural Templates (Conditional Rendering)...");
 
-        var authTsx = @"import { useState } from 'minimact';
+        var authTsx = @"import { useState } from '@minimact/core';
 
 export default function AuthPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -401,7 +401,7 @@ export default function AuthPage() {
     {
         report.RecordStep("Testing Phase 6: Expression Templates (toFixed, etc.)...");
 
-        var priceTsx = @"import { useState } from 'minimact';
+        var priceTsx = @"import { useState } from '@minimact/core';
 
 export default function PriceDisplay() {
   const [price, setPrice] = useState(99.95);
@@ -445,7 +445,7 @@ export default function PriceDisplay() {
     {
         report.RecordStep("Testing Phase 7: Deep State Traversal (Nested Objects)...");
 
-        var addressTsx = @"import { useState } from 'minimact';
+        var addressTsx = @"import { useState } from '@minimact/core';
 
 export default function AddressDisplay() {
   const [user, setUser] = useState({
@@ -495,7 +495,7 @@ export default function AddressDisplay() {
     {
         report.RecordStep("Testing Phase 8: Reorder Templates (Sorting)...");
 
-        var sortTsx = @"import { useState } from 'minimact';
+        var sortTsx = @"import { useState } from '@minimact/core';
 
 export default function SortableList() {
   const [items, setItems] = useState([
@@ -552,7 +552,7 @@ export default function SortableList() {
     {
         report.RecordStep("Testing Phase 9: Array State Helpers (Semantic Operations)...");
 
-        var helpersTsx = @"import { useState } from 'minimact';
+        var helpersTsx = @"import { useState } from '@minimact/core';
 
 export default function FastTodoList() {
   const [todos, setTodos] = useState([

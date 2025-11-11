@@ -2,7 +2,7 @@
  * Test: List rendering with .map()
  * Expected: Proper C# loop/LINQ translation with key support
  */
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function ListRenderingTest() {
   const [items, setItems] = useState([

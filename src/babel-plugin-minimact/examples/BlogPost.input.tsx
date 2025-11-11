@@ -1,5 +1,5 @@
 // Example: Blog post component with EF Core, Markdown, and Template
-import { useState, useEffect, useMarkdown, useTemplate } from 'minimact';
+import { useState, useEffect, useMarkdown, useTemplate } from '@minimact/core';
 
 interface Post {
   id: number;

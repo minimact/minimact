@@ -612,7 +612,7 @@ Add C# attributes and hub methods:
 
 ```tsx
 // Client
-import { useServerState } from 'minimact';
+import { useServerState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useServerState(0, 'count');
@@ -657,7 +657,7 @@ public class Counter : MinimactComponent
 ### Example 2: Dropdown (Client State)
 
 ```tsx
-import { useClientState } from 'minimact';
+import { useClientState } from '@minimact/core';
 
 export function Dropdown() {
   const [isOpen, setIsOpen] = useClientState(false);
@@ -688,7 +688,7 @@ export function Dropdown() {
 ### Example 3: Auto-Save Draft (Optimistic State)
 
 ```tsx
-import { useOptimisticState } from 'minimact';
+import { useOptimisticState } from '@minimact/core';
 
 export function Editor() {
   const [draft, saveDraft, { isSyncing }] = useOptimisticState('', {
@@ -720,7 +720,7 @@ export function Editor() {
 ### Example 4: Shopping Cart (Hybrid State)
 
 ```tsx
-import { useHybridState } from 'minimact';
+import { useHybridState } from '@minimact/core';
 
 export function Cart() {
   const [items, setItems, syncCart] = useHybridState([], {

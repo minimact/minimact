@@ -27,7 +27,7 @@ npm install @minimact/charts
 ### Bar Chart
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 import type { DataPoint } from '@minimact/charts';
 
 export function SalesDashboard() {

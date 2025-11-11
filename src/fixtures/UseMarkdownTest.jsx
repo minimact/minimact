@@ -1,4 +1,4 @@
-import { useMarkdown } from 'minimact';
+import { useMarkdown } from '@minimact/core';
 
 function BlogPost() {
   const [content, setContent] = useMarkdown(`

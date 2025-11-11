@@ -3,7 +3,7 @@
  * Expected: onClick → private void HandleClick_N() methods
  *           Event handlers registered in props as strings
  */
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function EventHandlersTest() {
   const [count, setCount] = useState(0);

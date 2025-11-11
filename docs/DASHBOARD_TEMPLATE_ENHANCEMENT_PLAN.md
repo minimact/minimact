@@ -143,7 +143,7 @@ ProjectName/
 ### Enhanced Index.tsx
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 import type { DataPoint } from '@minimact/charts';
 
 interface MetricData {

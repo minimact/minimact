@@ -6,7 +6,7 @@
  * Status: ❌ KNOWN NOT SUPPORTED
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface DataRow {
   id: number;

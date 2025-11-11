@@ -61,7 +61,7 @@ npm install babel-plugin-minimact
 
 **Input (Counter.tsx):**
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -115,7 +115,7 @@ public partial class Counter : MinimactComponent
 
 **Input:**
 ```tsx
-import { useState, useClientState } from 'minimact';
+import { useState, useClientState } from '@minimact/core';
 
 export function SearchBox() {
   const [results, setResults] = useState([]);        // Server state
@@ -296,7 +296,7 @@ public partial class TodoList : MinimactComponent
 
 **Input:**
 ```tsx
-import { useState, useMarkdown, useTemplate } from 'minimact';
+import { useState, useMarkdown, useTemplate } from '@minimact/core';
 
 export function BlogPost() {
   const [post, setPost] = useState(null);

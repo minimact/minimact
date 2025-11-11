@@ -2,7 +2,7 @@
  * Test: useEffect hook transformation
  * Expected: [OnStateChanged("stateName")] attribute on methods
  */
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 
 export function UseEffectTest() {
   const [count, setCount] = useState(0);

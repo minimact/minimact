@@ -56,7 +56,7 @@ export default function Dashboard() {
 ### Create a Typed State Proxy
 
 ```tsx
-import { state } from 'minimact';
+import { state } from '@minimact/core';
 
 export default function Dashboard() {
   // ✅ Works: state is a typed proxy object
@@ -91,7 +91,7 @@ export default function Dashboard() {
  * It NEVER executes at runtime - the Babel plugin removes it during transpilation.
  *
  * @example
- * import { state } from 'minimact';
+ * import { state } from '@minimact/core';
  *
  * const value = state.myKey;              // → State["myKey"] in C#
  * const childValue = state["Child.key"];  // → State["Child.key"] in C#
@@ -197,7 +197,7 @@ function generateCSharpExpression(node, component, indent) {
 
 ### 3. Import Detection
 
-The Babel plugin should detect if `state` is imported from 'minimact':
+The Babel plugin should detect if `state` is imported from '@minimact/core':
 
 ```javascript
 // In index-full.cjs or visitor setup
@@ -226,7 +226,7 @@ Program: {
 ### Basic Usage
 
 ```tsx
-import { state } from 'minimact';
+import { state } from '@minimact/core';
 
 export default function MyComponent() {
   // Untyped - any key allowed
@@ -239,7 +239,7 @@ export default function MyComponent() {
 ### Typed Usage (Advanced)
 
 ```tsx
-import { state, ComponentState } from 'minimact';
+import { state, ComponentState } from '@minimact/core';
 
 interface MyState {
   count: number;
@@ -267,7 +267,7 @@ export default function MyComponent() {
 ### With Lifted State
 
 ```tsx
-import { state, ComponentState } from 'minimact';
+import { state, ComponentState } from '@minimact/core';
 
 interface DashboardState {
   // Parent's own state
@@ -374,7 +374,7 @@ const c = state["Namespace.key"];
 ### Example 1: Simple Component
 
 ```tsx
-import { useState, state } from 'minimact';
+import { useState, state } from '@minimact/core';
 
 export default function Counter() {
   const [count, setCount] = useState(0);
@@ -421,7 +421,7 @@ public partial class Counter : MinimactComponent
 ### Example 2: Lifted State (Parent Observing Children)
 
 ```tsx
-import { state } from 'minimact';
+import { state } from '@minimact/core';
 
 export function UserProfile() {
   const [isLoading, setIsLoading] = useState(false);
@@ -499,20 +499,20 @@ public partial class Dashboard : MinimactComponent
 ### 1. State Not Imported
 
 ```tsx
-// If 'state' is used but not imported from 'minimact'
+// If 'state' is used but not imported from '@minimact/core'
 export default function BadComponent() {
   const value = state.key;  // ❌ ReferenceError or undefined
 }
 ```
 
 **Babel Plugin Behavior:**
-- Warn if `state` identifier used but not imported from 'minimact'
+- Warn if `state` identifier used but not imported from '@minimact/core'
 - Transpile anyway (might be from different source)
 
 ### 2. Shadowed State Variable
 
 ```tsx
-import { state as globalState } from 'minimact';
+import { state as globalState } from '@minimact/core';
 
 export default function MyComponent() {
   const state = { local: true };  // Shadows imported state
@@ -568,7 +568,7 @@ const { count, message } = state;
 - [ ] Add `state` identifier detection in `expressions.cjs`
 - [ ] Handle `state.key` member access (non-computed)
 - [ ] Handle `state["key"]` member access (computed)
-- [ ] Track `state` import from 'minimact'
+- [ ] Track `state` import from '@minimact/core'
 - [ ] Add warning for naked `state` reference
 - [ ] Add error for `state` destructuring
 
@@ -628,7 +628,7 @@ const { count, message } = state;
 
 ## Success Criteria
 
-- ✅ `import { state } from 'minimact'` provides IntelliSense
+- ✅ `import { state } from '@minimact/core'` provides IntelliSense
 - ✅ `state.key` transpiles to `State["key"]` in C#
 - ✅ `state["Child.key"]` transpiles to `State["Child.key"]` in C#
 - ✅ TypeScript shows errors for undefined keys (with typed state)

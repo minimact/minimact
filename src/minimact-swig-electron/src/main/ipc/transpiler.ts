@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import type { TranspilerService } from '../services/TranspilerService';
+import type { TranspilerService } from '@minimact/swig-shared';
 
 /**
  * Register transpiler-related IPC handlers

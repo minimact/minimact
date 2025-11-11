@@ -109,7 +109,7 @@ dynamic('.price', (state) =>
 
 **Example TSX**:
 ```typescript
-import { useServerTask } from 'minimact';
+import { useServerTask } from '@minimact/core';
 
 export function FileUpload() {
   const upload = useServerTask(async (file: File) => {
@@ -216,7 +216,7 @@ export function QuantumSlider() {
 
 **Example TSX**:
 ```typescript
-import { usePub, useSub } from 'minimact';
+import { usePub, useSub } from '@minimact/core';
 
 export function ChatRoom() {
   const publish = usePub('chat-messages');
@@ -250,7 +250,7 @@ export function ChatRoom() {
 
 **Example TSX**:
 ```typescript
-import { useSignalR } from 'minimact';
+import { useSignalR } from '@minimact/core';
 
 export function LiveNotifications() {
   const notifications = useSignalR('/hubs/notifications', (data) => {
@@ -339,7 +339,7 @@ public class MyRanger : RangerTest
 
 ### Fixture TSX Pattern
 ```typescript
-import { useHookName } from 'minimact' | 'minimact-extension';
+import { useHookName } from '@minimact/core' | 'minimact-extension';
 
 export function ComponentName() {
   const hookResult = useHookName(...);

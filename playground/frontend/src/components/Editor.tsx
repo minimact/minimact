@@ -12,7 +12,7 @@ interface EditorProps {
   compilationTime?: number | null;
 }
 
-const DEFAULT_TSX_CODE = `import { useState } from 'minimact';
+const DEFAULT_TSX_CODE = `import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);

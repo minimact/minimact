@@ -1306,7 +1306,7 @@ export function DOMTopologyVisualizer() {
 
 ```typescript
 export const PseudoStateExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function InteractiveButtons() {
   const buttons = useDomElementState('button');
@@ -1336,7 +1336,7 @@ export function InteractiveButtons() {
 
 ```typescript
 export const ThemeAwareExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function AdaptiveLayout() {
   const app = useDomElementState('#root');
@@ -1364,7 +1364,7 @@ export function AdaptiveLayout() {
 
 ```typescript
 export const SpatialQueryExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function SmartList() {
   const items = useDomElementState('.list-item');
@@ -1405,7 +1405,7 @@ export function SmartList() {
 
 ```typescript
 export const VisualContentExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function ImageAnalyzer() {
   const canvas = useDomElementState('canvas');
@@ -1441,7 +1441,7 @@ export function ImageAnalyzer() {
 
 ```typescript
 export const MultiDimensionalExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function SuperSmartComponent() {
   const products = useDomElementState('.product');

@@ -354,7 +354,7 @@ private async Task<object> ServerTask_0(IProgress<double> progress, Cancellation
 ### Input (TypeScript)
 
 ```tsx
-import { useState, useServerTask } from 'minimact';
+import { useState, useServerTask } from '@minimact/core';
 
 export function DataAnalysis() {
   const [datasetId, setDatasetId] = useState<string>('');

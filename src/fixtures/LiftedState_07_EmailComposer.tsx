@@ -1,7 +1,7 @@
 // Pattern 5.1: Complex Workflow Orchestration - Email Composer with Rules
 // Parent enforces business rules and coordinates complex multi-component workflow
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 Bytes';

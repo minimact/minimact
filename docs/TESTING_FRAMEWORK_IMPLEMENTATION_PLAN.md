@@ -917,7 +917,7 @@ export class RustReconciler {
 **File:** `src/render/TestClient.ts`
 
 ```typescript
-import { Minimact } from 'minimact';
+import { Minimact } from '@minimact/core';
 import { TemplateRenderer } from 'minimact/template-renderer';
 import { HintQueue } from 'minimact/hint-queue';
 import { DOMPatcher } from 'minimact/dom-patcher';

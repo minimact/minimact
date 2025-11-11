@@ -366,7 +366,7 @@ export function Counter() {
 ### Basic Pattern
 
 ```tsx
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 // Child - uses normal useState, nothing special needed
 export function Counter() {

@@ -107,7 +107,7 @@ private double totalPrice => GetClientState<double>("totalPrice", default);
 
 **Client-Side Registration (Phase 3):**
 ```javascript
-import { registerClientComputed } from 'minimact';
+import { registerClientComputed } from '@minimact/core';
 import _ from 'lodash';
 
 // Register computations

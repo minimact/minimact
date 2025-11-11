@@ -201,7 +201,7 @@ export function Counter() {
 │ Counter.tsx              │ Counter.cs (preview)     │
 ├──────────────────────────┼──────────────────────────┤
 │ import { useState }      │ using Minimact.Core;     │
-│ from 'minimact';         │                          │
+│ from '@minimact/core';         │                          │
 │                          │ public partial class     │
 │ export function Counter()│   Counter : Component {  │
 │ {                        │                          │
@@ -268,7 +268,7 @@ export function Counter() {
 **Generated Files**:
 ```typescript
 // src/components/TodoList.tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -474,7 +474,7 @@ Minimact: ● Watching (3 components) | ✓ Last build: 1.2s ago
 
 ```typescript
 // mcomp
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function ${1:ComponentName}() {
   const [${2:state}, set${2/(.*)/${1:/capitalize}/}] = useState(${3:initialValue});

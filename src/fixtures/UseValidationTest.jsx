@@ -1,4 +1,4 @@
-import { useValidation } from 'minimact';
+import { useValidation } from '@minimact/core';
 
 function UserForm() {
   const email = useValidation('email', {

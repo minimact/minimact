@@ -273,7 +273,7 @@ public abstract class DefaultLayout : MinimactComponent
 
 ### Input (TSX)
 ```tsx
-import { useState, useEffect, useMarkdown, useTemplate } from 'minimact';
+import { useState, useEffect, useMarkdown, useTemplate } from '@minimact/core';
 
 export function BlogPost() {
   const [post, setPost] = useState(null);

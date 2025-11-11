@@ -530,7 +530,7 @@ The templates JSON is generated from the AST **before** C# code generation, so v
 Simple test case with ternary expressions:
 
 ```jsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function TernaryTest() {
   const [isExpanded, setIsExpanded] = useState(false);

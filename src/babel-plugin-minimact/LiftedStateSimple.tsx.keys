@@ -1,7 +1,7 @@
 // Simple Lifted State Example
 // Demonstrates parent reading and writing child state
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 // Child component: Counter
 // Uses regular useState - but parent can access its state!

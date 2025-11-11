@@ -1,4 +1,4 @@
-import { useState, usePub, useSub } from 'minimact';
+import { useState, usePub, useSub } from '@minimact/core';
 
 function UsePubSubTest() {
   const [lastMessage, setLastMessage] = useState('');

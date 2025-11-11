@@ -1,7 +1,7 @@
 // Pattern 4.1: Sibling Communication - Shopping Cart Badge
 // NavBar reads ShoppingCart state, ProductList modifies it
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 const PRODUCTS = [
   { id: 1, name: "Widget", price: 10.00 },

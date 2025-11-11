@@ -59,7 +59,7 @@ In Minimact, **all component state automatically lives in the parent**. You don'
 
 ```tsx
 // Minimact: State is automatically lifted
-import { state, setState, Component } from 'minimact';
+import { state, setState, Component } from '@minimact/core';
 
 function Dashboard() {
   // Child state is just... there. No lifting needed.
@@ -667,7 +667,7 @@ npm install minimact
 ```
 
 ```tsx
-import { state, setState, Component } from 'minimact';
+import { state, setState, Component } from '@minimact/core';
 
 // State is already lifted. Just use it.
 ```

@@ -2,7 +2,7 @@
  * Test: useRef hook transformation
  * Expected: [Ref] attribute on ElementRef fields
  */
-import { useRef, useState } from 'minimact';
+import { useRef, useState } from '@minimact/core';
 
 export function UseRefTest() {
   const inputRef = useRef(null);

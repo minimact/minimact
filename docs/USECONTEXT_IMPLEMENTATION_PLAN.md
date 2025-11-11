@@ -22,7 +22,7 @@ Implement `useContext` as a **server-side cache system** with support for multip
 ### Basic Usage
 
 ```tsx
-import { createContext, useContext } from 'minimact';
+import { createContext, useContext } from '@minimact/core';
 
 // Create context with scope
 const UserContext = createContext<User>('current-user', {

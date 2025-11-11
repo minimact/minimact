@@ -5,7 +5,7 @@
  * Key Issue: .toFixed() needs to map to .ToString("F2")
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface Product {
   name: string;

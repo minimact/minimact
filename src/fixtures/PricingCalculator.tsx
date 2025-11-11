@@ -12,7 +12,7 @@
  */
 
 import { useDecisionTree } from 'minimact-trees';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function PricingCalculator() {
   const [role, setRole] = useState('basic');

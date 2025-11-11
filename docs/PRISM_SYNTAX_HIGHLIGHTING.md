@@ -109,7 +109,7 @@ new MinimactPageRenderOptions
 ```tsx
 // Component.tsx
 import { useRazorMarkdown } from '@minimact/md';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function TutorialPage() {
   const [language] = useState('csharp');

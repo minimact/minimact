@@ -194,7 +194,7 @@ When a user selects hooks and creates a project, they get:
 
 ### **Pages/Examples/UseStateExample.tsx**
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 /**
  * Example: useState
@@ -257,7 +257,7 @@ export default ProductDetailsPage;
 
 ### **Pages/Examples/Index.tsx**
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 import Counter from './UseStateExample';
 import ProductDetailsPage from './UseMvcStateExample';
 // ... other imports

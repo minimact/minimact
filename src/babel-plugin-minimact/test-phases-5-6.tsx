@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 /**
  * Test component for Phases 5 & 6 template extraction

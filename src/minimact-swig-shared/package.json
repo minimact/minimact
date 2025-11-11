@@ -1,0 +1,52 @@
+{
+  "name": "@minimact/swig-shared",
+  "version": "1.0.0",
+  "description": "Shared services for Minimact Swig (Electron GUI and CLI)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "resources",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minimact/minimact.git",
+    "directory": "src/minimact-swig-shared"
+  },
+  "bugs": {
+    "url": "https://github.com/minimact/minimact/issues"
+  },
+  "homepage": "https://github.com/minimact/minimact#readme",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "minimact",
+    "swig",
+    "transpiler",
+    "project-manager",
+    "file-watcher"
+  ],
+  "author": "Minimact",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/parser": "^7.28.5",
+    "@babel/preset-typescript": "^7.24.0",
+    "chokidar": "^4.0.3",
+    "execa": "^9.6.0"
+  },
+  "devDependencies": {
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "rimraf": "^5.0.0"
+  }
+}

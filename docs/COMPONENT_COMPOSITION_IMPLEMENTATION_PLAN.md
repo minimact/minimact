@@ -1607,7 +1607,7 @@ export function Button({ label }) {
    }
 
    // Dashboard.tsx (deep child)
-   import { useContext } from 'minimact';
+   import { useContext } from '@minimact/core';
    import { ThemeContext } from './ThemeContext';
 
    export function Dashboard() {

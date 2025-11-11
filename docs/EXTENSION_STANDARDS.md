@@ -531,7 +531,7 @@ No LICENSE file - legal uncertainty
 
 ```typescript
 // ✅ COMPLIANT
-import { HintQueue, DOMPatcher } from 'minimact';
+import { HintQueue, DOMPatcher } from '@minimact/core';
 
 export function useYourHook() {
   const context = currentContext;

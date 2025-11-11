@@ -950,7 +950,7 @@ graph TB
 
 **Input (Counter.tsx):**
 ```typescript
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
     const [count, setCount] = useState(0);

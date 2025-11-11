@@ -1,7 +1,7 @@
 // Pattern 2.1: Parent Modifying Child State - Reset All Button
 // Parent can reset all child components at once
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 // Child component: Counter
 export function Counter() {

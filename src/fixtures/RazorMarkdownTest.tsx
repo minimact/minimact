@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 import { useRazorMarkdown } from '@minimact/md';
 
 export function ProductPage() {

@@ -152,7 +152,7 @@ public class DataDashboard : MinimactComponent
 
 **TypeScript (Client):**
 ```typescript
-import { registerClientComputed } from 'minimact';
+import { registerClientComputed } from '@minimact/core';
 import _ from 'lodash';
 
 registerClientComputed('counter-1', 'average', (component) => {

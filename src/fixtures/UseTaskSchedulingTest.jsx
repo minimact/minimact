@@ -1,4 +1,4 @@
-import { useState, useMicroTask, useMacroTask } from 'minimact';
+import { useState, useMicroTask, useMacroTask } from '@minimact/core';
 
 function UseTaskSchedulingTest() {
   const [measurements, setMeasurements] = useState([]);

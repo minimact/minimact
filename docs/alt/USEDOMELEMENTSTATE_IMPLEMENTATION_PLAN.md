@@ -700,7 +700,7 @@ interface DomElementState {
 ```typescript
 // Example 1: Intersection-driven lazy loading
 export const LazyLoadExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function Gallery() {
   const section = useDomElementState();
@@ -723,7 +723,7 @@ export function Gallery() {
 
 // Example 2: Children count driven UI
 export const ChildrenCountExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function Dashboard() {
   const widgets = useDomElementState();
@@ -746,7 +746,7 @@ export function Dashboard() {
 
 // Example 3: Collection statistics
 export const StatisticsExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function PriceList() {
   const prices = useDomElementState('.price');
@@ -776,7 +776,7 @@ export function PriceList() {
 
 // Example 4: Collection queries
 export const CollectionExample = `
-import { useDomElementState } from 'minimact';
+import { useDomElementState } from '@minimact/core';
 
 export function TaskList() {
   const tasks = useDomElementState('.task');

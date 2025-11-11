@@ -1,4 +1,4 @@
-import { useTemplate } from 'minimact';
+import { useTemplate } from '@minimact/core';
 
 function Dashboard() {
   useTemplate('SidebarLayout', { title: 'Dashboard' });

@@ -1,5 +1,5 @@
 import { ipcMain, dialog } from 'electron';
-import type { ProjectManager } from '../services/ProjectManager';
+import type { ProjectManager } from '@minimact/swig-shared';
 
 /**
  * Register project-related IPC handlers

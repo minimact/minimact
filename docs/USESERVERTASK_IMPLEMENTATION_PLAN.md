@@ -1281,7 +1281,7 @@ fn extract_server_task_template(
 **File**: `examples/DataAnalysisComponent.tsx`
 
 ```tsx
-import { useState, useServerTask } from 'minimact';
+import { useState, useServerTask } from '@minimact/core';
 
 export function DataAnalysis() {
   const [datasetId, setDatasetId] = useState<string>('');

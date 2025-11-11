@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 /**
  * Test fixture for conditional rendering with multiple state dependencies

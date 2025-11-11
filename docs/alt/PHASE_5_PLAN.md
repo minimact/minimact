@@ -141,7 +141,7 @@ $ node test-single.js ExternalLibrariesTest.jsx > ../samples/.../Generated/Exter
 **File:** `samples/MinimactSampleApp/MinimactSampleApp/wwwroot/js/external-libraries-test-client.js`
 
 ```javascript
-import { registerClientComputed } from 'minimact';
+import { registerClientComputed } from '@minimact/core';
 import _ from 'lodash';
 import moment from 'moment';
 

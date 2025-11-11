@@ -1,4 +1,4 @@
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function TernaryTest() {
   const [isExpanded, setIsExpanded] = useState(false);

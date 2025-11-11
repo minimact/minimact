@@ -50,7 +50,7 @@ export function AppLayout() {
 ### Interactive Badge (Hover to Expand)
 
 ```tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 import type { PoweredBadgeState } from '@minimact/powered';
 
 export function AppLayout() {

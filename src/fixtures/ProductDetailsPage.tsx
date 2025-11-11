@@ -1,5 +1,5 @@
 import { useMvcState, useMvcViewModel } from '@minimact/mvc';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 // TypeScript interface matching C# ViewModel
 interface ProductViewModel {

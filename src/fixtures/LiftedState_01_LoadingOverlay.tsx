@@ -3,7 +3,7 @@
 
 // Note: <Component> is a special compile-time JSX element recognized by the Babel plugin
 // It's not imported - it's part of the Minimact JSX syntax
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 // Child component: UserProfile
 export function UserProfile() {

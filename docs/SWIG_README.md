@@ -188,7 +188,7 @@ Update Node.js from [nodejs.org](https://nodejs.org)
 **Cause:** Invalid TSX syntax or missing imports.
 
 **Fix:** Check the error message in the output pane. Common issues:
-- Missing `import { useState } from 'minimact'`
+- Missing `import { useState } from '@minimact/core'`
 - Unclosed JSX tags
 - TypeScript syntax errors
 

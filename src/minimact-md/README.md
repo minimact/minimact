@@ -68,7 +68,7 @@ For dynamic content with state interpolation using Razor-style syntax.
 
 ```tsx
 import { useRazorMarkdown } from '@minimact/md';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function ProductPage() {
   const [name] = useState('Gaming Laptop');

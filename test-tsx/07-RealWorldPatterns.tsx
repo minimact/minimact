@@ -4,7 +4,7 @@
  * Tests the most common patterns users encounter in production apps
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface User {
   id: number;

@@ -400,7 +400,7 @@ public class HomeController : ControllerBase
     );
 
     // Create Pages/CounterPage.tsx
-    const counterPageTsx = `import { useState } from 'minimact';
+    const counterPageTsx = `import { useState } from '@minimact/core';
 
 export function CounterPage() {
   const [count, setCount] = useState(0);
@@ -465,7 +465,7 @@ public class HomeController : ControllerBase
     );
 
     // Create Pages/TodoListPage.tsx
-    const todoListPageTsx = `import { useState } from 'minimact';
+    const todoListPageTsx = `import { useState } from '@minimact/core';
 
 interface Todo {
   id: number;
@@ -612,7 +612,7 @@ public class HomeController : ControllerBase
     );
 
     // Create Pages/DashboardPage.tsx with enhanced charts
-    const dashboardPageTsx = `import { useState } from 'minimact';
+    const dashboardPageTsx = `import { useState } from '@minimact/core';
 import type { DataPoint } from '@minimact/charts';
 
 interface MetricData {
@@ -1636,7 +1636,7 @@ module.exports = {
    */
   private getProductDetailsPageTailwind(): string {
     return `import { useMvcState, useMvcViewModel, decimal, int } from '@minimact/mvc';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 // TypeScript interface matching C# ViewModel
 interface ProductViewModel {
@@ -1768,7 +1768,7 @@ export function ProductDetailsPage() {
    */
   private getProductDetailsPageInline(): string {
     return `import { useMvcState, useMvcViewModel, decimal, int } from '@minimact/mvc';
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 // TypeScript interface matching C# ViewModel
 interface ProductViewModel {

@@ -1,4 +1,4 @@
-import { useState, useClientState } from 'minimact';
+import { useState, useClientState } from '@minimact/core';
 
 function SearchBox() {
   const [query, setQuery] = useClientState('');

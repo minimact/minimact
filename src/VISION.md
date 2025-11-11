@@ -35,7 +35,7 @@ Minimact delivers server-side React with near-instant UI updates through predict
 │                                                          │
 │  Write TSX/JSX with React hooks:                        │
 │                                                          │
-│    import { useState, useEffect, useRef } from 'minimact' │
+│    import { useState, useEffect, useRef } from '@minimact/core' │
 │                                                          │
 │    export function Counter() {                          │
 │      const [count, setCount] = useState(0)             │
@@ -626,7 +626,7 @@ if (typeof window !== 'undefined') {
 
 ```typescript
 // src/components/TodoList.tsx
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 
 interface Todo {
     id: number;
@@ -1158,7 +1158,7 @@ app.MapMinimactPage("/todos/{id}", "TodoDetail");
 
 **Option B**: Client-side routing (via history API)
 ```typescript
-import { useRouter } from 'minimact';
+import { useRouter } from '@minimact/core';
 
 function App() {
     const router = useRouter();
@@ -1225,7 +1225,7 @@ dotnet publish
 **First component**:
 ```typescript
 // src/components/Hello.tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Hello() {
     const [name, setName] = useState('World');
@@ -1255,7 +1255,7 @@ Minimact supports both server-side state (`useState`) and client-side state (`us
 #### Client-Only State for Immediate Feedback
 
 ```typescript
-import { useState, useClientState } from 'minimact';
+import { useState, useClientState } from '@minimact/core';
 
 function SearchBox() {
     const [query, setQuery] = useClientState('');  // Client-only, instant updates
@@ -1329,7 +1329,7 @@ function Hybrid() {
 First-class support for markdown content with server-side parsing:
 
 ```typescript
-import { useMarkdown } from 'minimact';
+import { useMarkdown } from '@minimact/core';
 
 function BlogPost() {
     const [content, setContent] = useMarkdown(`
@@ -1393,7 +1393,7 @@ public partial class BlogPost
 Define reusable layouts and templates for consistent UI structure across your app:
 
 ```typescript
-import { useTemplate } from 'minimact';
+import { useTemplate } from '@minimact/core';
 
 function Dashboard() {
     useTemplate('SidebarLayout', { title: 'Dashboard' });
@@ -1462,7 +1462,7 @@ High-level abstractions that compile away to optimized C# code with no runtime o
 Automatic form validation with minimal boilerplate:
 
 ```typescript
-import { useValidation } from 'minimact';
+import { useValidation } from '@minimact/core';
 
 function UserForm() {
     const email = useValidation('email', {
@@ -1551,7 +1551,7 @@ return (
 Route-as-parameter pattern provides full type safety and discoverability:
 
 ```typescript
-import { useDropdown, Routes } from 'minimact';
+import { useDropdown, Routes } from '@minimact/core';
 
 function UnitSelector() {
     const dropdown = useDropdown(Routes.Api.Units.GetAll);

@@ -420,7 +420,7 @@ dist/index.d.ts           12.34 kB
 Developers can write this code **today**:
 
 ```tsx
-import { useServerTask } from 'minimact';
+import { useServerTask } from '@minimact/core';
 
 function DataAnalysis() {
   const analysis = useServerTask<AnalysisResult>(async () => {

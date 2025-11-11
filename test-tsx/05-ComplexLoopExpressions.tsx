@@ -6,7 +6,7 @@
  * File: extractors/loopTemplates.cjs:~line 100
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface TodoItem {
   id: number;

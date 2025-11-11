@@ -40,7 +40,7 @@ The **lifted state system** automatically stores all child component state in th
 ### TypeScript Input
 
 ```tsx
-import { Component } from 'minimact';
+import { Component } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -133,7 +133,7 @@ public partial class App : MinimactComponent
 ### TypeScript Input
 
 ```tsx
-import { state, Component } from 'minimact';
+import { state, Component } from '@minimact/core';
 
 export function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -248,7 +248,7 @@ public partial class Dashboard : MinimactComponent
 ### TypeScript Input
 
 ```tsx
-import { state, setState, Component } from 'minimact';
+import { state, setState, Component } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -601,7 +601,7 @@ public partial class UserProfile : MinimactComponent
 ### TypeScript Input
 
 ```tsx
-import { state, setState, Component } from 'minimact';
+import { state, setState, Component } from '@minimact/core';
 
 export function UserProfile() {
   const [username, setUsername] = useState("");

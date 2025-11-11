@@ -207,7 +207,7 @@ function generateTsxContent(options: ScaffoldOptions): string {
   if (includeDomState) hooksList.push('useDomElementState');
 
   if (hooksList.length > 0) {
-    imports.push(`import { ${hooksList.join(', ')} } from 'minimact';`);
+    imports.push(`import { ${hooksList.join(', ')} } from '@minimact/core';`);
   }
 
   if (includeTypes) {

@@ -1,7 +1,7 @@
 // Pattern 2.2: Parent Modifying Child State - Wizard Flow Control
 // Parent orchestrates wizard workflow and controls step progression
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 // Child component: Step1
 export function Step1() {

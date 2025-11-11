@@ -1,4 +1,4 @@
-import { useState, useSignalR } from 'minimact';
+import { useState, useSignalR } from '@minimact/core';
 
 function UseSignalRTest() {
   const [messages, setMessages] = useState([]);

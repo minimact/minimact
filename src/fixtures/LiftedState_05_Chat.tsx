@@ -1,7 +1,7 @@
 // Pattern 3.1: Cross-Component Communication - Chat Application
 // Parent coordinates state between MessageInput and MessageList
 
-import { Component, state, setState } from 'minimact';
+import { Component, state, setState } from '@minimact/core';
 
 // Child component: ChatHeader
 export function ChatHeader() {

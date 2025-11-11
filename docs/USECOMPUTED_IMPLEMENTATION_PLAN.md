@@ -21,7 +21,7 @@ Implement `useComputed` hook to replace the hallucinated `useClientState` hook. 
 ### Basic Usage
 
 ```tsx
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 const sortedUsers = useComputed('sortedUsers', () => {
   return _.sortBy(users, 'name');
@@ -456,7 +456,7 @@ interface UseComputedOptions<T> {
 **Example - External Library (Lodash):**
 ```tsx
 import _ from 'lodash';
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 function UserList({ users }) {
   const sortedUsers = useComputed('sortedUsers', () => {
@@ -634,7 +634,7 @@ Test full client-server round-trip.
 
 ```tsx
 import _ from 'lodash';
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 export function SortedUserList({ users, sortBy }) {
   const sortedUsers = useComputed('sortedUsers', () => {
@@ -656,7 +656,7 @@ export function SortedUserList({ users, sortBy }) {
 **File:** `examples/components/LocationTracker.tsx`
 
 ```tsx
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 export function LocationTracker() {
   const location = useComputed('location', async () => {
@@ -690,7 +690,7 @@ export function LocationTracker() {
 
 ```tsx
 import moment from 'moment';
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 export function FormattedDate({ date, format = 'LLLL' }) {
   const formatted = useComputed('formattedDate', () => {

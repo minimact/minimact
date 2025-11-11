@@ -1,7 +1,7 @@
 /**
  * Comprehensive test fixture demonstrating all Minimact features
  */
-import { useState, useClientState, useEffect, useRef, useMarkdown, useTemplate } from 'minimact';
+import { useState, useClientState, useEffect, useRef, useMarkdown, useTemplate } from '@minimact/core';
 
 // Example 1: Basic Counter
 export function Counter() {

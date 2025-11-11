@@ -941,7 +941,7 @@ Create a test Counter component:
 
 ```tsx
 // test-components/Counter.tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);

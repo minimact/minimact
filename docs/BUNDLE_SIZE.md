@@ -69,7 +69,7 @@ dist/minimact-r.esm.min.js  98.57 KB  →  25.07 KB gzipped  (ESM)
 ```
 
 ```typescript
-import { Minimact } from 'minimact';
+import { Minimact } from '@minimact/core';
 ```
 
 ---
@@ -100,7 +100,7 @@ import { Minimact } from 'minimact/minimact-r';
 
 ```diff
 - import { Minimact } from 'minimact/minimact-r';
-+ import { Minimact } from 'minimact';
++ import { Minimact } from '@minimact/core';
 ```
 
 Or change your script tag:
@@ -119,7 +119,7 @@ Or change your script tag:
 **No code changes required!** Just change your import:
 
 ```diff
-- import { Minimact } from 'minimact';
+- import { Minimact } from '@minimact/core';
 + import { Minimact } from 'minimact/minimact-r';
 ```
 

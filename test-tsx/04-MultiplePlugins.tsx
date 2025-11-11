@@ -6,7 +6,7 @@
  * Risk: Plugins might be mismatched if multiple exist
  */
 
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 interface DataPoint {
   category: string;

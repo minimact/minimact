@@ -21,6 +21,7 @@
     "build:linux": "electron-vite build && electron-builder --linux"
   },
   "dependencies": {
+    "@minimact/swig-shared": "file:../minimact-swig-shared",
     "@babel/core": "^7.28.5",
     "@babel/preset-react": "^7.24.0",
     "@babel/preset-typescript": "^7.24.0",

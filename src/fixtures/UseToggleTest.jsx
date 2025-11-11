@@ -1,4 +1,4 @@
-import { useToggle } from 'minimact';
+import { useToggle } from '@minimact/core';
 
 function ToggleExample() {
   const [isOpen, toggle] = useToggle(false);

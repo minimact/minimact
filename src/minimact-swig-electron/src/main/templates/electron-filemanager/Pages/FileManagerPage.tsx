@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 
 interface FileItem {
   name: string;

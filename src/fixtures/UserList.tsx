@@ -1,4 +1,4 @@
-import { usePaginatedServerTask } from 'minimact';
+import { usePaginatedServerTask } from '@minimact/core';
 
 interface User {
   id: number;

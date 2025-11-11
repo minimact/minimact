@@ -21,7 +21,7 @@ Minimact allows developers to write familiar React syntax (JSX/TSX with hooks) t
 
 ```tsx
 // Counter.tsx
-import { useState, useEffect, useRef } from 'minimact';
+import { useState, useEffect, useRef } from '@minimact/core';
 
 export function Counter() {
   const [count, setCount] = useState(0);
@@ -321,7 +321,7 @@ private void HandleReset()
 
 **Input:**
 ```tsx
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 
 interface Todo {
   id: number;

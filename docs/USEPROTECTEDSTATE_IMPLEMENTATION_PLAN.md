@@ -119,7 +119,7 @@ function useProtectedState<T>(initialValue: T): [T, (value: T | ((prev: T) => T)
 ### Usage Pattern
 
 ```tsx
-import { useState, useProtectedState } from 'minimact';
+import { useState, useProtectedState } from '@minimact/core';
 
 function MyComponent() {
   // Public state (parent can access)
@@ -747,7 +747,7 @@ public abstract class MinimactComponent
 ### Example 1: Form with Validation Cache
 
 ```tsx
-import { useState, useProtectedState, Component } from 'minimact';
+import { useState, useProtectedState, Component } from '@minimact/core';
 
 // Child component
 export function EmailForm() {
@@ -851,7 +851,7 @@ export default function RegistrationPage() {
 ### Example 2: Counter with Animation Queue
 
 ```tsx
-import { useState, useProtectedState, Component } from 'minimact';
+import { useState, useProtectedState, Component } from '@minimact/core';
 
 // Child component
 export function AnimatedCounter() {
@@ -954,7 +954,7 @@ export default function Dashboard() {
 ### Example 3: Search with Debounce and Cache
 
 ```tsx
-import { useState, useProtectedState, Component } from 'minimact';
+import { useState, useProtectedState, Component } from '@minimact/core';
 
 // Child component
 export function SearchBox() {

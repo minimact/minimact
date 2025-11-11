@@ -1,4 +1,4 @@
-import { useState, usePredictHint } from 'minimact';
+import { useState, usePredictHint } from '@minimact/core';
 
 function UsePredictHintTest() {
   const [count, setCount] = useState(0);

@@ -32,7 +32,7 @@ Seriously though—client hydration has become the default religion in web dev, 
 Minimact brings the familiar React developer experience to server-side rendering with ASP.NET Core, powered by a Rust reconciliation engine and intelligent predictive updates.
 
 ```typescript
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Counter() {
     const [count, setCount] = useState(0);
@@ -459,7 +459,7 @@ const users = usePaginatedServerTask(
 **Unlike React's context (Provider components), Minimact's context is a server-side cache with scoped lifetimes.**
 
 ```typescript
-import { createContext, useContext } from 'minimact';
+import { createContext, useContext } from '@minimact/core';
 
 // Session-scoped user context
 const UserContext = createContext<User>('current-user', {
@@ -505,7 +505,7 @@ function UserProfile() {
 **Compute values on the client using browser APIs, then sync to server for rendering.**
 
 ```typescript
-import { useComputed } from 'minimact';
+import { useComputed } from '@minimact/core';
 
 // Use lodash on client (no server bundle bloat)
 function UserList({ users }) {
@@ -724,7 +724,7 @@ minimact dev
 
 ```typescript
 // src/components/Hello.tsx
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function Hello() {
     const [name, setName] = useState('World');
@@ -801,7 +801,7 @@ dotnet add package Minimact.Plugin.Clock
 
 **2. Use it in your TSX component:**
 ```tsx
-import { useState, useEffect } from 'minimact';
+import { useState, useEffect } from '@minimact/core';
 
 interface ClockState {
   hours: number;

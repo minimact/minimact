@@ -2,7 +2,7 @@
  * Test: Conditional rendering (ternary and && operators)
  * Expected: Proper C# ternary and null-conditional translation
  */
-import { useState } from 'minimact';
+import { useState } from '@minimact/core';
 
 export function ConditionalRenderingTest() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

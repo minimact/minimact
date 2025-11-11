@@ -731,7 +731,7 @@ export function useMarkdown(initialValue: string): [string, (newValue: string) =
      name: 'useMarkdown',
      description: 'Markdown with Razor syntax - supports @variables, @if, @foreach, @switch',
      category: 'core',
-     imports: ["import { useMarkdown } from 'minimact';"],
+     imports: ["import { useMarkdown } from '@minimact/core';"],
      example: `export function ProductPage() {
      const [name] = useState('Gaming Laptop');
      const [price] = useState(1499);
