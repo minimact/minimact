@@ -604,6 +604,8 @@ dotnet add package Minimact.Plugin.Clock
 
 **[📖 Complete Architecture →](./docs/MINIMACT_COMPLETE_ARCHITECTURE.md)**
 
+**[📝 Architecture Deep Dive (Substack) →](https://ameritusweb.substack.com/p/reverse-scalable-systems-achieving)** - A comprehensive analysis of Minimact's reverse scalability principles and architectural innovations.
+
 ---
 
 ## Core Technical Innovations
