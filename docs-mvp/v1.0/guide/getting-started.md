@@ -45,8 +45,10 @@ Swig will scaffold your project with:
 MyApp/
 ├── Program.cs              # ASP.NET Core startup
 ├── MyApp.csproj            # .NET project file
-├── Pages/                  # TSX pages (file-based routing)
-│   ├── HomePage.tsx        # Homepage (route: /)
+├── Controllers/            # ASP.NET Core MVC controllers
+│   └── HomeController.cs   # Route handler
+├── Pages/                  # Minimact TSX pages
+│   ├── HomePage.tsx        # Homepage component
 │   └── HomePage.cs         # Auto-generated C# (do not edit)
 └── Components/             # Shared components
     ├── Counter.tsx
@@ -94,33 +96,76 @@ export default function HomePage() {
 
 ---
 
-## File-Based Routing
+## Controller-Based Routing
 
-Minimact uses **Next.js-style file-based routing**. Files in `Pages/` automatically become routes.
+Minimact uses **ASP.NET Core MVC routing** via controllers. Controllers handle routes and render Minimact pages.
 
-### Basic Routes
+### Basic Setup
 
+**`Controllers/HomeController.cs`:**
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using Minimact.AspNetCore.Rendering;
+
+[ApiController]
+[Route("")]
+public class HomeController : ControllerBase
+{
+    private readonly MinimactPageRenderer _renderer;
+
+    public HomeController(MinimactPageRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        return await _renderer.RenderPage<HomePage>();
+    }
+}
 ```
-Pages/HomePage.tsx       → /
-Pages/AboutPage.tsx      → /about
-Pages/BlogPage.tsx       → /blog
-Pages/ContactPage.tsx    → /contact
+
+### Route Examples
+
+```csharp
+// Root route (/)
+[Route("")]
+[HttpGet]
+public async Task<IActionResult> Index()
+
+// About page (/about)
+[Route("about")]
+[HttpGet]
+public async Task<IActionResult> About()
+
+// Blog post with ID (/blog/{id})
+[Route("blog")]
+[HttpGet("{id}")]
+public async Task<IActionResult> Post(int id)
+
+// User profile (/users/{userId}/profile)
+[Route("users")]
+[HttpGet("{userId}/profile")]
+public async Task<IActionResult> Profile(int userId)
 ```
 
-### Dynamic Routes
+### Using Swig CLI
 
-```
-Pages/Blog/[id].tsx         → /blog/:id
-Pages/Users/[userId].tsx    → /users/:userId
+Add pages quickly with the CLI:
+
+```bash
+# Add a page at root
+npx @minimact/swig add HomePage "/"
+
+# Add a page with route parameter
+npx @minimact/swig add ProductDetails "Products/{id}"
+
+# Add a page with MVC ViewModel
+npx @minimact/swig add UserProfile "Users/{userId}" --mvc
 ```
 
-### Nested Routes
-
-```
-Pages/Dashboard/Index.tsx      → /dashboard
-Pages/Dashboard/Settings.tsx   → /dashboard/settings
-Pages/Dashboard/Profile.tsx    → /dashboard/profile
-```
+This generates the controller, page component, and ViewModel (if --mvc flag is used).
 
 ---
 
@@ -218,11 +263,14 @@ Minimact projects created with Swig have a clean structure:
 MyApp/
 ├── Program.cs              # ASP.NET Core startup
 ├── MyApp.csproj            # .NET project file
-├── Pages/                  # TSX pages (file-based routing)
-│   ├── HomePage.tsx        # Route: / (you edit this)
+├── Controllers/            # ASP.NET Core MVC controllers
+│   ├── HomeController.cs   # Route: / (you edit this)
+│   └── AboutController.cs  # Route: /about
+├── Pages/                  # Minimact TSX pages
+│   ├── HomePage.tsx        # Homepage component (you edit this)
 │   ├── HomePage.cs         # Auto-generated C# (do not edit)
 │   ├── HomePage.templates.json  # Template metadata
-│   ├── AboutPage.tsx       # Route: /about
+│   ├── AboutPage.tsx       # About page component
 │   ├── AboutPage.cs        # Auto-generated C#
 │   └── AboutPage.templates.json
 └── Components/             # Shared components
@@ -243,18 +291,20 @@ Swig shows generated files in a separate pane so you can see the C# output in re
 
 ## Configuring Routes
 
-Routes are automatically configured via `MapMinimactPages()`:
+Routes are configured via ASP.NET Core MVC controllers:
 
 **`Program.cs`:**
 
 ```csharp
 using Minimact.AspNetCore;
-using Minimact.AspNetCore.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Minimact services
 builder.Services.AddMinimact();
+
+// Add MVC controllers
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -264,8 +314,8 @@ app.UseStaticFiles();
 // Map SignalR hub for real-time communication
 app.MapHub<MinimactHub>("/minimacthub");
 
-// Map all pages automatically
-app.MapMinimactPages();
+// Map MVC controllers
+app.MapControllers();
 
 app.Run();
 ```
@@ -273,12 +323,13 @@ app.Run();
 **How it works:**
 
 1. Swig transpiles `Pages/HomePage.tsx` → `Pages/HomePage.cs`
-2. `MapMinimactPages()` scans the `Pages/` folder
-3. Finds all `.cs` files that inherit from `MinimactComponent`
-4. Registers routes based on file names:
-   - `HomePage.cs` → `/`
-   - `AboutPage.cs` → `/about`
-   - `Blog/PostPage.cs` → `/blog/post`
+2. Controllers use `MinimactPageRenderer` to render pages
+3. Routes are defined using standard MVC routing attributes:
+   ```csharp
+   [Route("")]           // Root: /
+   [Route("about")]      // About: /about
+   [Route("blog/{id}")]  // Blog post: /blog/123
+   ```
 
 ---
 
