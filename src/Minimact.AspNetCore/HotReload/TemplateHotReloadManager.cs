@@ -690,8 +690,8 @@ public class TemplateHotReloadManager : IDisposable
         _logger.LogDebug("[Minimact Templates] Added {Count} null path entries for {ComponentId}",
             nullPaths.Count, componentId);
 
-        // Augment conditional elements with DOM paths
-        var augmentedConditionals = AugmentConditionalElementsWithDomPaths(
+        // Augment conditional elements with simulated path variants
+        var augmentedConditionals = AugmentConditionalElementsWithSimulation(
             templateMap.ConditionalElements,
             component
         );
@@ -707,10 +707,10 @@ public class TemplateHotReloadManager : IDisposable
     }
 
     /// <summary>
-    /// Augment conditional element templates with DOM path indices
-    /// Converts hex paths to DOM indices using PathConverter
+    /// Augment conditional element templates using simulation-based path resolution
+    /// Simulates all reachable state combinations to pre-compute accurate DOM paths
     /// </summary>
-    private Dictionary<string, ConditionalElementTemplate>? AugmentConditionalElementsWithDomPaths(
+    private Dictionary<string, ConditionalElementTemplate>? AugmentConditionalElementsWithSimulation(
         Dictionary<string, ConditionalElementTemplate>? conditionalElements,
         MinimactComponent component)
     {
@@ -719,34 +719,15 @@ public class TemplateHotReloadManager : IDisposable
             return conditionalElements;
         }
 
-        var pathConverter = new PathConverter(component.CurrentVNode);
-        var augmented = new Dictionary<string, ConditionalElementTemplate>();
+        // Use simulator to generate path variants for all state combinations
+        var simulator = new ConditionalPathSimulator(_logger);
+        var augmented = simulator.SimulateAndAugmentPaths(
+            component.CurrentVNode,
+            conditionalElements,
+            component
+        );
 
-        foreach (var (hexPath, template) in conditionalElements)
-        {
-            // Inflate compact hex path to full format
-            // "1.3" → "10000000.30000000"
-            var segments = hexPath.Split('.');
-            var inflatedPath = InflateHexPath(segments.ToList());
-
-            // Convert to DOM indices
-            var domPath = pathConverter.HexPathToDomPath(inflatedPath);
-
-            // Create augmented template with DOM path
-            augmented[hexPath] = new ConditionalElementTemplate
-            {
-                Type = template.Type,
-                ConditionExpression = template.ConditionExpression,
-                ConditionBindings = template.ConditionBindings,
-                ConditionMapping = template.ConditionMapping,
-                Evaluable = template.Evaluable,
-                Branches = template.Branches,
-                Operator = template.Operator,
-                DomPath = domPath
-            };
-        }
-
-        _logger.LogDebug("[Minimact Templates] Augmented {Count} conditional elements with DOM paths",
+        _logger.LogDebug("[Minimact Templates] Augmented {Count} conditional elements with simulated paths",
             augmented.Count);
 
         return augmented;

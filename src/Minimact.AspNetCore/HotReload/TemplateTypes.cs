@@ -30,11 +30,29 @@ public class ConditionalElementTemplate
     public string Operator { get; set; } = "&&";
 
     /// <summary>
+    /// Parent template path for nested conditionals
+    /// Example: "1.3" means this conditional is nested inside template at path 1.3
+    /// </summary>
+    [JsonPropertyName("parentTemplate")]
+    public string? ParentTemplate { get; set; }
+
+    /// <summary>
     /// DOM path indices for insertion point (augmented by server at runtime)
     /// Example: [0, 2] means parent.childNodes[0].childNodes[2]
+    /// For nested conditionals, this is relative to parent's rendered element
+    /// DEPRECATED: Use PathVariants instead for simulation-based accuracy
     /// </summary>
     [JsonPropertyName("domPath")]
     public List<int>? DomPath { get; set; }
+
+    /// <summary>
+    /// Pre-computed DOM paths for all reachable state combinations (simulation-based)
+    /// Key: State signature (e.g., "state_0:true,state_1:false")
+    /// Value: DOM path for that state combination, or null if not rendered
+    /// This provides 100% accuracy for nested conditionals by simulating all combinations
+    /// </summary>
+    [JsonPropertyName("pathVariants")]
+    public Dictionary<string, List<int>?>? PathVariants { get; set; }
 }
 
 /// <summary>

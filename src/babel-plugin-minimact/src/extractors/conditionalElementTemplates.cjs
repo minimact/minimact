@@ -64,8 +64,10 @@ function extractConditionalElementTemplates(renderBody, component) {
 
   /**
    * Traverse JSX tree to find conditional expressions
+   * @param {*} node - JSX node to traverse
+   * @param {string|null} parentPath - Hex path of parent conditional (for nesting)
    */
-  function traverseJSX(node) {
+  function traverseJSX(node, parentPath = null) {
     if (t.isJSXElement(node)) {
       // Process children
       for (const child of node.children) {
@@ -74,27 +76,36 @@ function extractConditionalElementTemplates(renderBody, component) {
 
           // Logical AND: {condition && <Element />}
           if (t.isLogicalExpression(expr) && expr.operator === '&&') {
-            const template = extractLogicalAndElementTemplate(expr, child);
+            const template = extractLogicalAndElementTemplate(expr, child, parentPath);
             if (template) {
               const path = child.__minimactPath;
               if (path) {
                 conditionalTemplates[path] = template;
+                // Recursively find nested conditionals inside this template
+                traverseJSX(expr.right, path);
               }
             }
           }
 
           // Ternary: {condition ? <A /> : <B />}
           if (t.isConditionalExpression(expr)) {
-            const template = extractTernaryElementTemplate(expr, child);
+            const template = extractTernaryElementTemplate(expr, child, parentPath);
             if (template) {
               const path = child.__minimactPath;
               if (path) {
                 conditionalTemplates[path] = template;
+                // Recursively find nested conditionals in both branches
+                if (expr.consequent) {
+                  traverseJSX(expr.consequent, path);
+                }
+                if (expr.alternate) {
+                  traverseJSX(expr.alternate, path);
+                }
               }
             }
           }
         } else if (t.isJSXElement(child)) {
-          traverseJSX(child);
+          traverseJSX(child, parentPath);
         }
       }
     }
@@ -103,8 +114,9 @@ function extractConditionalElementTemplates(renderBody, component) {
   /**
    * Extract template from logical AND expression
    * Example: {myState1 && !myState2 && <div>{myState3}</div>}
+   * @param {*} parentPath - Hex path of parent conditional template (for nesting)
    */
-  function extractLogicalAndElementTemplate(expr, containerNode) {
+  function extractLogicalAndElementTemplate(expr, containerNode, parentPath) {
     const right = expr.right;
 
     // Check if right side is JSX element (structural)
@@ -139,7 +151,7 @@ function extractConditionalElementTemplates(renderBody, component) {
       return null;
     }
 
-    return {
+    const template = {
       type: "conditional-element",
       conditionExpression: conditionCode,
       conditionBindings: stateKeys, // ["state_0", "state_1"]
@@ -151,13 +163,21 @@ function extractConditionalElementTemplates(renderBody, component) {
       },
       operator: "&&"
     };
+
+    // Add parent reference if nested
+    if (parentPath) {
+      template.parentTemplate = parentPath;
+    }
+
+    return template;
   }
 
   /**
    * Extract template from ternary expression
    * Example: {myState1 ? <div>Active</div> : <div>Inactive</div>}
+   * @param {*} parentPath - Hex path of parent conditional template (for nesting)
    */
-  function extractTernaryElementTemplate(expr, containerNode) {
+  function extractTernaryElementTemplate(expr, containerNode, parentPath) {
     const test = expr.test;
     const consequent = expr.consequent;
     const alternate = expr.alternate;
@@ -201,7 +221,7 @@ function extractConditionalElementTemplates(renderBody, component) {
       }
     }
 
-    return {
+    const template = {
       type: "conditional-element",
       conditionExpression: conditionCode,
       conditionBindings: stateKeys, // ["state_0", "state_1"]
@@ -210,6 +230,13 @@ function extractConditionalElementTemplates(renderBody, component) {
       branches,
       operator: "?"
     };
+
+    // Add parent reference if nested
+    if (parentPath) {
+      template.parentTemplate = parentPath;
+    }
+
+    return template;
   }
 
   /**

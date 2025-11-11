@@ -101,7 +101,7 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	 * Type Conversion
 	 */
 
-	const t$f = globalThis.__BABEL_TYPES__;
+	const t$h = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Convert TypeScript type annotation to C# type
@@ -110,30 +110,30 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	  if (!tsType) return 'dynamic';
 
 	  // TSStringKeyword -> string
-	  if (t$f.isTSStringKeyword(tsType)) return 'string';
+	  if (t$h.isTSStringKeyword(tsType)) return 'string';
 
 	  // TSNumberKeyword -> double
-	  if (t$f.isTSNumberKeyword(tsType)) return 'double';
+	  if (t$h.isTSNumberKeyword(tsType)) return 'double';
 
 	  // TSBooleanKeyword -> bool
-	  if (t$f.isTSBooleanKeyword(tsType)) return 'bool';
+	  if (t$h.isTSBooleanKeyword(tsType)) return 'bool';
 
 	  // TSAnyKeyword -> dynamic
-	  if (t$f.isTSAnyKeyword(tsType)) return 'dynamic';
+	  if (t$h.isTSAnyKeyword(tsType)) return 'dynamic';
 
 	  // TSArrayType -> List<T>
-	  if (t$f.isTSArrayType(tsType)) {
+	  if (t$h.isTSArrayType(tsType)) {
 	    const elementType = tsTypeToCSharpType$4(tsType.elementType);
 	    return `List<${elementType}>`;
 	  }
 
 	  // TSTypeLiteral (object type) -> dynamic
-	  if (t$f.isTSTypeLiteral(tsType)) return 'dynamic';
+	  if (t$h.isTSTypeLiteral(tsType)) return 'dynamic';
 
 	  // TSTypeReference (custom types, interfaces)
-	  if (t$f.isTSTypeReference(tsType)) {
+	  if (t$h.isTSTypeReference(tsType)) {
 	    // Handle @minimact/mvc type mappings
-	    if (t$f.isIdentifier(tsType.typeName)) {
+	    if (t$h.isIdentifier(tsType.typeName)) {
 	      const typeName = tsType.typeName.name;
 
 	      // Map @minimact/mvc types to C# types
@@ -175,17 +175,17 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	function inferType$2(node) {
 	  if (!node) return 'dynamic';
 
-	  if (t$f.isStringLiteral(node)) return 'string';
-	  if (t$f.isNumericLiteral(node)) {
+	  if (t$h.isStringLiteral(node)) return 'string';
+	  if (t$h.isNumericLiteral(node)) {
 	    // Check if the number has a decimal point
 	    // If the value is a whole number, use int; otherwise use double
 	    const value = node.value;
 	    return Number.isInteger(value) ? 'int' : 'double';
 	  }
-	  if (t$f.isBooleanLiteral(node)) return 'bool';
-	  if (t$f.isNullLiteral(node)) return 'dynamic';
-	  if (t$f.isArrayExpression(node)) return 'List<dynamic>';
-	  if (t$f.isObjectExpression(node)) return 'dynamic';
+	  if (t$h.isBooleanLiteral(node)) return 'bool';
+	  if (t$h.isNullLiteral(node)) return 'dynamic';
+	  if (t$h.isArrayExpression(node)) return 'List<dynamic>';
+	  if (t$h.isObjectExpression(node)) return 'dynamic';
 
 	  return 'dynamic';
 	}
@@ -200,7 +200,7 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	 * Dependency Analyzer
 	 */
 
-	const t$e = globalThis.__BABEL_TYPES__;
+	const t$g = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Analyze dependencies in JSX expressions
@@ -213,7 +213,7 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	    if (!node) return;
 
 	    // Check if this is an identifier that's a state variable
-	    if (t$e.isIdentifier(node)) {
+	    if (t$g.isIdentifier(node)) {
 	      const name = node.name;
 	      if (component.stateTypes.has(name)) {
 	        deps.add({
@@ -224,25 +224,25 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	    }
 
 	    // Recursively walk the tree
-	    if (t$e.isConditionalExpression(node)) {
+	    if (t$g.isConditionalExpression(node)) {
 	      walk(node.test);
 	      walk(node.consequent);
 	      walk(node.alternate);
-	    } else if (t$e.isLogicalExpression(node)) {
+	    } else if (t$g.isLogicalExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$e.isMemberExpression(node)) {
+	    } else if (t$g.isMemberExpression(node)) {
 	      walk(node.object);
 	      walk(node.property);
-	    } else if (t$e.isCallExpression(node)) {
+	    } else if (t$g.isCallExpression(node)) {
 	      walk(node.callee);
 	      node.arguments.forEach(walk);
-	    } else if (t$e.isBinaryExpression(node)) {
+	    } else if (t$g.isBinaryExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$e.isUnaryExpression(node)) {
+	    } else if (t$g.isUnaryExpression(node)) {
 	      walk(node.argument);
-	    } else if (t$e.isArrowFunctionExpression(node) || t$e.isFunctionExpression(node)) {
+	    } else if (t$g.isArrowFunctionExpression(node) || t$g.isFunctionExpression(node)) {
 	      walk(node.body);
 	    }
 	  }
@@ -1022,91 +1022,83 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	 * Pattern Detection
 	 */
 
-	var detection;
-	var hasRequiredDetection;
-
-	function requireDetection () {
-		if (hasRequiredDetection) return detection;
-		hasRequiredDetection = 1;
-		const t = globalThis.__BABEL_TYPES__;
+	const t$f = globalThis.__BABEL_TYPES__;
 
 
-		/**
-		 * Detect if attributes contain spread operators
-		 */
-		function hasSpreadProps(attributes) {
-		  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
-		}
-
-		/**
-		 * Detect if children contain dynamic patterns (like .map())
-		 */
-		function hasDynamicChildren(children) {
-		  return children.some(child => {
-		    if (!t.isJSXExpressionContainer(child)) return false;
-		    const expr = child.expression;
-
-		    // Check for .map() calls
-		    if (t.isCallExpression(expr) &&
-		        t.isMemberExpression(expr.callee) &&
-		        t.isIdentifier(expr.callee.property, { name: 'map' })) {
-		      return true;
-		    }
-
-		    // Check for array expressions from LINQ/Select
-		    if (t.isCallExpression(expr) &&
-		        t.isMemberExpression(expr.callee) &&
-		        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-		         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-		      return true;
-		    }
-
-		    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-		    if (t.isConditionalExpression(expr)) {
-		      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
-		          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
-		        return true;
-		      }
-		    }
-
-		    // Check for logical expressions with JSX: {condition && <Element/>}
-		    if (t.isLogicalExpression(expr)) {
-		      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
-		        return true;
-		      }
-		    }
-
-		    return false;
-		  });
-		}
-
-		/**
-		 * Detect if props contain complex expressions
-		 */
-		function hasComplexProps(attributes) {
-		  return attributes.some(attr => {
-		    if (!t.isJSXAttribute(attr)) return false;
-		    const value = attr.value;
-
-		    if (!t.isJSXExpressionContainer(value)) return false;
-		    const expr = value.expression;
-
-		    // Check for conditional spread: {...(condition && { prop: value })}
-		    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
-		      return true;
-		    }
-
-		    return false;
-		  });
-		}
-
-		detection = {
-		  hasSpreadProps,
-		  hasDynamicChildren,
-		  hasComplexProps
-		};
-		return detection;
+	/**
+	 * Detect if attributes contain spread operators
+	 */
+	function hasSpreadProps(attributes) {
+	  return attributes.some(attr => t$f.isJSXSpreadAttribute(attr));
 	}
+
+	/**
+	 * Detect if children contain dynamic patterns (like .map())
+	 */
+	function hasDynamicChildren(children) {
+	  return children.some(child => {
+	    if (!t$f.isJSXExpressionContainer(child)) return false;
+	    const expr = child.expression;
+
+	    // Check for .map() calls
+	    if (t$f.isCallExpression(expr) &&
+	        t$f.isMemberExpression(expr.callee) &&
+	        t$f.isIdentifier(expr.callee.property, { name: 'map' })) {
+	      return true;
+	    }
+
+	    // Check for array expressions from LINQ/Select
+	    if (t$f.isCallExpression(expr) &&
+	        t$f.isMemberExpression(expr.callee) &&
+	        (t$f.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t$f.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	      return true;
+	    }
+
+	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+	    if (t$f.isConditionalExpression(expr)) {
+	      if (t$f.isJSXElement(expr.consequent) || t$f.isJSXFragment(expr.consequent) ||
+	          t$f.isJSXElement(expr.alternate) || t$f.isJSXFragment(expr.alternate)) {
+	        return true;
+	      }
+	    }
+
+	    // Check for logical expressions with JSX: {condition && <Element/>}
+	    if (t$f.isLogicalExpression(expr)) {
+	      if (t$f.isJSXElement(expr.right) || t$f.isJSXFragment(expr.right)) {
+	        return true;
+	      }
+	    }
+
+	    return false;
+	  });
+	}
+
+	/**
+	 * Detect if props contain complex expressions
+	 */
+	function hasComplexProps(attributes) {
+	  return attributes.some(attr => {
+	    if (!t$f.isJSXAttribute(attr)) return false;
+	    const value = attr.value;
+
+	    if (!t$f.isJSXExpressionContainer(value)) return false;
+	    const expr = value.expression;
+
+	    // Check for conditional spread: {...(condition && { prop: value })}
+	    if (t$f.isConditionalExpression(expr) || t$f.isLogicalExpression(expr)) {
+	      return true;
+	    }
+
+	    return false;
+	  });
+	}
+
+	var detection = {
+	  hasSpreadProps,
+	  hasDynamicChildren,
+	  hasComplexProps
+	};
 
 	var lib$1 = {};
 
@@ -8607,311 +8599,303 @@ Please specify the "importAttributesKeyword" generator option, whose value can b
 	 * Event Handlers Extractor
 	 */
 
-	var eventHandlers;
-	var hasRequiredEventHandlers;
+	const t$e = globalThis.__BABEL_TYPES__;
+	const generate$1 = requireLib$1().default;
 
-	function requireEventHandlers () {
-		if (hasRequiredEventHandlers) return eventHandlers;
-		hasRequiredEventHandlers = 1;
-		const t = globalThis.__BABEL_TYPES__;
-		const generate = requireLib$1().default;
+	/**
+	 * Detect if handler body is client-only (DOM manipulation, no server state changes)
+	 * Client-only patterns:
+	 * - e.currentTarget.style.X = value
+	 * - e.stopPropagation()
+	 * - e.preventDefault()
+	 * - element.classList.add/remove/toggle
+	 * - element.focus/blur/etc
+	 *
+	 * Server patterns (NOT client-only):
+	 * - setState calls
+	 * - Method calls on component
+	 * - await expressions
+	 */
+	function isClientOnlyHandler(body) {
+	  let hasClientOnlyCode = false;
+	  let hasServerCode = false;
 
-		/**
-		 * Detect if handler body is client-only (DOM manipulation, no server state changes)
-		 * Client-only patterns:
-		 * - e.currentTarget.style.X = value
-		 * - e.stopPropagation()
-		 * - e.preventDefault()
-		 * - element.classList.add/remove/toggle
-		 * - element.focus/blur/etc
-		 *
-		 * Server patterns (NOT client-only):
-		 * - setState calls
-		 * - Method calls on component
-		 * - await expressions
-		 */
-		function isClientOnlyHandler(body) {
-		  let hasClientOnlyCode = false;
-		  let hasServerCode = false;
+	  function checkNode(node) {
+	    if (!node) return;
 
-		  function checkNode(node) {
-		    if (!node) return;
+	    // Server patterns
+	    if (t$e.isCallExpression(node)) {
+	      const callee = node.callee;
 
-		    // Server patterns
-		    if (t.isCallExpression(node)) {
-		      const callee = node.callee;
+	      // setState, setXxx calls - SERVER
+	      if (t$e.isIdentifier(callee) && (callee.name === 'setState' || callee.name.startsWith('set'))) {
+	        hasServerCode = true;
+	      }
+	    }
 
-		      // setState, setXxx calls - SERVER
-		      if (t.isIdentifier(callee) && (callee.name === 'setState' || callee.name.startsWith('set'))) {
-		        hasServerCode = true;
-		      }
-		    }
+	    // await - SERVER
+	    if (t$e.isAwaitExpression(node)) {
+	      hasServerCode = true;
+	    }
 
-		    // await - SERVER
-		    if (t.isAwaitExpression(node)) {
-		      hasServerCode = true;
-		    }
+	    // Client-only patterns
+	    if (t$e.isMemberExpression(node)) {
+	      // e.stopPropagation, e.preventDefault
+	      if (t$e.isIdentifier(node.property) &&
+	          (node.property.name === 'stopPropagation' || node.property.name === 'preventDefault')) {
+	        hasClientOnlyCode = true;
+	      }
 
-		    // Client-only patterns
-		    if (t.isMemberExpression(node)) {
-		      // e.stopPropagation, e.preventDefault
-		      if (t.isIdentifier(node.property) &&
-		          (node.property.name === 'stopPropagation' || node.property.name === 'preventDefault')) {
-		        hasClientOnlyCode = true;
-		      }
+	      // e.currentTarget.style.X, e.target.style.X
+	      if (t$e.isMemberExpression(node.object) &&
+	          t$e.isIdentifier(node.object.property, { name: 'style' })) {
+	        hasClientOnlyCode = true;
+	      }
 
-		      // e.currentTarget.style.X, e.target.style.X
-		      if (t.isMemberExpression(node.object) &&
-		          t.isIdentifier(node.object.property, { name: 'style' })) {
-		        hasClientOnlyCode = true;
-		      }
+	      // element.classList
+	      if (t$e.isIdentifier(node.property, { name: 'classList' })) {
+	        hasClientOnlyCode = true;
+	      }
 
-		      // element.classList
-		      if (t.isIdentifier(node.property, { name: 'classList' })) {
-		        hasClientOnlyCode = true;
-		      }
+	      // element.focus, blur, etc
+	      if (t$e.isIdentifier(node.property) &&
+	          ['focus', 'blur', 'scrollIntoView', 'select'].includes(node.property.name)) {
+	        hasClientOnlyCode = true;
+	      }
+	    }
 
-		      // element.focus, blur, etc
-		      if (t.isIdentifier(node.property) &&
-		          ['focus', 'blur', 'scrollIntoView', 'select'].includes(node.property.name)) {
-		        hasClientOnlyCode = true;
-		      }
-		    }
+	    // Assignment to style properties
+	    if (t$e.isAssignmentExpression(node)) {
+	      const left = node.left;
+	      if (t$e.isMemberExpression(left)) {
+	        // Check if assigning to style property
+	        if (t$e.isMemberExpression(left.object) &&
+	            t$e.isIdentifier(left.object.property, { name: 'style' })) {
+	          hasClientOnlyCode = true;
+	        }
+	      }
+	    }
 
-		    // Assignment to style properties
-		    if (t.isAssignmentExpression(node)) {
-		      const left = node.left;
-		      if (t.isMemberExpression(left)) {
-		        // Check if assigning to style property
-		        if (t.isMemberExpression(left.object) &&
-		            t.isIdentifier(left.object.property, { name: 'style' })) {
-		          hasClientOnlyCode = true;
-		        }
-		      }
-		    }
+	    // Recursively check children
+	    for (const key in node) {
+	      if (node[key] && typeof node[key] === 'object') {
+	        if (Array.isArray(node[key])) {
+	          node[key].forEach(child => checkNode(child));
+	        } else {
+	          checkNode(node[key]);
+	        }
+	      }
+	    }
+	  }
 
-		    // Recursively check children
-		    for (const key in node) {
-		      if (node[key] && typeof node[key] === 'object') {
-		        if (Array.isArray(node[key])) {
-		          node[key].forEach(child => checkNode(child));
-		        } else {
-		          checkNode(node[key]);
-		        }
-		      }
-		    }
-		  }
+	  checkNode(body);
 
-		  checkNode(body);
-
-		  // Only client-only if it has client code AND no server code
-		  return hasClientOnlyCode && !hasServerCode;
-		}
-
-		/**
-		 * Extract event handler name
-		 */
-		function extractEventHandler(value, component) {
-		  if (t.isStringLiteral(value)) {
-		    return value.value;
-		  }
-
-		  if (t.isJSXExpressionContainer(value)) {
-		    const expr = value.expression;
-
-		    if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) {
-		      // Inline arrow function - extract to named method
-		      // Use combined count of both server and client handlers for unique names
-		      const totalHandlers = component.eventHandlers.length + (component.clientHandlers ? component.clientHandlers.length : 0);
-		      const handlerName = `Handle${totalHandlers}`;
-
-		      // Check if the function is async
-		      const isAsync = expr.async || false;
-
-		      // Detect curried functions (functions that return functions)
-		      // Pattern: (e) => (id) => action(id)
-		      // This is invalid for event handlers because the returned function is never called
-		      if (t.isArrowFunctionExpression(expr.body) || t.isFunctionExpression(expr.body)) {
-		        // Generate a handler that throws a helpful error
-		        component.eventHandlers.push({
-		          name: handlerName,
-		          body: null, // Will be handled specially in component generator
-		          params: expr.params,
-		          capturedParams: [],
-		          isAsync: false,
-		          isCurriedError: true // Flag to generate error throw
-		        });
-
-		        return handlerName;
-		      }
-
-		      // Simplify common pattern: (e) => func(e.target.value)
-		      // Transform to: (value) => func(value)
-		      let body = expr.body;
-		      let params = expr.params;
-
-		      if (t.isCallExpression(body) && params.length === 1 && t.isIdentifier(params[0])) {
-		        const eventParam = params[0].name; // e.g., "e"
-		        const args = body.arguments;
-
-		        // Check if any argument is e.target.value
-		        const transformedArgs = args.map(arg => {
-		          if (t.isMemberExpression(arg) &&
-		              t.isMemberExpression(arg.object) &&
-		              t.isIdentifier(arg.object.object, { name: eventParam }) &&
-		              t.isIdentifier(arg.object.property, { name: 'target' }) &&
-		              t.isIdentifier(arg.property, { name: 'value' })) {
-		            // Replace e.target.value with direct value parameter
-		            return t.identifier('value');
-		          }
-		          return arg;
-		        });
-
-		        // If we transformed any args, update the body and param name
-		        if (transformedArgs.some((arg, i) => arg !== args[i])) {
-		          body = t.callExpression(body.callee, transformedArgs);
-		          params = [t.identifier('value')];
-		        }
-		      }
-
-		      // Check if we're inside a .map() context and capture those variables
-		      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
-
-		      // Handle parameter destructuring
-		      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
-		      const hasDestructuring = params.some(p => t.isObjectPattern(p));
-		      let processedBody = body;
-		      let processedParams = params;
-
-		      if (hasDestructuring && params.length === 1 && t.isObjectPattern(params[0])) {
-		        // Extract destructured properties
-		        const destructuringStatements = [];
-		        const eventParam = t.identifier('e');
-
-		        function extractDestructured(pattern, path = []) {
-		          if (t.isObjectPattern(pattern)) {
-		            for (const prop of pattern.properties) {
-		              if (t.isObjectProperty(prop)) {
-		                const key = t.isIdentifier(prop.key) ? prop.key.name : null;
-		                if (key && t.isIdentifier(prop.value)) {
-		                  // Simple: { value } or { target: { value } }
-		                  const varName = prop.value.name;
-		                  const accessPath = [...path, key];
-		                  destructuringStatements.push({ varName, accessPath });
-		                } else if (key && t.isObjectPattern(prop.value)) {
-		                  // Nested: { target: { value } }
-		                  extractDestructured(prop.value, [...path, key]);
-		                }
-		              }
-		            }
-		          }
-		        }
-
-		        extractDestructured(params[0]);
-		        processedParams = [eventParam];
-
-		        // Prepend destructuring assignments to body
-		        if (destructuringStatements.length > 0) {
-		          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
-		            // Build e.Target.Value access chain
-		            let access = eventParam;
-		            for (const key of accessPath) {
-		              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-		              access = t.memberExpression(access, t.identifier(capitalizedKey));
-		            }
-		            return t.variableDeclaration('var', [
-		              t.variableDeclarator(t.identifier(varName), access)
-		            ]);
-		          });
-
-		          // Wrap body in block statement with destructuring
-		          if (t.isBlockStatement(body)) {
-		            processedBody = t.blockStatement([...assignments, ...body.body]);
-		          } else {
-		            processedBody = t.blockStatement([...assignments, t.expressionStatement(body)]);
-		          }
-		        }
-		      }
-
-		      // Check if this is a client-only handler
-		      const isClientOnly = isClientOnlyHandler(processedBody);
-
-		      if (isClientOnly) {
-		        // Generate JavaScript code for client-only handler
-		        const jsCode = generate(t.arrowFunctionExpression(processedParams, processedBody)).code;
-
-		        // Add to clientHandlers collection (don't add to eventHandlers)
-		        if (!component.clientHandlers) {
-		          component.clientHandlers = [];
-		        }
-		        component.clientHandlers.push({
-		          name: handlerName,
-		          jsCode: jsCode
-		        });
-
-		        // Return @client: prefixed handler ID
-		        return `@client:${handlerName}`;
-		      } else {
-		        // Server handler - add to eventHandlers collection
-		        component.eventHandlers.push({
-		          name: handlerName,
-		          body: processedBody,
-		          params: processedParams,
-		          capturedParams: capturedParams,  // e.g., ['item', 'index']
-		          isAsync: isAsync  // Track if handler is async
-		        });
-
-		        // Return handler registration string
-		        // If there are captured params, append them as colon-separated interpolations
-		        // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-		        if (capturedParams.length > 0) {
-		          const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-		          return `${handlerName}:${capturedRefs}`;
-		        }
-
-		        return handlerName;
-		      }
-		    }
-
-		    if (t.isIdentifier(expr)) {
-		      return expr.name;
-		    }
-
-		    if (t.isCallExpression(expr)) {
-		      // () => someMethod() - extract
-		      const handlerName = `Handle${component.eventHandlers.length}`;
-
-		      // Check if we're inside a .map() context and capture those variables
-		      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
-
-		      component.eventHandlers.push({
-		        name: handlerName,
-		        body: expr,
-		        capturedParams: capturedParams  // e.g., ['item', 'index']
-		      });
-
-		      // Return handler registration string
-		      // If there are captured params, append them as colon-separated interpolations
-		      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-		      if (capturedParams.length > 0) {
-		        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-		        return `${handlerName}:${capturedRefs}`;
-		      }
-
-		      return handlerName;
-		    }
-		  }
-
-		  return 'UnknownHandler';
-		}
-
-
-
-		eventHandlers = {
-		  extractEventHandler
-		};
-		return eventHandlers;
+	  // Only client-only if it has client code AND no server code
+	  return hasClientOnlyCode && !hasServerCode;
 	}
+
+	/**
+	 * Extract event handler name
+	 */
+	function extractEventHandler(value, component) {
+	  if (t$e.isStringLiteral(value)) {
+	    return value.value;
+	  }
+
+	  if (t$e.isJSXExpressionContainer(value)) {
+	    const expr = value.expression;
+
+	    if (t$e.isArrowFunctionExpression(expr) || t$e.isFunctionExpression(expr)) {
+	      // Inline arrow function - extract to named method
+	      // Use combined count of both server and client handlers for unique names
+	      const totalHandlers = component.eventHandlers.length + (component.clientHandlers ? component.clientHandlers.length : 0);
+	      const handlerName = `Handle${totalHandlers}`;
+
+	      // Check if the function is async
+	      const isAsync = expr.async || false;
+
+	      // Detect curried functions (functions that return functions)
+	      // Pattern: (e) => (id) => action(id)
+	      // This is invalid for event handlers because the returned function is never called
+	      if (t$e.isArrowFunctionExpression(expr.body) || t$e.isFunctionExpression(expr.body)) {
+	        // Generate a handler that throws a helpful error
+	        component.eventHandlers.push({
+	          name: handlerName,
+	          body: null, // Will be handled specially in component generator
+	          params: expr.params,
+	          capturedParams: [],
+	          isAsync: false,
+	          isCurriedError: true // Flag to generate error throw
+	        });
+
+	        return handlerName;
+	      }
+
+	      // Simplify common pattern: (e) => func(e.target.value)
+	      // Transform to: (value) => func(value)
+	      let body = expr.body;
+	      let params = expr.params;
+
+	      if (t$e.isCallExpression(body) && params.length === 1 && t$e.isIdentifier(params[0])) {
+	        const eventParam = params[0].name; // e.g., "e"
+	        const args = body.arguments;
+
+	        // Check if any argument is e.target.value
+	        const transformedArgs = args.map(arg => {
+	          if (t$e.isMemberExpression(arg) &&
+	              t$e.isMemberExpression(arg.object) &&
+	              t$e.isIdentifier(arg.object.object, { name: eventParam }) &&
+	              t$e.isIdentifier(arg.object.property, { name: 'target' }) &&
+	              t$e.isIdentifier(arg.property, { name: 'value' })) {
+	            // Replace e.target.value with direct value parameter
+	            return t$e.identifier('value');
+	          }
+	          return arg;
+	        });
+
+	        // If we transformed any args, update the body and param name
+	        if (transformedArgs.some((arg, i) => arg !== args[i])) {
+	          body = t$e.callExpression(body.callee, transformedArgs);
+	          params = [t$e.identifier('value')];
+	        }
+	      }
+
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
+	      // Handle parameter destructuring
+	      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
+	      const hasDestructuring = params.some(p => t$e.isObjectPattern(p));
+	      let processedBody = body;
+	      let processedParams = params;
+
+	      if (hasDestructuring && params.length === 1 && t$e.isObjectPattern(params[0])) {
+	        // Extract destructured properties
+	        const destructuringStatements = [];
+	        const eventParam = t$e.identifier('e');
+
+	        function extractDestructured(pattern, path = []) {
+	          if (t$e.isObjectPattern(pattern)) {
+	            for (const prop of pattern.properties) {
+	              if (t$e.isObjectProperty(prop)) {
+	                const key = t$e.isIdentifier(prop.key) ? prop.key.name : null;
+	                if (key && t$e.isIdentifier(prop.value)) {
+	                  // Simple: { value } or { target: { value } }
+	                  const varName = prop.value.name;
+	                  const accessPath = [...path, key];
+	                  destructuringStatements.push({ varName, accessPath });
+	                } else if (key && t$e.isObjectPattern(prop.value)) {
+	                  // Nested: { target: { value } }
+	                  extractDestructured(prop.value, [...path, key]);
+	                }
+	              }
+	            }
+	          }
+	        }
+
+	        extractDestructured(params[0]);
+	        processedParams = [eventParam];
+
+	        // Prepend destructuring assignments to body
+	        if (destructuringStatements.length > 0) {
+	          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
+	            // Build e.Target.Value access chain
+	            let access = eventParam;
+	            for (const key of accessPath) {
+	              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+	              access = t$e.memberExpression(access, t$e.identifier(capitalizedKey));
+	            }
+	            return t$e.variableDeclaration('var', [
+	              t$e.variableDeclarator(t$e.identifier(varName), access)
+	            ]);
+	          });
+
+	          // Wrap body in block statement with destructuring
+	          if (t$e.isBlockStatement(body)) {
+	            processedBody = t$e.blockStatement([...assignments, ...body.body]);
+	          } else {
+	            processedBody = t$e.blockStatement([...assignments, t$e.expressionStatement(body)]);
+	          }
+	        }
+	      }
+
+	      // Check if this is a client-only handler
+	      const isClientOnly = isClientOnlyHandler(processedBody);
+
+	      if (isClientOnly) {
+	        // Generate JavaScript code for client-only handler
+	        const jsCode = generate$1(t$e.arrowFunctionExpression(processedParams, processedBody)).code;
+
+	        // Add to clientHandlers collection (don't add to eventHandlers)
+	        if (!component.clientHandlers) {
+	          component.clientHandlers = [];
+	        }
+	        component.clientHandlers.push({
+	          name: handlerName,
+	          jsCode: jsCode
+	        });
+
+	        // Return @client: prefixed handler ID
+	        return `@client:${handlerName}`;
+	      } else {
+	        // Server handler - add to eventHandlers collection
+	        component.eventHandlers.push({
+	          name: handlerName,
+	          body: processedBody,
+	          params: processedParams,
+	          capturedParams: capturedParams,  // e.g., ['item', 'index']
+	          isAsync: isAsync  // Track if handler is async
+	        });
+
+	        // Return handler registration string
+	        // If there are captured params, append them as colon-separated interpolations
+	        // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	        if (capturedParams.length > 0) {
+	          const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	          return `${handlerName}:${capturedRefs}`;
+	        }
+
+	        return handlerName;
+	      }
+	    }
+
+	    if (t$e.isIdentifier(expr)) {
+	      return expr.name;
+	    }
+
+	    if (t$e.isCallExpression(expr)) {
+	      // () => someMethod() - extract
+	      const handlerName = `Handle${component.eventHandlers.length}`;
+
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
+	      component.eventHandlers.push({
+	        name: handlerName,
+	        body: expr,
+	        capturedParams: capturedParams  // e.g., ['item', 'index']
+	      });
+
+	      // Return handler registration string
+	      // If there are captured params, append them as colon-separated interpolations
+	      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	      if (capturedParams.length > 0) {
+	        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	        return `${handlerName}:${capturedRefs}`;
+	      }
+
+	      return handlerName;
+	    }
+	  }
+
+	  return 'UnknownHandler';
+	}
+
+
+
+	var eventHandlers = {
+	  extractEventHandler
+	};
 
 	/**
 	 * Generate C# code for Plugin elements
@@ -9138,8 +9122,8 @@ Please specify the "importAttributesKeyword" generator option, whose value can b
 		hasRequiredJsx$1 = 1;
 		const t = globalThis.__BABEL_TYPES__;
 		const { escapeCSharpString } = helpers;
-		const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
-		const { extractEventHandler } = requireEventHandlers();
+		const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
+		const { extractEventHandler } = eventHandlers;
 		requirePathAssignment();
 		// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
@@ -14901,8 +14885,10 @@ ${protectedKeysCode}
 
 	  /**
 	   * Traverse JSX tree to find conditional expressions
+	   * @param {*} node - JSX node to traverse
+	   * @param {string|null} parentPath - Hex path of parent conditional (for nesting)
 	   */
-	  function traverseJSX(node) {
+	  function traverseJSX(node, parentPath = null) {
 	    if (t$6.isJSXElement(node)) {
 	      // Process children
 	      for (const child of node.children) {
@@ -14911,27 +14897,36 @@ ${protectedKeysCode}
 
 	          // Logical AND: {condition && <Element />}
 	          if (t$6.isLogicalExpression(expr) && expr.operator === '&&') {
-	            const template = extractLogicalAndElementTemplate(expr);
+	            const template = extractLogicalAndElementTemplate(expr, child, parentPath);
 	            if (template) {
 	              const path = child.__minimactPath;
 	              if (path) {
 	                conditionalTemplates[path] = template;
+	                // Recursively find nested conditionals inside this template
+	                traverseJSX(expr.right, path);
 	              }
 	            }
 	          }
 
 	          // Ternary: {condition ? <A /> : <B />}
 	          if (t$6.isConditionalExpression(expr)) {
-	            const template = extractTernaryElementTemplate(expr);
+	            const template = extractTernaryElementTemplate(expr, child, parentPath);
 	            if (template) {
 	              const path = child.__minimactPath;
 	              if (path) {
 	                conditionalTemplates[path] = template;
+	                // Recursively find nested conditionals in both branches
+	                if (expr.consequent) {
+	                  traverseJSX(expr.consequent, path);
+	                }
+	                if (expr.alternate) {
+	                  traverseJSX(expr.alternate, path);
+	                }
 	              }
 	            }
 	          }
 	        } else if (t$6.isJSXElement(child)) {
-	          traverseJSX(child);
+	          traverseJSX(child, parentPath);
 	        }
 	      }
 	    }
@@ -14940,8 +14935,9 @@ ${protectedKeysCode}
 	  /**
 	   * Extract template from logical AND expression
 	   * Example: {myState1 && !myState2 && <div>{myState3}</div>}
+	   * @param {*} parentPath - Hex path of parent conditional template (for nesting)
 	   */
-	  function extractLogicalAndElementTemplate(expr, containerNode) {
+	  function extractLogicalAndElementTemplate(expr, containerNode, parentPath) {
 	    const right = expr.right;
 
 	    // Check if right side is JSX element (structural)
@@ -14976,7 +14972,7 @@ ${protectedKeysCode}
 	      return null;
 	    }
 
-	    return {
+	    const template = {
 	      type: "conditional-element",
 	      conditionExpression: conditionCode,
 	      conditionBindings: stateKeys, // ["state_0", "state_1"]
@@ -14988,13 +14984,21 @@ ${protectedKeysCode}
 	      },
 	      operator: "&&"
 	    };
+
+	    // Add parent reference if nested
+	    if (parentPath) {
+	      template.parentTemplate = parentPath;
+	    }
+
+	    return template;
 	  }
 
 	  /**
 	   * Extract template from ternary expression
 	   * Example: {myState1 ? <div>Active</div> : <div>Inactive</div>}
+	   * @param {*} parentPath - Hex path of parent conditional template (for nesting)
 	   */
-	  function extractTernaryElementTemplate(expr, containerNode) {
+	  function extractTernaryElementTemplate(expr, containerNode, parentPath) {
 	    const test = expr.test;
 	    const consequent = expr.consequent;
 	    const alternate = expr.alternate;
@@ -15038,7 +15042,7 @@ ${protectedKeysCode}
 	      }
 	    }
 
-	    return {
+	    const template = {
 	      type: "conditional-element",
 	      conditionExpression: conditionCode,
 	      conditionBindings: stateKeys, // ["state_0", "state_1"]
@@ -15047,6 +15051,13 @@ ${protectedKeysCode}
 	      branches,
 	      operator: "?"
 	    };
+
+	    // Add parent reference if nested
+	    if (parentPath) {
+	      template.parentTemplate = parentPath;
+	    }
+
+	    return template;
 	  }
 
 	  /**

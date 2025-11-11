@@ -27,7 +27,9 @@ export interface ConditionalElementTemplate {
     false?: ElementStructure | null;
   };
   operator: '&&' | '?';
-  domPath?: number[]; // DOM indices for insertion point (augmented by server)
+  parentTemplate?: string; // Parent conditional path for nested conditionals
+  domPath?: number[]; // DEPRECATED: Use pathVariants instead
+  pathVariants?: Record<string, number[] | null>; // Pre-computed paths for all state combinations
 }
 
 export interface ElementStructure {
@@ -50,6 +52,30 @@ export interface TextNode {
  * Conditional Element Renderer
  */
 export class ConditionalElementRenderer {
+  // Track rendered conditional elements by path for nested resolution
+  private renderedElements: Map<string, HTMLElement> = new Map();
+
+  /**
+   * Register a rendered conditional element
+   */
+  registerRenderedElement(path: string, element: HTMLElement): void {
+    this.renderedElements.set(path, element);
+  }
+
+  /**
+   * Unregister a conditional element (when removed)
+   */
+  unregisterRenderedElement(path: string): void {
+    this.renderedElements.delete(path);
+  }
+
+  /**
+   * Get rendered element for a conditional path
+   */
+  getRenderedElement(path: string): HTMLElement | undefined {
+    return this.renderedElements.get(path);
+  }
+
   /**
    * Evaluate a condition expression with current state
    * Supports: identifiers, &&, ||, !, comparisons
@@ -263,6 +289,7 @@ export class ConditionalElementRenderer {
    * Returns the rendered element (or null if condition is false)
    */
   render(
+    pathKey: string,
     template: ConditionalElementTemplate,
     state: Record<string, any>,
     parentElement: HTMLElement,
@@ -287,6 +314,8 @@ export class ConditionalElementRenderer {
       if (existingNode) {
         parentElement.removeChild(existingNode);
       }
+      // Unregister this element
+      this.unregisterRenderedElement(pathKey);
       return null;
     }
 
@@ -305,6 +334,12 @@ export class ConditionalElementRenderer {
       }
     }
 
-    return newElement instanceof HTMLElement ? newElement : null;
+    // 5. Register rendered element for nested conditionals
+    if (newElement instanceof HTMLElement) {
+      this.registerRenderedElement(pathKey, newElement);
+      return newElement;
+    }
+
+    return null;
   }
 }

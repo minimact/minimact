@@ -186,32 +186,54 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
       // Get all current state for condition evaluation
       const currentState = templateState.getAllComponentState(context.componentId);
 
-      for (const { template } of conditionals) {
+      for (const { pathKey, template } of conditionals) {
         // Only process if template is evaluable client-side and has DOM path
         if (!template.evaluable || !template.domPath) {
           continue;
         }
 
         try {
-          // Navigate to parent element using DOM path
-          let parentElement: HTMLElement | ChildNode = context.element;
-          for (let i = 0; i < template.domPath.length - 1; i++) {
-            parentElement = parentElement.childNodes[template.domPath[i]];
-          }
+          let parentElement: HTMLElement | ChildNode;
+          let insertIndex: number;
 
-          const insertIndex = template.domPath[template.domPath.length - 1];
+          // Check if this is a nested conditional
+          if (template.parentTemplate) {
+            // Nested: resolve parent element first
+            const parentRenderedElement = context.conditionalRenderer.getRenderedElement(template.parentTemplate);
+
+            if (!parentRenderedElement) {
+              // Parent not rendered, skip this nested conditional
+              console.log(`[Minimact] Skipping nested conditional ${pathKey} - parent ${template.parentTemplate} not rendered`);
+              continue;
+            }
+
+            // Navigate from parent element using relative domPath
+            parentElement = parentRenderedElement;
+            for (let i = 0; i < template.domPath.length - 1; i++) {
+              parentElement = parentElement.childNodes[template.domPath[i]];
+            }
+            insertIndex = template.domPath[template.domPath.length - 1];
+          } else {
+            // Top-level: navigate from component root using absolute domPath
+            parentElement = context.element;
+            for (let i = 0; i < template.domPath.length - 1; i++) {
+              parentElement = parentElement.childNodes[template.domPath[i]];
+            }
+            insertIndex = template.domPath[template.domPath.length - 1];
+          }
 
           // Render conditional element (will insert/remove as needed)
           context.conditionalRenderer.render(
+            pathKey,
             template,
             currentState,
             parentElement as HTMLElement,
             insertIndex
           );
 
-          console.log(`[Minimact] 🔀 Conditional element updated at DOM path [${template.domPath.join(', ')}] (${stateKey} changed)`);
+          console.log(`[Minimact] 🔀 Conditional element updated at ${pathKey} (${stateKey} changed)`);
         } catch (error) {
-          console.error(`[Minimact] Failed to render conditional element at DOM path [${template.domPath.join(', ')}]:`, error);
+          console.error(`[Minimact] Failed to render conditional element at ${pathKey}:`, error);
         }
       }
     }

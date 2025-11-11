@@ -151,13 +151,13 @@ export class TemplateStateManager {
   /**
    * Get conditional element templates that depend on a specific state variable
    */
-  getConditionalElementsBoundTo(componentId: string, stateKey: string): Array<{ hexPath: string, template: ConditionalElementTemplate }> {
-    const conditionals: Array<{ hexPath: string, template: ConditionalElementTemplate }> = [];
+  getConditionalElementsBoundTo(componentId: string, stateKey: string): Array<{ pathKey: string, template: ConditionalElementTemplate }> {
+    const conditionals: Array<{ pathKey: string, template: ConditionalElementTemplate }> = [];
 
     for (const [key, template] of this.conditionalElements.entries()) {
       if (key.startsWith(`${componentId}:`) && template.conditionBindings.includes(stateKey)) {
-        const hexPath = key.substring(componentId.length + 1);
-        conditionals.push({ hexPath, template });
+        const pathKey = key.substring(componentId.length + 1);
+        conditionals.push({ pathKey, template });
       }
     }
 
