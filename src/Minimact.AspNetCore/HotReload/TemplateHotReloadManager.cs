@@ -720,7 +720,9 @@ public class TemplateHotReloadManager : IDisposable
         }
 
         // Use simulator to generate path variants for all state combinations
-        var simulator = new ConditionalPathSimulator(_logger);
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var simulatorLogger = loggerFactory.CreateLogger<ConditionalPathSimulator>();
+        var simulator = new ConditionalPathSimulator(simulatorLogger);
         var augmented = simulator.SimulateAndAugmentPaths(
             component.CurrentVNode,
             conditionalElements,
