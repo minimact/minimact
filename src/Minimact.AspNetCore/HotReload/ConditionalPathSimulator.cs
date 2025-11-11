@@ -57,7 +57,7 @@ public class ConditionalPathSimulator
                 var stateSignature = BuildStateSignature(relevantBindings, stateCombo);
 
                 // Simulate VNode tree with this state combination
-                var simulatedVNode = SimulateVNodeWithState(rootVNode, conditionals, stateCombo);
+                var simulatedVNode = SimulateVNodeWithState(rootVNode, conditionals, hexPath, stateCombo);
 
                 // Calculate DOM path in the simulated tree
                 var inflatedHexPath = InflateHexPath(hexPath);
@@ -211,13 +211,16 @@ public class ConditionalPathSimulator
     private VNode SimulateVNodeWithState(
         VNode node,
         Dictionary<string, ConditionalElementTemplate> conditionals,
+        string targetHexPath,
         Dictionary<string, bool> state)
     {
         if (node is VNull vnull)
         {
-            // Check if this VNull has a conditional template
-            var template = conditionals.Values.FirstOrDefault(t =>
-                InflateHexPath(GetHexPathFromTemplate(t)) == vnull.Path);
+            // Check if this VNull matches any conditional template by comparing paths
+            var matchingEntry = conditionals.FirstOrDefault(kvp =>
+                InflateHexPath(kvp.Key) == vnull.Path);
+
+            var template = matchingEntry.Value;
 
             if (template != null && template.Evaluable)
             {
@@ -240,7 +243,7 @@ public class ConditionalPathSimulator
             var simulatedChildren = new List<VNode>();
             foreach (var child in element.Children)
             {
-                simulatedChildren.Add(SimulateVNodeWithState(child, conditionals, state));
+                simulatedChildren.Add(SimulateVNodeWithState(child, conditionals, targetHexPath, state));
             }
 
             return new VElement(element.Tag, element.Props)
@@ -528,16 +531,6 @@ public class ConditionalPathSimulator
         }
 
         return chain;
-    }
-
-    /// <summary>
-    /// Extract hex path from template (helper method)
-    /// </summary>
-    private string GetHexPathFromTemplate(ConditionalElementTemplate template)
-    {
-        // This would need to be tracked - for now return empty
-        // In practice, this would be passed in or stored in template
-        return string.Empty;
     }
 
     /// <summary>
