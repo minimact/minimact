@@ -58,7 +58,8 @@ export default defineConfig({
         {
           text: 'Development Tools',
           items: [
-            { text: 'Minimact SWIG', link: '/v1.0/guide/minimact-swig' }
+            { text: 'Minimact Swig (GUI)', link: '/v1.0/guide/minimact-swig' },
+            { text: 'Swig CLI', link: '/v1.0/guide/swig-cli' }
           ]
         },
         {
