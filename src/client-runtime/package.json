@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/index-core.d.ts",
       "import": "./dist/core.esm.js",
       "require": "./dist/core.js",
       "default": "./dist/core.js"
@@ -17,6 +17,21 @@
       "import": "./dist/core-r.esm.js",
       "require": "./dist/core-r.js",
       "default": "./dist/core-r.js"
+    },
+    "./hot-reload": {
+      "types": "./dist/index-hot-reload.d.ts",
+      "import": "./dist/hot-reload.js",
+      "default": "./dist/hot-reload.js"
+    },
+    "./playground": {
+      "types": "./dist/index-playground.d.ts",
+      "import": "./dist/playground.js",
+      "default": "./dist/playground.js"
+    },
+    "./power": {
+      "types": "./dist/index-power.d.ts",
+      "import": "./dist/power.js",
+      "default": "./dist/power.js"
     }
   },
   "files": [

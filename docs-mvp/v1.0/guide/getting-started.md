@@ -657,7 +657,7 @@ Minimact is available in two versions:
 
 | Version | Transport | Bundle Size (gzipped) | Browser Support |
 |---------|-----------|----------------------|-----------------|
-| **minimact** | SignalM (WebSocket + JSON) | **13.33 KB** | Modern browsers (95%+ users) |
+| **minimact** | SignalM (WebSocket + JSON) | **12.01 KB** | Modern browsers (95%+ users) |
 | **minimact-r** | SignalR (Full client) | **25.03 KB** | All browsers + legacy support |
 
 ### Comparison to Other Frameworks
@@ -666,7 +666,7 @@ Minimact is available in two versions:
 |-----------|---------------|-------------|
 | React 18 | 45 KB | **71% larger** |
 | Vue 3 | 34 KB | **155% larger** |
-| **Minimact** | **13.33 KB** | ✅ Default |
+| **Minimact** | **12.01 KB** | ✅ Default |
 | Minimact-R | 25.03 KB | 88% larger (still 44% smaller than React) |
 
 ### When to Use Each Version

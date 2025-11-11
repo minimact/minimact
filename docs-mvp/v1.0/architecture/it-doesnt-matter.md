@@ -16,7 +16,7 @@ You're still making users download megabytes of JavaScript!
 You're still hydrating like it's 2015!
 You're still pretending 16ms latency is "fast enough"!
 
-**THE ROCK SAYS:** 13.33 KB. 0ms latency. **KNOW YOUR ROLE!**
+**THE ROCK SAYS:** 12.01 KB. 0ms latency. **KNOW YOUR ROLE!**
 
 ---
 
@@ -191,7 +191,7 @@ You're still not predicting!
 
 ### **WHAT MATTERS IS:**
 
-✅ **Are you under 15KB?** *(Minimac't: 13.33 KB)*
+✅ **Are you under 15KB?** *(Minimac't: 12.01 KB)*
 
 ✅ **Do you have 0ms latency?** *(Minimac't: Predictive patches)*
 
@@ -226,7 +226,7 @@ Whether you're:
 **Because when you step into the ring with Minimac't...**
 
 When you face:
-- 13.33 KB of pure performance
+- 12.01 KB of pure performance
 - 0ms predictive rendering
 - Zero hydration bloat
 - Server-authoritative security
@@ -257,7 +257,7 @@ And **SHUT YOUR MOUTH!**
 
 *\*Minimac't logo shines\**
 
-*\*13.33 KB displayed in lights\**
+*\*12.01 KB displayed in lights\**
 
 *\*Crowd chants: "MINI-MAC'T! MINI-MAC'T! MINI-MAC'T!"\**
 
@@ -307,7 +307,7 @@ Is **BETTER** than you!
 
 *\*frameworks lie defeated\**
 
-*\*13.33 KB still going strong\**
+*\*12.01 KB still going strong\**
 
 🏆⚡💻
 

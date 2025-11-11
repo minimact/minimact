@@ -290,7 +290,7 @@ Try implementing these concepts in **@language**!
         description: 'Redis-like server-side cache with scoped lifetimes (session, request, URL, application)',
         category: 'advanced',
         imports: [
-            "import { createContext, useContext } from '@minimact/core';"
+            "import { createContext, useContext } from '@minimact/core/power';"
         ],
         example: `// Create a session-scoped user context
 const UserContext = createContext<User>('current-user', {
@@ -324,7 +324,7 @@ export function UserProfile() {
         name: 'useComputed',
         description: 'Client-side computation with browser APIs (lodash, geolocation, crypto)',
         category: 'advanced',
-        imports: ["import { useComputed } from '@minimact/core';"],
+        imports: ["import { useComputed } from '@minimact/core/power';"],
         example: `export function UserList({ users }) {
   // Use lodash on client (no server bundle bloat)
   const sortedUsers = useComputed('sortedUsers', () => {
@@ -354,7 +354,7 @@ export function LocationMap() {
         name: 'useServerTask',
         description: 'Execute TypeScript on C# or Rust runtime with automatic transpilation',
         category: 'tasks',
-        imports: ["import { useServerTask } from '@minimact/core';"],
+        imports: ["import { useServerTask } from '@minimact/core/power';"],
         example: `export function DataProcessor() {
   const crunch = useServerTask(async (numbers: number[]) => {
     return numbers
@@ -382,7 +382,7 @@ export function LocationMap() {
         name: 'useServerReducer',
         description: 'Redux-style state management with reducer logic running on server (validation, side effects, DB access)',
         category: 'advanced',
-        imports: ["import { useServerReducer } from '@minimact/core';"],
+        imports: ["import { useServerReducer } from '@minimact/core/power';"],
         example: `type CartState = {
   items: Array<{ id: string; name: string; price: number; qty: number }>;
   total: number;
@@ -640,7 +640,7 @@ public class ShoppingCartComponent : MinimactComponent
         name: 'usePaginatedServerTask',
         description: 'Server-side pagination with prefetching and automatic re-fetch on filters',
         category: 'tasks',
-        imports: ["import { usePaginatedServerTask } from '@minimact/core';"],
+        imports: ["import { usePaginatedServerTask } from '@minimact/core/power';"],
         example: `export function UserList() {
   const [filters, setFilters] = useState({ role: 'admin' });
 
@@ -690,7 +690,7 @@ public class ShoppingCartComponent : MinimactComponent
         name: 'usePub',
         description: 'Publish messages to a channel - component-to-component communication without prop drilling',
         category: 'communication',
-        imports: ["import { usePub } from '@minimact/core';"],
+        imports: ["import { usePub } from '@minimact/core/power';"],
         example: `export function CartButton() {
   const publishCartUpdate = usePub<{ itemCount: number }>('cart:updated');
 
@@ -715,7 +715,7 @@ public class ShoppingCartComponent : MinimactComponent
         name: 'useSub',
         description: 'Subscribe to messages from a channel - listen to events from other components',
         category: 'communication',
-        imports: ["import { useSub } from '@minimact/core';"],
+        imports: ["import { useSub } from '@minimact/core/power';"],
         example: `export function CartBadge() {
   const [itemCount, setItemCount] = useState(0);
 
@@ -739,7 +739,7 @@ public class ShoppingCartComponent : MinimactComponent
         name: 'useMicroTask',
         description: 'Schedule callback in microtask queue (before paint) - perfect for DOM measurements and critical updates',
         category: 'tasks',
-        imports: ["import { useMicroTask } from '@minimact/core';"],
+        imports: ["import { useMicroTask } from '@minimact/core/power';"],
         example: `export function AutoExpandTextarea() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -770,7 +770,7 @@ public class ShoppingCartComponent : MinimactComponent
         name: 'useMacroTask',
         description: 'Schedule callback in task queue (after paint) - perfect for analytics, logging, deferred work',
         category: 'tasks',
-        imports: ["import { useMacroTask } from '@minimact/core';"],
+        imports: ["import { useMacroTask } from '@minimact/core/power';"],
         example: `export function SearchInput() {
   const [query, setQuery] = useState('');
 
@@ -803,7 +803,7 @@ public class ShoppingCartComponent : MinimactComponent
         name: 'useSignalR',
         description: 'Access SignalR connection state and methods - invoke server methods and listen for server events',
         category: 'communication',
-        imports: ["import { useSignalR } from '@minimact/core';"],
+        imports: ["import { useSignalR } from '@minimact/core/power';"],
         example: `export function ConnectionStatus() {
   const { state, connectionId, invoke, on, off } = useSignalR();
 

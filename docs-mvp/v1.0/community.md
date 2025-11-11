@@ -114,7 +114,7 @@ We measure success in milliseconds, not features. Every line of code must justif
 
 **Minimalist metrics:**
 - Time to Interactive: 2-3ms (not 150-300ms)
-- Bundle size: 13.33KB (not 45KB+)
+- Bundle size: 12.01KB (not 45KB+)
 - State updates: 0-1ms predicted (not 16-32ms)
 
 ### 2. Server-Side Truth

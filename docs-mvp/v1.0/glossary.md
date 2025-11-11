@@ -206,7 +206,7 @@ Amount of JavaScript sent to the client.
 **Comparison:**
 - React 18: 45KB gzipped
 - Vue 3: 34KB gzipped
-- **Minimact: 13.33KB gzipped** (70% smaller)
+- **Minimact: 12.01KB gzipped** (70% smaller)
 
 ---
 

@@ -79,7 +79,7 @@ Traditional UI frameworks like React must reconcile every state change on the cl
 - ✅ **Easy deployment** - Standard ASP.NET Core hosting
 
 ### For End Users
-- ✅ **Fast initial load** - 13.33 KB client (71% smaller than React)
+- ✅ **Fast initial load** - 12.01 KB client (71% smaller than React)
 - ✅ **Instant interactions** - Predictive updates feel native
 - ✅ **Works without JS** - Progressive enhancement built-in
 - ✅ **Low bandwidth** - Only patches sent over the wire
@@ -775,7 +775,7 @@ In the scorching silence of the posthydrationist desert, traditional frameworks 
 Minimact is different. Like the cactus, it thrives not by reaching outward, but by turning inward - by minimizing waste, by knowing before needing, by storing what will be required before the request arrives.
 
 **Minimact is the cactus of the frontend ecosystem:**
-- **Minimal** - 13.33 KB client (71% smaller than React), zero reconciliation overhead
+- **Minimal** - 12.01 KB client (71% smaller than React), zero reconciliation overhead
 - **Resilient** - Works without JavaScript, degrades gracefully
 - **Latent power** - Pre-computed state changes waiting to execute
 - **Occasionally spiky** - Rust-powered performance that cuts through latency
@@ -1448,7 +1448,7 @@ await useMvcViewModel().sync();
 - **Template prediction:** 95-98% cache hit rate
 - **Initial load:** < 100ms time to interactive
 - **State sync:** < 5ms for mutable property updates
-- **Bundle size:** +3KB for MVC Bridge (on top of 13.33 KB core)
+- **Bundle size:** +3KB for MVC Bridge (on top of 12.01 KB core)
 
 **Comparison to traditional MVC + React:**
 ```
@@ -1544,7 +1544,7 @@ Minimact consists of seven main components working in harmony:
 - Available as server-side library or WASM
 
 ### 4. **Client Library** (JavaScript)
-- **minimact**: 13.33 KB gzipped (WebSocket-based, modern browsers)
+- **minimact**: 12.01 KB gzipped (WebSocket-based, modern browsers)
 - **minimact-r**: 25.03 KB gzipped (Full SignalR with fallbacks)
 - Real-time connection management
 - Event delegation
@@ -1617,7 +1617,7 @@ Minimact consists of seven main components working in harmony:
   - [x] Client-computed state support
   - [x] UpdateComponentState and UpdateDomElementState methods
 - [x] **Client library** (JavaScript runtime)
-  - [x] Two versions: minimact (13.33 KB) and minimact-r (25.03 KB)
+  - [x] Two versions: minimact (12.01 KB) and minimact-r (25.03 KB)
   - [x] SignalM/SignalR connection management
   - [x] DOM patching (surgical updates)
   - [x] Event delegation
@@ -1706,7 +1706,7 @@ See [VISION.md](./src/VISION.md), [PHASES_1_TO_9_COMPLETION_SUMMARY.md](./docs/P
 | Feature | Minimact | Next.js/Remix | Blazor Server | HTMX |
 |---------|----------|---------------|---------------|------|
 | **Syntax** | React JSX/TSX | React JSX/TSX | Razor C# | HTML attrs |
-| **Bundle Size** | **13.33 KB** (71% smaller) | ~45 KB | ~300 KB | ~14 KB |
+| **Bundle Size** | **12.01 KB** (71% smaller) | ~45 KB | ~300 KB | ~14 KB |
 | **Server** | .NET | Node.js | .NET | Any |
 | **Hydration** | None* | Required | None | None |
 | **Prediction** | ✅ Rust | ❌ | ❌ | ❌ |
@@ -1743,7 +1743,7 @@ See [VISION.md](./src/VISION.md), [PHASES_1_TO_9_COMPLETION_SUMMARY.md](./docs/P
 
 **Initial Load**:
 - HTML size: ~10-50KB (typical page)
-- JavaScript: 13.33 KB (Minimact client, 71% smaller than React)
+- JavaScript: 12.01 KB (Minimact client, 71% smaller than React)
 - Alternative: 25.03 KB with full SignalR (still 44% smaller than React)
 - Time to Interactive: <100ms
 

@@ -12,7 +12,7 @@ This page breaks down the core tradeoffs and why Minimact feels faster, simpler,
 | **Prediction** | ❌ None | ✅ Template cache (Phases 1-9) |
 | **Execution** | JavaScript on client | Native Rust + C# on server |
 | **Hydration** | ✅ Required | ❌ Skipped entirely |
-| **Bundle Size** | **45 KB** gzipped | **13.33 KB** gzipped (71% smaller) |
+| **Bundle Size** | **45 KB** gzipped | **12.01 KB** gzipped (71% smaller) |
 | **Bundle Size (Full)** | ~45 KB | **25.03 KB** with SignalR (44% smaller) |
 | **Latency** | ~30-60ms | ~2-5ms (cached patches) |
 | **Learning Curve** | Medium | Low (React syntax + .NET) |
@@ -555,11 +555,11 @@ Minimact Unified Stack:
 
 | Framework | Client Bundle (gzipped) | Difference |
 |-----------|------------------------|------------|
-| **Minimact** | **13.33 KB** | ✅ Baseline |
+| **Minimact** | **12.01 KB** | ✅ Baseline |
 | **Blazor Server** | **~180 KB** | 🔴 **13.5× larger** |
 | **Blazor WASM** | **~2.8 MB** | 🔴 **210× larger** |
 
-**Let that sink in:** Blazor Server ships **180 KB** of blazor.server.js. Minimact ships **13.33 KB** total.
+**Let that sink in:** Blazor Server ships **180 KB** of blazor.server.js. Minimact ships **12.01 KB** total.
 
 ---
 
@@ -642,7 +642,7 @@ function Counter() {
 | **Rendering** | Server | Server |
 | **Transport** | SignalR/WebSocket | SignalR |
 | **State** | Patch-based | Circuit-based |
-| **Bundle** | 13.33 KB | 180 KB |
+| **Bundle** | 12.01 KB | 180 KB |
 | **Syntax** | React JSX/TSX | Razor |
 | **Learning Curve** | Low (React) | Medium (Blazor) |
 | **Talent Pool** | Millions (React devs) | Thousands (Blazor devs) |
@@ -664,7 +664,7 @@ function Counter() {
 - ✅ .NET integration
 
 **Minimact's pitch:**
-- ✅ 13.33 KB client (13.5× lighter)
+- ✅ 12.01 KB client (13.5× lighter)
 - ✅ Use React syntax (no rewrite)
 - ✅ Hire from React talent pool (millions of devs)
 - ✅ Migrate incrementally
@@ -704,7 +704,7 @@ React Developer
       ↓
    Keep React syntax ✅
       ↓
-   13.33 KB bundle 🚀
+   12.01 KB bundle 🚀
       ↓
    Ship today 🎉
 ```
@@ -742,7 +742,7 @@ React Developer
 |--------|-------|---------------|----------|
 | **Philosophy** | Client reconciles | Server circuits | Server pre-computes |
 | **Execution** | VDOM diff | SignalR sync | Cached patches |
-| **Bundle** | 45 KB | 180 KB | **13.33 KB** ✅ |
+| **Bundle** | 45 KB | 180 KB | **12.01 KB** ✅ |
 | **Latency** | ~30-60ms | ~25-40ms | **~2-3ms** ✅ |
 | **Memory** | VDOM trees | Circuit state | Templates ✅ |
 | **Security** | Client-exposed | Server ✅ | Server ✅ |

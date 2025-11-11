@@ -33,7 +33,7 @@ Minimact flips the model entirely:
 │  Minimact Flow                          │
 ├─────────────────────────────────────────┤
 │  1. Server renders HTML                 │
-│  2. Client downloads 13.33 KB runtime   │
+│  2. Client downloads 12.01 KB runtime   │
 │  3. Server pre-computes state changes   │
 │  4. Client caches predicted patches     │
 │  5. User interacts → instant update     │
@@ -43,7 +43,7 @@ Minimact flips the model entirely:
 ```
 
 **Benefits:**
-- ✅ 13.33 KB client vs 45 KB React (71% smaller)
+- ✅ 12.01 KB client vs 45 KB React (71% smaller)
 - ✅ No hydration required
 - ✅ Zero client-side reconciliation
 - ✅ 2-3ms perceived latency (vs 30-60ms traditional)
@@ -206,7 +206,7 @@ Minimact Client Bundle:
 ├── Event delegation
 ├── Patch cache
 └── State synchronization
-Total: 13.33 KB (gzipped) - 71% smaller
+Total: 12.01 KB (gzipped) - 71% smaller
 ```
 
 **With full SignalR:** 25.03 KB (still 44% smaller than React)
@@ -280,7 +280,7 @@ Works without JavaScript:
 
 | Aspect | Minimact | Next.js/Remix |
 |--------|----------|---------------|
-| **Client bundle** | 13.33 KB (71% smaller) | ~45 KB |
+| **Client bundle** | 12.01 KB (71% smaller) | ~45 KB |
 | **Hydration** | None | Required |
 | **Interaction latency** | 2-3ms | 30-60ms |
 | **Server language** | .NET | Node.js |
@@ -309,7 +309,7 @@ Works without JavaScript:
 | Aspect | Minimact | HTMX |
 |--------|----------|------|
 | **Paradigm** | Component-based | Hypermedia |
-| **Bundle size** | 13.33 KB | ~14 KB |
+| **Bundle size** | 12.01 KB | ~14 KB |
 | **Type safety** | ✅ TS→C# | ❌ None |
 | **Prediction** | ✅ Intelligent | ❌ None |
 | **Complexity** | React components | HTML attributes |

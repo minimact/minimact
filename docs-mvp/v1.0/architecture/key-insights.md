@@ -206,14 +206,14 @@ State change
 **The Benchmark:**
 - React 18: 45KB gzipped
 - Vue 3: 34KB
-- **Minimact: 13.33KB** — including predictive runtime, SignalR hooks, and interactivity glue
+- **Minimact: 12.01KB** — including predictive runtime, SignalR hooks, and interactivity glue
 
 **Minimact Insight:**
 > 🏋️ **Minimalism isn't a constraint. It's a superpower.**
 
 Everything in Minimact is designed for maximum leverage: bytes, logic, latency — all minimized without sacrificing power.
 
-**What's in those 13.33KB:**
+**What's in those 12.01KB:**
 - ✅ Patch application engine
 - ✅ HintQueue (predictive cache)
 - ✅ SignalR state sync
@@ -221,7 +221,7 @@ Everything in Minimact is designed for maximum leverage: bytes, logic, latency �
 - ✅ Component lifecycle hooks
 - ✅ Event handling
 
-**What's NOT in those 13.33KB:**
+**What's NOT in those 12.01KB:**
 - ❌ Virtual DOM reconciler
 - ❌ Reactive graph runtime
 - ❌ Component fiber tree
@@ -286,7 +286,7 @@ Minimact's patch model is state-driven, interactivity-preserving, and fast AF. Y
 | Metric | React SSR | Next.js | Remix | Minimact |
 |--------|-----------|---------|-------|----------|
 | **Time to Interactive** | 150-300ms | 120-250ms | 100-200ms | **2-3ms** |
-| **Bundle size** | 45KB | 85KB | 55KB | **13.33KB** |
+| **Bundle size** | 45KB | 85KB | 55KB | **12.01KB** |
 | **State update** | 16-32ms | 20-40ms | 15-30ms | **0-1ms (predicted)** |
 | **Network requests** | Many | Many | Many | **1 (SignalR)** |
 
@@ -360,7 +360,7 @@ Client = Fast (13KB patch applier)
 | Virtual DOM diffing | Direct patch application |
 | Client reactive graph | Server state + SignalR sync |
 | Wrapper div hell | Behavioral bundles |
-| 45KB+ frameworks | 13.33KB runtime |
+| 45KB+ frameworks | 12.01KB runtime |
 | Wait for user input | Predict next states |
 | Choose SSR or SPA | Get both, instantly |
 
@@ -388,7 +388,7 @@ Client = Fast (13KB patch applier)
            │
            ↓ Send patches via SignalR
 ┌─────────────────────────────────────┐
-│  Client Runtime (13.33KB)           │
+│  Client Runtime (12.01KB)           │
 │  - HintQueue (cache)                │
 │  - Patch applier                    │
 │  - State sync                       │

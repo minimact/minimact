@@ -18,7 +18,7 @@ Because **FINALLY**... *FINALLY*... The Minimac't MVC Bridge has come back... to
 
 - ⚡ **0ms** perceived latency (if ya smell what the cache is hitting)
 - 🎯 **96% - 98%** prediction accuracy (know your role)
-- 📦 **13.33 KB** runtime (stripped down, lean, and MEAN)
+- 📦 **12.01 KB** runtime (stripped down, lean, and MEAN)
 - 🔒 **100%** server-authoritative security (locked down tighter than a figure-four leglock)
 - 💰 **5x** memory reduction vs. the candy-ass competition
 - 🏆 **The Rock's Rating**: CHAMPION (vs. all the jabronis)
@@ -31,7 +31,7 @@ Because **FINALLY**... *FINALLY*... The Minimac't MVC Bridge has come back... to
 
 **Round 2** - React Fan: *"But hydration..."* → Minimac't: "0ms PATCHES!"
 
-**Round 3** - Angular Dev: *"500KB bundle..."* → Minimac't: "13.33 KB. BOOM!"
+**Round 3** - Angular Dev: *"500KB bundle..."* → Minimac't: "12.01 KB. BOOM!"
 
 **Round 4** - Next.js: *"Server components..."* → Minimac't: "RUST RECONCILIATION! 🪨💥"
 

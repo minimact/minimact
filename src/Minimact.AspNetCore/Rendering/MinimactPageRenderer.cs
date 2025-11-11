@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Minimact.AspNetCore.Attributes;
 using Minimact.AspNetCore.Core;
 using System.Reflection;
@@ -17,11 +19,16 @@ public class MinimactPageRenderer
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ComponentRegistry _registry;
+    private readonly IWebHostEnvironment _environment;
 
-    public MinimactPageRenderer(IServiceProvider serviceProvider, ComponentRegistry registry)
+    public MinimactPageRenderer(
+        IServiceProvider serviceProvider,
+        ComponentRegistry registry,
+        IWebHostEnvironment environment)
     {
         _serviceProvider = serviceProvider;
         _registry = registry;
+        _environment = environment;
     }
 
     /// <summary>
@@ -64,7 +71,13 @@ public class MinimactPageRenderer
         // 6. Serialize ViewModel for client
         var viewModelJson = SerializeViewModel(component, viewModel, mutability);
 
-        // 7. Generate complete HTML page
+        // 7. Auto-enable hot-reload in development (unless explicitly disabled)
+        if (options.EnableHotReload == null && _environment.IsDevelopment())
+        {
+            options.EnableHotReload = true;
+        }
+
+        // 8. Generate complete HTML page
         var pageHtml = GeneratePageHtml(component, html, pageTitle, viewModelJson, options);
 
         return new ContentResult
@@ -251,6 +264,15 @@ public class MinimactPageRenderer
         }});
         minimact.start();
 
+        {(options.EnableHotReload == true ? @"
+        // Lazy-load hot-reload module (development only)
+        import('@minimact/core/hot-reload').then(({ enableHotReload }) => {
+            enableHotReload();
+            console.log('[Minimact] Hot-reload enabled');
+        }).catch(err => {
+            console.warn('[Minimact] Failed to load hot-reload module:', err);
+        });" : "")}
+
         {(options.EnablePrismSyntaxHighlighting ? @"
         // Initialize Prism.js for syntax highlighting
         if (typeof Prism !== 'undefined') {
@@ -356,6 +378,16 @@ public class MinimactPageRenderOptions
     /// Adds: &lt;script src="/js/minimact-md.min.js"&gt;&lt;/script&gt;
     /// </summary>
     public bool IncludeMarkdownExtension { get; set; } = false;
+
+    /// <summary>
+    /// Enable hot-reload (default: null = auto-detect based on environment)
+    /// - null: Auto-enable in Development, disable in Production (default)
+    /// - true: Force enable (even in production, useful for staging)
+    /// - false: Force disable (even in development)
+    /// Lazy-loads @minimact/core/hot-reload module on client
+    /// Uses the existing SignalR hub for file change notifications
+    /// </summary>
+    public bool? EnableHotReload { get; set; } = null;
 
     /// <summary>
     /// Enable Prism.js syntax highlighting for code blocks (default: false)

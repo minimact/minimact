@@ -29,7 +29,7 @@ features:
     details: Rust engine pre-renders UI updates before user interaction. Patches cached and ready instantly.
 
   - icon: 🎯
-    title: 13.33 KB Bundle
+    title: 12.01 KB Bundle
     details: 71% smaller than React. WebSocket-based real-time sync. No bloat, just performance.
 
   - icon: 🔄
@@ -67,7 +67,7 @@ Once Swig launches:
 That's it! From zero to running app in under 2 minutes.
 
 **Two runtime versions available:**
-- `@minimact/core` — 13.33 KB gzipped (WebSocket-based, modern browsers)
+- `@minimact/core` — 12.01 KB gzipped (WebSocket-based, modern browsers)
 - `@minimact/core/r` — 25.03 KB gzipped (Full SignalR with fallbacks)
 
 ## Example
@@ -99,7 +99,7 @@ Babel transpiles to C#, Rust predicts the next state, and the client applies cac
 ### For React Developers
 **Finally, a path to .NET without learning Razor.** Keep writing React — get ASP.NET Core's power, security, and enterprise features.
 
-**Bundle size:** 13.33 KB vs React's 45 KB (71% smaller!)
+**Bundle size:** 12.01 KB vs React's 45 KB (71% smaller!)
 
 ### For .NET Teams
 **Modern frontend DX without abandoning your stack.** Your team already knows C# and EF Core. Now they can build UIs with React syntax.
@@ -112,7 +112,7 @@ Babel transpiles to C#, Rust predicts the next state, and the client applies cac
 **Comparison:**
 - React 18: 45 KB gzipped
 - Vue 3: 34 KB gzipped
-- **Minimact: 13.33 KB gzipped** (71% smaller than React)
+- **Minimact: 12.01 KB gzipped** (71% smaller than React)
 
 ### Better Than Blazor
 Blazor requires learning Razor syntax. Minimact uses React — the syntax millions of developers already know. Lower barrier, faster adoption, bigger talent pool.

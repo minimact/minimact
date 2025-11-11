@@ -6,7 +6,7 @@ Minimact is available in two versions to fit your needs:
 
 | Version | Transport | Bundle Size (gzipped) | Use Case |
 |---------|-----------|----------------------|----------|
-| **minimact** | SignalM (WebSocket + JSON) | **13.33 KB** | Modern browsers (95%+ users) |
+| **minimact** | SignalM (WebSocket + JSON) | **12.01 KB** | Modern browsers (95%+ users) |
 | **minimact-r** | SignalR (Full client) | **25.03 KB** | Enterprise / Legacy support |
 
 **Savings: 47% smaller with SignalM!**
@@ -18,7 +18,7 @@ Minimact is available in two versions to fit your needs:
 ### Minimact (SignalM - Lightweight)
 
 ```
-dist/minimact.min.js      50.24 KB  →  13.33 KB gzipped  (IIFE)
+dist/minimact.min.js      50.24 KB  →  12.01 KB gzipped  (IIFE)
 dist/minimact.esm.min.js  50.27 KB  →  13.37 KB gzipped  (ESM)
 ```
 

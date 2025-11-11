@@ -77,7 +77,7 @@ User clicks →
 ### For React Developers
 **Finally, a path to .NET without learning Razor.** Keep writing React — get ASP.NET Core's power, security, and enterprise features.
 
-**Bundle size:** 13.33 KB vs React's 45 KB (71% smaller!)
+**Bundle size:** 12.01 KB vs React's 45 KB (71% smaller!)
 
 ### For .NET Teams
 **Modern frontend DX without abandoning your stack.** Your team already knows C# and EF Core. Now they can build UIs with React syntax.
@@ -90,7 +90,7 @@ User clicks →
 **Comparison:**
 - React 18: 45 KB gzipped
 - Vue 3: 34 KB gzipped
-- **Minimact: 13.33 KB gzipped** (71% smaller than React)
+- **Minimact: 12.01 KB gzipped** (71% smaller than React)
 
 ### Better Than Blazor
 Blazor requires learning Razor syntax. Minimact uses React — the syntax millions of developers already know. Lower barrier, faster adoption, bigger talent pool.
@@ -102,13 +102,13 @@ Blazor requires learning Razor syntax. Minimact uses React — the syntax millio
 | **First Paint** | ⚠️ Depends on JS | ✅ Fast | ✅ Fast |
 | **Interactivity** | ✅ JS required | ⚠️ Re-hydration | ✅ Instant (2-3ms) |
 | **State Sync** | 🔄 Manual | 🔄 Manual | ✅ Auto |
-| **Bundle Size** | ~45 KB | ~45 KB | **13.33 KB** |
+| **Bundle Size** | ~45 KB | ~45 KB | **12.01 KB** |
 | **Server Logic** | ❌ None | ⚠️ API routes | ✅ Native C# |
 | **Offline Friendly** | ✅ Yes | ⚠️ Partial | ⚠️ Prediction-only |
 
 ### Key Benefits
 - ⚡ **2-3ms interactions** - Predictive patches cached before user clicks
-- 📦 **13.33 KB bundle** - 71% smaller than React
+- 📦 **12.01 KB bundle** - 71% smaller than React
 - 🏗️ **Familiar syntax** - Write JSX/TSX with React hooks
 - 🔐 **Secure by default** - Business logic stays on server
 - 🚀 **15× faster** than traditional SSR on 3G networks
@@ -137,7 +137,7 @@ Once Swig launches:
 That's it! From zero to running app in under 2 minutes.
 
 **Two runtime versions available:**
-- `@minimact/core` — 13.33 KB gzipped (WebSocket-based, modern browsers)
+- `@minimact/core` — 12.01 KB gzipped (WebSocket-based, modern browsers)
 - `@minimact/core/r` — 25.03 KB gzipped (Full SignalR with fallbacks)
 
 **📦 Real-world examples:**
@@ -158,7 +158,7 @@ That's it! From zero to running app in under 2 minutes.
 🛠️ **Desktop IDE** with live state + TSX editing
 🧬 **Full state tree visibility** — Perfect prediction
 🔐 **Secure by default** — Logic runs server-side
-📦 **71% smaller** than React (13.33 KB vs 45 KB)
+📦 **71% smaller** than React (12.01 KB vs 45 KB)
 🔌 **Plugin system** via NuGet packages
 
 ---
@@ -368,7 +368,7 @@ dotnet add package Minimact.Plugin.Clock
 1. **Babel Plugin** - TSX → C# transformation
 2. **C# Runtime** - ASP.NET Core integration
 3. **Rust Engine** - High-performance reconciliation
-4. **Client Library** - 13.33 KB runtime
+4. **Client Library** - 12.01 KB runtime
 5. **Lifted State** - Automatic state architecture
 6. **Minimact Punch** - DOM state extensions
 7. **Minimact Swig** - Desktop IDE
@@ -377,7 +377,7 @@ dotnet add package Minimact.Plugin.Clock
 
 **SignalM - Minimal WebSocket Protocol**
 - Custom lightweight protocol (vs full SignalR)
-- **13.33 KB** runtime with SignalM
+- **12.01 KB** runtime with SignalM
 - **25.03 KB** runtime with full SignalR (fallbacks for older browsers)
 - Real-time bidirectional communication
 - Optimized for patch delivery
@@ -427,7 +427,7 @@ Minimact offers two runtime versions optimized for different scenarios:
 
 | Feature | `@minimact/core` (SignalM) | `@minimact/core/r` (SignalR) |
 |---------|---------------------------|------------------------------|
-| **Size** | 13.33 KB gzipped | 25.03 KB gzipped |
+| **Size** | 12.01 KB gzipped | 25.03 KB gzipped |
 | **Protocol** | Custom WebSocket | Full SignalR with fallbacks |
 | **Use Case** | Modern browsers, micro-patches | IE11+, corporate networks |
 | **Fallbacks** | None | Long polling, SSE, forever frame |
@@ -451,7 +451,7 @@ Minimact offers two runtime versions optimized for different scenarios:
 
 | Metric | Value |
 |--------|-------|
-| **Initial Load** | 13.33 KB (71% smaller than React) |
+| **Initial Load** | 12.01 KB (71% smaller than React) |
 | **Time to Interactive** | < 100ms |
 | **Interaction Latency** | ~2-5ms (with prediction) |
 | **Cache Hit Rate** | 95-98% (after warmup) |
@@ -465,7 +465,7 @@ Minimact offers two runtime versions optimized for different scenarios:
 
 | Feature | Minimact | Next.js | Blazor Server | HTMX |
 |---------|----------|---------|---------------|------|
-| **Bundle Size** | **13.33 KB** | ~45 KB | ~300 KB | ~14 KB |
+| **Bundle Size** | **12.01 KB** | ~45 KB | ~300 KB | ~14 KB |
 | **Syntax** | React JSX | React JSX | Razor C# | HTML attrs |
 | **Hydration** | None | Required | None | None |
 | **Update Model** | **Predictive (client)** | Reactive (client) | Reactive (server) | **Triggered (server)** |
@@ -537,7 +537,7 @@ Minimact offers two runtime versions optimized for different scenarios:
 
 **Minimact** stands for **MINIMal Anticipatory Client Technology**.
 
-- **Minimal** — Tiny 13.33 KB runtime, minimal client logic
+- **Minimal** — Tiny 12.01 KB runtime, minimal client logic
 - **Anticipatory** — Predictive patches pre-sent before user interaction
 - **Client Technology** — Smart client that applies cached patches instantly
 

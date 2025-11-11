@@ -23,9 +23,35 @@ const sharedPlugins = [
 
 const terserConfig = {
   compress: {
-    pure_funcs: [], // Don't strip console.log - needed for debug logging
-    drop_console: false, // Keep all console methods
-    passes: 2
+    // Aggressive compression
+    arguments: true,
+    booleans_as_integers: true,
+    drop_console: true,        // Strip console.* in production
+    drop_debugger: true,
+    ecma: 2020,                // Target modern browsers
+    module: true,
+    passes: 3,                 // More optimization passes
+    pure_funcs: ['console.log', 'console.warn', 'console.info', 'console.debug'],
+    pure_getters: true,
+    unsafe: true,              // Enable aggressive optimizations
+    unsafe_arrows: true,
+    unsafe_comps: true,
+    unsafe_Function: true,
+    unsafe_math: true,
+    unsafe_methods: true,
+    unsafe_proto: true,
+    unsafe_regexp: true,
+    unsafe_undefined: true
+  },
+  mangle: {
+    properties: {
+      // Mangle private properties (starting with _)
+      regex: /^_/
+    }
+  },
+  format: {
+    comments: false,           // Remove all comments
+    ecma: 2020
   }
 };
 
@@ -36,9 +62,9 @@ const treeshakeConfig = {
 };
 
 export default [
-  // Minimact (SignalM - Lightweight)
+  // Minimact Core (SignalM - Lightweight) - 13.41 KB gzipped
   {
-    input: 'src/index.ts',
+    input: 'src/index-core.ts',
     output: [
       {
         file: 'dist/core.js',
@@ -68,16 +94,16 @@ export default [
     plugins: [
       ...sharedPlugins,
       visualizer({
-        filename: 'stats-signalm.html',
+        filename: 'stats-core.html',
         gzipSize: true,
         brotliSize: true,
-        title: 'Minimact (SignalM) Bundle Analysis'
+        title: 'Minimact Core (SignalM) Bundle Analysis'
       })
     ],
     treeshake: treeshakeConfig
   },
 
-  // Minimact-R (SignalR - Full)
+  // Minimact-R Core (SignalR - Full) - 15-16 KB gzipped
   {
     input: 'src/index-r.ts',
     output: [
@@ -113,6 +139,90 @@ export default [
         gzipSize: true,
         brotliSize: true,
         title: 'Minimact-R (SignalR) Bundle Analysis'
+      })
+    ],
+    treeshake: treeshakeConfig
+  },
+
+  // Hot Reload Module (+3.4 KB gzipped)
+  {
+    input: 'src/index-hot-reload.ts',
+    output: [
+      {
+        file: 'dist/hot-reload.js',
+        format: 'es',
+        sourcemap: true
+      },
+      {
+        file: 'dist/hot-reload.min.js',
+        format: 'es',
+        sourcemap: true,
+        plugins: [terser(terserConfig)]
+      }
+    ],
+    plugins: [
+      ...sharedPlugins,
+      visualizer({
+        filename: 'stats-hot-reload.html',
+        gzipSize: true,
+        brotliSize: true,
+        title: 'Minimact Hot Reload Module'
+      })
+    ],
+    treeshake: treeshakeConfig
+  },
+
+  // Playground Module (+0.5 KB gzipped)
+  {
+    input: 'src/index-playground.ts',
+    output: [
+      {
+        file: 'dist/playground.js',
+        format: 'es',
+        sourcemap: true
+      },
+      {
+        file: 'dist/playground.min.js',
+        format: 'es',
+        sourcemap: true,
+        plugins: [terser(terserConfig)]
+      }
+    ],
+    plugins: [
+      ...sharedPlugins,
+      visualizer({
+        filename: 'stats-playground.html',
+        gzipSize: true,
+        brotliSize: true,
+        title: 'Minimact Playground Module'
+      })
+    ],
+    treeshake: treeshakeConfig
+  },
+
+  // Power Features Module (+5.37 KB gzipped)
+  {
+    input: 'src/index-power.ts',
+    output: [
+      {
+        file: 'dist/power.js',
+        format: 'es',
+        sourcemap: true
+      },
+      {
+        file: 'dist/power.min.js',
+        format: 'es',
+        sourcemap: true,
+        plugins: [terser(terserConfig)]
+      }
+    ],
+    plugins: [
+      ...sharedPlugins,
+      visualizer({
+        filename: 'stats-power.html',
+        gzipSize: true,
+        brotliSize: true,
+        title: 'Minimact Power Features Module'
       })
     ],
     treeshake: treeshakeConfig
