@@ -79,6 +79,21 @@ function findElementByPath(root: HTMLElement, path: string): Node | null {
 }
 
 /**
+ * Build state signature for pathVariants lookup
+ * Creates a consistent signature from state bindings and current values
+ *
+ * @param bindings - Array of state keys (e.g., ["state_0", "state_1"])
+ * @param state - Current state object (e.g., { state_0: true, state_1: false })
+ * @returns State signature string (e.g., "state_0:true,state_1:false")
+ */
+function buildStateSignature(bindings: string[], state: Record<string, any>): string {
+  return bindings
+    .map(key => `${key}:${!!state[key]}`)
+    .sort()  // Ensure consistent ordering for lookup
+    .join(',');
+}
+
+/**
  * useState hook - manages component state with hint queue integration
  */
 export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T)) => void] {
@@ -186,54 +201,60 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
       // Get all current state for condition evaluation
       const currentState = templateState.getAllComponentState(context.componentId);
 
-      for (const { pathKey, template } of conditionals) {
-        // Only process if template is evaluable client-side and has DOM path
-        if (!template.evaluable || !template.domPath) {
+      for (const { template } of conditionals) {
+        // Only process if template is evaluable client-side
+        if (!template.evaluable) {
           continue;
         }
 
         try {
-          let parentElement: HTMLElement | ChildNode;
-          let insertIndex: number;
+          let domPath: number[] | undefined;
 
-          // Check if this is a nested conditional
-          if (template.parentTemplate) {
-            // Nested: resolve parent element first
-            const parentRenderedElement = context.conditionalRenderer.getRenderedElement(template.parentTemplate);
+          // Use simulation-based pathVariants (preferred)
+          if (template.pathVariants) {
+            // Build state signature from current state
+            const stateSignature = buildStateSignature(
+              template.conditionBindings || [],
+              currentState
+            );
 
-            if (!parentRenderedElement) {
-              // Parent not rendered, skip this nested conditional
-              console.log(`[Minimact] Skipping nested conditional ${pathKey} - parent ${template.parentTemplate} not rendered`);
+            // Look up pre-computed DOM indices for this exact state combination
+            domPath = template.pathVariants[stateSignature] ?? undefined;
+
+            if (!domPath) {
+              // This state combination doesn't render the element
+              console.log(`[Minimact] No path variant for state ${stateSignature}, skipping conditional`);
               continue;
             }
 
-            // Navigate from parent element using relative domPath
-            parentElement = parentRenderedElement;
-            for (let i = 0; i < template.domPath.length - 1; i++) {
-              parentElement = parentElement.childNodes[template.domPath[i]];
-            }
-            insertIndex = template.domPath[template.domPath.length - 1];
+            console.log(`[Minimact] 🎯 Using simulated DOM indices [${domPath.join(', ')}] for state ${stateSignature}`);
+          } else if (template.domPath) {
+            // Fallback to old domPath (backward compatibility)
+            domPath = template.domPath;
+            console.warn(`[Minimact] Using deprecated domPath for conditional template (should use pathVariants)`);
           } else {
-            // Top-level: navigate from component root using absolute domPath
-            parentElement = context.element;
-            for (let i = 0; i < template.domPath.length - 1; i++) {
-              parentElement = parentElement.childNodes[template.domPath[i]];
-            }
-            insertIndex = template.domPath[template.domPath.length - 1];
+            console.warn(`[Minimact] No path information available for conditional template`);
+            continue;
           }
+
+          // Navigate to parent element using DOM child node indices
+          let parentElement: HTMLElement | ChildNode = context.element;
+          for (let i = 0; i < domPath.length - 1; i++) {
+            parentElement = parentElement.childNodes[domPath[i]];
+          }
+          const insertIndex = domPath[domPath.length - 1];
 
           // Render conditional element (will insert/remove as needed)
           context.conditionalRenderer.render(
-            pathKey,
             template,
             currentState,
             parentElement as HTMLElement,
             insertIndex
           );
 
-          console.log(`[Minimact] 🔀 Conditional element updated at ${pathKey} (${stateKey} changed)`);
+          console.log(`[Minimact] 🔀 Conditional element updated at DOM indices [${domPath.join(', ')}] (${stateKey} changed)`);
         } catch (error) {
-          console.error(`[Minimact] Failed to render conditional element at ${pathKey}:`, error);
+          console.error(`[Minimact] Failed to render conditional element:`, error);
         }
       }
     }
