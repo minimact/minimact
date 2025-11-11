@@ -3,6 +3,31 @@ using System.Text.Json.Serialization;
 namespace Minimact.AspNetCore.HotReload;
 
 /// <summary>
+/// Conditional element template for structural changes
+/// Extracted at build time by Babel from conditional JSX expressions
+/// </summary>
+public class ConditionalElementTemplate
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "conditional-element";
+
+    [JsonPropertyName("conditionExpression")]
+    public string ConditionExpression { get; set; } = string.Empty;
+
+    [JsonPropertyName("conditionBindings")]
+    public List<string> ConditionBindings { get; set; } = new();
+
+    [JsonPropertyName("evaluable")]
+    public bool Evaluable { get; set; }
+
+    [JsonPropertyName("branches")]
+    public Dictionary<string, object?> Branches { get; set; } = new();
+
+    [JsonPropertyName("operator")]
+    public string Operator { get; set; } = "&&";
+}
+
+/// <summary>
 /// Template for a single text node or attribute
 /// Represents a parameterized template extracted at build time by Babel
 /// </summary>
@@ -85,6 +110,13 @@ public class TemplateMap
     /// </summary>
     [JsonPropertyName("templates")]
     public Dictionary<string, Template> Templates { get; set; } = new();
+
+    /// <summary>
+    /// Map from hex node path to conditional element template
+    /// Key format: "1.3" (compact hex path)
+    /// </summary>
+    [JsonPropertyName("conditionalElements")]
+    public Dictionary<string, ConditionalElementTemplate>? ConditionalElements { get; set; }
 }
 
 /// <summary>

@@ -2,6 +2,7 @@ import { HintQueue } from './hint-queue';
 import { DOMPatcher } from './dom-patcher';
 import { PlaygroundBridge } from './playground-bridge';
 import { IConnectionManager } from './connection-manager';
+import { ConditionalElementRenderer } from './conditionalElementRenderer';
 import { templateState } from './template-state';
 import { ServerTask, ServerTaskImpl, ServerTaskOptions } from './server-task';
 import { ServerReducer, ServerReducerImpl } from './server-reducer';
@@ -21,6 +22,7 @@ export interface ComponentContext {
   computedValues?: Map<string, any>; // For useComputed integration
   hintQueue: HintQueue;
   domPatcher: DOMPatcher;
+  conditionalRenderer: ConditionalElementRenderer;
   playgroundBridge?: PlaygroundBridge;
   signalR: IConnectionManager; // For syncing state to server (works with SignalR or SignalM)
   // Note: domElementStates and confidenceWorker are added via module augmentation by minimact-punch

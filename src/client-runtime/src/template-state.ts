@@ -14,6 +14,8 @@
  * Latency: <5ms for template updates
  */
 
+import type { ConditionalElementTemplate } from './conditionalElementRenderer';
+
 export interface Template {
   /** Template string with {0}, {1}, etc. placeholders */
   template: string;
@@ -34,6 +36,7 @@ export interface TemplateMap {
   version: string;
   generatedAt: number;
   templates: Record<string, Template>;
+  conditionalElements?: Record<string, ConditionalElementTemplate>;
 }
 
 export interface TemplatePatch {
@@ -53,6 +56,7 @@ export interface TemplatePatch {
  */
 export class TemplateStateManager {
   private templates: Map<string, Template> = new Map();
+  private conditionalElements: Map<string, ConditionalElementTemplate> = new Map();
   private componentStates: Map<string, Map<string, any>> = new Map();
 
   /**
@@ -74,6 +78,17 @@ export class TemplateStateManager {
       };
 
       this.templates.set(key, normalized);
+    }
+
+    // Load conditional element templates
+    if (templateMap.conditionalElements) {
+      const conditionalCount = Object.keys(templateMap.conditionalElements).length;
+      console.log(`[TemplateState] Loading ${conditionalCount} conditional element templates for ${componentId}`);
+
+      for (const [hexPath, conditionalTemplate] of Object.entries(templateMap.conditionalElements)) {
+        const key = `${componentId}:${hexPath}`;
+        this.conditionalElements.set(key, conditionalTemplate);
+      }
     }
 
     // Initialize component state tracking
@@ -131,6 +146,36 @@ export class TemplateStateManager {
     }
 
     return templates;
+  }
+
+  /**
+   * Get conditional element templates that depend on a specific state variable
+   */
+  getConditionalElementsBoundTo(componentId: string, stateKey: string): Array<{ hexPath: string, template: ConditionalElementTemplate }> {
+    const conditionals: Array<{ hexPath: string, template: ConditionalElementTemplate }> = [];
+
+    for (const [key, template] of this.conditionalElements.entries()) {
+      if (key.startsWith(`${componentId}:`) && template.conditionBindings.includes(stateKey)) {
+        const hexPath = key.substring(componentId.length + 1);
+        conditionals.push({ hexPath, template });
+      }
+    }
+
+    return conditionals;
+  }
+
+  /**
+   * Get all component state as a flat object (for condition evaluation)
+   */
+  getAllComponentState(componentId: string): Record<string, any> {
+    const stateMap = this.componentStates.get(componentId);
+    if (!stateMap) return {};
+
+    const result: Record<string, any> = {};
+    for (const [key, value] of stateMap.entries()) {
+      result[key] = value;
+    }
+    return result;
   }
 
   /**

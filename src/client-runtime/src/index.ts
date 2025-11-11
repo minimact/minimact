@@ -7,6 +7,7 @@ import { HintQueue } from './hint-queue';
 import { PlaygroundBridge } from './playground-bridge';
 import { HotReloadManager } from './hot-reload';
 import { MinimactComponentRegistry } from './component-registry';
+import { ConditionalElementRenderer } from './conditionalElementRenderer';
 import * as ClientComputed from './client-computed';
 import { MinimactOptions, Patch } from './types';
 import { templateState } from './template-state';
@@ -25,6 +26,7 @@ export class Minimact {
   private hintQueue: HintQueue;
   private playgroundBridge: PlaygroundBridge;
   public componentRegistry: MinimactComponentRegistry; // Public for HotReloadManager access
+  public conditionalRenderer: ConditionalElementRenderer; // Public for component contexts
   private hotReload: HotReloadManager | null = null;
   private eventDelegation: EventDelegation | null = null;
   private options: Required<MinimactOptions>;
@@ -78,6 +80,8 @@ export class Minimact {
     });
 
     this.componentRegistry = new MinimactComponentRegistry();
+
+    this.conditionalRenderer = new ConditionalElementRenderer();
 
     // Initialize hot reload if enabled
     if (this.options.enableHotReload) {
@@ -448,6 +452,7 @@ export { TemplateRenderer } from './template-renderer';
 
 // Core hooks
 export { useState, useProtectedState, useEffect, useRef, useServerTask, useServerReducer, useMarkdown, setComponentContext, clearComponentContext, ComponentContext } from './hooks';
+export { ConditionalElementRenderer, ConditionalElementTemplate, ElementStructure, TextNode } from './conditionalElementRenderer';
 
 // State proxy (compile-time only for TypeScript IntelliSense)
 export { state, setState, ComponentState, State } from './state-proxy';
