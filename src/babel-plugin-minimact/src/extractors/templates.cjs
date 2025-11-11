@@ -1020,13 +1020,13 @@ function extractAttributeTemplates(renderBody, component) {
 /**
  * Generate template map JSON file content
  */
-function generateTemplateMapJSON(componentName, templates, attributeTemplates) {
+function generateTemplateMapJSON(componentName, templates, attributeTemplates, conditionalElementTemplates = {}) {
   const allTemplates = {
     ...templates,
     ...attributeTemplates
   };
 
-  return {
+  const result = {
     component: componentName,
     version: '1.0',
     generatedAt: Date.now(),
@@ -1057,6 +1057,13 @@ function generateTemplateMapJSON(componentName, templates, attributeTemplates) {
       return acc;
     }, {})
   };
+
+  // Add conditional element templates if present
+  if (Object.keys(conditionalElementTemplates).length > 0) {
+    result.conditionalElements = conditionalElementTemplates;
+  }
+
+  return result;
 }
 
 /**

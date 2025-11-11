@@ -101,7 +101,7 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	 * Type Conversion
 	 */
 
-	const t$e = globalThis.__BABEL_TYPES__;
+	const t$h = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Convert TypeScript type annotation to C# type
@@ -110,30 +110,30 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	  if (!tsType) return 'dynamic';
 
 	  // TSStringKeyword -> string
-	  if (t$e.isTSStringKeyword(tsType)) return 'string';
+	  if (t$h.isTSStringKeyword(tsType)) return 'string';
 
 	  // TSNumberKeyword -> double
-	  if (t$e.isTSNumberKeyword(tsType)) return 'double';
+	  if (t$h.isTSNumberKeyword(tsType)) return 'double';
 
 	  // TSBooleanKeyword -> bool
-	  if (t$e.isTSBooleanKeyword(tsType)) return 'bool';
+	  if (t$h.isTSBooleanKeyword(tsType)) return 'bool';
 
 	  // TSAnyKeyword -> dynamic
-	  if (t$e.isTSAnyKeyword(tsType)) return 'dynamic';
+	  if (t$h.isTSAnyKeyword(tsType)) return 'dynamic';
 
 	  // TSArrayType -> List<T>
-	  if (t$e.isTSArrayType(tsType)) {
+	  if (t$h.isTSArrayType(tsType)) {
 	    const elementType = tsTypeToCSharpType$4(tsType.elementType);
 	    return `List<${elementType}>`;
 	  }
 
 	  // TSTypeLiteral (object type) -> dynamic
-	  if (t$e.isTSTypeLiteral(tsType)) return 'dynamic';
+	  if (t$h.isTSTypeLiteral(tsType)) return 'dynamic';
 
 	  // TSTypeReference (custom types, interfaces)
-	  if (t$e.isTSTypeReference(tsType)) {
+	  if (t$h.isTSTypeReference(tsType)) {
 	    // Handle @minimact/mvc type mappings
-	    if (t$e.isIdentifier(tsType.typeName)) {
+	    if (t$h.isIdentifier(tsType.typeName)) {
 	      const typeName = tsType.typeName.name;
 
 	      // Map @minimact/mvc types to C# types
@@ -175,17 +175,17 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	function inferType$2(node) {
 	  if (!node) return 'dynamic';
 
-	  if (t$e.isStringLiteral(node)) return 'string';
-	  if (t$e.isNumericLiteral(node)) {
+	  if (t$h.isStringLiteral(node)) return 'string';
+	  if (t$h.isNumericLiteral(node)) {
 	    // Check if the number has a decimal point
 	    // If the value is a whole number, use int; otherwise use double
 	    const value = node.value;
 	    return Number.isInteger(value) ? 'int' : 'double';
 	  }
-	  if (t$e.isBooleanLiteral(node)) return 'bool';
-	  if (t$e.isNullLiteral(node)) return 'dynamic';
-	  if (t$e.isArrayExpression(node)) return 'List<dynamic>';
-	  if (t$e.isObjectExpression(node)) return 'dynamic';
+	  if (t$h.isBooleanLiteral(node)) return 'bool';
+	  if (t$h.isNullLiteral(node)) return 'dynamic';
+	  if (t$h.isArrayExpression(node)) return 'List<dynamic>';
+	  if (t$h.isObjectExpression(node)) return 'dynamic';
 
 	  return 'dynamic';
 	}
@@ -200,7 +200,7 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	 * Dependency Analyzer
 	 */
 
-	const t$d = globalThis.__BABEL_TYPES__;
+	const t$g = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Analyze dependencies in JSX expressions
@@ -213,7 +213,7 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	    if (!node) return;
 
 	    // Check if this is an identifier that's a state variable
-	    if (t$d.isIdentifier(node)) {
+	    if (t$g.isIdentifier(node)) {
 	      const name = node.name;
 	      if (component.stateTypes.has(name)) {
 	        deps.add({
@@ -224,25 +224,25 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	    }
 
 	    // Recursively walk the tree
-	    if (t$d.isConditionalExpression(node)) {
+	    if (t$g.isConditionalExpression(node)) {
 	      walk(node.test);
 	      walk(node.consequent);
 	      walk(node.alternate);
-	    } else if (t$d.isLogicalExpression(node)) {
+	    } else if (t$g.isLogicalExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$d.isMemberExpression(node)) {
+	    } else if (t$g.isMemberExpression(node)) {
 	      walk(node.object);
 	      walk(node.property);
-	    } else if (t$d.isCallExpression(node)) {
+	    } else if (t$g.isCallExpression(node)) {
 	      walk(node.callee);
 	      node.arguments.forEach(walk);
-	    } else if (t$d.isBinaryExpression(node)) {
+	    } else if (t$g.isBinaryExpression(node)) {
 	      walk(node.left);
 	      walk(node.right);
-	    } else if (t$d.isUnaryExpression(node)) {
+	    } else if (t$g.isUnaryExpression(node)) {
 	      walk(node.argument);
-	    } else if (t$d.isArrowFunctionExpression(node) || t$d.isFunctionExpression(node)) {
+	    } else if (t$g.isArrowFunctionExpression(node) || t$g.isFunctionExpression(node)) {
 	      walk(node.body);
 	    }
 	  }
@@ -1022,91 +1022,83 @@ var MinimactBabelPlugin = (function (require$$0$1, require$$1$1, require$$4) {
 	 * Pattern Detection
 	 */
 
-	var detection;
-	var hasRequiredDetection;
-
-	function requireDetection () {
-		if (hasRequiredDetection) return detection;
-		hasRequiredDetection = 1;
-		const t = globalThis.__BABEL_TYPES__;
+	const t$f = globalThis.__BABEL_TYPES__;
 
 
-		/**
-		 * Detect if attributes contain spread operators
-		 */
-		function hasSpreadProps(attributes) {
-		  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
-		}
-
-		/**
-		 * Detect if children contain dynamic patterns (like .map())
-		 */
-		function hasDynamicChildren(children) {
-		  return children.some(child => {
-		    if (!t.isJSXExpressionContainer(child)) return false;
-		    const expr = child.expression;
-
-		    // Check for .map() calls
-		    if (t.isCallExpression(expr) &&
-		        t.isMemberExpression(expr.callee) &&
-		        t.isIdentifier(expr.callee.property, { name: 'map' })) {
-		      return true;
-		    }
-
-		    // Check for array expressions from LINQ/Select
-		    if (t.isCallExpression(expr) &&
-		        t.isMemberExpression(expr.callee) &&
-		        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-		         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-		      return true;
-		    }
-
-		    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-		    if (t.isConditionalExpression(expr)) {
-		      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
-		          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
-		        return true;
-		      }
-		    }
-
-		    // Check for logical expressions with JSX: {condition && <Element/>}
-		    if (t.isLogicalExpression(expr)) {
-		      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
-		        return true;
-		      }
-		    }
-
-		    return false;
-		  });
-		}
-
-		/**
-		 * Detect if props contain complex expressions
-		 */
-		function hasComplexProps(attributes) {
-		  return attributes.some(attr => {
-		    if (!t.isJSXAttribute(attr)) return false;
-		    const value = attr.value;
-
-		    if (!t.isJSXExpressionContainer(value)) return false;
-		    const expr = value.expression;
-
-		    // Check for conditional spread: {...(condition && { prop: value })}
-		    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
-		      return true;
-		    }
-
-		    return false;
-		  });
-		}
-
-		detection = {
-		  hasSpreadProps,
-		  hasDynamicChildren,
-		  hasComplexProps
-		};
-		return detection;
+	/**
+	 * Detect if attributes contain spread operators
+	 */
+	function hasSpreadProps(attributes) {
+	  return attributes.some(attr => t$f.isJSXSpreadAttribute(attr));
 	}
+
+	/**
+	 * Detect if children contain dynamic patterns (like .map())
+	 */
+	function hasDynamicChildren(children) {
+	  return children.some(child => {
+	    if (!t$f.isJSXExpressionContainer(child)) return false;
+	    const expr = child.expression;
+
+	    // Check for .map() calls
+	    if (t$f.isCallExpression(expr) &&
+	        t$f.isMemberExpression(expr.callee) &&
+	        t$f.isIdentifier(expr.callee.property, { name: 'map' })) {
+	      return true;
+	    }
+
+	    // Check for array expressions from LINQ/Select
+	    if (t$f.isCallExpression(expr) &&
+	        t$f.isMemberExpression(expr.callee) &&
+	        (t$f.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t$f.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	      return true;
+	    }
+
+	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+	    if (t$f.isConditionalExpression(expr)) {
+	      if (t$f.isJSXElement(expr.consequent) || t$f.isJSXFragment(expr.consequent) ||
+	          t$f.isJSXElement(expr.alternate) || t$f.isJSXFragment(expr.alternate)) {
+	        return true;
+	      }
+	    }
+
+	    // Check for logical expressions with JSX: {condition && <Element/>}
+	    if (t$f.isLogicalExpression(expr)) {
+	      if (t$f.isJSXElement(expr.right) || t$f.isJSXFragment(expr.right)) {
+	        return true;
+	      }
+	    }
+
+	    return false;
+	  });
+	}
+
+	/**
+	 * Detect if props contain complex expressions
+	 */
+	function hasComplexProps(attributes) {
+	  return attributes.some(attr => {
+	    if (!t$f.isJSXAttribute(attr)) return false;
+	    const value = attr.value;
+
+	    if (!t$f.isJSXExpressionContainer(value)) return false;
+	    const expr = value.expression;
+
+	    // Check for conditional spread: {...(condition && { prop: value })}
+	    if (t$f.isConditionalExpression(expr) || t$f.isLogicalExpression(expr)) {
+	      return true;
+	    }
+
+	    return false;
+	  });
+	}
+
+	var detection = {
+	  hasSpreadProps,
+	  hasDynamicChildren,
+	  hasComplexProps
+	};
 
 	var lib$1 = {};
 
@@ -8607,311 +8599,303 @@ Please specify the "importAttributesKeyword" generator option, whose value can b
 	 * Event Handlers Extractor
 	 */
 
-	var eventHandlers;
-	var hasRequiredEventHandlers;
+	const t$e = globalThis.__BABEL_TYPES__;
+	const generate$1 = requireLib$1().default;
 
-	function requireEventHandlers () {
-		if (hasRequiredEventHandlers) return eventHandlers;
-		hasRequiredEventHandlers = 1;
-		const t = globalThis.__BABEL_TYPES__;
-		const generate = requireLib$1().default;
+	/**
+	 * Detect if handler body is client-only (DOM manipulation, no server state changes)
+	 * Client-only patterns:
+	 * - e.currentTarget.style.X = value
+	 * - e.stopPropagation()
+	 * - e.preventDefault()
+	 * - element.classList.add/remove/toggle
+	 * - element.focus/blur/etc
+	 *
+	 * Server patterns (NOT client-only):
+	 * - setState calls
+	 * - Method calls on component
+	 * - await expressions
+	 */
+	function isClientOnlyHandler(body) {
+	  let hasClientOnlyCode = false;
+	  let hasServerCode = false;
 
-		/**
-		 * Detect if handler body is client-only (DOM manipulation, no server state changes)
-		 * Client-only patterns:
-		 * - e.currentTarget.style.X = value
-		 * - e.stopPropagation()
-		 * - e.preventDefault()
-		 * - element.classList.add/remove/toggle
-		 * - element.focus/blur/etc
-		 *
-		 * Server patterns (NOT client-only):
-		 * - setState calls
-		 * - Method calls on component
-		 * - await expressions
-		 */
-		function isClientOnlyHandler(body) {
-		  let hasClientOnlyCode = false;
-		  let hasServerCode = false;
+	  function checkNode(node) {
+	    if (!node) return;
 
-		  function checkNode(node) {
-		    if (!node) return;
+	    // Server patterns
+	    if (t$e.isCallExpression(node)) {
+	      const callee = node.callee;
 
-		    // Server patterns
-		    if (t.isCallExpression(node)) {
-		      const callee = node.callee;
+	      // setState, setXxx calls - SERVER
+	      if (t$e.isIdentifier(callee) && (callee.name === 'setState' || callee.name.startsWith('set'))) {
+	        hasServerCode = true;
+	      }
+	    }
 
-		      // setState, setXxx calls - SERVER
-		      if (t.isIdentifier(callee) && (callee.name === 'setState' || callee.name.startsWith('set'))) {
-		        hasServerCode = true;
-		      }
-		    }
+	    // await - SERVER
+	    if (t$e.isAwaitExpression(node)) {
+	      hasServerCode = true;
+	    }
 
-		    // await - SERVER
-		    if (t.isAwaitExpression(node)) {
-		      hasServerCode = true;
-		    }
+	    // Client-only patterns
+	    if (t$e.isMemberExpression(node)) {
+	      // e.stopPropagation, e.preventDefault
+	      if (t$e.isIdentifier(node.property) &&
+	          (node.property.name === 'stopPropagation' || node.property.name === 'preventDefault')) {
+	        hasClientOnlyCode = true;
+	      }
 
-		    // Client-only patterns
-		    if (t.isMemberExpression(node)) {
-		      // e.stopPropagation, e.preventDefault
-		      if (t.isIdentifier(node.property) &&
-		          (node.property.name === 'stopPropagation' || node.property.name === 'preventDefault')) {
-		        hasClientOnlyCode = true;
-		      }
+	      // e.currentTarget.style.X, e.target.style.X
+	      if (t$e.isMemberExpression(node.object) &&
+	          t$e.isIdentifier(node.object.property, { name: 'style' })) {
+	        hasClientOnlyCode = true;
+	      }
 
-		      // e.currentTarget.style.X, e.target.style.X
-		      if (t.isMemberExpression(node.object) &&
-		          t.isIdentifier(node.object.property, { name: 'style' })) {
-		        hasClientOnlyCode = true;
-		      }
+	      // element.classList
+	      if (t$e.isIdentifier(node.property, { name: 'classList' })) {
+	        hasClientOnlyCode = true;
+	      }
 
-		      // element.classList
-		      if (t.isIdentifier(node.property, { name: 'classList' })) {
-		        hasClientOnlyCode = true;
-		      }
+	      // element.focus, blur, etc
+	      if (t$e.isIdentifier(node.property) &&
+	          ['focus', 'blur', 'scrollIntoView', 'select'].includes(node.property.name)) {
+	        hasClientOnlyCode = true;
+	      }
+	    }
 
-		      // element.focus, blur, etc
-		      if (t.isIdentifier(node.property) &&
-		          ['focus', 'blur', 'scrollIntoView', 'select'].includes(node.property.name)) {
-		        hasClientOnlyCode = true;
-		      }
-		    }
+	    // Assignment to style properties
+	    if (t$e.isAssignmentExpression(node)) {
+	      const left = node.left;
+	      if (t$e.isMemberExpression(left)) {
+	        // Check if assigning to style property
+	        if (t$e.isMemberExpression(left.object) &&
+	            t$e.isIdentifier(left.object.property, { name: 'style' })) {
+	          hasClientOnlyCode = true;
+	        }
+	      }
+	    }
 
-		    // Assignment to style properties
-		    if (t.isAssignmentExpression(node)) {
-		      const left = node.left;
-		      if (t.isMemberExpression(left)) {
-		        // Check if assigning to style property
-		        if (t.isMemberExpression(left.object) &&
-		            t.isIdentifier(left.object.property, { name: 'style' })) {
-		          hasClientOnlyCode = true;
-		        }
-		      }
-		    }
+	    // Recursively check children
+	    for (const key in node) {
+	      if (node[key] && typeof node[key] === 'object') {
+	        if (Array.isArray(node[key])) {
+	          node[key].forEach(child => checkNode(child));
+	        } else {
+	          checkNode(node[key]);
+	        }
+	      }
+	    }
+	  }
 
-		    // Recursively check children
-		    for (const key in node) {
-		      if (node[key] && typeof node[key] === 'object') {
-		        if (Array.isArray(node[key])) {
-		          node[key].forEach(child => checkNode(child));
-		        } else {
-		          checkNode(node[key]);
-		        }
-		      }
-		    }
-		  }
+	  checkNode(body);
 
-		  checkNode(body);
-
-		  // Only client-only if it has client code AND no server code
-		  return hasClientOnlyCode && !hasServerCode;
-		}
-
-		/**
-		 * Extract event handler name
-		 */
-		function extractEventHandler(value, component) {
-		  if (t.isStringLiteral(value)) {
-		    return value.value;
-		  }
-
-		  if (t.isJSXExpressionContainer(value)) {
-		    const expr = value.expression;
-
-		    if (t.isArrowFunctionExpression(expr) || t.isFunctionExpression(expr)) {
-		      // Inline arrow function - extract to named method
-		      // Use combined count of both server and client handlers for unique names
-		      const totalHandlers = component.eventHandlers.length + (component.clientHandlers ? component.clientHandlers.length : 0);
-		      const handlerName = `Handle${totalHandlers}`;
-
-		      // Check if the function is async
-		      const isAsync = expr.async || false;
-
-		      // Detect curried functions (functions that return functions)
-		      // Pattern: (e) => (id) => action(id)
-		      // This is invalid for event handlers because the returned function is never called
-		      if (t.isArrowFunctionExpression(expr.body) || t.isFunctionExpression(expr.body)) {
-		        // Generate a handler that throws a helpful error
-		        component.eventHandlers.push({
-		          name: handlerName,
-		          body: null, // Will be handled specially in component generator
-		          params: expr.params,
-		          capturedParams: [],
-		          isAsync: false,
-		          isCurriedError: true // Flag to generate error throw
-		        });
-
-		        return handlerName;
-		      }
-
-		      // Simplify common pattern: (e) => func(e.target.value)
-		      // Transform to: (value) => func(value)
-		      let body = expr.body;
-		      let params = expr.params;
-
-		      if (t.isCallExpression(body) && params.length === 1 && t.isIdentifier(params[0])) {
-		        const eventParam = params[0].name; // e.g., "e"
-		        const args = body.arguments;
-
-		        // Check if any argument is e.target.value
-		        const transformedArgs = args.map(arg => {
-		          if (t.isMemberExpression(arg) &&
-		              t.isMemberExpression(arg.object) &&
-		              t.isIdentifier(arg.object.object, { name: eventParam }) &&
-		              t.isIdentifier(arg.object.property, { name: 'target' }) &&
-		              t.isIdentifier(arg.property, { name: 'value' })) {
-		            // Replace e.target.value with direct value parameter
-		            return t.identifier('value');
-		          }
-		          return arg;
-		        });
-
-		        // If we transformed any args, update the body and param name
-		        if (transformedArgs.some((arg, i) => arg !== args[i])) {
-		          body = t.callExpression(body.callee, transformedArgs);
-		          params = [t.identifier('value')];
-		        }
-		      }
-
-		      // Check if we're inside a .map() context and capture those variables
-		      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
-
-		      // Handle parameter destructuring
-		      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
-		      const hasDestructuring = params.some(p => t.isObjectPattern(p));
-		      let processedBody = body;
-		      let processedParams = params;
-
-		      if (hasDestructuring && params.length === 1 && t.isObjectPattern(params[0])) {
-		        // Extract destructured properties
-		        const destructuringStatements = [];
-		        const eventParam = t.identifier('e');
-
-		        function extractDestructured(pattern, path = []) {
-		          if (t.isObjectPattern(pattern)) {
-		            for (const prop of pattern.properties) {
-		              if (t.isObjectProperty(prop)) {
-		                const key = t.isIdentifier(prop.key) ? prop.key.name : null;
-		                if (key && t.isIdentifier(prop.value)) {
-		                  // Simple: { value } or { target: { value } }
-		                  const varName = prop.value.name;
-		                  const accessPath = [...path, key];
-		                  destructuringStatements.push({ varName, accessPath });
-		                } else if (key && t.isObjectPattern(prop.value)) {
-		                  // Nested: { target: { value } }
-		                  extractDestructured(prop.value, [...path, key]);
-		                }
-		              }
-		            }
-		          }
-		        }
-
-		        extractDestructured(params[0]);
-		        processedParams = [eventParam];
-
-		        // Prepend destructuring assignments to body
-		        if (destructuringStatements.length > 0) {
-		          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
-		            // Build e.Target.Value access chain
-		            let access = eventParam;
-		            for (const key of accessPath) {
-		              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-		              access = t.memberExpression(access, t.identifier(capitalizedKey));
-		            }
-		            return t.variableDeclaration('var', [
-		              t.variableDeclarator(t.identifier(varName), access)
-		            ]);
-		          });
-
-		          // Wrap body in block statement with destructuring
-		          if (t.isBlockStatement(body)) {
-		            processedBody = t.blockStatement([...assignments, ...body.body]);
-		          } else {
-		            processedBody = t.blockStatement([...assignments, t.expressionStatement(body)]);
-		          }
-		        }
-		      }
-
-		      // Check if this is a client-only handler
-		      const isClientOnly = isClientOnlyHandler(processedBody);
-
-		      if (isClientOnly) {
-		        // Generate JavaScript code for client-only handler
-		        const jsCode = generate(t.arrowFunctionExpression(processedParams, processedBody)).code;
-
-		        // Add to clientHandlers collection (don't add to eventHandlers)
-		        if (!component.clientHandlers) {
-		          component.clientHandlers = [];
-		        }
-		        component.clientHandlers.push({
-		          name: handlerName,
-		          jsCode: jsCode
-		        });
-
-		        // Return @client: prefixed handler ID
-		        return `@client:${handlerName}`;
-		      } else {
-		        // Server handler - add to eventHandlers collection
-		        component.eventHandlers.push({
-		          name: handlerName,
-		          body: processedBody,
-		          params: processedParams,
-		          capturedParams: capturedParams,  // e.g., ['item', 'index']
-		          isAsync: isAsync  // Track if handler is async
-		        });
-
-		        // Return handler registration string
-		        // If there are captured params, append them as colon-separated interpolations
-		        // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-		        if (capturedParams.length > 0) {
-		          const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-		          return `${handlerName}:${capturedRefs}`;
-		        }
-
-		        return handlerName;
-		      }
-		    }
-
-		    if (t.isIdentifier(expr)) {
-		      return expr.name;
-		    }
-
-		    if (t.isCallExpression(expr)) {
-		      // () => someMethod() - extract
-		      const handlerName = `Handle${component.eventHandlers.length}`;
-
-		      // Check if we're inside a .map() context and capture those variables
-		      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
-
-		      component.eventHandlers.push({
-		        name: handlerName,
-		        body: expr,
-		        capturedParams: capturedParams  // e.g., ['item', 'index']
-		      });
-
-		      // Return handler registration string
-		      // If there are captured params, append them as colon-separated interpolations
-		      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-		      if (capturedParams.length > 0) {
-		        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-		        return `${handlerName}:${capturedRefs}`;
-		      }
-
-		      return handlerName;
-		    }
-		  }
-
-		  return 'UnknownHandler';
-		}
-
-
-
-		eventHandlers = {
-		  extractEventHandler
-		};
-		return eventHandlers;
+	  // Only client-only if it has client code AND no server code
+	  return hasClientOnlyCode && !hasServerCode;
 	}
+
+	/**
+	 * Extract event handler name
+	 */
+	function extractEventHandler(value, component) {
+	  if (t$e.isStringLiteral(value)) {
+	    return value.value;
+	  }
+
+	  if (t$e.isJSXExpressionContainer(value)) {
+	    const expr = value.expression;
+
+	    if (t$e.isArrowFunctionExpression(expr) || t$e.isFunctionExpression(expr)) {
+	      // Inline arrow function - extract to named method
+	      // Use combined count of both server and client handlers for unique names
+	      const totalHandlers = component.eventHandlers.length + (component.clientHandlers ? component.clientHandlers.length : 0);
+	      const handlerName = `Handle${totalHandlers}`;
+
+	      // Check if the function is async
+	      const isAsync = expr.async || false;
+
+	      // Detect curried functions (functions that return functions)
+	      // Pattern: (e) => (id) => action(id)
+	      // This is invalid for event handlers because the returned function is never called
+	      if (t$e.isArrowFunctionExpression(expr.body) || t$e.isFunctionExpression(expr.body)) {
+	        // Generate a handler that throws a helpful error
+	        component.eventHandlers.push({
+	          name: handlerName,
+	          body: null, // Will be handled specially in component generator
+	          params: expr.params,
+	          capturedParams: [],
+	          isAsync: false,
+	          isCurriedError: true // Flag to generate error throw
+	        });
+
+	        return handlerName;
+	      }
+
+	      // Simplify common pattern: (e) => func(e.target.value)
+	      // Transform to: (value) => func(value)
+	      let body = expr.body;
+	      let params = expr.params;
+
+	      if (t$e.isCallExpression(body) && params.length === 1 && t$e.isIdentifier(params[0])) {
+	        const eventParam = params[0].name; // e.g., "e"
+	        const args = body.arguments;
+
+	        // Check if any argument is e.target.value
+	        const transformedArgs = args.map(arg => {
+	          if (t$e.isMemberExpression(arg) &&
+	              t$e.isMemberExpression(arg.object) &&
+	              t$e.isIdentifier(arg.object.object, { name: eventParam }) &&
+	              t$e.isIdentifier(arg.object.property, { name: 'target' }) &&
+	              t$e.isIdentifier(arg.property, { name: 'value' })) {
+	            // Replace e.target.value with direct value parameter
+	            return t$e.identifier('value');
+	          }
+	          return arg;
+	        });
+
+	        // If we transformed any args, update the body and param name
+	        if (transformedArgs.some((arg, i) => arg !== args[i])) {
+	          body = t$e.callExpression(body.callee, transformedArgs);
+	          params = [t$e.identifier('value')];
+	        }
+	      }
+
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
+	      // Handle parameter destructuring
+	      // Convert ({ target: { value } }) => ... into (e) => ... with unpacking in body
+	      const hasDestructuring = params.some(p => t$e.isObjectPattern(p));
+	      let processedBody = body;
+	      let processedParams = params;
+
+	      if (hasDestructuring && params.length === 1 && t$e.isObjectPattern(params[0])) {
+	        // Extract destructured properties
+	        const destructuringStatements = [];
+	        const eventParam = t$e.identifier('e');
+
+	        function extractDestructured(pattern, path = []) {
+	          if (t$e.isObjectPattern(pattern)) {
+	            for (const prop of pattern.properties) {
+	              if (t$e.isObjectProperty(prop)) {
+	                const key = t$e.isIdentifier(prop.key) ? prop.key.name : null;
+	                if (key && t$e.isIdentifier(prop.value)) {
+	                  // Simple: { value } or { target: { value } }
+	                  const varName = prop.value.name;
+	                  const accessPath = [...path, key];
+	                  destructuringStatements.push({ varName, accessPath });
+	                } else if (key && t$e.isObjectPattern(prop.value)) {
+	                  // Nested: { target: { value } }
+	                  extractDestructured(prop.value, [...path, key]);
+	                }
+	              }
+	            }
+	          }
+	        }
+
+	        extractDestructured(params[0]);
+	        processedParams = [eventParam];
+
+	        // Prepend destructuring assignments to body
+	        if (destructuringStatements.length > 0) {
+	          const assignments = destructuringStatements.map(({ varName, accessPath }) => {
+	            // Build e.Target.Value access chain
+	            let access = eventParam;
+	            for (const key of accessPath) {
+	              const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+	              access = t$e.memberExpression(access, t$e.identifier(capitalizedKey));
+	            }
+	            return t$e.variableDeclaration('var', [
+	              t$e.variableDeclarator(t$e.identifier(varName), access)
+	            ]);
+	          });
+
+	          // Wrap body in block statement with destructuring
+	          if (t$e.isBlockStatement(body)) {
+	            processedBody = t$e.blockStatement([...assignments, ...body.body]);
+	          } else {
+	            processedBody = t$e.blockStatement([...assignments, t$e.expressionStatement(body)]);
+	          }
+	        }
+	      }
+
+	      // Check if this is a client-only handler
+	      const isClientOnly = isClientOnlyHandler(processedBody);
+
+	      if (isClientOnly) {
+	        // Generate JavaScript code for client-only handler
+	        const jsCode = generate$1(t$e.arrowFunctionExpression(processedParams, processedBody)).code;
+
+	        // Add to clientHandlers collection (don't add to eventHandlers)
+	        if (!component.clientHandlers) {
+	          component.clientHandlers = [];
+	        }
+	        component.clientHandlers.push({
+	          name: handlerName,
+	          jsCode: jsCode
+	        });
+
+	        // Return @client: prefixed handler ID
+	        return `@client:${handlerName}`;
+	      } else {
+	        // Server handler - add to eventHandlers collection
+	        component.eventHandlers.push({
+	          name: handlerName,
+	          body: processedBody,
+	          params: processedParams,
+	          capturedParams: capturedParams,  // e.g., ['item', 'index']
+	          isAsync: isAsync  // Track if handler is async
+	        });
+
+	        // Return handler registration string
+	        // If there are captured params, append them as colon-separated interpolations
+	        // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	        if (capturedParams.length > 0) {
+	          const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	          return `${handlerName}:${capturedRefs}`;
+	        }
+
+	        return handlerName;
+	      }
+	    }
+
+	    if (t$e.isIdentifier(expr)) {
+	      return expr.name;
+	    }
+
+	    if (t$e.isCallExpression(expr)) {
+	      // () => someMethod() - extract
+	      const handlerName = `Handle${component.eventHandlers.length}`;
+
+	      // Check if we're inside a .map() context and capture those variables
+	      const capturedParams = component.currentMapContext ? component.currentMapContext.params : [];
+
+	      component.eventHandlers.push({
+	        name: handlerName,
+	        body: expr,
+	        capturedParams: capturedParams  // e.g., ['item', 'index']
+	      });
+
+	      // Return handler registration string
+	      // If there are captured params, append them as colon-separated interpolations
+	      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+	      if (capturedParams.length > 0) {
+	        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+	        return `${handlerName}:${capturedRefs}`;
+	      }
+
+	      return handlerName;
+	    }
+	  }
+
+	  return 'UnknownHandler';
+	}
+
+
+
+	var eventHandlers = {
+	  extractEventHandler
+	};
 
 	/**
 	 * Generate C# code for Plugin elements
@@ -9138,8 +9122,8 @@ Please specify the "importAttributesKeyword" generator option, whose value can b
 		hasRequiredJsx$1 = 1;
 		const t = globalThis.__BABEL_TYPES__;
 		const { escapeCSharpString } = helpers;
-		const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
-		const { extractEventHandler } = requireEventHandlers();
+		const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
+		const { extractEventHandler } = eventHandlers;
 		requirePathAssignment();
 		// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
 
@@ -10934,7 +10918,7 @@ ${protectedKeysCode}
 	 * Extracts useStateX hook calls and analyzes transform functions for C# generation
 	 */
 
-	const t$c = globalThis.__BABEL_TYPES__;
+	const t$d = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$3 } = requireExpressions();
 	const { inferType: inferType$1 } = typeConversion;
 
@@ -10956,13 +10940,13 @@ ${protectedKeysCode}
 
 	  // Get the variable declarator (const [price, setPrice] = ...)
 	  const parent = path.parentPath.node;
-	  if (!t$c.isVariableDeclarator(parent) || !t$c.isArrayPattern(parent.id)) {
+	  if (!t$d.isVariableDeclarator(parent) || !t$d.isArrayPattern(parent.id)) {
 	    console.warn('[useStateX] Expected array pattern destructuring');
 	    return;
 	  }
 
 	  const [valueBinding, setterBinding] = parent.id.elements;
-	  if (!t$c.isIdentifier(valueBinding)) {
+	  if (!t$d.isIdentifier(valueBinding)) {
 	    console.warn('[useStateX] Expected identifier for value binding');
 	    return;
 	  }
@@ -10973,7 +10957,7 @@ ${protectedKeysCode}
 	  // Get initial value and config
 	  const [initialValueArg, configArg] = node.arguments;
 
-	  if (!configArg || !t$c.isObjectExpression(configArg)) {
+	  if (!configArg || !t$d.isObjectExpression(configArg)) {
 	    console.warn('[useStateX] Expected config object as second argument');
 	    return;
 	  }
@@ -10983,7 +10967,7 @@ ${protectedKeysCode}
 	  let initialValueType = 'dynamic';
 
 	  if (initialValueArg) {
-	    if (t$c.isLiteral(initialValueArg)) {
+	    if (t$d.isLiteral(initialValueArg)) {
 	      initialValue = initialValueArg.value;
 	      initialValueType = inferType$1(initialValueArg);
 	    } else {
@@ -11022,10 +11006,10 @@ ${protectedKeysCode}
 
 	  // Find targets property
 	  const targetsProp = configObject.properties.find(
-	    p => t$c.isIdentifier(p.key) && p.key.name === 'targets'
+	    p => t$d.isIdentifier(p.key) && p.key.name === 'targets'
 	  );
 
-	  if (!targetsProp || !t$c.isObjectExpression(targetsProp.value)) {
+	  if (!targetsProp || !t$d.isObjectExpression(targetsProp.value)) {
 	    return targets;
 	  }
 
@@ -11034,7 +11018,7 @@ ${protectedKeysCode}
 	    const selector = target.key.value || target.key.name;
 	    const targetConfig = target.value;
 
-	    if (!t$c.isObjectExpression(targetConfig)) {
+	    if (!t$d.isObjectExpression(targetConfig)) {
 	      return;
 	    }
 
@@ -11056,7 +11040,7 @@ ${protectedKeysCode}
 
 	      switch (propName) {
 	        case 'transform':
-	          if (t$c.isArrowFunctionExpression(propValue) || t$c.isFunctionExpression(propValue)) {
+	          if (t$d.isArrowFunctionExpression(propValue) || t$d.isFunctionExpression(propValue)) {
 	            // Analyze transform function
 	            const transformAnalysis = analyzeTransformFunction(propValue);
 	            projection.transform = transformAnalysis.csharpCode;
@@ -11065,33 +11049,33 @@ ${protectedKeysCode}
 	          break;
 
 	        case 'transformId':
-	          if (t$c.isStringLiteral(propValue)) {
+	          if (t$d.isStringLiteral(propValue)) {
 	            projection.transformId = propValue.value;
 	            projection.transformType = 'registry';
 	          }
 	          break;
 
 	        case 'applyIf':
-	          if (t$c.isArrowFunctionExpression(propValue) || t$c.isFunctionExpression(propValue)) {
+	          if (t$d.isArrowFunctionExpression(propValue) || t$d.isFunctionExpression(propValue)) {
 	            // Analyze applyIf condition
 	            projection.applyIf = analyzeApplyIfCondition(propValue);
 	          }
 	          break;
 
 	        case 'applyAs':
-	          if (t$c.isStringLiteral(propValue)) {
+	          if (t$d.isStringLiteral(propValue)) {
 	            projection.applyAs = propValue.value;
 	          }
 	          break;
 
 	        case 'property':
-	          if (t$c.isStringLiteral(propValue)) {
+	          if (t$d.isStringLiteral(propValue)) {
 	            projection.property = propValue.value;
 	          }
 	          break;
 
 	        case 'template':
-	          if (t$c.isStringLiteral(propValue)) {
+	          if (t$d.isStringLiteral(propValue)) {
 	            projection.template = propValue.value;
 	          }
 	          break;
@@ -11119,7 +11103,7 @@ ${protectedKeysCode}
 	  const body = arrowFn.body;
 
 	  // Template literal: `$${v.toFixed(2)}`
-	  if (t$c.isTemplateLiteral(body)) {
+	  if (t$d.isTemplateLiteral(body)) {
 	    return {
 	      type: 'template',
 	      csharpCode: generateCSharpFromTemplate(body, paramName)
@@ -11127,7 +11111,7 @@ ${protectedKeysCode}
 	  }
 
 	  // Ternary: v > 10 ? 'High' : 'Low'
-	  if (t$c.isConditionalExpression(body)) {
+	  if (t$d.isConditionalExpression(body)) {
 	    return {
 	      type: 'ternary',
 	      csharpCode: generateCSharpFromTernary(body, paramName)
@@ -11135,7 +11119,7 @@ ${protectedKeysCode}
 	  }
 
 	  // Method call: v.toUpperCase()
-	  if (t$c.isCallExpression(body)) {
+	  if (t$d.isCallExpression(body)) {
 	    return {
 	      type: 'method-call',
 	      csharpCode: generateCSharpFromMethodCall(body, paramName)
@@ -11143,7 +11127,7 @@ ${protectedKeysCode}
 	  }
 
 	  // Member expression: v.firstName
-	  if (t$c.isMemberExpression(body)) {
+	  if (t$d.isMemberExpression(body)) {
 	    return {
 	      type: 'property-access',
 	      csharpCode: generateCSharpFromMemberExpression(body, paramName)
@@ -11195,7 +11179,7 @@ ${protectedKeysCode}
 	 * Example: v.toFixed(2) → v.ToString("F2")
 	 */
 	function generateCSharpFromMethodCall(callExpr, paramName) {
-	  if (t$c.isMemberExpression(callExpr.callee)) {
+	  if (t$d.isMemberExpression(callExpr.callee)) {
 	    const object = generateCSharpFromExpression(callExpr.callee.object, paramName);
 	    const method = callExpr.callee.property.name;
 	    const args = callExpr.arguments;
@@ -11203,7 +11187,7 @@ ${protectedKeysCode}
 	    // Map JS methods to C# equivalents
 	    const methodMap = {
 	      'toFixed': (args) => {
-	        const decimals = args[0] && t$c.isNumericLiteral(args[0]) ? args[0].value : 2;
+	        const decimals = args[0] && t$d.isNumericLiteral(args[0]) ? args[0].value : 2;
 	        return `ToString("F${decimals}")`;
 	      },
 	      'toUpperCase': () => 'ToUpper()',
@@ -11238,31 +11222,31 @@ ${protectedKeysCode}
 	 * Generate C# code from any expression
 	 */
 	function generateCSharpFromExpression(expr, paramName) {
-	  if (t$c.isIdentifier(expr)) {
+	  if (t$d.isIdentifier(expr)) {
 	    return expr.name === paramName || expr.name === 'v' ? 'v' : expr.name;
 	  }
 
-	  if (t$c.isStringLiteral(expr)) {
+	  if (t$d.isStringLiteral(expr)) {
 	    return `"${expr.value}"`;
 	  }
 
-	  if (t$c.isNumericLiteral(expr)) {
+	  if (t$d.isNumericLiteral(expr)) {
 	    return expr.value.toString();
 	  }
 
-	  if (t$c.isBooleanLiteral(expr)) {
+	  if (t$d.isBooleanLiteral(expr)) {
 	    return expr.value ? 'true' : 'false';
 	  }
 
-	  if (t$c.isMemberExpression(expr)) {
+	  if (t$d.isMemberExpression(expr)) {
 	    return generateCSharpFromMemberExpression(expr, paramName);
 	  }
 
-	  if (t$c.isCallExpression(expr)) {
+	  if (t$d.isCallExpression(expr)) {
 	    return generateCSharpFromMethodCall(expr, paramName);
 	  }
 
-	  if (t$c.isBinaryExpression(expr)) {
+	  if (t$d.isBinaryExpression(expr)) {
 	    const left = generateCSharpFromExpression(expr.left, paramName);
 	    const right = generateCSharpFromExpression(expr.right, paramName);
 	    const operator = expr.operator;
@@ -11294,10 +11278,10 @@ ${protectedKeysCode}
 	 */
 	function extractSyncStrategy(configObject) {
 	  const syncProp = configObject.properties.find(
-	    p => t$c.isIdentifier(p.key) && p.key.name === 'sync'
+	    p => t$d.isIdentifier(p.key) && p.key.name === 'sync'
 	  );
 
-	  if (!syncProp || !t$c.isStringLiteral(syncProp.value)) {
+	  if (!syncProp || !t$d.isStringLiteral(syncProp.value)) {
 	    return 'immediate';
 	  }
 
@@ -11312,7 +11296,7 @@ ${protectedKeysCode}
 	 * Hook Extractors
 	 */
 
-	const t$b = globalThis.__BABEL_TYPES__;
+	const t$c = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$2 } = requireExpressions();
 	const { inferType, tsTypeToCSharpType: tsTypeToCSharpType$3 } = typeConversion;
 	const { extractUseStateX } = useStateX;
@@ -11323,7 +11307,7 @@ ${protectedKeysCode}
 	function extractHook$1(path, component) {
 	  const node = path.node;
 
-	  if (!t$b.isIdentifier(node.callee)) return;
+	  if (!t$c.isIdentifier(node.callee)) return;
 
 	  const hookName = node.callee.name;
 
@@ -11406,8 +11390,8 @@ ${protectedKeysCode}
 	function extractUseState(path, component, hookType) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isArrayPattern(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isArrayPattern(parent.id)) return;
 
 	  const [stateVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -11448,8 +11432,8 @@ ${protectedKeysCode}
 	function extractUseProtectedState(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isArrayPattern(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isArrayPattern(parent.id)) return;
 
 	  const [stateVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -11508,7 +11492,7 @@ ${protectedKeysCode}
 	function extractUseRef(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const refName = parent.id.name;
 	  const initialValue = path.node.arguments[0];
@@ -11525,8 +11509,8 @@ ${protectedKeysCode}
 	function extractUseMarkdown(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isArrayPattern(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isArrayPattern(parent.id)) return;
 
 	  const [contentVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -11547,8 +11531,8 @@ ${protectedKeysCode}
 	function extractUseRazorMarkdown(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isArrayPattern(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isArrayPattern(parent.id)) return;
 
 	  const [contentVar, setterVar] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -11560,9 +11544,9 @@ ${protectedKeysCode}
 
 	  // Extract raw markdown string (for Razor conversion)
 	  let rawMarkdown = '';
-	  if (t$b.isStringLiteral(initialValue)) {
+	  if (t$c.isStringLiteral(initialValue)) {
 	    rawMarkdown = initialValue.value;
-	  } else if (t$b.isTemplateLiteral(initialValue)) {
+	  } else if (t$c.isTemplateLiteral(initialValue)) {
 	    // Template literal - extract raw string
 	    rawMarkdown = initialValue.quasis.map(q => q.value.raw).join('');
 	  }
@@ -11586,24 +11570,24 @@ ${protectedKeysCode}
 	  const templateName = path.node.arguments[0];
 	  const templateProps = path.node.arguments[1];
 
-	  if (t$b.isStringLiteral(templateName)) {
+	  if (t$c.isStringLiteral(templateName)) {
 	    component.useTemplate = {
 	      name: templateName.value,
 	      props: {}
 	    };
 
 	    // Extract template props if provided
-	    if (templateProps && t$b.isObjectExpression(templateProps)) {
+	    if (templateProps && t$c.isObjectExpression(templateProps)) {
 	      for (const prop of templateProps.properties) {
-	        if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
+	        if (t$c.isObjectProperty(prop) && t$c.isIdentifier(prop.key)) {
 	          const propName = prop.key.name;
 	          let propValue = '';
 
-	          if (t$b.isStringLiteral(prop.value)) {
+	          if (t$c.isStringLiteral(prop.value)) {
 	            propValue = prop.value.value;
-	          } else if (t$b.isNumericLiteral(prop.value)) {
+	          } else if (t$c.isNumericLiteral(prop.value)) {
 	            propValue = prop.value.value.toString();
-	          } else if (t$b.isBooleanLiteral(prop.value)) {
+	          } else if (t$c.isBooleanLiteral(prop.value)) {
 	            propValue = prop.value.value.toString();
 	          }
 
@@ -11620,7 +11604,7 @@ ${protectedKeysCode}
 	function extractUseValidation(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const fieldName = parent.id.name;
 	  const fieldKey = path.node.arguments[0];
@@ -11628,24 +11612,24 @@ ${protectedKeysCode}
 
 	  const validationInfo = {
 	    name: fieldName,
-	    fieldKey: t$b.isStringLiteral(fieldKey) ? fieldKey.value : fieldName,
+	    fieldKey: t$c.isStringLiteral(fieldKey) ? fieldKey.value : fieldName,
 	    rules: {}
 	  };
 
 	  // Extract validation rules from the object
-	  if (validationRules && t$b.isObjectExpression(validationRules)) {
+	  if (validationRules && t$c.isObjectExpression(validationRules)) {
 	    for (const prop of validationRules.properties) {
-	      if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
+	      if (t$c.isObjectProperty(prop) && t$c.isIdentifier(prop.key)) {
 	        const ruleName = prop.key.name;
 	        let ruleValue = null;
 
-	        if (t$b.isStringLiteral(prop.value)) {
+	        if (t$c.isStringLiteral(prop.value)) {
 	          ruleValue = prop.value.value;
-	        } else if (t$b.isNumericLiteral(prop.value)) {
+	        } else if (t$c.isNumericLiteral(prop.value)) {
 	          ruleValue = prop.value.value;
-	        } else if (t$b.isBooleanLiteral(prop.value)) {
+	        } else if (t$c.isBooleanLiteral(prop.value)) {
 	          ruleValue = prop.value.value;
-	        } else if (t$b.isRegExpLiteral(prop.value)) {
+	        } else if (t$c.isRegExpLiteral(prop.value)) {
 	          ruleValue = `/${prop.value.pattern}/${prop.value.flags || ''}`;
 	        }
 
@@ -11663,7 +11647,7 @@ ${protectedKeysCode}
 	function extractUseModal(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const modalName = parent.id.name;
 
@@ -11678,8 +11662,8 @@ ${protectedKeysCode}
 	function extractUseToggle(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isArrayPattern(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isArrayPattern(parent.id)) return;
 
 	  const [stateVar, toggleFunc] = parent.id.elements;
 	  const initialValue = path.node.arguments[0];
@@ -11699,7 +11683,7 @@ ${protectedKeysCode}
 	function extractUseDropdown(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const dropdownName = parent.id.name;
 	  const routeArg = path.node.arguments[0];
@@ -11707,7 +11691,7 @@ ${protectedKeysCode}
 	  let routeReference = null;
 
 	  // Try to extract route reference (e.g., Routes.Api.Units.GetAll)
-	  if (routeArg && t$b.isMemberExpression(routeArg)) {
+	  if (routeArg && t$c.isMemberExpression(routeArg)) {
 	    routeReference = generateCSharpExpression$2(routeArg);
 	  }
 
@@ -11722,7 +11706,7 @@ ${protectedKeysCode}
 	 */
 	function extractUsePub(path, component) {
 	  const parent = path.parent;
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const pubName = parent.id.name;
 	  const channel = path.node.arguments[0];
@@ -11730,7 +11714,7 @@ ${protectedKeysCode}
 	  component.usePub = component.usePub || [];
 	  component.usePub.push({
 	    name: pubName,
-	    channel: t$b.isStringLiteral(channel) ? channel.value : null
+	    channel: t$c.isStringLiteral(channel) ? channel.value : null
 	  });
 	}
 
@@ -11739,7 +11723,7 @@ ${protectedKeysCode}
 	 */
 	function extractUseSub(path, component) {
 	  const parent = path.parent;
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const subName = parent.id.name;
 	  const channel = path.node.arguments[0];
@@ -11748,7 +11732,7 @@ ${protectedKeysCode}
 	  component.useSub = component.useSub || [];
 	  component.useSub.push({
 	    name: subName,
-	    channel: t$b.isStringLiteral(channel) ? channel.value : null,
+	    channel: t$c.isStringLiteral(channel) ? channel.value : null,
 	    hasCallback: !!callback
 	  });
 	}
@@ -11775,7 +11759,7 @@ ${protectedKeysCode}
 	  component.useMacroTask = component.useMacroTask || [];
 	  component.useMacroTask.push({
 	    body: callback,
-	    delay: t$b.isNumericLiteral(delay) ? delay.value : 0
+	    delay: t$c.isNumericLiteral(delay) ? delay.value : 0
 	  });
 	}
 
@@ -11784,7 +11768,7 @@ ${protectedKeysCode}
 	 */
 	function extractUseSignalR(path, component) {
 	  const parent = path.parent;
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const signalRName = parent.id.name;
 	  const hubUrl = path.node.arguments[0];
@@ -11793,7 +11777,7 @@ ${protectedKeysCode}
 	  component.useSignalR = component.useSignalR || [];
 	  component.useSignalR.push({
 	    name: signalRName,
-	    hubUrl: t$b.isStringLiteral(hubUrl) ? hubUrl.value : null,
+	    hubUrl: t$c.isStringLiteral(hubUrl) ? hubUrl.value : null,
 	    hasOnMessage: !!onMessage
 	  });
 	}
@@ -11807,7 +11791,7 @@ ${protectedKeysCode}
 
 	  component.usePredictHint = component.usePredictHint || [];
 	  component.usePredictHint.push({
-	    hintId: t$b.isStringLiteral(hintId) ? hintId.value : null,
+	    hintId: t$c.isStringLiteral(hintId) ? hintId.value : null,
 	    predictedState: predictedState
 	  });
 	}
@@ -11822,14 +11806,14 @@ ${protectedKeysCode}
 	function extractUseServerTask(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const taskName = parent.id.name;
 	  const asyncFunction = path.node.arguments[0];
 	  const options = path.node.arguments[1];
 
 	  // Validate async function
-	  if (!asyncFunction || (!t$b.isArrowFunctionExpression(asyncFunction) && !t$b.isFunctionExpression(asyncFunction))) {
+	  if (!asyncFunction || (!t$c.isArrowFunctionExpression(asyncFunction) && !t$c.isFunctionExpression(asyncFunction))) {
 	    console.warn('[useServerTask] First argument must be an async function');
 	    return;
 	  }
@@ -11844,7 +11828,7 @@ ${protectedKeysCode}
 
 	  // Extract parameters
 	  const parameters = asyncFunction.params.map(param => {
-	    if (t$b.isIdentifier(param)) {
+	    if (t$c.isIdentifier(param)) {
 	      return {
 	        name: param.name,
 	        type: param.typeAnnotation ? extractTypeAnnotation(param.typeAnnotation) : 'object'
@@ -11859,19 +11843,19 @@ ${protectedKeysCode}
 	  let runtime = 'csharp'; // Default to C#
 	  let parallel = false;
 
-	  if (options && t$b.isObjectExpression(options)) {
+	  if (options && t$c.isObjectExpression(options)) {
 	    for (const prop of options.properties) {
-	      if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
-	        if (prop.key.name === 'stream' && t$b.isBooleanLiteral(prop.value)) {
+	      if (t$c.isObjectProperty(prop) && t$c.isIdentifier(prop.key)) {
+	        if (prop.key.name === 'stream' && t$c.isBooleanLiteral(prop.value)) {
 	          streamingEnabled = prop.value.value;
 	        }
-	        if (prop.key.name === 'estimatedChunks' && t$b.isNumericLiteral(prop.value)) {
+	        if (prop.key.name === 'estimatedChunks' && t$c.isNumericLiteral(prop.value)) {
 	          estimatedChunks = prop.value.value;
 	        }
-	        if (prop.key.name === 'runtime' && t$b.isStringLiteral(prop.value)) {
+	        if (prop.key.name === 'runtime' && t$c.isStringLiteral(prop.value)) {
 	          runtime = prop.value.value; // 'csharp' | 'rust' | 'auto'
 	        }
-	        if (prop.key.name === 'parallel' && t$b.isBooleanLiteral(prop.value)) {
+	        if (prop.key.name === 'parallel' && t$c.isBooleanLiteral(prop.value)) {
 	          parallel = prop.value.value;
 	        }
 	      }
@@ -11905,14 +11889,14 @@ ${protectedKeysCode}
 	function extractUsePaginatedServerTask(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
 
 	  const taskName = parent.id.name;
 	  const fetchFunction = path.node.arguments[0];
 	  const options = path.node.arguments[1];
 
 	  // Validate fetch function
-	  if (!fetchFunction || (!t$b.isArrowFunctionExpression(fetchFunction) && !t$b.isFunctionExpression(fetchFunction))) {
+	  if (!fetchFunction || (!t$c.isArrowFunctionExpression(fetchFunction) && !t$c.isFunctionExpression(fetchFunction))) {
 	    console.warn('[usePaginatedServerTask] First argument must be an async function');
 	    return;
 	  }
@@ -11936,16 +11920,16 @@ ${protectedKeysCode}
 	  let pageSize = 20;
 	  let getTotalCountFn = null;
 
-	  if (options && t$b.isObjectExpression(options)) {
+	  if (options && t$c.isObjectExpression(options)) {
 	    for (const prop of options.properties) {
-	      if (t$b.isObjectProperty(prop) && t$b.isIdentifier(prop.key)) {
-	        if (prop.key.name === 'runtime' && t$b.isStringLiteral(prop.value)) {
+	      if (t$c.isObjectProperty(prop) && t$c.isIdentifier(prop.key)) {
+	        if (prop.key.name === 'runtime' && t$c.isStringLiteral(prop.value)) {
 	          runtime = prop.value.value;
 	        }
-	        if (prop.key.name === 'parallel' && t$b.isBooleanLiteral(prop.value)) {
+	        if (prop.key.name === 'parallel' && t$c.isBooleanLiteral(prop.value)) {
 	          parallel = prop.value.value;
 	        }
-	        if (prop.key.name === 'pageSize' && t$b.isNumericLiteral(prop.value)) {
+	        if (prop.key.name === 'pageSize' && t$c.isNumericLiteral(prop.value)) {
 	          pageSize = prop.value.value;
 	        }
 	        if (prop.key.name === 'getTotalCount') {
@@ -11974,7 +11958,7 @@ ${protectedKeysCode}
 
 	  // 2. Add count task (if getTotalCount provided)
 	  let countTaskName = null;
-	  if (getTotalCountFn && (t$b.isArrowFunctionExpression(getTotalCountFn) || t$b.isFunctionExpression(getTotalCountFn))) {
+	  if (getTotalCountFn && (t$c.isArrowFunctionExpression(getTotalCountFn) || t$c.isFunctionExpression(getTotalCountFn))) {
 	    countTaskName = `${taskName}_count`;
 
 	    const countParameters = [
@@ -12018,20 +12002,20 @@ ${protectedKeysCode}
 	  // Strip TSTypeAnnotation wrapper
 	  const actualType = typeAnnotation.typeAnnotation || typeAnnotation;
 
-	  if (t$b.isTSStringKeyword(actualType)) {
+	  if (t$c.isTSStringKeyword(actualType)) {
 	    return 'string';
 	  }
-	  if (t$b.isTSNumberKeyword(actualType)) {
+	  if (t$c.isTSNumberKeyword(actualType)) {
 	    return 'double';
 	  }
-	  if (t$b.isTSBooleanKeyword(actualType)) {
+	  if (t$c.isTSBooleanKeyword(actualType)) {
 	    return 'bool';
 	  }
-	  if (t$b.isTSArrayType(actualType)) {
+	  if (t$c.isTSArrayType(actualType)) {
 	    const elementType = extractTypeAnnotation(actualType.elementType);
 	    return `List<${elementType}>`;
 	  }
-	  if (t$b.isTSTypeReference(actualType) && t$b.isIdentifier(actualType.typeName)) {
+	  if (t$c.isTSTypeReference(actualType) && t$c.isIdentifier(actualType.typeName)) {
 	    return actualType.typeName.name; // Use custom type as-is
 	  }
 
@@ -12047,8 +12031,8 @@ ${protectedKeysCode}
 	    const returnType = asyncFunction.returnType.typeAnnotation;
 
 	    // Promise<T> → T
-	    if (t$b.isTSTypeReference(returnType) &&
-	        t$b.isIdentifier(returnType.typeName) &&
+	    if (t$c.isTSTypeReference(returnType) &&
+	        t$c.isIdentifier(returnType.typeName) &&
 	        returnType.typeName.name === 'Promise') {
 	      if (returnType.typeParameters && returnType.typeParameters.params.length > 0) {
 	        return extractTypeAnnotation(returnType.typeParameters.params[0]);
@@ -12075,14 +12059,14 @@ ${protectedKeysCode}
 	function extractUseMvcState(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isArrayPattern(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isArrayPattern(parent.id)) return;
 
 	  const elements = parent.id.elements;
 	  const propertyNameArg = path.node.arguments[0];
 
 	  // Extract property name (must be string literal)
-	  if (!t$b.isStringLiteral(propertyNameArg)) {
+	  if (!t$c.isStringLiteral(propertyNameArg)) {
 	    console.warn('[useMvcState] Property name must be a string literal');
 	    return;
 	  }
@@ -12139,8 +12123,8 @@ ${protectedKeysCode}
 	function extractUseMvcViewModel(path, component) {
 	  const parent = path.parent;
 
-	  if (!t$b.isVariableDeclarator(parent)) return;
-	  if (!t$b.isIdentifier(parent.id)) return;
+	  if (!t$c.isVariableDeclarator(parent)) return;
+	  if (!t$c.isIdentifier(parent.id)) return;
 
 	  const viewModelVarName = parent.id.name;
 
@@ -12163,7 +12147,7 @@ ${protectedKeysCode}
 	function findViewModelPropertyType(path, propertyName, component) {
 	  // Find the program (top-level) node
 	  let programPath = path;
-	  while (programPath && !t$b.isProgram(programPath.node)) {
+	  while (programPath && !t$c.isProgram(programPath.node)) {
 	    programPath = programPath.parentPath;
 	  }
 
@@ -12207,7 +12191,7 @@ ${protectedKeysCode}
 	    // Iterate through top-level statements to find interface declarations
 	    let interfaceCount = 0;
 	    for (const statement of programNode.body) {
-	      if (t$b.isTSInterfaceDeclaration(statement)) {
+	      if (t$c.isTSInterfaceDeclaration(statement)) {
 	        interfaceCount++;
 	        const interfaceName = statement.id.name;
 	        console.log(`[findViewModelPropertyType] Found interface #${interfaceCount}: ${interfaceName}`);
@@ -12231,10 +12215,10 @@ ${protectedKeysCode}
 
 	  // Find the property in the interface
 	  for (const member of viewModelInterface.body.body) {
-	    if (t$b.isTSPropertySignature(member)) {
+	    if (t$c.isTSPropertySignature(member)) {
 	      const key = member.key;
 
-	      if (t$b.isIdentifier(key) && key.name === propertyName) {
+	      if (t$c.isIdentifier(key) && key.name === propertyName) {
 	        // Found the property! Extract its type
 	        const typeAnnotation = member.typeAnnotation?.typeAnnotation;
 	        console.log(`[findViewModelPropertyType] Found property ${propertyName}, typeAnnotation:`, typeAnnotation);
@@ -12279,7 +12263,7 @@ ${protectedKeysCode}
 	 * Local Variables Extractor
 	 */
 
-	const t$a = globalThis.__BABEL_TYPES__;
+	const t$b = globalThis.__BABEL_TYPES__;
 	const { generateCSharpExpression: generateCSharpExpression$1 } = requireExpressions();
 	const { tsTypeToCSharpType: tsTypeToCSharpType$2 } = typeConversion;
 
@@ -12291,63 +12275,63 @@ ${protectedKeysCode}
 	  visited.add(node);
 
 	  // Direct identifier match
-	  if (t$a.isIdentifier(node) && externalImports.has(node.name)) {
+	  if (t$b.isIdentifier(node) && externalImports.has(node.name)) {
 	    return true;
 	  }
 
 	  // Member expression (_.sortBy, moment().format)
-	  if (t$a.isMemberExpression(node)) {
+	  if (t$b.isMemberExpression(node)) {
 	    return usesExternalLibrary(node.object, externalImports, visited);
 	  }
 
 	  // Call expression (_.sortBy(...), moment(...))
-	  if (t$a.isCallExpression(node)) {
+	  if (t$b.isCallExpression(node)) {
 	    return usesExternalLibrary(node.callee, externalImports, visited) ||
 	           node.arguments.some(arg => usesExternalLibrary(arg, externalImports, visited));
 	  }
 
 	  // Binary/Logical expressions
-	  if (t$a.isBinaryExpression(node) || t$a.isLogicalExpression(node)) {
+	  if (t$b.isBinaryExpression(node) || t$b.isLogicalExpression(node)) {
 	    return usesExternalLibrary(node.left, externalImports, visited) ||
 	           usesExternalLibrary(node.right, externalImports, visited);
 	  }
 
 	  // Conditional expression
-	  if (t$a.isConditionalExpression(node)) {
+	  if (t$b.isConditionalExpression(node)) {
 	    return usesExternalLibrary(node.test, externalImports, visited) ||
 	           usesExternalLibrary(node.consequent, externalImports, visited) ||
 	           usesExternalLibrary(node.alternate, externalImports, visited);
 	  }
 
 	  // Array expressions
-	  if (t$a.isArrayExpression(node)) {
+	  if (t$b.isArrayExpression(node)) {
 	    return node.elements.some(el => el && usesExternalLibrary(el, externalImports, visited));
 	  }
 
 	  // Object expressions
-	  if (t$a.isObjectExpression(node)) {
+	  if (t$b.isObjectExpression(node)) {
 	    return node.properties.some(prop =>
-	      t$a.isObjectProperty(prop) && usesExternalLibrary(prop.value, externalImports, visited)
+	      t$b.isObjectProperty(prop) && usesExternalLibrary(prop.value, externalImports, visited)
 	    );
 	  }
 
 	  // Arrow functions and function expressions
-	  if (t$a.isArrowFunctionExpression(node) || t$a.isFunctionExpression(node)) {
+	  if (t$b.isArrowFunctionExpression(node) || t$b.isFunctionExpression(node)) {
 	    return usesExternalLibrary(node.body, externalImports, visited);
 	  }
 
 	  // Block statement
-	  if (t$a.isBlockStatement(node)) {
+	  if (t$b.isBlockStatement(node)) {
 	    return node.body.some(stmt => usesExternalLibrary(stmt, externalImports, visited));
 	  }
 
 	  // Return statement
-	  if (t$a.isReturnStatement(node)) {
+	  if (t$b.isReturnStatement(node)) {
 	    return usesExternalLibrary(node.argument, externalImports, visited);
 	  }
 
 	  // Expression statement
-	  if (t$a.isExpressionStatement(node)) {
+	  if (t$b.isExpressionStatement(node)) {
 	    return usesExternalLibrary(node.expression, externalImports, visited);
 	  }
 
@@ -12362,19 +12346,19 @@ ${protectedKeysCode}
 
 	  for (const declarator of declarations) {
 	    // Skip if it's a hook call (already handled)
-	    if (t$a.isCallExpression(declarator.init)) {
+	    if (t$b.isCallExpression(declarator.init)) {
 	      const callee = declarator.init.callee;
-	      if (t$a.isIdentifier(callee) && callee.name.startsWith('use')) {
+	      if (t$b.isIdentifier(callee) && callee.name.startsWith('use')) {
 	        continue; // Skip hook calls
 	      }
 	    }
 
 	    // Check if this is an event handler (arrow function or function expression)
-	    if (t$a.isIdentifier(declarator.id) && declarator.init) {
+	    if (t$b.isIdentifier(declarator.id) && declarator.init) {
 	      const varName = declarator.id.name;
 
 	      // If it's an arrow function or function expression
-	      if (t$a.isArrowFunctionExpression(declarator.init) || t$a.isFunctionExpression(declarator.init)) {
+	      if (t$b.isArrowFunctionExpression(declarator.init) || t$b.isFunctionExpression(declarator.init)) {
 	        // Check if the function body uses external libraries
 	        const usesExternal = usesExternalLibrary(declarator.init.body, component.externalImports);
 
@@ -12439,7 +12423,7 @@ ${protectedKeysCode}
 	 * Infers C# types for props based on how they're used in the component
 	 */
 
-	const t$9 = globalThis.__BABEL_TYPES__;
+	const t$a = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Infer prop types from usage in the component body
@@ -12465,7 +12449,7 @@ ${protectedKeysCode}
 	    if (!node) return;
 
 	    // Handle BlockStatement (function body)
-	    if (t$9.isBlockStatement(node)) {
+	    if (t$a.isBlockStatement(node)) {
 	      for (const statement of node.body) {
 	        analyzePropUsage(statement);
 	      }
@@ -12473,7 +12457,7 @@ ${protectedKeysCode}
 	    }
 
 	    // Handle VariableDeclaration
-	    if (t$9.isVariableDeclaration(node)) {
+	    if (t$a.isVariableDeclaration(node)) {
 	      for (const declarator of node.declarations) {
 	        if (declarator.init) {
 	          analyzePropUsage(declarator.init);
@@ -12483,19 +12467,19 @@ ${protectedKeysCode}
 	    }
 
 	    // Handle ReturnStatement
-	    if (t$9.isReturnStatement(node)) {
+	    if (t$a.isReturnStatement(node)) {
 	      analyzePropUsage(node.argument);
 	      return;
 	    }
 
 	    // Handle ExpressionStatement
-	    if (t$9.isExpressionStatement(node)) {
+	    if (t$a.isExpressionStatement(node)) {
 	      analyzePropUsage(node.expression);
 	      return;
 	    }
 
 	    // Check if prop is used in conditional context (implies boolean)
-	    if (t$9.isConditionalExpression(node)) {
+	    if (t$a.isConditionalExpression(node)) {
 	      const testName = extractPropName(node.test);
 	      if (testName && propUsage[testName]) {
 	        propUsage[testName].usedAsBoolean = true;
@@ -12505,7 +12489,7 @@ ${protectedKeysCode}
 	    }
 
 	    // Check if prop is used in logical expression (implies boolean)
-	    if (t$9.isLogicalExpression(node)) {
+	    if (t$a.isLogicalExpression(node)) {
 	      const leftName = extractPropName(node.left);
 	      if (leftName && propUsage[leftName]) {
 	        propUsage[leftName].usedAsBoolean = true;
@@ -12514,9 +12498,9 @@ ${protectedKeysCode}
 	    }
 
 	    // Check if prop is used with .map(), .filter(), etc (implies array)
-	    if (t$9.isCallExpression(node) && t$9.isMemberExpression(node.callee)) {
+	    if (t$a.isCallExpression(node) && t$a.isMemberExpression(node.callee)) {
 	      const objectName = extractPropName(node.callee.object);
-	      const methodName = t$9.isIdentifier(node.callee.property) ? node.callee.property.name : null;
+	      const methodName = t$a.isIdentifier(node.callee.property) ? node.callee.property.name : null;
 
 	      if (objectName && propUsage[objectName]) {
 	        if (methodName === 'map' || methodName === 'filter' || methodName === 'forEach' ||
@@ -12534,7 +12518,7 @@ ${protectedKeysCode}
 	    }
 
 	    // Check if prop is used in arithmetic operations (implies number)
-	    if (t$9.isBinaryExpression(node)) {
+	    if (t$a.isBinaryExpression(node)) {
 	      if (['+', '-', '*', '/', '%', '>', '<', '>=', '<='].includes(node.operator)) {
 	        const leftName = extractPropName(node.left);
 	        const rightName = extractPropName(node.right);
@@ -12554,9 +12538,9 @@ ${protectedKeysCode}
 	    }
 
 	    // Check member access for .length (could be array or string)
-	    if (t$9.isMemberExpression(node)) {
+	    if (t$a.isMemberExpression(node)) {
 	      const objectName = extractPropName(node.object);
-	      const propertyName = t$9.isIdentifier(node.property) ? node.property.name : null;
+	      const propertyName = t$a.isIdentifier(node.property) ? node.property.name : null;
 
 	      if (objectName && propUsage[objectName]) {
 	        if (propertyName === 'length') {
@@ -12576,23 +12560,23 @@ ${protectedKeysCode}
 	    }
 
 	    // Recurse into JSX elements
-	    if (t$9.isJSXElement(node)) {
+	    if (t$a.isJSXElement(node)) {
 	      for (const child of node.children) {
 	        analyzePropUsage(child);
 	      }
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$9.isJSXAttribute(attr) && t$9.isJSXExpressionContainer(attr.value)) {
+	        if (t$a.isJSXAttribute(attr) && t$a.isJSXExpressionContainer(attr.value)) {
 	          analyzePropUsage(attr.value.expression);
 	        }
 	      }
 	    }
 
-	    if (t$9.isJSXExpressionContainer(node)) {
+	    if (t$a.isJSXExpressionContainer(node)) {
 	      analyzePropUsage(node.expression);
 	    }
 
 	    // Recurse into arrow functions
-	    if (t$9.isArrowFunctionExpression(node)) {
+	    if (t$a.isArrowFunctionExpression(node)) {
 	      analyzePropUsage(node.body);
 	    }
 
@@ -12641,10 +12625,10 @@ ${protectedKeysCode}
 	 * Extract prop name from an expression
 	 */
 	function extractPropName(node) {
-	  if (t$9.isIdentifier(node)) {
+	  if (t$a.isIdentifier(node)) {
 	    return node.name;
 	  }
-	  if (t$9.isMemberExpression(node)) {
+	  if (t$a.isMemberExpression(node)) {
 	    return extractPropName(node.object);
 	  }
 	  return null;
@@ -12666,21 +12650,21 @@ ${protectedKeysCode}
 	 * - Hot reload: Send template patches instead of re-rendering
 	 */
 
-	const t$8 = globalThis.__BABEL_TYPES__;
+	const t$9 = globalThis.__BABEL_TYPES__;
 	const { getPathFromNode, getPathSegmentsFromNode } = requirePathAssignment();
 
 	/**
 	 * Shared helper: Extract identifiers from expression (module-level for reuse)
 	 */
 	function extractIdentifiersShared(expr, result) {
-	  if (t$8.isIdentifier(expr)) {
+	  if (t$9.isIdentifier(expr)) {
 	    result.push(expr.name);
-	  } else if (t$8.isBinaryExpression(expr) || t$8.isLogicalExpression(expr)) {
+	  } else if (t$9.isBinaryExpression(expr) || t$9.isLogicalExpression(expr)) {
 	    extractIdentifiersShared(expr.left, result);
 	    extractIdentifiersShared(expr.right, result);
-	  } else if (t$8.isUnaryExpression(expr)) {
+	  } else if (t$9.isUnaryExpression(expr)) {
 	    extractIdentifiersShared(expr.argument, result);
-	  } else if (t$8.isMemberExpression(expr)) {
+	  } else if (t$9.isMemberExpression(expr)) {
 	    result.push(buildMemberPathShared(expr));
 	  }
 	}
@@ -12692,14 +12676,14 @@ ${protectedKeysCode}
 	  const parts = [];
 	  let current = expr;
 
-	  while (t$8.isMemberExpression(current)) {
-	    if (t$8.isIdentifier(current.property)) {
+	  while (t$9.isMemberExpression(current)) {
+	    if (t$9.isIdentifier(current.property)) {
 	      parts.unshift(current.property.name);
 	    }
 	    current = current.object;
 	  }
 
-	  if (t$8.isIdentifier(current)) {
+	  if (t$9.isIdentifier(current)) {
 	    parts.unshift(current.name);
 	  }
 
@@ -12713,11 +12697,11 @@ ${protectedKeysCode}
 	function extractMethodCallBindingShared(expr) {
 	  const callee = expr.callee;
 
-	  if (!t$8.isMemberExpression(callee) && !t$8.isOptionalMemberExpression(callee)) {
+	  if (!t$9.isMemberExpression(callee) && !t$9.isOptionalMemberExpression(callee)) {
 	    return null;
 	  }
 
-	  const methodName = t$8.isIdentifier(callee.property) ? callee.property.name : null;
+	  const methodName = t$9.isIdentifier(callee.property) ? callee.property.name : null;
 	  if (!methodName) return null;
 
 	  const transformMethods = [
@@ -12730,11 +12714,11 @@ ${protectedKeysCode}
 	  }
 
 	  let binding = null;
-	  if (t$8.isMemberExpression(callee.object)) {
+	  if (t$9.isMemberExpression(callee.object)) {
 	    binding = buildMemberPathShared(callee.object);
-	  } else if (t$8.isIdentifier(callee.object)) {
+	  } else if (t$9.isIdentifier(callee.object)) {
 	    binding = callee.object.name;
-	  } else if (t$8.isBinaryExpression(callee.object)) {
+	  } else if (t$9.isBinaryExpression(callee.object)) {
 	    const identifiers = [];
 	    extractIdentifiersShared(callee.object, identifiers);
 	    binding = `__expr__:${identifiers.join(',')}`;
@@ -12743,9 +12727,9 @@ ${protectedKeysCode}
 	  if (!binding) return null;
 
 	  const args = expr.arguments.map(arg => {
-	    if (t$8.isNumericLiteral(arg)) return arg.value;
-	    if (t$8.isStringLiteral(arg)) return arg.value;
-	    if (t$8.isBooleanLiteral(arg)) return arg.value;
+	    if (t$9.isNumericLiteral(arg)) return arg.value;
+	    if (t$9.isStringLiteral(arg)) return arg.value;
+	    if (t$9.isBooleanLiteral(arg)) return arg.value;
 	    return null;
 	  }).filter(v => v !== null);
 
@@ -12760,13 +12744,13 @@ ${protectedKeysCode}
 	 * Check if expression is a .map() call (including chained calls like .filter().map())
 	 */
 	function isMapCallExpression(expr) {
-	  if (!t$8.isCallExpression(expr)) {
+	  if (!t$9.isCallExpression(expr)) {
 	    return false;
 	  }
 
 	  // Check if it's a direct .map() call
-	  if (t$8.isMemberExpression(expr.callee) &&
-	      t$8.isIdentifier(expr.callee.property) &&
+	  if (t$9.isMemberExpression(expr.callee) &&
+	      t$9.isIdentifier(expr.callee.property) &&
 	      expr.callee.property.name === 'map') {
 	    return true;
 	  }
@@ -12774,14 +12758,14 @@ ${protectedKeysCode}
 	  // Check if it's a chained call ending in .map()
 	  // e.g., items.filter(...).map(...), items.slice(0, 10).map(...)
 	  let current = expr;
-	  while (t$8.isCallExpression(current)) {
-	    if (t$8.isMemberExpression(current.callee) &&
-	        t$8.isIdentifier(current.callee.property) &&
+	  while (t$9.isCallExpression(current)) {
+	    if (t$9.isMemberExpression(current.callee) &&
+	        t$9.isIdentifier(current.callee.property) &&
 	        current.callee.property.name === 'map') {
 	      return true;
 	    }
 	    // Move to the next call in the chain
-	    if (t$8.isMemberExpression(current.callee)) {
+	    if (t$9.isMemberExpression(current.callee)) {
 	      current = current.callee.object;
 	    } else {
 	      break;
@@ -12795,11 +12779,11 @@ ${protectedKeysCode}
 	 * Shared helper: Extract binding from expression
 	 */
 	function extractBindingShared(expr, component) {
-	  if (t$8.isIdentifier(expr)) {
+	  if (t$9.isIdentifier(expr)) {
 	    return expr.name;
-	  } else if (t$8.isMemberExpression(expr)) {
+	  } else if (t$9.isMemberExpression(expr)) {
 	    return buildMemberPathShared(expr);
-	  } else if (t$8.isCallExpression(expr)) {
+	  } else if (t$9.isCallExpression(expr)) {
 	    // First try method call binding (toFixed, etc.)
 	    const methodBinding = extractMethodCallBindingShared(expr);
 	    if (methodBinding) {
@@ -12808,13 +12792,13 @@ ${protectedKeysCode}
 
 	    // Otherwise, handle chained method calls: todo.text.substring(0, 10).toUpperCase()
 	    return extractComplexCallExpression(expr);
-	  } else if (t$8.isBinaryExpression(expr)) {
+	  } else if (t$9.isBinaryExpression(expr)) {
 	    // Handle binary expressions: todo.priority + 1, price * quantity, etc.
 	    return extractBinaryExpressionBinding(expr);
-	  } else if (t$8.isLogicalExpression(expr)) {
+	  } else if (t$9.isLogicalExpression(expr)) {
 	    // Handle logical expressions: todo.dueDate || 'No due date'
 	    return extractLogicalExpressionBinding(expr);
-	  } else if (t$8.isUnaryExpression(expr)) {
+	  } else if (t$9.isUnaryExpression(expr)) {
 	    // Handle unary expressions: !todo.completed
 	    return extractUnaryExpressionBinding(expr);
 	  } else {
@@ -12949,7 +12933,7 @@ ${protectedKeysCode}
 	   * Traverse JSX tree and extract text templates
 	   */
 	  function traverseJSX(node, parentPath = [], siblingCounts = {}) {
-	    if (t$8.isJSXElement(node)) {
+	    if (t$9.isJSXElement(node)) {
 	      const tagName = node.openingElement.name.name;
 
 	      // 🔥 USE PRE-ASSIGNED HEX PATH (no recalculation!)
@@ -12970,24 +12954,24 @@ ${protectedKeysCode}
 	      let hasExpressionNodes = false;
 
 	      for (const child of node.children) {
-	        if (t$8.isJSXText(child)) {
+	        if (t$9.isJSXText(child)) {
 	          const text = child.value.trim();
 	          if (text) {
 	            textChildren.push(child);
 	            hasTextNodes = true;
 	          }
-	        } else if (t$8.isJSXExpressionContainer(child)) {
+	        } else if (t$9.isJSXExpressionContainer(child)) {
 	          const expr = child.expression;
 
 	          // Skip structural JSX
-	          const isStructural = t$8.isJSXElement(expr) ||
-	                               t$8.isJSXFragment(expr) ||
-	                               t$8.isJSXEmptyExpression(expr) ||
-	                               (t$8.isLogicalExpression(expr) &&
-	                                (t$8.isJSXElement(expr.right) || t$8.isJSXFragment(expr.right))) ||
-	                               (t$8.isConditionalExpression(expr) &&
-	                                (t$8.isJSXElement(expr.consequent) || t$8.isJSXElement(expr.alternate) ||
-	                                 t$8.isJSXFragment(expr.consequent) || t$8.isJSXFragment(expr.alternate))) ||
+	          const isStructural = t$9.isJSXElement(expr) ||
+	                               t$9.isJSXFragment(expr) ||
+	                               t$9.isJSXEmptyExpression(expr) ||
+	                               (t$9.isLogicalExpression(expr) &&
+	                                (t$9.isJSXElement(expr.right) || t$9.isJSXFragment(expr.right))) ||
+	                               (t$9.isConditionalExpression(expr) &&
+	                                (t$9.isJSXElement(expr.consequent) || t$9.isJSXElement(expr.alternate) ||
+	                                 t$9.isJSXFragment(expr.consequent) || t$9.isJSXFragment(expr.alternate))) ||
 	                               isMapCallExpression(expr);
 
 	          if (!isStructural) {
@@ -13017,7 +13001,7 @@ ${protectedKeysCode}
 	        } else {
 	          // Pure text or pure expressions: process each separately
 	          for (const child of textChildren) {
-	            if (t$8.isJSXText(child)) {
+	            if (t$9.isJSXText(child)) {
 	              const text = child.value.trim();
 	              if (text) {
 	                // 🔥 USE PRE-ASSIGNED HEX PATH for text nodes
@@ -13032,7 +13016,7 @@ ${protectedKeysCode}
 	                };
 	                textNodeIndex++;
 	              }
-	            } else if (t$8.isJSXExpressionContainer(child)) {
+	            } else if (t$9.isJSXExpressionContainer(child)) {
 	              // Pure expression: extract template for this child only
 	              // 🔥 USE PRE-ASSIGNED HEX PATH for expression containers
 	              const exprPath = child.__minimactPath || `${pathKey}.text[${textNodeIndex}]`;
@@ -13051,37 +13035,37 @@ ${protectedKeysCode}
 	      // Third pass: Traverse JSXElement children
 	      const childSiblingCounts = {}; // Fresh sibling counts for children
 	      for (const child of node.children) {
-	        if (t$8.isJSXElement(child)) {
+	        if (t$9.isJSXElement(child)) {
 	          traverseJSX(child, currentPath, childSiblingCounts);
-	        } else if (t$8.isJSXExpressionContainer(child)) {
+	        } else if (t$9.isJSXExpressionContainer(child)) {
 	          const expr = child.expression;
 
 	          // Traverse conditional JSX branches to extract templates from their content
 	          // This handles: {condition && <div>...</div>} and {condition ? <A/> : <B/>}
-	          if (t$8.isLogicalExpression(expr) && expr.operator === '&&') {
+	          if (t$9.isLogicalExpression(expr) && expr.operator === '&&') {
 	            // Logical AND: {isAdmin && <div>Admin Panel</div>}
-	            if (t$8.isJSXElement(expr.right)) {
+	            if (t$9.isJSXElement(expr.right)) {
 	              console.log(`[Template Extractor] Traversing conditional branch (&&) in <${tagName}>`);
 	              traverseJSX(expr.right, currentPath, childSiblingCounts);
 	            }
-	          } else if (t$8.isConditionalExpression(expr)) {
+	          } else if (t$9.isConditionalExpression(expr)) {
 	            // Ternary: {isAdmin ? <AdminPanel/> : <UserPanel/>}
-	            if (t$8.isJSXElement(expr.consequent)) {
+	            if (t$9.isJSXElement(expr.consequent)) {
 	              console.log(`[Template Extractor] Traversing conditional branch (? consequent) in <${tagName}>`);
 	              traverseJSX(expr.consequent, currentPath, childSiblingCounts);
 	            }
-	            if (t$8.isJSXElement(expr.alternate)) {
+	            if (t$9.isJSXElement(expr.alternate)) {
 	              console.log(`[Template Extractor] Traversing conditional branch (? alternate) in <${tagName}>`);
 	              traverseJSX(expr.alternate, currentPath, childSiblingCounts);
 	            }
 	          }
 	        }
 	      }
-	    } else if (t$8.isJSXFragment(node)) {
+	    } else if (t$9.isJSXFragment(node)) {
 	      // Handle fragments
 	      const childSiblingCounts = {}; // Fresh sibling counts for fragment children
 	      for (const child of node.children) {
-	        if (t$8.isJSXElement(child)) {
+	        if (t$9.isJSXElement(child)) {
 	          traverseJSX(child, parentPath, childSiblingCounts);
 	        }
 	      }
@@ -13103,15 +13087,15 @@ ${protectedKeysCode}
 	    let nullableMetadata = null;
 
 	    for (const child of children) {
-	      if (t$8.isJSXText(child)) {
+	      if (t$9.isJSXText(child)) {
 	        const text = child.value;
 	        templateStr += text;
-	      } else if (t$8.isJSXExpressionContainer(child)) {
+	      } else if (t$9.isJSXExpressionContainer(child)) {
 	        hasExpressions = true;
 
 	        // Special case: Template literal inside JSX expression container
 	        // Example: {`${(discount * 100).toFixed(0)}%`}
-	        if (t$8.isTemplateLiteral(child.expression)) {
+	        if (t$9.isTemplateLiteral(child.expression)) {
 	          const templateResult = extractTemplateLiteralShared(child.expression);
 	          if (templateResult) {
 	            // Merge the template literal's content into the current template
@@ -13240,22 +13224,22 @@ ${protectedKeysCode}
 	   * - Optional chaining: {viewModel?.userEmail}
 	   */
 	  function extractBinding(expr, component) {
-	    if (t$8.isIdentifier(expr)) {
+	    if (t$9.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$8.isMemberExpression(expr)) {
+	    } else if (t$9.isMemberExpression(expr)) {
 	      return buildMemberPath(expr);
-	    } else if (t$8.isOptionalMemberExpression(expr)) {
+	    } else if (t$9.isOptionalMemberExpression(expr)) {
 	      // Phase 2: Optional chaining (viewModel?.userEmail)
 	      return extractOptionalChainBinding(expr);
-	    } else if (t$8.isCallExpression(expr)) {
+	    } else if (t$9.isCallExpression(expr)) {
 	      // Phase 1: Method calls (price.toFixed(2))
 	      return extractMethodCallBinding(expr);
-	    } else if (t$8.isBinaryExpression(expr) || t$8.isUnaryExpression(expr)) {
+	    } else if (t$9.isBinaryExpression(expr) || t$9.isUnaryExpression(expr)) {
 	      // Simple operations - extract all identifiers
 	      const identifiers = [];
 	      extractIdentifiers(expr, identifiers);
 	      return identifiers.join('.');
-	    } else if (t$8.isConditionalExpression(expr)) {
+	    } else if (t$9.isConditionalExpression(expr)) {
 	      // Ternary expression: {isExpanded ? 'Hide' : 'Show'}
 	      // Return special marker that will be processed into conditional template
 	      return extractConditionalBinding(expr);
@@ -13273,7 +13257,7 @@ ${protectedKeysCode}
 	   */
 	  function extractConditionalBinding(expr) {
 	    // Check if test is a simple identifier
-	    if (!t$8.isIdentifier(expr.test)) {
+	    if (!t$9.isIdentifier(expr.test)) {
 	      // Complex test condition - mark as complex
 	      return null;
 	    }
@@ -13299,11 +13283,11 @@ ${protectedKeysCode}
 	   * Extract literal value from node (string, number, boolean)
 	   */
 	  function extractLiteralValue(node) {
-	    if (t$8.isStringLiteral(node)) {
+	    if (t$9.isStringLiteral(node)) {
 	      return node.value;
-	    } else if (t$8.isNumericLiteral(node)) {
+	    } else if (t$9.isNumericLiteral(node)) {
 	      return node.value.toString();
-	    } else if (t$8.isBooleanLiteral(node)) {
+	    } else if (t$9.isBooleanLiteral(node)) {
 	      return node.value.toString();
 	    } else {
 	      return null;
@@ -13319,11 +13303,11 @@ ${protectedKeysCode}
 	    const callee = expr.callee;
 
 	    // Only handle method calls (obj.method()), not function calls (func())
-	    if (!t$8.isMemberExpression(callee) && !t$8.isOptionalMemberExpression(callee)) {
+	    if (!t$9.isMemberExpression(callee) && !t$9.isOptionalMemberExpression(callee)) {
 	      return null;
 	    }
 
-	    const methodName = t$8.isIdentifier(callee.property) ? callee.property.name : null;
+	    const methodName = t$9.isIdentifier(callee.property) ? callee.property.name : null;
 	    if (!methodName) {
 	      return null;
 	    }
@@ -13340,13 +13324,13 @@ ${protectedKeysCode}
 
 	    // Extract the object being called (price from price.toFixed(2))
 	    let binding = null;
-	    if (t$8.isMemberExpression(callee.object)) {
+	    if (t$9.isMemberExpression(callee.object)) {
 	      binding = buildMemberPath(callee.object);
-	    } else if (t$8.isOptionalMemberExpression(callee.object)) {
+	    } else if (t$9.isOptionalMemberExpression(callee.object)) {
 	      binding = buildOptionalMemberPath(callee.object);
-	    } else if (t$8.isIdentifier(callee.object)) {
+	    } else if (t$9.isIdentifier(callee.object)) {
 	      binding = callee.object.name;
-	    } else if (t$8.isBinaryExpression(callee.object)) {
+	    } else if (t$9.isBinaryExpression(callee.object)) {
 	      // Handle expressions like (discount * 100).toFixed(0)
 	      // Extract all identifiers from the binary expression
 	      const identifiers = [];
@@ -13360,9 +13344,9 @@ ${protectedKeysCode}
 
 	    // Extract method arguments (e.g., 2 from toFixed(2))
 	    const args = expr.arguments.map(arg => {
-	      if (t$8.isNumericLiteral(arg)) return arg.value;
-	      if (t$8.isStringLiteral(arg)) return arg.value;
-	      if (t$8.isBooleanLiteral(arg)) return arg.value;
+	      if (t$9.isNumericLiteral(arg)) return arg.value;
+	      if (t$9.isStringLiteral(arg)) return arg.value;
+	      if (t$9.isBooleanLiteral(arg)) return arg.value;
 	      return null;
 	    }).filter(v => v !== null);
 
@@ -13399,8 +13383,8 @@ ${protectedKeysCode}
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$8.isOptionalMemberExpression(current) || t$8.isMemberExpression(current)) {
-	      if (t$8.isIdentifier(current.property)) {
+	    while (t$9.isOptionalMemberExpression(current) || t$9.isMemberExpression(current)) {
+	      if (t$9.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      } else {
 	        return null; // Computed property
@@ -13408,7 +13392,7 @@ ${protectedKeysCode}
 	      current = current.object;
 	    }
 
-	    if (t$8.isIdentifier(current)) {
+	    if (t$9.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	      return parts.join('.');
 	    }
@@ -13423,14 +13407,14 @@ ${protectedKeysCode}
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$8.isMemberExpression(current)) {
-	      if (t$8.isIdentifier(current.property)) {
+	    while (t$9.isMemberExpression(current)) {
+	      if (t$9.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      }
 	      current = current.object;
 	    }
 
-	    if (t$8.isIdentifier(current)) {
+	    if (t$9.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	    }
 
@@ -13441,14 +13425,14 @@ ${protectedKeysCode}
 	   * Extract all identifiers from expression
 	   */
 	  function extractIdentifiers(expr, result) {
-	    if (t$8.isIdentifier(expr)) {
+	    if (t$9.isIdentifier(expr)) {
 	      result.push(expr.name);
-	    } else if (t$8.isBinaryExpression(expr) || t$8.isLogicalExpression(expr)) {
+	    } else if (t$9.isBinaryExpression(expr) || t$9.isLogicalExpression(expr)) {
 	      extractIdentifiers(expr.left, result);
 	      extractIdentifiers(expr.right, result);
-	    } else if (t$8.isUnaryExpression(expr)) {
+	    } else if (t$9.isUnaryExpression(expr)) {
 	      extractIdentifiers(expr.argument, result);
-	    } else if (t$8.isMemberExpression(expr)) {
+	    } else if (t$9.isMemberExpression(expr)) {
 	      result.push(buildMemberPath(expr));
 	    }
 	  }
@@ -13471,7 +13455,7 @@ ${protectedKeysCode}
 
 	  // Traverse JSX tree using pre-assigned hex paths
 	  function traverseJSX(node) {
-	    if (t$8.isJSXElement(node)) {
+	    if (t$9.isJSXElement(node)) {
 	      const tagName = node.openingElement.name.name;
 
 	      // 🔥 USE PRE-ASSIGNED HEX PATH (no recalculation!)
@@ -13484,7 +13468,7 @@ ${protectedKeysCode}
 
 	      // Check attributes for template expressions
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$8.isJSXAttribute(attr)) {
+	        if (t$9.isJSXAttribute(attr)) {
 	          const attrName = attr.name.name;
 	          const attrValue = attr.value;
 
@@ -13492,7 +13476,7 @@ ${protectedKeysCode}
 	          const attrPath = attr.__minimactPath || `${elementPath}.@${attrName}`;
 
 	          // 1. Template literal: className={`count-${count}`}
-	          if (t$8.isJSXExpressionContainer(attrValue) && t$8.isTemplateLiteral(attrValue.expression)) {
+	          if (t$9.isJSXExpressionContainer(attrValue) && t$9.isTemplateLiteral(attrValue.expression)) {
 	            const template = extractTemplateLiteralShared(attrValue.expression);
 	            if (template) {
 	              console.log(`[Attribute Template] Found template literal in ${attrName}: "${template.template}" (path: ${attrPath})`);
@@ -13505,7 +13489,7 @@ ${protectedKeysCode}
 	            }
 	          }
 	          // 2. Style object: style={{ fontSize: '32px', opacity: isVisible ? 1 : 0.5 }}
-	          else if (attrName === 'style' && t$8.isJSXExpressionContainer(attrValue) && t$8.isObjectExpression(attrValue.expression)) {
+	          else if (attrName === 'style' && t$9.isJSXExpressionContainer(attrValue) && t$9.isObjectExpression(attrValue.expression)) {
 	            const styleTemplate = extractStyleObjectTemplate(attrValue.expression, tagName, null, null, currentPath);
 	            if (styleTemplate) {
 	              console.log(`[Attribute Template] Found style object: "${styleTemplate.template.substring(0, 60)}..." (path: ${attrPath})`);
@@ -13513,7 +13497,7 @@ ${protectedKeysCode}
 	            }
 	          }
 	          // 3. Static string attribute: className="btn-primary", placeholder="Enter name"
-	          else if (t$8.isStringLiteral(attrValue)) {
+	          else if (t$9.isStringLiteral(attrValue)) {
 	            console.log(`[Attribute Template] Found static attribute ${attrName}: "${attrValue.value}" (path: ${attrPath})`);
 	            templates[attrPath] = {
 	              template: attrValue.value,
@@ -13525,11 +13509,11 @@ ${protectedKeysCode}
 	            };
 	          }
 	          // 4. Simple expression (for future dynamic attribute support)
-	          else if (t$8.isJSXExpressionContainer(attrValue)) {
+	          else if (t$9.isJSXExpressionContainer(attrValue)) {
 	            const expr = attrValue.expression;
 	            // Check if it's a simple binding (identifier or member expression)
-	            if (t$8.isIdentifier(expr) || t$8.isMemberExpression(expr)) {
-	              const binding = t$8.isIdentifier(expr) ? expr.name : buildMemberPathShared(expr);
+	            if (t$9.isIdentifier(expr) || t$9.isMemberExpression(expr)) {
+	              const binding = t$9.isIdentifier(expr) ? expr.name : buildMemberPathShared(expr);
 	              console.log(`[Attribute Template] Found dynamic attribute ${attrName}: binding="${binding}" (path: ${attrPath})`);
 	              templates[attrPath] = {
 	                template: '{0}',
@@ -13546,7 +13530,7 @@ ${protectedKeysCode}
 
 	      // Traverse children (no need to track indices - paths are pre-assigned!)
 	      for (const child of node.children) {
-	        if (t$8.isJSXElement(child)) {
+	        if (t$9.isJSXElement(child)) {
 	          traverseJSX(child);
 	        }
 	      }
@@ -13568,13 +13552,13 @@ ${protectedKeysCode}
 
 	    // Check each property for dynamic values
 	    for (const prop of objectExpr.properties) {
-	      if (t$8.isObjectProperty(prop) && !prop.computed) {
-	        const key = t$8.isIdentifier(prop.key) ? prop.key.name : String(prop.key.value);
+	      if (t$9.isObjectProperty(prop) && !prop.computed) {
+	        const key = t$9.isIdentifier(prop.key) ? prop.key.name : String(prop.key.value);
 	        const cssKey = camelToKebabShared(key);
 	        const value = prop.value;
 
 	        // Check if value is dynamic (expression, conditional, etc.)
-	        if (t$8.isConditionalExpression(value) || t$8.isIdentifier(value) || t$8.isMemberExpression(value)) {
+	        if (t$9.isConditionalExpression(value) || t$9.isIdentifier(value) || t$9.isMemberExpression(value)) {
 	          // Dynamic value - extract binding
 	          hasBindings = true;
 	          const binding = extractBindingShared(value);
@@ -13619,11 +13603,11 @@ ${protectedKeysCode}
 	   * Convert style value to CSS string (shared helper)
 	   */
 	  function convertStyleValueShared(value) {
-	    if (t$8.isStringLiteral(value)) {
+	    if (t$9.isStringLiteral(value)) {
 	      return value.value;
-	    } else if (t$8.isNumericLiteral(value)) {
+	    } else if (t$9.isNumericLiteral(value)) {
 	      return `${value.value}px`;
-	    } else if (t$8.isIdentifier(value)) {
+	    } else if (t$9.isIdentifier(value)) {
 	      return value.name;
 	    }
 	    return String(value);
@@ -13639,13 +13623,13 @@ ${protectedKeysCode}
 	/**
 	 * Generate template map JSON file content
 	 */
-	function generateTemplateMapJSON$1(componentName, templates, attributeTemplates) {
+	function generateTemplateMapJSON$1(componentName, templates, attributeTemplates, conditionalElementTemplates = {}) {
 	  const allTemplates = {
 	    ...templates,
 	    ...attributeTemplates
 	  };
 
-	  return {
+	  const result = {
 	    component: componentName,
 	    version: '1.0',
 	    generatedAt: Date.now(),
@@ -13676,6 +13660,13 @@ ${protectedKeysCode}
 	      return acc;
 	    }, {})
 	  };
+
+	  // Add conditional element templates if present
+	  if (Object.keys(conditionalElementTemplates).length > 0) {
+	    result.conditionalElements = conditionalElementTemplates;
+	  }
+
+	  return result;
 	}
 
 	/**
@@ -13728,7 +13719,7 @@ ${protectedKeysCode}
 	 * }
 	 */
 
-	const t$7 = globalThis.__BABEL_TYPES__;
+	const t$8 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Extract all loop templates from JSX render body
@@ -13754,31 +13745,31 @@ ${protectedKeysCode}
 	   * Traverse JSX tree looking for .map() call expressions
 	   */
 	  function traverseJSX(node) {
-	    if (t$7.isJSXElement(node)) {
+	    if (t$8.isJSXElement(node)) {
 	      // Check attributes for .map() expressions
 	      for (const attr of node.openingElement.attributes) {
-	        if (t$7.isJSXAttribute(attr) && t$7.isJSXExpressionContainer(attr.value)) {
+	        if (t$8.isJSXAttribute(attr) && t$8.isJSXExpressionContainer(attr.value)) {
 	          findMapExpressions(attr.value.expression);
 	        }
 	      }
 
 	      // Check children for .map() expressions
 	      for (const child of node.children) {
-	        if (t$7.isJSXExpressionContainer(child)) {
+	        if (t$8.isJSXExpressionContainer(child)) {
 	          findMapExpressions(child.expression);
-	        } else if (t$7.isJSXElement(child)) {
+	        } else if (t$8.isJSXElement(child)) {
 	          traverseJSX(child);
-	        } else if (t$7.isJSXFragment(child)) {
+	        } else if (t$8.isJSXFragment(child)) {
 	          for (const fragmentChild of child.children) {
-	            if (t$7.isJSXElement(fragmentChild)) {
+	            if (t$8.isJSXElement(fragmentChild)) {
 	              traverseJSX(fragmentChild);
 	            }
 	          }
 	        }
 	      }
-	    } else if (t$7.isJSXFragment(node)) {
+	    } else if (t$8.isJSXFragment(node)) {
 	      for (const child of node.children) {
-	        if (t$7.isJSXElement(child)) {
+	        if (t$8.isJSXElement(child)) {
 	          traverseJSX(child);
 	        }
 	      }
@@ -13792,9 +13783,9 @@ ${protectedKeysCode}
 	    if (!expr) return;
 
 	    // Direct .map() call: items.map(...)
-	    if (t$7.isCallExpression(expr) &&
-	        t$7.isMemberExpression(expr.callee) &&
-	        t$7.isIdentifier(expr.callee.property) &&
+	    if (t$8.isCallExpression(expr) &&
+	        t$8.isMemberExpression(expr.callee) &&
+	        t$8.isIdentifier(expr.callee.property) &&
 	        expr.callee.property.name === 'map') {
 
 	      const loopTemplate = extractLoopTemplate(expr);
@@ -13804,13 +13795,13 @@ ${protectedKeysCode}
 	    }
 
 	    // Chained operations: items.filter(...).map(...)
-	    if (t$7.isCallExpression(expr) &&
-	        t$7.isMemberExpression(expr.callee)) {
+	    if (t$8.isCallExpression(expr) &&
+	        t$8.isMemberExpression(expr.callee)) {
 	      findMapExpressions(expr.callee.object);
 	    }
 
 	    // Wrapped in other expressions
-	    if (t$7.isLogicalExpression(expr) || t$7.isConditionalExpression(expr)) {
+	    if (t$8.isLogicalExpression(expr) || t$8.isConditionalExpression(expr)) {
 	      findMapExpressions(expr.left || expr.test);
 	      findMapExpressions(expr.right || expr.consequent);
 	      if (expr.alternate) findMapExpressions(expr.alternate);
@@ -13833,7 +13824,7 @@ ${protectedKeysCode}
 
 	    // Get callback function (arrow function or function expression)
 	    const callback = mapCallExpr.arguments[0];
-	    if (!t$7.isArrowFunctionExpression(callback) && !t$7.isFunctionExpression(callback)) {
+	    if (!t$8.isArrowFunctionExpression(callback) && !t$8.isFunctionExpression(callback)) {
 	      console.warn('[Loop Template] .map() callback is not a function');
 	      return null;
 	    }
@@ -13878,21 +13869,21 @@ ${protectedKeysCode}
 	   * - [...todos].map(...) → "todos"
 	   */
 	  function extractArrayBinding(expr) {
-	    if (t$7.isIdentifier(expr)) {
+	    if (t$8.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$7.isMemberExpression(expr)) {
+	    } else if (t$8.isMemberExpression(expr)) {
 	      // Get the last property name
-	      if (t$7.isIdentifier(expr.property)) {
+	      if (t$8.isIdentifier(expr.property)) {
 	        return expr.property.name;
 	      }
-	    } else if (t$7.isCallExpression(expr)) {
+	    } else if (t$8.isCallExpression(expr)) {
 	      // Handle array methods like .reverse(), .slice()
-	      if (t$7.isMemberExpression(expr.callee)) {
+	      if (t$8.isMemberExpression(expr.callee)) {
 	        return extractArrayBinding(expr.callee.object);
 	      }
-	    } else if (t$7.isArrayExpression(expr)) {
+	    } else if (t$8.isArrayExpression(expr)) {
 	      // Spread array: [...todos]
-	      if (expr.elements.length > 0 && t$7.isSpreadElement(expr.elements[0])) {
+	      if (expr.elements.length > 0 && t$8.isSpreadElement(expr.elements[0])) {
 	        return extractArrayBinding(expr.elements[0].argument);
 	      }
 	    }
@@ -13906,32 +13897,32 @@ ${protectedKeysCode}
 	    const body = callback.body;
 
 	    // Arrow function with direct JSX return: (...) => <li>...</li>
-	    if (t$7.isJSXElement(body)) {
+	    if (t$8.isJSXElement(body)) {
 	      return body;
 	    }
 
 	    // Arrow function or function expression with block body
-	    if (t$7.isBlockStatement(body)) {
+	    if (t$8.isBlockStatement(body)) {
 	      // Find return statement
 	      for (const stmt of body.body) {
-	        if (t$7.isReturnStatement(stmt) && t$7.isJSXElement(stmt.argument)) {
+	        if (t$8.isReturnStatement(stmt) && t$8.isJSXElement(stmt.argument)) {
 	          return stmt.argument;
 	        }
 	      }
 	    }
 
 	    // Expression wrapped in parentheses or conditional
-	    if (t$7.isConditionalExpression(body)) {
+	    if (t$8.isConditionalExpression(body)) {
 	      // Handle ternary: condition ? <div/> : <span/>
 	      // For now, just take the consequent (true branch)
-	      if (t$7.isJSXElement(body.consequent)) {
+	      if (t$8.isJSXElement(body.consequent)) {
 	        return body.consequent;
 	      }
 	    }
 
-	    if (t$7.isLogicalExpression(body) && body.operator === '&&') {
+	    if (t$8.isLogicalExpression(body) && body.operator === '&&') {
 	      // Handle logical AND: condition && <div/>
-	      if (t$7.isJSXElement(body.right)) {
+	      if (t$8.isJSXElement(body.right)) {
 	        return body.right;
 	      }
 	    }
@@ -13946,17 +13937,17 @@ ${protectedKeysCode}
 	   */
 	  function extractKeyBinding(jsxElement, itemVar, indexVar) {
 	    const keyAttr = jsxElement.openingElement.attributes.find(
-	      attr => t$7.isJSXAttribute(attr) &&
-	              t$7.isIdentifier(attr.name) &&
+	      attr => t$8.isJSXAttribute(attr) &&
+	              t$8.isIdentifier(attr.name) &&
 	              attr.name.name === 'key'
 	    );
 
 	    if (!keyAttr) return null;
 
 	    const keyValue = keyAttr.value;
-	    if (t$7.isJSXExpressionContainer(keyValue)) {
+	    if (t$8.isJSXExpressionContainer(keyValue)) {
 	      return buildBindingPath(keyValue.expression, itemVar, indexVar);
-	    } else if (t$7.isStringLiteral(keyValue)) {
+	    } else if (t$8.isStringLiteral(keyValue)) {
 	      return null; // Static key (not based on item data)
 	    }
 
@@ -14013,7 +14004,7 @@ ${protectedKeysCode}
 
 	    for (const attr of attributes) {
 	      // Skip non-JSXAttribute (spreads, etc.)
-	      if (!t$7.isJSXAttribute(attr)) continue;
+	      if (!t$8.isJSXAttribute(attr)) continue;
 
 	      // Skip key attribute (handled separately)
 	      if (attr.name.name === 'key') continue;
@@ -14022,7 +14013,7 @@ ${protectedKeysCode}
 	      const propValue = attr.value;
 
 	      // Static string: className="static"
-	      if (t$7.isStringLiteral(propValue)) {
+	      if (t$8.isStringLiteral(propValue)) {
 	        templates[propName] = {
 	          template: propValue.value,
 	          bindings: [],
@@ -14033,11 +14024,11 @@ ${protectedKeysCode}
 	      }
 
 	      // Expression: {todo.done}, {todo.done ? 'yes' : 'no'}
-	      if (t$7.isJSXExpressionContainer(propValue)) {
+	      if (t$8.isJSXExpressionContainer(propValue)) {
 	        const expr = propValue.expression;
 
 	        // Conditional: {todo.done ? 'active' : 'inactive'}
-	        if (t$7.isConditionalExpression(expr)) {
+	        if (t$8.isConditionalExpression(expr)) {
 	          const conditionalTemplate = extractConditionalTemplate(expr, itemVar, indexVar);
 	          if (conditionalTemplate) {
 	            templates[propName] = conditionalTemplate;
@@ -14046,7 +14037,7 @@ ${protectedKeysCode}
 	        }
 
 	        // Template literal: {`item-${todo.id}`}
-	        if (t$7.isTemplateLiteral(expr)) {
+	        if (t$8.isTemplateLiteral(expr)) {
 	          const template = extractTemplateFromTemplateLiteral(expr, itemVar, indexVar);
 	          if (template) {
 	            templates[propName] = template;
@@ -14166,7 +14157,7 @@ ${protectedKeysCode}
 
 	    for (const child of children) {
 	      // Static text: <li>Static text</li>
-	      if (t$7.isJSXText(child)) {
+	      if (t$8.isJSXText(child)) {
 	        const text = child.value.trim();
 	        if (text) {
 	          templates.push({
@@ -14180,7 +14171,7 @@ ${protectedKeysCode}
 	      }
 
 	      // Expression: <li>{todo.text}</li>
-	      if (t$7.isJSXExpressionContainer(child)) {
+	      if (t$8.isJSXExpressionContainer(child)) {
 	        const template = extractTextTemplate(child.expression, itemVar, indexVar);
 	        if (template) {
 	          templates.push(template);
@@ -14189,7 +14180,7 @@ ${protectedKeysCode}
 	      }
 
 	      // Nested element: <li><span>{todo.text}</span></li>
-	      if (t$7.isJSXElement(child)) {
+	      if (t$8.isJSXElement(child)) {
 	        const elementTemplate = extractElementTemplate(child, itemVar, indexVar);
 	        if (elementTemplate) {
 	          templates.push(elementTemplate);
@@ -14213,7 +14204,7 @@ ${protectedKeysCode}
 	   */
 	  function extractTextTemplate(expr, itemVar, indexVar) {
 	    // Template literal: {`${user.firstName} ${user.lastName}`}
-	    if (t$7.isTemplateLiteral(expr)) {
+	    if (t$8.isTemplateLiteral(expr)) {
 	      const templateLiteralResult = extractTemplateFromTemplateLiteral(expr, itemVar, indexVar);
 	      if (templateLiteralResult) {
 	        return {
@@ -14224,7 +14215,7 @@ ${protectedKeysCode}
 	    }
 
 	    // Conditional expression: {todo.done ? '✓' : '○'}
-	    if (t$7.isConditionalExpression(expr)) {
+	    if (t$8.isConditionalExpression(expr)) {
 	      const conditionalTemplate = extractConditionalTemplate(expr, itemVar, indexVar);
 	      if (conditionalTemplate) {
 	        return {
@@ -14262,7 +14253,7 @@ ${protectedKeysCode}
 	   * - index * 2 + 1 → "__expr__:index"
 	   */
 	  function buildBindingPath(expr, itemVar, indexVar) {
-	    if (t$7.isIdentifier(expr)) {
+	    if (t$8.isIdentifier(expr)) {
 	      // Just the item variable itself
 	      if (expr.name === itemVar) {
 	        return null; // Can't template the entire item object
@@ -14275,7 +14266,7 @@ ${protectedKeysCode}
 	      return null;
 	    }
 
-	    if (t$7.isMemberExpression(expr)) {
+	    if (t$8.isMemberExpression(expr)) {
 	      const path = buildMemberExpressionPath(expr);
 	      if (path && path.startsWith(itemVar + '.')) {
 	        // Replace item variable with "item" prefix
@@ -14284,22 +14275,22 @@ ${protectedKeysCode}
 	    }
 
 	    // Handle binary expressions: todo.priority + 1, price * quantity, etc.
-	    if (t$7.isBinaryExpression(expr)) {
+	    if (t$8.isBinaryExpression(expr)) {
 	      return extractLoopBinaryExpression(expr, itemVar, indexVar);
 	    }
 
 	    // Handle logical expressions: todo.dueDate || 'No due date'
-	    if (t$7.isLogicalExpression(expr)) {
+	    if (t$8.isLogicalExpression(expr)) {
 	      return extractLoopLogicalExpression(expr, itemVar, indexVar);
 	    }
 
 	    // Handle unary expressions: !todo.completed, -value
-	    if (t$7.isUnaryExpression(expr)) {
+	    if (t$8.isUnaryExpression(expr)) {
 	      return extractLoopUnaryExpression(expr, itemVar, indexVar);
 	    }
 
 	    // Handle call expressions: todo.text.toUpperCase(), array.concat()
-	    if (t$7.isCallExpression(expr)) {
+	    if (t$8.isCallExpression(expr)) {
 	      return extractLoopCallExpression(expr, itemVar, indexVar);
 	    }
 
@@ -14374,7 +14365,7 @@ ${protectedKeysCode}
 	   * Extract identifiers from expression, converting item references to "item" prefix
 	   */
 	  function extractLoopIdentifiers(expr, result, itemVar, indexVar) {
-	    if (t$7.isIdentifier(expr)) {
+	    if (t$8.isIdentifier(expr)) {
 	      if (expr.name === itemVar) {
 	        // Don't add raw item variable
 	        return;
@@ -14383,12 +14374,12 @@ ${protectedKeysCode}
 	      } else {
 	        result.push(expr.name);
 	      }
-	    } else if (t$7.isBinaryExpression(expr) || t$7.isLogicalExpression(expr)) {
+	    } else if (t$8.isBinaryExpression(expr) || t$8.isLogicalExpression(expr)) {
 	      extractLoopIdentifiers(expr.left, result, itemVar, indexVar);
 	      extractLoopIdentifiers(expr.right, result, itemVar, indexVar);
-	    } else if (t$7.isUnaryExpression(expr)) {
+	    } else if (t$8.isUnaryExpression(expr)) {
 	      extractLoopIdentifiers(expr.argument, result, itemVar, indexVar);
-	    } else if (t$7.isMemberExpression(expr)) {
+	    } else if (t$8.isMemberExpression(expr)) {
 	      const path = buildMemberExpressionPath(expr);
 	      if (path) {
 	        if (path.startsWith(itemVar + '.')) {
@@ -14401,11 +14392,11 @@ ${protectedKeysCode}
 	        // Complex member expression (e.g., (a + b).toFixed())
 	        // Extract from both object and property
 	        extractLoopIdentifiers(expr.object, result, itemVar, indexVar);
-	        if (t$7.isIdentifier(expr.property)) {
+	        if (t$8.isIdentifier(expr.property)) {
 	          result.push(expr.property.name);
 	        }
 	      }
-	    } else if (t$7.isCallExpression(expr)) {
+	    } else if (t$8.isCallExpression(expr)) {
 	      // Extract from callee
 	      extractLoopIdentifiers(expr.callee, result, itemVar, indexVar);
 	      // Extract from arguments
@@ -14424,8 +14415,8 @@ ${protectedKeysCode}
 	    const parts = [];
 	    let current = expr;
 
-	    while (t$7.isMemberExpression(current)) {
-	      if (t$7.isIdentifier(current.property)) {
+	    while (t$8.isMemberExpression(current)) {
+	      if (t$8.isIdentifier(current.property)) {
 	        parts.unshift(current.property.name);
 	      } else {
 	        return null; // Computed property (not supported)
@@ -14433,7 +14424,7 @@ ${protectedKeysCode}
 	      current = current.object;
 	    }
 
-	    if (t$7.isIdentifier(current)) {
+	    if (t$8.isIdentifier(current)) {
 	      parts.unshift(current.name);
 	      return parts.join('.');
 	    }
@@ -14445,13 +14436,13 @@ ${protectedKeysCode}
 	   * Extract literal value from expression
 	   */
 	  function extractLiteralValue(expr) {
-	    if (t$7.isStringLiteral(expr)) {
+	    if (t$8.isStringLiteral(expr)) {
 	      return expr.value;
-	    } else if (t$7.isNumericLiteral(expr)) {
+	    } else if (t$8.isNumericLiteral(expr)) {
 	      return expr.value;
-	    } else if (t$7.isBooleanLiteral(expr)) {
+	    } else if (t$8.isBooleanLiteral(expr)) {
 	      return expr.value;
-	    } else if (t$7.isNullLiteral(expr)) {
+	    } else if (t$8.isNullLiteral(expr)) {
 	      return null;
 	    }
 	    return null; // Complex expression
@@ -14484,7 +14475,7 @@ ${protectedKeysCode}
 	 * - Prediction: Choose correct branch based on current state
 	 */
 
-	const t$6 = globalThis.__BABEL_TYPES__;
+	const t$7 = globalThis.__BABEL_TYPES__;
 
 	/**
 	 * Extract structural templates from JSX render body
@@ -14511,16 +14502,16 @@ ${protectedKeysCode}
 	   * Traverse JSX tree looking for conditional expressions that affect structure
 	   */
 	  function traverseJSX(node, path = []) {
-	    if (t$6.isJSXElement(node)) {
+	    if (t$7.isJSXElement(node)) {
 	      // Check children for conditional expressions
 	      for (let i = 0; i < node.children.length; i++) {
 	        const child = node.children[i];
 
-	        if (t$6.isJSXExpressionContainer(child)) {
+	        if (t$7.isJSXExpressionContainer(child)) {
 	          const expr = child.expression;
 
 	          // Ternary: {condition ? <A /> : <B />}
-	          if (t$6.isConditionalExpression(expr)) {
+	          if (t$7.isConditionalExpression(expr)) {
 	            const template = extractConditionalStructuralTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
@@ -14528,32 +14519,32 @@ ${protectedKeysCode}
 	          }
 
 	          // Logical AND: {condition && <Component />}
-	          if (t$6.isLogicalExpression(expr) && expr.operator === '&&') {
+	          if (t$7.isLogicalExpression(expr) && expr.operator === '&&') {
 	            const template = extractLogicalAndTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
 	            }
 	          }
-	        } else if (t$6.isJSXElement(child)) {
+	        } else if (t$7.isJSXElement(child)) {
 	          traverseJSX(child, [...path, i]);
 	        }
 	      }
-	    } else if (t$6.isJSXFragment(node)) {
+	    } else if (t$7.isJSXFragment(node)) {
 	      for (let i = 0; i < node.children.length; i++) {
 	        const child = node.children[i];
-	        if (t$6.isJSXElement(child)) {
+	        if (t$7.isJSXElement(child)) {
 	          traverseJSX(child, [...path, i]);
-	        } else if (t$6.isJSXExpressionContainer(child)) {
+	        } else if (t$7.isJSXExpressionContainer(child)) {
 	          const expr = child.expression;
 
-	          if (t$6.isConditionalExpression(expr)) {
+	          if (t$7.isConditionalExpression(expr)) {
 	            const template = extractConditionalStructuralTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
 	            }
 	          }
 
-	          if (t$6.isLogicalExpression(expr) && expr.operator === '&&') {
+	          if (t$7.isLogicalExpression(expr) && expr.operator === '&&') {
 	            const template = extractLogicalAndTemplate(expr, component, [...path, i]);
 	            if (template) {
 	              structuralTemplates.push(template);
@@ -14591,8 +14582,8 @@ ${protectedKeysCode}
 	    }
 
 	    // Check if both branches are JSX elements (structural change)
-	    const hasTrueBranch = t$6.isJSXElement(consequent) || t$6.isJSXFragment(consequent);
-	    const hasFalseBranch = t$6.isJSXElement(alternate) || t$6.isJSXFragment(alternate) || t$6.isNullLiteral(alternate);
+	    const hasTrueBranch = t$7.isJSXElement(consequent) || t$7.isJSXFragment(consequent);
+	    const hasFalseBranch = t$7.isJSXElement(alternate) || t$7.isJSXFragment(alternate) || t$7.isNullLiteral(alternate);
 
 	    if (!hasTrueBranch && !hasFalseBranch) {
 	      // Not a structural template (probably just conditional text)
@@ -14610,7 +14601,7 @@ ${protectedKeysCode}
 	    }
 
 	    if (hasFalseBranch) {
-	      if (t$6.isNullLiteral(alternate)) {
+	      if (t$7.isNullLiteral(alternate)) {
 	        branches['false'] = { type: 'Null' };
 	      } else {
 	        const falseBranch = extractElementOrFragmentTemplate(alternate);
@@ -14657,7 +14648,7 @@ ${protectedKeysCode}
 	    }
 
 	    // Check if right side is JSX element (structural change)
-	    if (!t$6.isJSXElement(right) && !t$6.isJSXFragment(right)) {
+	    if (!t$7.isJSXElement(right) && !t$7.isJSXFragment(right)) {
 	      return null;
 	    }
 
@@ -14685,17 +14676,17 @@ ${protectedKeysCode}
 	   * Extract element or fragment template
 	   */
 	  function extractElementOrFragmentTemplate(node, component) {
-	    if (t$6.isJSXElement(node)) {
+	    if (t$7.isJSXElement(node)) {
 	      return extractSimpleElementTemplate(node);
-	    } else if (t$6.isJSXFragment(node)) {
+	    } else if (t$7.isJSXFragment(node)) {
 	      return {
 	        type: 'Fragment',
 	        children: node.children
-	          .filter(child => t$6.isJSXElement(child) || t$6.isJSXText(child))
+	          .filter(child => t$7.isJSXElement(child) || t$7.isJSXText(child))
 	          .map(child => {
-	            if (t$6.isJSXElement(child)) {
+	            if (t$7.isJSXElement(child)) {
 	              return extractSimpleElementTemplate(child);
-	            } else if (t$6.isJSXText(child)) {
+	            } else if (t$7.isJSXText(child)) {
 	              const text = child.value.trim();
 	              return text ? { type: 'Text', content: text } : null;
 	            }
@@ -14721,16 +14712,16 @@ ${protectedKeysCode}
 	    // Extract static props only (complex props handled separately)
 	    const props = {};
 	    for (const attr of attributes) {
-	      if (t$6.isJSXAttribute(attr)) {
+	      if (t$7.isJSXAttribute(attr)) {
 	        const propName = attr.name.name;
 	        const propValue = attr.value;
 
-	        if (t$6.isStringLiteral(propValue)) {
+	        if (t$7.isStringLiteral(propValue)) {
 	          props[propName] = propValue.value;
-	        } else if (t$6.isJSXExpressionContainer(propValue)) {
+	        } else if (t$7.isJSXExpressionContainer(propValue)) {
 	          // Mark as dynamic (will be re-evaluated)
 	          const expr = propValue.expression;
-	          if (t$6.isIdentifier(expr)) {
+	          if (t$7.isIdentifier(expr)) {
 	            props[propName] = { binding: expr.name };
 	          } else {
 	            props[propName] = { expression: true };
@@ -14741,11 +14732,11 @@ ${protectedKeysCode}
 
 	    // Extract children (simplified)
 	    const children = jsxElement.children
-	      .filter(child => t$6.isJSXElement(child) || t$6.isJSXText(child))
+	      .filter(child => t$7.isJSXElement(child) || t$7.isJSXText(child))
 	      .map(child => {
-	        if (t$6.isJSXElement(child)) {
+	        if (t$7.isJSXElement(child)) {
 	          return extractSimpleElementTemplate(child);
-	        } else if (t$6.isJSXText(child)) {
+	        } else if (t$7.isJSXText(child)) {
 	          const text = child.value.trim();
 	          return text ? { type: 'Text', content: text } : null;
 	        }
@@ -14764,11 +14755,11 @@ ${protectedKeysCode}
 	   * Extract binding from expression
 	   */
 	  function extractBinding(expr, component) {
-	    if (t$6.isIdentifier(expr)) {
+	    if (t$7.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$6.isMemberExpression(expr)) {
+	    } else if (t$7.isMemberExpression(expr)) {
 	      return buildMemberPath(expr);
-	    } else if (t$6.isUnaryExpression(expr) && expr.operator === '!') {
+	    } else if (t$7.isUnaryExpression(expr) && expr.operator === '!') {
 	      // Handle !isLoading
 	      const binding = extractBinding(expr.argument);
 	      return binding ? `!${binding}` : null;
@@ -14780,18 +14771,18 @@ ${protectedKeysCode}
 	   * Extract state key (root variable name) from expression
 	   */
 	  function extractStateKey(expr, component) {
-	    if (t$6.isIdentifier(expr)) {
+	    if (t$7.isIdentifier(expr)) {
 	      return expr.name;
-	    } else if (t$6.isMemberExpression(expr)) {
+	    } else if (t$7.isMemberExpression(expr)) {
 	      // Get root object: user.isLoggedIn → "user"
 	      let current = expr;
-	      while (t$6.isMemberExpression(current)) {
+	      while (t$7.isMemberExpression(current)) {
 	        current = current.object;
 	      }
-	      if (t$6.isIdentifier(current)) {
+	      if (t$7.isIdentifier(current)) {
 	        return current.name;
 	      }
-	    } else if (t$6.isUnaryExpression(expr)) {
+	    } else if (t$7.isUnaryExpression(expr)) {
 	      return extractStateKey(expr.argument);
 	    }
 	    return null;
@@ -14799,6 +14790,406 @@ ${protectedKeysCode}
 
 	  /**
 	   * Build member expression path
+	   */
+	  function buildMemberPath(expr) {
+	    const parts = [];
+	    let current = expr;
+
+	    while (t$7.isMemberExpression(current)) {
+	      if (t$7.isIdentifier(current.property)) {
+	        parts.unshift(current.property.name);
+	      }
+	      current = current.object;
+	    }
+
+	    if (t$7.isIdentifier(current)) {
+	      parts.unshift(current.name);
+	    }
+
+	    return parts.join('.');
+	  }
+
+	  // Start traversal
+	  traverseJSX(renderBody);
+
+	  return structuralTemplates;
+	}
+
+	var structuralTemplates = {
+	  extractStructuralTemplates: extractStructuralTemplates$1
+	};
+
+	/**
+	 * Conditional Element Template Extractor
+	 *
+	 * Extracts complete element structure templates for conditional rendering.
+	 * This enables the client to construct entire element trees instantly when
+	 * conditions change, without waiting for server round-trip.
+	 *
+	 * Examples:
+	 * - {myState1 && <div>Content</div>}
+	 * - {myState1 && !myState2 && <div>{myState3}</div>}
+	 * - {condition ? <Active /> : <Inactive />}
+	 *
+	 * The client can evaluate simple boolean conditions and construct the full
+	 * DOM tree from the template, providing instant feedback.
+	 */
+
+	const t$6 = globalThis.__BABEL_TYPES__;
+	const generate = requireLib$1().default;
+
+	/**
+	 * Extract conditional element templates from JSX render body
+	 *
+	 * Returns object keyed by hex path:
+	 * {
+	 *   "1.2": {
+	 *     type: "conditional-element",
+	 *     conditionExpression: "myState1",
+	 *     conditionBindings: ["myState1"],
+	 *     branches: {
+	 *       true: { element structure },
+	 *       false: null
+	 *     }
+	 *   }
+	 * }
+	 */
+	function extractConditionalElementTemplates$1(renderBody, component) {
+	  if (!renderBody) return {};
+
+	  const conditionalTemplates = {};
+
+	  /**
+	   * Traverse JSX tree to find conditional expressions
+	   */
+	  function traverseJSX(node) {
+	    if (t$6.isJSXElement(node)) {
+	      // Process children
+	      for (const child of node.children) {
+	        if (t$6.isJSXExpressionContainer(child)) {
+	          const expr = child.expression;
+
+	          // Logical AND: {condition && <Element />}
+	          if (t$6.isLogicalExpression(expr) && expr.operator === '&&') {
+	            const template = extractLogicalAndElementTemplate(expr);
+	            if (template) {
+	              const path = child.__minimactPath;
+	              if (path) {
+	                conditionalTemplates[path] = template;
+	              }
+	            }
+	          }
+
+	          // Ternary: {condition ? <A /> : <B />}
+	          if (t$6.isConditionalExpression(expr)) {
+	            const template = extractTernaryElementTemplate(expr);
+	            if (template) {
+	              const path = child.__minimactPath;
+	              if (path) {
+	                conditionalTemplates[path] = template;
+	              }
+	            }
+	          }
+	        } else if (t$6.isJSXElement(child)) {
+	          traverseJSX(child);
+	        }
+	      }
+	    }
+	  }
+
+	  /**
+	   * Extract template from logical AND expression
+	   * Example: {myState1 && !myState2 && <div>{myState3}</div>}
+	   */
+	  function extractLogicalAndElementTemplate(expr, containerNode) {
+	    const right = expr.right;
+
+	    // Check if right side is JSX element (structural)
+	    if (!t$6.isJSXElement(right) && !t$6.isJSXFragment(right)) {
+	      return null;
+	    }
+
+	    // Extract full condition expression
+	    const condition = extractLeftSideOfAnd(expr);
+	    const conditionCode = generate(condition).code;
+
+	    // Extract bindings from condition
+	    const bindings = extractBindingsFromCondition(condition);
+
+	    // Can we evaluate this condition client-side?
+	    const isEvaluable = isConditionEvaluableClientSide(condition);
+
+	    // Extract element structure
+	    const elementStructure = extractElementStructure(right);
+
+	    if (!elementStructure) {
+	      return null;
+	    }
+
+	    return {
+	      type: "conditional-element",
+	      conditionExpression: conditionCode,
+	      conditionBindings: bindings,
+	      evaluable: isEvaluable,
+	      branches: {
+	        true: elementStructure,
+	        false: null
+	      },
+	      operator: "&&"
+	    };
+	  }
+
+	  /**
+	   * Extract template from ternary expression
+	   * Example: {myState1 ? <div>Active</div> : <div>Inactive</div>}
+	   */
+	  function extractTernaryElementTemplate(expr, containerNode) {
+	    const test = expr.test;
+	    const consequent = expr.consequent;
+	    const alternate = expr.alternate;
+
+	    // Check if branches are JSX elements
+	    const hasConsequent = t$6.isJSXElement(consequent) || t$6.isJSXFragment(consequent);
+	    const hasAlternate = t$6.isJSXElement(alternate) || t$6.isJSXFragment(alternate) || t$6.isNullLiteral(alternate);
+
+	    if (!hasConsequent && !hasAlternate) {
+	      return null; // Not a structural template
+	    }
+
+	    // Extract condition
+	    const conditionCode = generate(test).code;
+	    const bindings = extractBindingsFromCondition(test);
+	    const isEvaluable = isConditionEvaluableClientSide(test);
+
+	    // Extract both branches
+	    const branches = {};
+
+	    if (hasConsequent) {
+	      branches.true = extractElementStructure(consequent);
+	    }
+
+	    if (hasAlternate) {
+	      if (t$6.isNullLiteral(alternate)) {
+	        branches.false = null;
+	      } else {
+	        branches.false = extractElementStructure(alternate);
+	      }
+	    }
+
+	    return {
+	      type: "conditional-element",
+	      conditionExpression: conditionCode,
+	      conditionBindings: bindings,
+	      evaluable: isEvaluable,
+	      branches,
+	      operator: "?"
+	    };
+	  }
+
+	  /**
+	   * Extract the left side of a chained AND expression
+	   * Example: myState1 && !myState2 && <div /> → returns myState1 && !myState2
+	   */
+	  function extractLeftSideOfAnd(expr) {
+	    if (!t$6.isLogicalExpression(expr) || expr.operator !== '&&') {
+	      return expr;
+	    }
+
+	    const right = expr.right;
+
+	    // If right is JSX, left is the condition
+	    if (t$6.isJSXElement(right) || t$6.isJSXFragment(right)) {
+	      return expr.left;
+	    }
+
+	    // Otherwise, keep recursing
+	    return expr;
+	  }
+
+	  /**
+	   * Extract all state bindings from a condition expression
+	   * Example: myState1 && !myState2 → ["myState1", "myState2"]
+	   */
+	  function extractBindingsFromCondition(expr) {
+	    const bindings = new Set();
+
+	    function traverse(node) {
+	      if (t$6.isIdentifier(node)) {
+	        bindings.add(node.name);
+	      } else if (t$6.isLogicalExpression(node)) {
+	        traverse(node.left);
+	        traverse(node.right);
+	      } else if (t$6.isUnaryExpression(node)) {
+	        traverse(node.argument);
+	      } else if (t$6.isBinaryExpression(node)) {
+	        traverse(node.left);
+	        traverse(node.right);
+	      } else if (t$6.isMemberExpression(node)) {
+	        const path = buildMemberPath(node);
+	        if (path) bindings.add(path);
+	      }
+	    }
+
+	    traverse(expr);
+	    return Array.from(bindings);
+	  }
+
+	  /**
+	   * Check if condition can be evaluated client-side
+	   * Only simple boolean logic is supported (&&, ||, !, comparisons)
+	   */
+	  function isConditionEvaluableClientSide(expr, bindings) {
+	    // Simple identifier: myState1
+	    if (t$6.isIdentifier(expr)) {
+	      return true;
+	    }
+
+	    // Unary: !myState1
+	    if (t$6.isUnaryExpression(expr) && expr.operator === '!') {
+	      return isConditionEvaluableClientSide(expr.argument);
+	    }
+
+	    // Logical: myState1 && myState2, myState1 || myState2
+	    if (t$6.isLogicalExpression(expr)) {
+	      return isConditionEvaluableClientSide(expr.left) &&
+	             isConditionEvaluableClientSide(expr.right);
+	    }
+
+	    // Binary comparisons: count > 0, name === "admin"
+	    if (t$6.isBinaryExpression(expr)) {
+	      // Simple comparisons are evaluable
+	      const operators = ['==', '===', '!=', '!==', '<', '>', '<=', '>='];
+	      if (operators.includes(expr.operator)) {
+	        return isSimpleExpression(expr.left) && isSimpleExpression(expr.right);
+	      }
+	    }
+
+	    // Member expressions: user.isAdmin
+	    if (t$6.isMemberExpression(expr)) {
+	      return true;
+	    }
+
+	    // Complex expressions require server evaluation
+	    return false;
+	  }
+
+	  /**
+	   * Check if expression is simple (identifier, member, literal)
+	   */
+	  function isSimpleExpression(expr) {
+	    return t$6.isIdentifier(expr) ||
+	           t$6.isMemberExpression(expr) ||
+	           t$6.isStringLiteral(expr) ||
+	           t$6.isNumericLiteral(expr) ||
+	           t$6.isBooleanLiteral(expr) ||
+	           t$6.isNullLiteral(expr);
+	  }
+
+	  /**
+	   * Extract complete element structure including dynamic content
+	   */
+	  function extractElementStructure(node) {
+	    if (t$6.isJSXElement(node)) {
+	      const tagName = node.openingElement.name.name;
+	      const hexPath = node.__minimactPath;
+
+	      // Extract attributes
+	      const attributes = {};
+	      for (const attr of node.openingElement.attributes) {
+	        if (t$6.isJSXAttribute(attr)) {
+	          const attrName = attr.name.name;
+	          const attrValue = attr.value;
+
+	          if (!attrValue) {
+	            attributes[attrName] = true; // Boolean attribute
+	          } else if (t$6.isStringLiteral(attrValue)) {
+	            attributes[attrName] = attrValue.value;
+	          } else if (t$6.isJSXExpressionContainer(attrValue)) {
+	            // Dynamic attribute
+	            const expr = attrValue.expression;
+	            if (t$6.isIdentifier(expr)) {
+	              attributes[attrName] = { binding: expr.name };
+	            } else if (t$6.isMemberExpression(expr)) {
+	              attributes[attrName] = { binding: buildMemberPath(expr) };
+	            } else {
+	              attributes[attrName] = { expression: generate(expr).code };
+	            }
+	          }
+	        }
+	      }
+
+	      // Extract children
+	      const children = [];
+	      for (const child of node.children) {
+	        if (t$6.isJSXText(child)) {
+	          const text = child.value.trim();
+	          if (text) {
+	            children.push({
+	              type: "text",
+	              value: text,
+	              hexPath: child.__minimactPath
+	            });
+	          }
+	        } else if (t$6.isJSXElement(child)) {
+	          const childStructure = extractElementStructure(child);
+	          if (childStructure) {
+	            children.push(childStructure);
+	          }
+	        } else if (t$6.isJSXExpressionContainer(child)) {
+	          // Dynamic text content
+	          const expr = child.expression;
+	          if (t$6.isIdentifier(expr)) {
+	            children.push({
+	              type: "text",
+	              binding: expr.name,
+	              hexPath: child.__minimactPath
+	            });
+	          } else if (t$6.isMemberExpression(expr)) {
+	            children.push({
+	              type: "text",
+	              binding: buildMemberPath(expr),
+	              hexPath: child.__minimactPath
+	            });
+	          } else {
+	            // Complex expression
+	            children.push({
+	              type: "text",
+	              expression: generate(expr).code,
+	              hexPath: child.__minimactPath
+	            });
+	          }
+	        }
+	      }
+
+	      return {
+	        type: "element",
+	        tag: tagName,
+	        hexPath,
+	        attributes,
+	        children
+	      };
+	    } else if (t$6.isJSXFragment(node)) {
+	      const children = [];
+	      for (const child of node.children) {
+	        if (t$6.isJSXElement(child)) {
+	          const childStructure = extractElementStructure(child);
+	          if (childStructure) {
+	            children.push(childStructure);
+	          }
+	        }
+	      }
+
+	      return {
+	        type: "fragment",
+	        children
+	      };
+	    }
+
+	    return null;
+	  }
+
+	  /**
+	   * Build member expression path (user.profile.name → "user.profile.name")
 	   */
 	  function buildMemberPath(expr) {
 	    const parts = [];
@@ -14815,17 +15206,17 @@ ${protectedKeysCode}
 	      parts.unshift(current.name);
 	    }
 
-	    return parts.join('.');
+	    return parts.length > 0 ? parts.join('.') : null;
 	  }
 
 	  // Start traversal
 	  traverseJSX(renderBody);
 
-	  return structuralTemplates;
+	  return conditionalTemplates;
 	}
 
-	var structuralTemplates = {
-	  extractStructuralTemplates: extractStructuralTemplates$1
+	var conditionalElementTemplates = {
+	  extractConditionalElementTemplates: extractConditionalElementTemplates$1
 	};
 
 	/**
@@ -15650,6 +16041,7 @@ ${protectedKeysCode}
 	} = templates;
 	const { extractLoopTemplates } = loopTemplates;
 	const { extractStructuralTemplates } = structuralTemplates;
+	const { extractConditionalElementTemplates } = conditionalElementTemplates;
 	const { extractExpressionTemplates } = expressionTemplates;
 	const { analyzePluginUsage, validatePluginUsage } = analyzePluginUsage_1;
 	const { HexPathGenerator } = requireHexPath();
@@ -15874,6 +16266,18 @@ ${protectedKeysCode}
 	      console.log(`[Minimact Structural Templates] Extracted ${structuralTemplates.length} structural templates from ${componentName}:`);
 	      structuralTemplates.forEach(st => {
 	        console.log(`  - ${st.type === 'conditional' ? 'Ternary' : 'Logical AND'}: ${st.conditionBinding}`);
+	      });
+	    }
+
+	    // Extract conditional element templates (Phase 5.5 - Enhanced)
+	    const conditionalElementTemplates = extractConditionalElementTemplates(component.renderBody, component);
+	    component.conditionalElementTemplates = conditionalElementTemplates;
+
+	    if (Object.keys(conditionalElementTemplates).length > 0) {
+	      console.log(`[Minimact Conditional Element Templates] Extracted ${Object.keys(conditionalElementTemplates).length} conditional element templates from ${componentName}:`);
+	      Object.entries(conditionalElementTemplates).forEach(([path, template]) => {
+	        const evaluableMarker = template.evaluable ? '✅' : '⚠️';
+	        console.log(`  - ${evaluableMarker} ${path}: ${template.conditionExpression}`);
 	      });
 	    }
 

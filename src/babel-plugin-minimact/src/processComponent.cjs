@@ -17,6 +17,7 @@ const {
 } = require('./extractors/templates.cjs');
 const { extractLoopTemplates } = require('./extractors/loopTemplates.cjs');
 const { extractStructuralTemplates } = require('./extractors/structuralTemplates.cjs');
+const { extractConditionalElementTemplates } = require('./extractors/conditionalElementTemplates.cjs');
 const { extractExpressionTemplates } = require('./extractors/expressionTemplates.cjs');
 const { analyzePluginUsage, validatePluginUsage } = require('./analyzers/analyzePluginUsage.cjs');
 const { HexPathGenerator } = require('./utils/hexPath.cjs');
@@ -242,6 +243,18 @@ function processComponent(path, state) {
       console.log(`[Minimact Structural Templates] Extracted ${structuralTemplates.length} structural templates from ${componentName}:`);
       structuralTemplates.forEach(st => {
         console.log(`  - ${st.type === 'conditional' ? 'Ternary' : 'Logical AND'}: ${st.conditionBinding}`);
+      });
+    }
+
+    // Extract conditional element templates (Phase 5.5 - Enhanced)
+    const conditionalElementTemplates = extractConditionalElementTemplates(component.renderBody, component);
+    component.conditionalElementTemplates = conditionalElementTemplates;
+
+    if (Object.keys(conditionalElementTemplates).length > 0) {
+      console.log(`[Minimact Conditional Element Templates] Extracted ${Object.keys(conditionalElementTemplates).length} conditional element templates from ${componentName}:`);
+      Object.entries(conditionalElementTemplates).forEach(([path, template]) => {
+        const evaluableMarker = template.evaluable ? '✅' : '⚠️';
+        console.log(`  - ${evaluableMarker} ${path}: ${template.conditionExpression}`);
       });
     }
 

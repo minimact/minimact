@@ -191,7 +191,8 @@ module.exports = function(babel) {
                   const templateMapJSON = generateTemplateMapJSON(
                     component.name,
                     component.templates,
-                    {} // Attribute templates already included in component.templates
+                    {}, // Attribute templates already included in component.templates
+                    component.conditionalElementTemplates || {}
                   );
 
                   // Write to .templates.json file
