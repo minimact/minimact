@@ -84,6 +84,38 @@ User clicks →
 
 ---
 
+## 🧩 The Minimact Principle
+
+```
+┌───────────────────────────────────────────────────────────┐
+│ DECLARATIVE UI                                            │
+│ ↓                                                         │
+│ Exposes structure (JSX makes tree explicit)               │
+│ Exposes state (useState makes slots explicit)             │
+│ ↓                                                         │
+│ DETERMINISTIC UI                                          │
+│ ↓                                                         │
+│ Same state → Same output (pure function)                  │
+│ Finite states → Enumerable space                          │
+│ ↓                                                         │
+│ PREDICTIVE UI                                             │
+│ ↓                                                         │
+│ Pre-compute all outputs (build-time analysis)             │
+│ Runtime becomes lookup (0-2ms)                            │
+└───────────────────────────────────────────────────────────┘
+```
+
+**The progression is INEVITABLE once you recognize:**
+```
+Declarative → Structure
+Structure → Determinism
+Determinism → Pre-computability
+```
+
+React stopped at declarative. Minimact took it all the way to predictive.
+
+---
+
 ## 🧩 Minimact: Problem-Solution Matrix
 
 | ❌ Problem | ✅ Minimact's Solution | 🧪 How It Works | 🧠 Why Others Struggle |
