@@ -99,6 +99,9 @@ public static class MinimactServiceExtensions
         // Register plugin system
         services.AddSingleton<PluginManager>();
 
+        // Register mact_modules system
+        services.AddSingleton<MactModuleRegistry>();
+
         return services;
     }
 
@@ -150,6 +153,10 @@ public static class MinimactServiceExtensions
         var templateLoader = app.ApplicationServices.GetService<TemplateLoader>();
         MinimactComponent.GlobalTemplateLoader = templateLoader;
         Console.WriteLine("[Minimact] Predictive rendering enabled");
+
+        // Scan mact_modules/ directory at startup
+        var moduleRegistry = app.ApplicationServices.GetRequiredService<MactModuleRegistry>();
+        moduleRegistry.ScanModules();
 
         // Add session middleware (required for session-scoped contexts)
         app.UseSession();

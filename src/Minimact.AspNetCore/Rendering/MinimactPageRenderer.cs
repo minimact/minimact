@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Minimact.AspNetCore.Attributes;
 using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Services;
 using System.Reflection;
 using System.Text.Json;
 
@@ -147,37 +148,8 @@ public class MinimactPageRenderer
         }
 
         // Auto-detect required extension scripts based on options
-        var extensionScripts = new System.Text.StringBuilder();
-        if (options.IncludeMvcExtension)
-        {
-            var mvcScriptSrc = "/js/minimact-mvc.min.js";
-            if (options.EnableCacheBusting)
-            {
-                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                mvcScriptSrc += $"?v={timestamp}";
-            }
-            extensionScripts.AppendLine($"    <script src=\"{mvcScriptSrc}\"></script>");
-        }
-        if (options.IncludePunchExtension)
-        {
-            var punchScriptSrc = "/js/minimact-punch.min.js";
-            if (options.EnableCacheBusting)
-            {
-                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                punchScriptSrc += $"?v={timestamp}";
-            }
-            extensionScripts.AppendLine($"    <script src=\"{punchScriptSrc}\"></script>");
-        }
-        if (options.IncludeMarkdownExtension)
-        {
-            var mdScriptSrc = "/js/minimact-md.min.js";
-            if (options.EnableCacheBusting)
-            {
-                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                mdScriptSrc += $"?v={timestamp}";
-            }
-            extensionScripts.AppendLine($"    <script src=\"{mdScriptSrc}\"></script>");
-        }
+        // Generate module script tags from mact_modules/
+        var extensionScripts = GenerateModuleScripts(component, options);
 
         // Prism.js for syntax highlighting (if enabled)
         var prismIncludes = new System.Text.StringBuilder();
@@ -334,6 +306,120 @@ public class MinimactPageRenderer
         }
 
         return script.ToString();
+    }
+
+    /// <summary>
+    /// Generate script tags for modules from mact_modules/ directory
+    /// </summary>
+    private string GenerateModuleScripts(MinimactComponent component, MinimactPageRenderOptions options)
+    {
+        // Try to get MactModuleRegistry (may not be registered)
+        var registry = _serviceProvider.GetService<MactModuleRegistry>();
+
+        // If no registry or no modules, fall back to legacy behavior
+        if (registry == null || registry.Count == 0)
+        {
+            return GenerateLegacyExtensionScripts(options);
+        }
+
+        var modulesToInclude = DetermineModulesToInclude(component, registry);
+
+        var scripts = new System.Text.StringBuilder();
+        foreach (var module in modulesToInclude)
+        {
+            var moduleSrc = registry.GetWebPath(module);
+
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                moduleSrc += $"?v={timestamp}";
+            }
+
+            if (module.Type == "module")
+            {
+                scripts.AppendLine($"    <script type=\"module\" src=\"{moduleSrc}\"></script>");
+            }
+            else
+            {
+                scripts.AppendLine($"    <script src=\"{moduleSrc}\"></script>");
+            }
+        }
+
+        return scripts.ToString();
+    }
+
+    /// <summary>
+    /// Generate legacy extension scripts (fallback when mact_modules/ not available)
+    /// </summary>
+    private string GenerateLegacyExtensionScripts(MinimactPageRenderOptions options)
+    {
+        var scripts = new System.Text.StringBuilder();
+
+        if (options.IncludeMvcExtension)
+        {
+            var mvcScriptSrc = "/js/minimact-mvc.min.js";
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                mvcScriptSrc += $"?v={timestamp}";
+            }
+            scripts.AppendLine($"    <script src=\"{mvcScriptSrc}\"></script>");
+        }
+
+        if (options.IncludePunchExtension)
+        {
+            var punchScriptSrc = "/js/minimact-punch.min.js";
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                punchScriptSrc += $"?v={timestamp}";
+            }
+            scripts.AppendLine($"    <script src=\"{punchScriptSrc}\"></script>");
+        }
+
+        if (options.IncludeMarkdownExtension)
+        {
+            var mdScriptSrc = "/js/minimact-md.min.js";
+            if (options.EnableCacheBusting)
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                mdScriptSrc += $"?v={timestamp}";
+            }
+            scripts.AppendLine($"    <script src=\"{mdScriptSrc}\"></script>");
+        }
+
+        return scripts.ToString();
+    }
+
+    /// <summary>
+    /// Determine which modules to include based on component's ModuleInfo attribute
+    /// </summary>
+    private IEnumerable<ModuleMetadata> DetermineModulesToInclude(
+        MinimactComponent component,
+        MactModuleRegistry registry)
+    {
+        var moduleInfo = component.GetType().GetCustomAttribute<ModuleInfoAttribute>();
+
+        // Option 1: Explicit include list (overrides everything)
+        if (moduleInfo?.Include != null && moduleInfo.Include.Length > 0)
+        {
+            return registry.GetModules(moduleInfo.Include);
+        }
+
+        // Option 2: OptOut = true with no Exclude list (core only, no modules)
+        if (moduleInfo?.OptOut == true && (moduleInfo.Exclude == null || moduleInfo.Exclude.Length == 0))
+        {
+            return Enumerable.Empty<ModuleMetadata>();
+        }
+
+        // Option 3: OptOut = true with Exclude list (include all except excluded)
+        if (moduleInfo?.OptOut == true && moduleInfo.Exclude != null && moduleInfo.Exclude.Length > 0)
+        {
+            return registry.GetModulesExcluding(moduleInfo.Exclude);
+        }
+
+        // Option 4: Default (include everything from mact_modules/)
+        return registry.GetAllModules();
     }
 }
 
