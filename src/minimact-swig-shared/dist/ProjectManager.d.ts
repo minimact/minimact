@@ -99,6 +99,35 @@ export declare class ProjectManager {
      */
     private getProductDetailsPageInline;
     /**
+     * Create SPA (Single Page Application) template
+     * Full SPA with shells, pages, instant navigation, and shell persistence
+     */
+    private createSpaTemplate;
+    /**
+     * Get SPA-enabled Program.cs
+     */
+    private getSpaProgramCs;
+    /**
+     * Create SPA ViewModels
+     */
+    private createSpaViewModels;
+    /**
+     * Create SPA Controllers
+     */
+    private createSpaControllers;
+    /**
+     * Create SPA Shells
+     */
+    private createSpaShells;
+    /**
+     * Create SPA Pages
+     */
+    private createSpaPages;
+    /**
+     * Initialize mact_modules and install @minimact/spa package from global cache
+     */
+    private initializeMactModulesForSpa;
+    /**
      * Create Electron File Manager template from modular template files
      * Desktop file manager application using Electron + Minimact
      */

@@ -3,6 +3,7 @@ using Minimact.AspNetCore.Core;
 using Minimact.AspNetCore.Abstractions;
 using Minimact.AspNetCore.Models;
 using Minimact.AspNetCore.HotReload;
+using Minimact.AspNetCore.SPA;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Reflection;
@@ -20,14 +21,30 @@ public class MinimactHub : Hub
     private readonly SignalRPatchSender _patchSender;
     private readonly IContextCache _contextCache;
     private readonly TemplateHotReloadManager _templateHotReloadManager;
+    private readonly SPASessionState? _spaSessionState;
+    private readonly ShellRegistry? _shellRegistry;
+    private readonly PageRegistry? _pageRegistry;
+    private readonly SPARouteHandler? _spaRouteHandler;
 
-    public MinimactHub(ComponentRegistry registry, IHubContext<MinimactHub> hubContext, IContextCache contextCache, TemplateHotReloadManager templateHotReloadManager)
+    public MinimactHub(
+        ComponentRegistry registry,
+        IHubContext<MinimactHub> hubContext,
+        IContextCache contextCache,
+        TemplateHotReloadManager templateHotReloadManager,
+        SPASessionState? spaSessionState = null,
+        ShellRegistry? shellRegistry = null,
+        PageRegistry? pageRegistry = null,
+        SPARouteHandler? spaRouteHandler = null)
     {
         _registry = registry;
         _hubContext = hubContext;
         _patchSender = new SignalRPatchSender(hubContext, registry);
         _contextCache = contextCache;
         _templateHotReloadManager = templateHotReloadManager;
+        _spaSessionState = spaSessionState;
+        _shellRegistry = shellRegistry;
+        _pageRegistry = pageRegistry;
+        _spaRouteHandler = spaRouteHandler;
     }
 
     /// <summary>
@@ -515,6 +532,10 @@ public class MinimactHub : Hub
     {
         // Clean up components associated with this connection
         _registry.CleanupConnection(Context.ConnectionId);
+
+        // Clean up SPA session if enabled
+        CleanupSPASession(Context.ConnectionId);
+
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -1268,6 +1289,181 @@ public class MinimactHub : Hub
 
         // Unknown node type
         return "";
+    }
+
+    #endregion
+
+    #region SPA Navigation (for @minimact/spa)
+
+    /// <summary>
+    /// Handle client-side SPA navigation
+    /// Routes to controller via convention, renders page/shell, returns patches
+    /// NOTE: This uses convention-based routing (not ASP.NET Core routing yet)
+    /// Requires SPARouteHandler to be implemented for full controller execution
+    /// </summary>
+    public async Task<object> NavigateTo(string url, string? pageName = null, object? viewModel = null)
+    {
+        try
+        {
+            // Check if SPA features are enabled
+            if (_spaSessionState == null || _shellRegistry == null || _pageRegistry == null)
+            {
+                return NavigationResponse.CreateError("SPA features not enabled. Register SPASessionState, ShellRegistry, and PageRegistry in Program.cs");
+            }
+
+            var connectionId = Context.ConnectionId;
+            Console.WriteLine($"[SPA] NavigateTo: {url} (Connection: {connectionId})");
+
+            // Get current state from session
+            var currentShell = _spaSessionState.GetCurrentShell(connectionId);
+            var currentVNode = _spaSessionState.GetCurrentVNode(connectionId);
+
+            // If pageName and viewModel are NOT provided, use automatic routing
+            if (string.IsNullOrEmpty(pageName) || viewModel == null)
+            {
+                // Check if SPARouteHandler is available
+                if (_spaRouteHandler == null)
+                {
+                    return NavigationResponse.CreateError("SPARouteHandler not registered. Register it in Program.cs: builder.Services.AddSingleton<SPARouteHandler>();");
+                }
+
+                // Route the URL to a controller and execute it
+                var httpContext = Context.GetHttpContext();
+                if (httpContext == null)
+                {
+                    return NavigationResponse.CreateError("No HttpContext available from SignalR connection");
+                }
+
+                Console.WriteLine($"[SPA] Using automatic routing for: {url}");
+                var routeResult = await _spaRouteHandler.RouteAndExecuteAsync(url, httpContext);
+
+                if (!routeResult.Success)
+                {
+                    return NavigationResponse.CreateError(routeResult.Error ?? "Routing failed");
+                }
+
+                // Extract data from route result
+                pageName = routeResult.PageName;
+                viewModel = routeResult.ViewModel;
+
+                if (string.IsNullOrEmpty(pageName) || viewModel == null)
+                {
+                    return NavigationResponse.CreateError("Route succeeded but no page/viewModel was returned");
+                }
+
+                Console.WriteLine($"[SPA] Automatic routing succeeded: Page={pageName}, Shell={routeResult.ShellName}");
+            }
+
+            // Extract shell metadata from ViewModel
+            string? newShell = null;
+            string? pageTitle = null;
+
+            if (viewModel is MinimactViewModel minimactViewModel)
+            {
+                newShell = minimactViewModel.__Shell;
+                pageTitle = minimactViewModel.__PageTitle;
+                minimactViewModel.__PageName = pageName;
+            }
+
+            // Check if shell changed
+            var shellChanged = currentShell != newShell;
+
+            Console.WriteLine($"[SPA] Current shell: {currentShell}, New shell: {newShell}, Changed: {shellChanged}");
+
+            // Create page component
+            var page = _pageRegistry.CreatePage(pageName, viewModel);
+
+            if (page == null)
+            {
+                return NavigationResponse.CreateError($"Page not found: {pageName}. Register pages in PageRegistry during startup.");
+            }
+
+            // Render VNode tree
+            VNode newVNode;
+
+            if (shellChanged || currentVNode == null)
+            {
+                // Render full shell + page (or page-only if no shell)
+                if (!string.IsNullOrEmpty(newShell))
+                {
+                    var services = Context.GetHttpContext()?.RequestServices;
+                    if (services == null)
+                    {
+                        Console.WriteLine($"[SPA] Warning: No RequestServices available, rendering page only");
+                        newVNode = VNode.Normalize(page.RenderComponent());
+                    }
+                    else
+                    {
+                        var shell = _shellRegistry.CreateShell(newShell, viewModel, services);
+
+                        if (shell != null)
+                        {
+                            newVNode = shell.RenderWithPage(page);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[SPA] Warning: Shell '{newShell}' not found, rendering page only");
+                            newVNode = VNode.Normalize(page.RenderComponent());
+                        }
+                    }
+                }
+                else
+                {
+                    // No shell, just render page
+                    newVNode = VNode.Normalize(page.RenderComponent());
+                }
+            }
+            else
+            {
+                // Same shell, just render page
+                newVNode = VNode.Normalize(page.RenderComponent());
+            }
+
+            // Compute patches
+            var oldVNode = shellChanged ? currentVNode : _spaSessionState.GetCurrentPageVNode(connectionId);
+            var patches = oldVNode != null ? RustBridge.Reconcile(oldVNode, newVNode) : new List<Patch>();
+
+            Console.WriteLine($"[SPA] Computed {patches.Count} patches");
+
+            // Update session state
+            _spaSessionState.SetCurrentShell(connectionId, newShell);
+            _spaSessionState.SetCurrentPage(connectionId, pageName);
+
+            if (shellChanged || currentVNode == null)
+            {
+                _spaSessionState.SetCurrentVNode(connectionId, newVNode);
+            }
+            else
+            {
+                _spaSessionState.SetCurrentPageVNode(connectionId, newVNode);
+            }
+
+            // Return successful navigation response
+            return NavigationResponse.CreateSuccess(
+                shellName: newShell,
+                shellChanged: shellChanged,
+                patches: patches,
+                pageData: viewModel,
+                url: url,
+                pageName: pageName,
+                title: pageTitle
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SPA] NavigateTo failed: {ex.Message}");
+            Console.WriteLine($"[SPA] Stack trace: {ex.StackTrace}");
+            return NavigationResponse.CreateError($"Navigation failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Clean up SPA session when client disconnects
+    /// </summary>
+    private void CleanupSPASession(string connectionId)
+    {
+        _spaSessionState?.RemoveSession(connectionId);
+        Console.WriteLine($"[SPA] Session cleaned up for connection: {connectionId}");
     }
 
     #endregion

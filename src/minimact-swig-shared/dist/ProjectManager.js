@@ -300,6 +300,9 @@ class ProjectManager {
         else if (template === 'MVC-Dashboard') {
             await this.createMvcDashboardTemplate(projectPath);
         }
+        else if (template === 'SPA') {
+            await this.createSpaTemplate(projectPath, projectName);
+        }
         else if (template === 'Electron-FileManager') {
             await this.createElectronFileManagerTemplate(projectPath, projectName);
         }
@@ -1775,6 +1778,596 @@ export function ProductDetailsPage() {
   );
 }
 `;
+    }
+    /**
+     * Create SPA (Single Page Application) template
+     * Full SPA with shells, pages, instant navigation, and shell persistence
+     */
+    async createSpaTemplate(projectPath, projectName) {
+        // Create directory structure
+        await fs.mkdir(path.join(projectPath, 'Controllers'), { recursive: true });
+        await fs.mkdir(path.join(projectPath, 'ViewModels'), { recursive: true });
+        await fs.mkdir(path.join(projectPath, 'Shells'), { recursive: true });
+        await fs.mkdir(path.join(projectPath, 'wwwroot'), { recursive: true });
+        // Replace Program.cs with SPA-enabled setup
+        const spaProgramCs = this.getSpaProgramCs();
+        await fs.writeFile(path.join(projectPath, 'Program.cs'), spaProgramCs, 'utf-8');
+        // Create ViewModels
+        await this.createSpaViewModels(projectPath, projectName);
+        // Create Controllers
+        await this.createSpaControllers(projectPath, projectName);
+        // Create Shells
+        await this.createSpaShells(projectPath);
+        // Create Pages
+        await this.createSpaPages(projectPath);
+        // Copy Minimact client runtime to wwwroot/js
+        await this.copyClientRuntimeToProject(projectPath);
+        // Initialize mact_modules and install @minimact/spa
+        await this.initializeMactModulesForSpa(projectPath);
+    }
+    /**
+     * Get SPA-enabled Program.cs
+     */
+    getSpaProgramCs() {
+        return `using Minimact.AspNetCore.Extensions;
+using Microsoft.Extensions.FileProviders;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add Minimact services
+builder.Services.AddMinimact();
+builder.Services.AddMinimactMvcBridge(); // Enable MVC Bridge
+builder.Services.AddMinimactSPA();      // ✨ Enable SPA support
+
+// Add MVC services
+builder.Services.AddControllersWithViews();
+
+// Add SignalR (required for Minimact real-time communication)
+builder.Services.AddSignalR();
+
+var app = builder.Build();
+
+// Serve static files from wwwroot
+app.UseStaticFiles();
+
+// Serve mact_modules as static files
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(app.Environment.ContentRootPath, "mact_modules")),
+    RequestPath = "/mact_modules"
+});
+
+// Use Minimact (auto-discovers shells and pages)
+app.UseMinimact();
+
+app.UseRouting();
+
+app.MapControllers();
+app.MapHub<Minimact.AspNetCore.SignalR.MinimactHub>("/minimact");
+
+app.Run();
+`;
+    }
+    /**
+     * Create SPA ViewModels
+     */
+    async createSpaViewModels(projectPath, projectName) {
+        // Create ProductViewModel.cs
+        const productViewModelCs = `using Minimact.AspNetCore.Core;
+
+namespace ${projectName}.ViewModels;
+
+public class ProductViewModel : MinimactViewModel
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'ViewModels', 'ProductViewModel.cs'), productViewModelCs, 'utf-8');
+        // Create HomeViewModel.cs
+        const homeViewModelCs = `using Minimact.AspNetCore.Core;
+
+namespace ${projectName}.ViewModels;
+
+public class HomeViewModel : MinimactViewModel
+{
+    public string WelcomeMessage { get; set; } = string.Empty;
+    public int TotalProducts { get; set; }
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'ViewModels', 'HomeViewModel.cs'), homeViewModelCs, 'utf-8');
+    }
+    /**
+     * Create SPA Controllers
+     */
+    async createSpaControllers(projectPath, projectName) {
+        // Create HomeController.cs
+        const homeControllerCs = `using Microsoft.AspNetCore.Mvc;
+using ${projectName}.ViewModels;
+
+namespace ${projectName}.Controllers;
+
+[ApiController]
+[Route("")]
+public class HomeController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult Index()
+    {
+        var viewModel = new HomeViewModel
+        {
+            WelcomeMessage = "Welcome to Minimact SPA!",
+            TotalProducts = 3,
+            __Shell = "Main",
+            __ShellData = new
+            {
+                AppName = "My SPA App",
+                UserName = "Demo User"
+            },
+            __PageTitle = "Home - Minimact SPA"
+        };
+
+        return Ok(viewModel);
+    }
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'Controllers', 'HomeController.cs'), homeControllerCs, 'utf-8');
+        // Create ProductsController.cs
+        const productsControllerCs = `using Microsoft.AspNetCore.Mvc;
+using ${projectName}.ViewModels;
+
+namespace ${projectName}.Controllers;
+
+[ApiController]
+[Route("products")]
+public class ProductsController : ControllerBase
+{
+    [HttpGet("{id}")]
+    public IActionResult Details(int id)
+    {
+        var product = GetProductById(id);
+
+        if (product == null)
+            return NotFound();
+
+        var viewModel = new ProductViewModel
+        {
+            ProductId = product.Id,
+            ProductName = product.Name,
+            Price = product.Price,
+            Stock = product.Stock,
+            __Shell = "Main",
+            __ShellData = new
+            {
+                AppName = "My SPA App",
+                UserName = "Demo User"
+            },
+            __PageTitle = $"{product.Name} - Minimact SPA"
+        };
+
+        return Ok(viewModel);
+    }
+
+    // Simulated database
+    private ProductData? GetProductById(int id)
+    {
+        var products = new[]
+        {
+            new ProductData { Id = 1, Name = "Widget", Price = 99.99m, Stock = 50 },
+            new ProductData { Id = 2, Name = "Gadget", Price = 149.99m, Stock = 30 },
+            new ProductData { Id = 3, Name = "Doohickey", Price = 79.99m, Stock = 100 }
+        };
+
+        return products.FirstOrDefault(p => p.Id == id);
+    }
+}
+
+public class ProductData
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'Controllers', 'ProductsController.cs'), productsControllerCs, 'utf-8');
+    }
+    /**
+     * Create SPA Shells
+     */
+    async createSpaShells(projectPath) {
+        const mainShellTsx = `import { Page, Link } from '@minimact/spa';
+import { useMvcState } from '@minimact/mvc';
+
+export default function MainShell() {
+  const [appName] = useMvcState<string>('__ShellData.AppName');
+  const [userName] = useMvcState<string>('__ShellData.UserName');
+
+  return (
+    <div style={{ fontFamily: 'system-ui, sans-serif' }}>
+      {/* Header */}
+      <header style={{
+        backgroundColor: '#4CAF50',
+        color: 'white',
+        padding: '20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h1 style={{ margin: 0, fontSize: '24px' }}>{appName}</h1>
+          <div>Welcome, {userName}!</div>
+        </div>
+      </header>
+
+      {/* Navigation */}
+      <nav style={{
+        backgroundColor: '#f8f8f8',
+        borderBottom: '1px solid #ddd',
+        padding: '10px 0'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          gap: '20px',
+          padding: '0 20px'
+        }}>
+          <Link
+            to="/"
+            style={{
+              textDecoration: 'none',
+              color: '#333',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            🏠 Home
+          </Link>
+          <Link
+            to="/products/1"
+            style={{
+              textDecoration: 'none',
+              color: '#333',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            📦 Product 1
+          </Link>
+          <Link
+            to="/products/2"
+            style={{
+              textDecoration: 'none',
+              color: '#333',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            📦 Product 2
+          </Link>
+          <Link
+            to="/products/3"
+            style={{
+              textDecoration: 'none',
+              color: '#333',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            📦 Product 3
+          </Link>
+        </div>
+      </nav>
+
+      {/* Main Content (Pages inject here) */}
+      <main style={{
+        maxWidth: '1200px',
+        margin: '40px auto',
+        padding: '0 20px'
+      }}>
+        <Page />
+      </main>
+
+      {/* Footer */}
+      <footer style={{
+        backgroundColor: '#333',
+        color: 'white',
+        textAlign: 'center',
+        padding: '20px',
+        marginTop: '60px'
+      }}>
+        <p style={{ margin: 0 }}>© 2025 Minimact SPA Demo</p>
+        <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.8 }}>
+          Powered by @minimact/spa
+        </p>
+      </footer>
+    </div>
+  );
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'Shells', 'MainShell.tsx'), mainShellTsx, 'utf-8');
+    }
+    /**
+     * Create SPA Pages
+     */
+    async createSpaPages(projectPath) {
+        // Create HomePage.tsx
+        const homePageTsx = `import { useMvcState } from '@minimact/mvc';
+import { Link } from '@minimact/spa';
+
+export default function HomePage() {
+  const [welcomeMessage] = useMvcState<string>('WelcomeMessage');
+  const [totalProducts] = useMvcState<number>('TotalProducts');
+
+  return (
+    <div>
+      <h1 style={{ fontSize: '32px', marginBottom: '20px' }}>
+        {welcomeMessage}
+      </h1>
+
+      <div style={{
+        backgroundColor: '#f0f8ff',
+        border: '2px solid #4CAF50',
+        borderRadius: '8px',
+        padding: '30px',
+        marginBottom: '30px'
+      }}>
+        <h2 style={{ marginTop: 0 }}>✨ What is Minimact SPA?</h2>
+        <p style={{ lineHeight: 1.6 }}>
+          Minimact SPA combines <strong>server-side rendering</strong> with{' '}
+          <strong>client-side navigation</strong> for the best of both worlds:
+        </p>
+        <ul style={{ lineHeight: 1.8 }}>
+          <li>⚡ <strong>Instant navigation</strong> (10-50ms!)</li>
+          <li>🎯 <strong>Shell persistence</strong> (layouts stay mounted)</li>
+          <li>🔄 <strong>SignalR communication</strong> (real-time updates)</li>
+          <li>🎨 <strong>Server-driven routing</strong> (controllers decide pages)</li>
+          <li>📦 <strong>12.5 KB bundle</strong> (@minimact/spa package)</li>
+        </ul>
+      </div>
+
+      <h2>Quick Start</h2>
+      <p>We have {totalProducts} products available. Click on any link above to see instant navigation in action!</p>
+
+      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <Link to="/products/1" style={{
+          display: 'inline-block',
+          padding: '12px 24px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          textDecoration: 'none',
+          borderRadius: '6px',
+          fontWeight: '600'
+        }}>
+          View Product 1
+        </Link>
+        <Link to="/products/2" style={{
+          display: 'inline-block',
+          padding: '12px 24px',
+          backgroundColor: '#2196F3',
+          color: 'white',
+          textDecoration: 'none',
+          borderRadius: '6px',
+          fontWeight: '600'
+        }}>
+          View Product 2
+        </Link>
+      </div>
+    </div>
+  );
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'Pages', 'HomePage.tsx'), homePageTsx, 'utf-8');
+        // Create ProductDetailsPage.tsx
+        const productDetailsPageTsx = `import { useMvcState, useState } from '@minimact/mvc';
+import { Link } from '@minimact/spa';
+
+export default function ProductDetailsPage() {
+  const [productId] = useMvcState<number>('ProductId');
+  const [productName] = useMvcState<string>('ProductName');
+  const [price] = useMvcState<number>('Price');
+  const [stock] = useMvcState<number>('Stock');
+
+  // Client-side state for quantity
+  const [quantity, setQuantity] = useState(1);
+
+  return (
+    <div>
+      <Link to="/" style={{
+        display: 'inline-block',
+        marginBottom: '20px',
+        color: '#4CAF50',
+        textDecoration: 'none'
+      }}>
+        ← Back to Home
+      </Link>
+
+      <h1 style={{ fontSize: '32px', marginBottom: '10px' }}>
+        {productName}
+      </h1>
+
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        padding: '30px',
+        marginTop: '20px'
+      }}>
+        <div style={{ display: 'flex', gap: '40px', alignItems: 'start' }}>
+          {/* Product Image Placeholder */}
+          <div style={{
+            width: '300px',
+            height: '300px',
+            backgroundColor: '#f0f0f0',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '64px'
+          }}>
+            📦
+          </div>
+
+          {/* Product Details */}
+          <div style={{ flex: 1 }}>
+            <h2 style={{ marginTop: 0 }}>Product Details</h2>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
+                Product ID
+              </div>
+              <div style={{ fontSize: '18px', fontWeight: '600' }}>
+                #{productId}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
+                Price
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: '#4CAF50' }}>
+                \${price}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
+                Stock
+              </div>
+              <div style={{ fontSize: '18px' }}>
+                {stock} units available
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>
+                Quantity
+              </label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '18px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  -
+                </button>
+                <span style={{ fontSize: '20px', fontWeight: '600', minWidth: '40px', textAlign: 'center' }}>
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity(Math.min(stock, quantity + 1))}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '18px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={() => alert(\`Added \${quantity} x \${productName} to cart!\`)}
+              style={{
+                padding: '16px 32px',
+                fontSize: '18px',
+                fontWeight: '600',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              Add to Cart - \${(price * quantity).toFixed(2)}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Hints */}
+      <div style={{
+        marginTop: '40px',
+        padding: '20px',
+        backgroundColor: '#f8f8f8',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{ marginTop: 0 }}>Try Instant Navigation</h3>
+        <p>Click these links and watch how fast the page changes (no full reload!):</p>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {[1, 2, 3].filter(id => id !== productId).map(id => (
+            <Link
+              key={id}
+              to={\`/products/\${id}\`}
+              style={{
+                display: 'inline-block',
+                padding: '10px 20px',
+                backgroundColor: '#2196F3',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px'
+              }}
+            >
+              Product {id}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+`;
+        await fs.writeFile(path.join(projectPath, 'Pages', 'ProductDetailsPage.tsx'), productDetailsPageTsx, 'utf-8');
+    }
+    /**
+     * Initialize mact_modules and install @minimact/spa package from global cache
+     */
+    async initializeMactModulesForSpa(projectPath) {
+        const { execa } = await Promise.resolve().then(() => __importStar(require('execa')));
+        try {
+            // Use swig import command to install @minimact/spa from global cache
+            // This follows the same pattern as other Minimact modules
+            console.log('[ProjectManager] Installing @minimact/spa via global cache...');
+            // Run: swig import @minimact/spa
+            // This will download from npm to global cache (if needed) and copy to project
+            await execa('swig', ['import', '@minimact/spa'], {
+                cwd: projectPath,
+                stdio: 'inherit'
+            });
+            console.log('[ProjectManager] ✅ @minimact/spa installed to mact_modules/');
+        }
+        catch (error) {
+            console.error('[ProjectManager] Failed to auto-install @minimact/spa:', error);
+            console.log('');
+            console.log('[ProjectManager] 📝 Please install manually after project creation:');
+            console.log('[ProjectManager]    cd ' + path.basename(projectPath));
+            console.log('[ProjectManager]    swig import @minimact/spa');
+            console.log('');
+            // Not fatal - user can install manually
+        }
     }
     /**
      * Create Electron File Manager template from modular template files

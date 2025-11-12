@@ -8,6 +8,8 @@ using Minimact.AspNetCore.HotReload;
 using Minimact.AspNetCore.Services;
 using Minimact.AspNetCore.Plugins;
 using Minimact.AspNetCore.Middleware;
+using Minimact.AspNetCore.SPA;
+using System.Reflection;
 
 namespace Minimact.AspNetCore.Extensions;
 
@@ -99,6 +101,9 @@ public static class MinimactServiceExtensions
         // Register plugin system
         services.AddSingleton<PluginManager>();
 
+        // Register mact_modules system
+        services.AddSingleton<MactModuleRegistry>();
+
         return services;
     }
 
@@ -135,6 +140,28 @@ public static class MinimactServiceExtensions
     }
 
     /// <summary>
+    /// Add Minimact SPA (Single Page Application) support
+    /// Enables client-side navigation with server-side routing
+    /// </summary>
+    public static IServiceCollection AddMinimactSPA(this IServiceCollection services, Action<MinimactSPAOptions>? configure = null)
+    {
+        var options = new MinimactSPAOptions();
+        configure?.Invoke(options);
+
+        // Register SPA core services
+        services.AddSingleton<SPASessionState>();
+        services.AddSingleton<ShellRegistry>();
+        services.AddSingleton<PageRegistry>();
+        services.AddSingleton<SPARouteHandler>();
+
+        services.AddSingleton(options);
+
+        Console.WriteLine("[Minimact] SPA support enabled");
+
+        return services;
+    }
+
+    /// <summary>
     /// Map Minimact SignalR hub, auto-discover pages, and configure middleware
     /// </summary>
     public static IApplicationBuilder UseMinimact(this IApplicationBuilder app, Action<MinimactMiddlewareOptions>? configure = null, string manifestPath = "./Generated/routes.json")
@@ -150,6 +177,25 @@ public static class MinimactServiceExtensions
         var templateLoader = app.ApplicationServices.GetService<TemplateLoader>();
         MinimactComponent.GlobalTemplateLoader = templateLoader;
         Console.WriteLine("[Minimact] Predictive rendering enabled");
+
+        // Scan mact_modules/ directory at startup
+        var moduleRegistry = app.ApplicationServices.GetRequiredService<MactModuleRegistry>();
+        moduleRegistry.ScanModules();
+
+        // Auto-discover shells and pages if SPA is enabled
+        var shellRegistry = app.ApplicationServices.GetService<ShellRegistry>();
+        var pageRegistry = app.ApplicationServices.GetService<PageRegistry>();
+        var spaOptions = app.ApplicationServices.GetService<MinimactSPAOptions>();
+
+        if (shellRegistry != null && pageRegistry != null)
+        {
+            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+
+            shellRegistry.ScanAssembly(assembly);
+            pageRegistry.ScanAssembly(assembly);
+
+            Console.WriteLine($"[Minimact SPA] Auto-discovered {shellRegistry.GetAllShellNames().Count()} shells and {pageRegistry.GetAllPageNames().Count()} pages");
+        }
 
         // Add session middleware (required for session-scoped contexts)
         app.UseSession();
@@ -285,4 +331,30 @@ public class MinimactMiddlewareOptions
     /// Display a helpful welcome page at the root URL when no route is configured (default: false)
     /// </summary>
     public bool UseWelcomePage { get; set; } = false;
+}
+
+/// <summary>
+/// Configuration options for Minimact SPA
+/// </summary>
+public class MinimactSPAOptions
+{
+    /// <summary>
+    /// Enable automatic shell and page discovery (default: true)
+    /// </summary>
+    public bool AutoDiscoverShellsAndPages { get; set; } = true;
+
+    /// <summary>
+    /// Assembly to scan for shells and pages (default: entry assembly)
+    /// </summary>
+    public Assembly? ScanAssembly { get; set; }
+
+    /// <summary>
+    /// Enable SPA navigation prefetching (default: true)
+    /// </summary>
+    public bool EnablePrefetching { get; set; } = true;
+
+    /// <summary>
+    /// Enable navigation history tracking (default: true)
+    /// </summary>
+    public bool EnableHistory { get; set; } = true;
 }

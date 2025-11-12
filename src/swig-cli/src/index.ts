@@ -9,6 +9,11 @@ import { removeCommand } from './commands/remove';
 import { transpileCommand } from './commands/transpile';
 import { runCommand } from './commands/run';
 import { watchCommand } from './commands/watch';
+import { importCommand } from './commands/import';
+import { listModulesCommand } from './commands/list-modules';
+import { initModulesCommand } from './commands/init-modules';
+import { uninstallCommand } from './commands/uninstall';
+import { updateModulesCommand } from './commands/update-modules';
 
 const program = new Command();
 
@@ -77,6 +82,44 @@ program
   .description('Watch for TSX changes and auto-transpile with hot reload')
   .option('-p, --project <path>', 'Project root directory', process.cwd())
   .action(watchCommand);
+
+// Import command - Install modules from npm to mact_modules/
+program
+  .command('import <package>')
+  .description('Install a module from npm to mact_modules/')
+  .option('--force', 'Force reinstall even if already installed')
+  .option('-p, --project <path>', 'Project root directory', process.cwd())
+  .action(importCommand);
+
+// List modules command - List installed mact_modules
+program
+  .command('list')
+  .description('List installed modules in mact_modules/')
+  .option('-p, --project <path>', 'Project root directory', process.cwd())
+  .action(listModulesCommand);
+
+// Init command - Initialize mact_modules with interactive selection
+program
+  .command('init')
+  .description('Initialize mact_modules/ with interactive module selection')
+  .option('-p, --project <path>', 'Project root directory', process.cwd())
+  .action(initModulesCommand);
+
+// Uninstall command - Remove a module from mact_modules/
+program
+  .command('uninstall <package>')
+  .description('Remove a module from mact_modules/')
+  .option('--force', 'Skip confirmation prompt')
+  .option('-p, --project <path>', 'Project root directory', process.cwd())
+  .action(uninstallCommand);
+
+// Update command - Update modules to latest versions
+program
+  .command('update [package]')
+  .description('Update module(s) to latest versions')
+  .option('--all', 'Update all installed modules')
+  .option('-p, --project <path>', 'Project root directory', process.cwd())
+  .action(updateModulesCommand);
 
 program.parse(process.argv);
 
