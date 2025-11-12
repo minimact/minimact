@@ -444,6 +444,90 @@ export function DataGrid() {
 
 ---
 
+## 📦 Zero-Config Module Management with Swig CLI
+
+Minimact includes a **zero-config module system** for managing client-side dependencies. No CDN links, no manual script tags, no build configuration - just simple CLI commands.
+
+### Quick Start
+
+```bash
+# Initialize modules with interactive selection
+swig init
+
+# Or install specific modules
+swig import lodash
+swig import @minimact/power
+
+# List installed modules
+swig list
+
+# Update modules
+swig update --all
+
+# Remove a module
+swig uninstall lodash
+```
+
+### How It Works
+
+1. **Global Cache** - Modules download to AppData (like Swig GUI installation)
+2. **Project Copy** - Copies from cache to your project's `mact_modules/`
+3. **Auto-Serve** - ASP.NET Core automatically serves and includes modules
+4. **Smart Control** - Use `[ModuleInfo]` attribute to optimize per-component
+
+**Example - All modules auto-included:**
+```csharp
+public class MyDashboard : MinimactComponent
+{
+    // All mact_modules/ automatically included
+}
+```
+
+**Example - Opt-out for performance:**
+```csharp
+[ModuleInfo(OptOut = true)]
+public class LandingPage : MinimactComponent
+{
+    // Core only (12 KB), no extra modules
+}
+```
+
+**Example - Selective inclusion:**
+```csharp
+[ModuleInfo(Include = new[] { "@minimact/power", "lodash" })]
+public class DataProcessorPage : MinimactComponent
+{
+    // Only power and lodash included
+}
+```
+
+### Available Modules
+
+**Minimact Modules:**
+- `@minimact/power` - Advanced features (useServerTask, useComputed, etc.)
+- `@minimact/mvc` - MVC Bridge (useMvcState, useMvcViewModel)
+- `@minimact/punch` - DOM state tracking (useDomElementState)
+- `@minimact/md` - Markdown rendering (useMarkdown)
+
+**External Libraries:**
+- `lodash` - Utility library (24 KB)
+- `moment` / `dayjs` - Date manipulation
+- `axios` - HTTP client
+- `chart.js` - Charting library
+- ...and any npm package with a browser bundle!
+
+### Benefits
+
+✅ **Zero Configuration** - No webpack, no bundlers, pure simplicity
+✅ **Offline-First** - Global cache means fast installs after first download
+✅ **Version Control Friendly** - Check in `mact_modules/` to Git
+✅ **NPM-Powered** - Uses `npm install` under the hood
+✅ **Automatic Integration** - ASP.NET Core auto-scans and serves modules
+
+**[📦 Complete Module Management Guide →](./docs/SWIG_CLI_MODULES_GUIDE.md)**
+
+---
+
 ## Core Innovations
 
 ### 🎯 Template Prediction System
@@ -792,6 +876,7 @@ Minimact offers two runtime versions optimized for different scenarios:
 - ✅ Minimact Swig IDE
 - ✅ Minimact Punch (Base Features)
 - ✅ State Synchronization (client → server)
+- ✅ Mact Modules System (Zero-config module management with Swig CLI)
 
 ### In Progress
 - 🚧 Minimact Punch Advanced Features (Parts 2-5)
