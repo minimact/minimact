@@ -5,20 +5,23 @@ namespace Mactic.Api.Services;
 
 /// <summary>
 /// Processes change events from tracker
-/// For MVP: Logs events and tracks stats
-/// Future: Will integrate with embeddings, vector DB, SignalR broadcast
+/// Now with auto-profile generation and community integration!
 /// </summary>
 public class EventProcessor : IEventProcessor
 {
     private readonly ILogger<EventProcessor> _logger;
+    private readonly ProfileService _profileService;
     private static int _documentsIndexed = 0;
     private static int _eventsProcessedToday = 0;
     private static List<double> _latencies = new();
     private static readonly object _statsLock = new();
 
-    public EventProcessor(ILogger<EventProcessor> logger)
+    public EventProcessor(
+        ILogger<EventProcessor> logger,
+        ProfileService profileService)
     {
         _logger = logger;
+        _profileService = profileService;
     }
 
     public async Task ProcessEventAsync(ChangeEvent changeEvent, string eventId)
@@ -33,6 +36,35 @@ public class EventProcessor : IEventProcessor
                 changeEvent.Url
             );
 
+            // ✨ NEW: Auto-generate developer profile and project
+            var developer = await _profileService.EnsureDeveloperProfile(
+                changeEvent.Url,
+                changeEvent.ApiKey ?? "unknown");
+
+            var project = await _profileService.EnsureProject(
+                url: changeEvent.Url,
+                title: changeEvent.Title,
+                description: changeEvent.Description,
+                category: changeEvent.Category,
+                tags: changeEvent.Tags,
+                developer: developer);
+
+            // Record activity
+            await _profileService.RecordActivity(
+                type: ActivityType.ProjectDeployed,
+                developer: developer,
+                project: project,
+                details: $"Deployed version with {changeEvent.Changes.Length} changes");
+
+            // Update developer reputation
+            await _profileService.UpdateReputation(developer);
+
+            _logger.LogInformation(
+                "👤 Profile updated: {Username} | Project: {Title} | Reputation: {Rep}",
+                developer.Username,
+                project.Title,
+                developer.Reputation);
+
             // TODO: Phase 2 - Generate embeddings
             // var embedding = await _embeddingService.GenerateEmbedding(changeEvent.Content);
 
@@ -41,9 +73,6 @@ public class EventProcessor : IEventProcessor
 
             // TODO: Phase 4 - Broadcast via SignalR
             // await _searchHub.Clients.All.SendAsync("DocumentUpdated", result);
-
-            // For now: Just log and simulate processing
-            await Task.Delay(100); // Simulate some processing time
 
             stopwatch.Stop();
             var latency = stopwatch.Elapsed.TotalSeconds;

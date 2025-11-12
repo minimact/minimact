@@ -29,9 +29,10 @@ builder.Services.AddDbContext<MacticDbContext>(options =>
     }));
 
 // Register services
-builder.Services.AddSingleton<IEventProcessor, EventProcessor>();
+builder.Services.AddScoped<IEventProcessor, EventProcessor>(); // Changed to Scoped for DB access
 builder.Services.AddHttpClient<EmbeddingService>();
 builder.Services.AddScoped<SearchService>();
+builder.Services.AddScoped<ProfileService>(); // ✨ Auto-profile generation
 
 // Logging
 builder.Logging.ClearProviders();
