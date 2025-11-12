@@ -1155,6 +1155,66 @@ Minimact offers two runtime versions optimized for different scenarios:
 
 ---
 
+## 🎵 The Mactic Experience
+
+```
+🎵 A WHOLE NEW WORLD 🎵
+   (Minimact Edition)
+
+I can show you the world
+Shining, shimmering, mactic
+Tell me, developer, now when did
+You last let hydration go?
+
+I can open your eyes
+Take you render by render
+Over, sideways and under
+On a mactic carpet ride
+
+A whole new world
+A new fantastic point of view
+No one to tell us "no"
+Or where to go
+Or say we're only hydrating
+
+A whole new world
+A dazzling place I never knew
+But when I'm way up here
+It's crystal clear
+That now I'm in a whole new world with you
+(Now I'm in a whole new world with Minimact)
+
+Unbelievable sights
+Indescribable feeling
+Soaring, flying, wheeling
+Through an endless server-side sky
+
+A whole new world
+(Don't you dare close your eyes)
+A hundred thousand things to see
+(Hold your breath, it gets better)
+I'm like a shooting star
+I've come so far
+I can't go back to where I used to be
+
+A whole new world
+With new horizons to pursue
+I'll chase them anywhere
+There's time to spare
+Let me share this whole new world with you
+
+🌵✨ Minimact: Where every navigation is a mactic carpet ride ✨🌵
+```
+
+**The Mactic Lexicon:**
+- **Mactnificent** (adj.) - Magnificent, but for Minimact
+- **Mactical** (adj.) - So magical it feels like server-side sorcery
+- **Mactic** (adj.) - When patches predict your clicks before you make them
+
+*It's not magic. It's mactic.* 🪄
+
+---
+
 ## Why the Name Minimact?
 
 **Minimact** stands for **MINIMal Anticipatory Client Technology**.
