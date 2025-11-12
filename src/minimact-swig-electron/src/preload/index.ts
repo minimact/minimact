@@ -109,6 +109,26 @@ const api = {
       ipcRenderer.invoke('signalr:isConnected'),
     previewCascade: (componentId: string, stateKey: string, newValue: any) =>
       ipcRenderer.invoke('signalr:previewCascade', componentId, stateKey, newValue)
+  },
+
+  // Module management APIs
+  modules: {
+    getAvailable: () =>
+      ipcRenderer.invoke('modules:get-available'),
+    list: (projectPath: string) =>
+      ipcRenderer.invoke('modules:list', projectPath),
+    import: (packageName: string, projectPath: string, force?: boolean) =>
+      ipcRenderer.invoke('modules:import', packageName, projectPath, force),
+    importMultiple: (packageNames: string[], projectPath: string) =>
+      ipcRenderer.invoke('modules:import-multiple', packageNames, projectPath),
+    uninstall: (packageName: string, projectPath: string) =>
+      ipcRenderer.invoke('modules:uninstall', packageName, projectPath),
+    isInstalled: (packageName: string, projectPath: string) =>
+      ipcRenderer.invoke('modules:is-installed', packageName, projectPath),
+    searchNpm: (query: string, size?: number) =>
+      ipcRenderer.invoke('modules:search-npm', query, size),
+    getPackageInfo: (packageName: string) =>
+      ipcRenderer.invoke('modules:get-package-info', packageName)
   }
 }
 

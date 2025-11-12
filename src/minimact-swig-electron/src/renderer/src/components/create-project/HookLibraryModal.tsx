@@ -11,7 +11,7 @@ interface Hook {
   isDefault: boolean;
 }
 
-interface HookLibrarySlideoutProps {
+interface HookLibraryModalProps {
   selectedHooks: string[];
   onSelectionChange: (hookIds: string[]) => void;
   hooks: Hook[];
@@ -19,13 +19,13 @@ interface HookLibrarySlideoutProps {
   onClose: () => void;
 }
 
-export function HookLibrarySlideout({
+export function HookLibraryModal({
   selectedHooks,
   onSelectionChange,
   hooks,
   isOpen,
   onClose
-}: HookLibrarySlideoutProps) {
+}: HookLibraryModalProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['core']) // Core expanded by default
   );

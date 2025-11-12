@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, FolderOpen, BookOpen, Sparkles, Check } from 'lucide-react'
-import { HookLibrarySlideout } from '../components/create-project/HookLibrarySlideout'
+import { ArrowLeft, FolderOpen, BookOpen, Sparkles, Check, Package } from 'lucide-react'
+import { HookLibraryModal } from '../components/create-project/HookLibraryModal'
+import { ModuleLibraryModal } from '../components/create-project/ModuleLibraryModal'
 import { HOOK_LIBRARY, getDefaultHooks } from '../../../main/data/hook-library'
 
 interface CreateProjectProps {
@@ -19,7 +20,9 @@ export default function CreateProject({ onBack, embedded = false }: CreateProjec
   const [selectedHooks, setSelectedHooks] = useState<string[]>(
     getDefaultHooks().map((h) => h.id) // Pre-select default hooks
   )
+  const [selectedModules, setSelectedModules] = useState<string[]>([])
   const [hookLibraryOpen, setHookLibraryOpen] = useState(false)
+  const [moduleLibraryOpen, setModuleLibraryOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [infoCardVisible, setInfoCardVisible] = useState(true)
@@ -48,7 +51,8 @@ export default function CreateProject({ onBack, embedded = false }: CreateProjec
       const result = await window.api.project.create(projectPath, template, {
         createSolution,
         enableTailwind,
-        selectedHooks
+        selectedHooks,
+        selectedModules
       })
 
       if (result.success) {
@@ -352,6 +356,50 @@ export default function CreateProject({ onBack, embedded = false }: CreateProjec
               )}
             </div>
 
+            {/* Module Library Button */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
+                Client Modules
+              </label>
+              <button
+                type="button"
+                onClick={() => setModuleLibraryOpen(true)}
+                className="w-full px-4 py-4 bg-gradient-to-br from-green-500 to-emerald-700 hover:from-green-400 hover:to-emerald-600 border border-green-400 border-opacity-20 rounded-xl transition-all flex items-center justify-between shadow-lg shadow-green-500/20 hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <Package className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-sm font-semibold text-white">
+                      {selectedModules.length > 0
+                        ? `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''} selected`
+                        : 'Select client modules to install'}
+                    </span>
+                    <span className="block text-xs text-green-100 mt-0.5">
+                      Click to browse module library
+                    </span>
+                  </div>
+                </div>
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              {selectedModules.length > 0 && (
+                <p className="text-xs text-slate-500 mt-2">
+                  Modules will be installed to{' '}
+                  <code className="px-1.5 py-0.5 bg-slate-800 rounded text-cyan-400">
+                    mact_modules/
+                  </code>
+                </p>
+              )}
+            </div>
+
             {/* Error Message */}
             {error && (
               <div className="p-4 bg-red-900 bg-opacity-50 border border-red-700 rounded-xl text-red-200 text-sm">
@@ -500,13 +548,21 @@ export default function CreateProject({ onBack, embedded = false }: CreateProjec
         )}
       </div>
 
-      {/* Hook Library Slideout */}
-      <HookLibrarySlideout
+      {/* Hook Library Modal */}
+      <HookLibraryModal
         selectedHooks={selectedHooks}
         onSelectionChange={setSelectedHooks}
         hooks={HOOK_LIBRARY}
         isOpen={hookLibraryOpen}
         onClose={() => setHookLibraryOpen(false)}
+      />
+
+      {/* Module Library Modal */}
+      <ModuleLibraryModal
+        selectedModules={selectedModules}
+        onSelectionChange={setSelectedModules}
+        isOpen={moduleLibraryOpen}
+        onClose={() => setModuleLibraryOpen(false)}
       />
 
       {/* Fancy Loading Overlay */}

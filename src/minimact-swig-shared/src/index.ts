@@ -8,6 +8,7 @@ export { ProjectManager } from './ProjectManager';
 export { TranspilerService } from './TranspilerService';
 export { FileWatcher } from './FileWatcher';
 export { HookExampleGenerator } from './HookExampleGenerator';
+export { ModuleManager, AVAILABLE_MODULES } from './ModuleManager';
 
 export type {
   Project,
@@ -16,3 +17,10 @@ export type {
   TranspileResult,
   TranspileProjectResult
 } from './types';
+
+export type {
+  ModuleDefinition,
+  ModuleMetadata,
+  InstalledModule,
+  NpmSearchResult
+} from './ModuleManager';

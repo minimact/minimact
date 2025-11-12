@@ -16,6 +16,7 @@ import { registerProcessHandlers } from './ipc/process'
 import { registerFileHandlers } from './ipc/file'
 import { registerTemplateHandlers } from './ipc/template'
 import { registerSignalRHandlers } from './ipc/signalr'
+import { registerModulesHandlers } from './ipc/modules'
 
 // Initialize services
 const projectManager = new ProjectManager(app.getPath('userData'))
@@ -30,6 +31,7 @@ registerProcessHandlers(processController)
 registerFileHandlers()
 registerTemplateHandlers(signalRClient)
 registerSignalRHandlers()
+registerModulesHandlers()
 
 let mainWindow: BrowserWindow | null = null
 let splashWindow: BrowserWindow | null = null
