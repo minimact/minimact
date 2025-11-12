@@ -12,7 +12,8 @@ const MINIMACT_MODULES: Record<string, string> = {
   '@minimact/power': '@minimact/core',  // power is part of @minimact/core package
   '@minimact/mvc': '@minimact/mvc',
   '@minimact/punch': '@minimact/punch',
-  '@minimact/md': '@minimact/md'
+  '@minimact/md': '@minimact/md',
+  '@minimact/spa': '@minimact/spa'
 };
 
 interface ImportOptions {

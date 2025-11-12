@@ -69,6 +69,11 @@ const TEMPLATES = [
         description: 'MVC Bridge + Dashboard with charts'
     },
     {
+        value: 'SPA',
+        title: 'SPA (Single Page Application)',
+        description: 'Full SPA with shells, pages, instant navigation, and shell persistence'
+    },
+    {
         value: 'Electron-FileManager',
         title: 'Electron File Manager',
         description: 'Desktop file manager with Electron + Minimact'

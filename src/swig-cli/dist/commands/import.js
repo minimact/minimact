@@ -50,7 +50,8 @@ const MINIMACT_MODULES = {
     '@minimact/power': '@minimact/core', // power is part of @minimact/core package
     '@minimact/mvc': '@minimact/mvc',
     '@minimact/punch': '@minimact/punch',
-    '@minimact/md': '@minimact/md'
+    '@minimact/md': '@minimact/md',
+    '@minimact/spa': '@minimact/spa'
 };
 /**
  * Get the global cache directory for mact_modules

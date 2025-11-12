@@ -399,6 +399,37 @@ public class Fragment : VNode
 }
 
 /// <summary>
+/// Placeholder VNode for &lt;Page /&gt; component in shells (@minimact/spa)
+/// During shell rendering, this is replaced with the actual page VNode
+/// This allows shells to define where page content should be injected
+/// </summary>
+public class VPagePlaceholder : VNode
+{
+    public VPagePlaceholder()
+    {
+        Path = ""; // Placeholder doesn't need a path until replaced
+    }
+
+    public VPagePlaceholder(string path)
+    {
+        Path = InflatePath(path);
+    }
+
+    public override string ToHtml()
+    {
+        // During initial SSR, this should be replaced before HTML generation
+        // If we reach here, render a marker for debugging
+        return "<!-- PAGE PLACEHOLDER -->";
+    }
+
+    public override int EstimateSize()
+    {
+        // Placeholder has no real size, it will be replaced
+        return 0;
+    }
+}
+
+/// <summary>
 /// Wrapper for components using the Lifted State pattern
 /// State lives in parent component, child accesses via namespaced keys
 ///
