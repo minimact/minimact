@@ -1,0 +1,36 @@
+{
+  "name": "@mactic/tracker",
+  "version": "0.1.0",
+  "description": "Client-side change detection tracker for Mactic event-driven search",
+  "main": "dist/tracker.js",
+  "types": "dist/tracker.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest"
+  },
+  "keywords": [
+    "mactic",
+    "search",
+    "event-driven",
+    "change-detection",
+    "indexing"
+  ],
+  "author": "Mactic",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itsmactic/mactic"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/node": "^20.10.5",
+    "rollup": "^4.9.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}

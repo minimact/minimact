@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Demo page for testing Mactic event-driven search tracker">
+  <title>Mactic Tracker Demo - How to Build Real-Time Search</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #2d5016;
+      margin-bottom: 10px;
+    }
+
+    .tagline {
+      color: #666;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    article {
+      margin: 30px 0;
+    }
+
+    article h2 {
+      color: #2d5016;
+      margin: 20px 0 10px 0;
+    }
+
+    .editable {
+      background: #fff9e6;
+      padding: 15px;
+      border-left: 4px solid #2d5016;
+      margin: 20px 0;
+      cursor: text;
+    }
+
+    .editable:hover {
+      background: #fff5cc;
+    }
+
+    .stats {
+      background: #f0f7eb;
+      padding: 20px;
+      border-radius: 4px;
+      margin: 30px 0;
+    }
+
+    .stats h3 {
+      color: #2d5016;
+      margin-bottom: 15px;
+    }
+
+    .stat-item {
+      padding: 8px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .stat-label {
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-family: 'Courier New', monospace;
+      color: #2d5016;
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+
+    .alert {
+      background: #2d5016;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+
+    .alert strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    #events-log {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .event-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .event-time {
+      color: #666;
+    }
+
+    .event-message {
+      color: #2d5016;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌵 Mactic Tracker Demo</h1>
+    <p class="tagline">Stop crawling. Start running. With event-driven search.</p>
+
+    <div class="alert">
+      <strong>🔥 Try it out!</strong>
+      Click on the yellow box below and edit the text. Watch as Mactic detects the change and notifies the search engine in real-time.
+    </div>
+
+    <article id="main-content">
+      <h2>How to Build Real-Time Search</h2>
+
+      <p>Traditional search engines use crawlers that visit websites periodically, checking if content has changed. This approach is:</p>
+
+      <ul style="margin-left: 20px; margin-top: 10px;">
+        <li>Wasteful (95% of crawls find no changes)</li>
+        <li>Slow (takes 3-7 days to index)</li>
+        <li>Expensive (billions in infrastructure)</li>
+        <li>Carbon-intensive (~1% of global electricity)</li>
+      </ul>
+
+      <div class="editable" contenteditable="true">
+        [EDIT THIS TEXT TO TRIGGER CHANGE DETECTION]
+
+        This is editable content. When you change it, Mactic will detect the change using a MutationObserver and periodic hash checking. It will then send a notification to the search API with the updated content, category metadata, and semantic information.
+
+        The whole process takes less than 1 second from edit to server notification. Compare that to traditional crawlers that might take 3-7 days to discover your change!
+
+        Try editing this text now and watch the events log below.
+      </div>
+
+      <h2>The Mactic Approach</h2>
+
+      <p>Instead of crawlers polling, websites push change notifications:</p>
+
+      <ol style="margin-left: 20px; margin-top: 10px;">
+        <li>Client-side tracker detects changes (via MutationObserver + hash checking)</li>
+        <li>Sends event to Mactic API with category + content</li>
+        <li>AI generates embeddings for semantic search</li>
+        <li>Content indexed in <strong>10 seconds</strong></li>
+        <li>Discoverable immediately via category-scoped search</li>
+      </ol>
+    </article>
+
+    <div class="stats">
+      <h3>📊 Tracker Status</h3>
+      <div class="stat-item">
+        <span class="stat-label">Status:</span>
+        <span class="stat-value" id="status">Initializing...</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Category:</span>
+        <span class="stat-value">technology</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Watch Zones:</span>
+        <span class="stat-value">article#main-content</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Changes Detected:</span>
+        <span class="stat-value" id="change-count">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Last Event:</span>
+        <span class="stat-value" id="last-event">None</span>
+      </div>
+    </div>
+
+    <h3>📝 Events Log</h3>
+    <div id="events-log">
+      <div class="event-entry">
+        <span class="event-time">[Loading...]</span>
+        <span class="event-message">Initializing Mactic tracker...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load tracker from dist (after building) -->
+  <script src="../dist/tracker.js"></script>
+  <script>
+    let changeCount = 0;
+
+    function addLogEntry(message, isError = false) {
+      const log = document.getElementById('events-log');
+      const entry = document.createElement('div');
+      entry.className = 'event-entry';
+
+      const time = new Date().toLocaleTimeString();
+      entry.innerHTML = `
+        <span class="event-time">[${time}]</span>
+        <span class="event-message" style="${isError ? 'color: red' : ''}">${message}</span>
+      `;
+
+      log.insertBefore(entry, log.firstChild);
+
+      // Keep only last 20 entries
+      while (log.children.length > 20) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    function updateStatus(status) {
+      document.getElementById('status').textContent = status;
+    }
+
+    function updateChangeCount() {
+      changeCount++;
+      document.getElementById('change-count').textContent = changeCount;
+      document.getElementById('last-event').textContent = new Date().toLocaleTimeString();
+    }
+
+    // Initialize tracker
+    try {
+      addLogEntry('Initializing Mactic tracker...');
+      updateStatus('Initializing...');
+
+      const tracker = MacticTracker.init({
+        apiKey: 'demo-key-12345',
+        apiEndpoint: 'http://localhost:5000/api/events', // Will be real API once built
+        category: 'technology',
+        tags: ['web-dev', 'search', 'tutorial'],
+        trustLevel: 'verified',
+        watchZones: [
+          { selector: 'article#main-content', importance: 'high' }
+        ],
+        checkInterval: 3000, // Check every 3 seconds
+        enableDebugLogging: true,
+        enableMutationObserver: true,
+        enablePeriodicCheck: true
+      });
+
+      addLogEntry('✅ Tracker initialized successfully');
+      updateStatus('🟢 Active');
+
+      // Listen for changes (we'll intercept the fetch call)
+      const originalFetch = window.fetch;
+      window.fetch = function(...args) {
+        const [url, options] = args;
+
+        // Intercept Mactic API calls
+        if (url && url.includes('/api/events')) {
+          addLogEntry('🔥 Change detected! Sending notification to Mactic API...');
+          updateChangeCount();
+
+          try {
+            const body = JSON.parse(options.body);
+            addLogEntry(`📦 Event: ${body.selector} changed`);
+            addLogEntry(`📝 Content length: ${body.content.length} characters`);
+            addLogEntry(`🏷️ Category: ${body.category}, Tags: ${body.tags.join(', ')}`);
+
+            // For demo, we'll simulate success
+            setTimeout(() => {
+              addLogEntry('✅ Server acknowledged change (simulated)');
+            }, 500);
+
+            // Return mock success response
+            return Promise.resolve(new Response(
+              JSON.stringify({ success: true, message: 'Event received (simulated)' }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            ));
+          } catch (e) {
+            addLogEntry('❌ Failed to parse event', true);
+          }
+        }
+
+        // Call original fetch for other requests
+        return originalFetch.apply(this, args);
+      };
+
+      addLogEntry('👀 Watching for changes in article#main-content...');
+      addLogEntry('💡 Edit the yellow box above to trigger a change event');
+
+    } catch (error) {
+      addLogEntry(`❌ Error: ${error.message}`, true);
+      updateStatus('🔴 Error');
+      console.error('[Demo] Tracker initialization failed:', error);
+    }
+  </script>
+</body>
+</html>
