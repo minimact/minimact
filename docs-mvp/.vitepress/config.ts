@@ -50,7 +50,9 @@ export default defineConfig({
           text: 'Walkthroughs',
           items: [
             { text: 'MVC Pattern', link: '/v1.0/guide/mvc-walkthrough' },
-            { text: 'SPA Pattern', link: '/v1.0/guide/spa-walkthrough' }
+            { text: 'SPA Pattern', link: '/v1.0/guide/spa-walkthrough' },
+            { text: 'Server Push', link: '/v1.0/guide/server-push-walkthrough' },
+            { text: 'Advanced Patterns', link: '/v1.0/guide/advanced-patterns-walkthrough' }
           ]
         },
         {

@@ -27,6 +27,7 @@ public static class MinimactServiceExtensions
         services.AddSingleton<ComponentRegistry>();
         services.AddSingleton<RustBridge.Predictor>();
         services.AddSingleton<TemplateLoader>(); // Template loader for attribute template support
+        services.AddSingleton<ComponentStateUpdater>(); // Helper for server-side state updates
 
         // Register context cache (for useContext hook)
         services.AddSingleton<IContextCache, InMemoryContextCache>();
