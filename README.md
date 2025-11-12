@@ -1264,7 +1264,7 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 
 **Join the discussion:**
 - [GitHub Discussions](https://github.com/minimact/minimact/discussions)
-- [Discord Server](https://discord.gg/minimact)
+- [Discord Server](https://discord.gg/EKPDh6v7)
 
 ---
 
