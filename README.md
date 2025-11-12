@@ -1213,6 +1213,20 @@ Let me share this whole new world with you
 
 *It's not magic. It's mactic.* 🪄
 
+**[🎭 Experience the Full Musical →](./docs/MUSICAL.md)**
+
+**The Complete Setlist:**
+1. 🎵 "Part of Your World" - The Developer's Lament
+2. 🎵 "Under the Server" - Life below the client
+3. 🎵 "Let It Go (The Hydration)" - Embracing server-side rendering
+4. 🎵 "How Far I'll Go" - Avoiding client-side rendering
+5. 🎵 "You're Welcome" - From SignalR
+6. 🎵 "Circle of Life" - The Component Lifecycle
+7. 🎵 **"A Whole New World"** - The Mactic Experience
+8. 🎵 "One Day More" - Until Production
+
+*Plus: The Minimact Cinematic Universe, MinimactLand Theme Park, and more!* 🎭✨
+
 ---
 
 ## Why the Name Minimact?
