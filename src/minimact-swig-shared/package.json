@@ -1,6 +1,6 @@
 {
   "name": "@minimact/swig-shared",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared services for Minimact Swig (Electron GUI and CLI)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

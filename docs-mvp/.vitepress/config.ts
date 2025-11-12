@@ -47,6 +47,13 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Walkthroughs',
+          items: [
+            { text: 'MVC Pattern', link: '/v1.0/guide/mvc-walkthrough' },
+            { text: 'SPA Pattern', link: '/v1.0/guide/spa-walkthrough' }
+          ]
+        },
+        {
           text: 'Core Features',
           items: [
             { text: 'Predictive Rendering', link: '/v1.0/guide/predictive-rendering' },

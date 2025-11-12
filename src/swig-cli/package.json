@@ -1,6 +1,6 @@
 {
   "name": "@minimact/swig",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tool for Minimact development - Create, transpile, and run Minimact applications",
   "bin": {
     "swig": "./bin/swig.js"
