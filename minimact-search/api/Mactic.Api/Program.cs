@@ -1,11 +1,13 @@
 using Mactic.Api.Services;
 using Mactic.Api.Data;
+using Mactic.Api.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
 builder.Services.AddControllers();
+builder.Services.AddSignalR(); // ✨ Real-time updates!
 
 // Add CORS for local development
 builder.Services.AddCors(options =>
@@ -33,6 +35,7 @@ builder.Services.AddScoped<IEventProcessor, EventProcessor>(); // Changed to Sco
 builder.Services.AddHttpClient<EmbeddingService>();
 builder.Services.AddScoped<SearchService>();
 builder.Services.AddScoped<ProfileService>(); // ✨ Auto-profile generation
+builder.Services.AddSingleton<CommunityBroadcaster>(); // ✨ Real-time broadcasting
 
 // Logging
 builder.Logging.ClearProviders();
@@ -44,6 +47,7 @@ var app = builder.Build();
 app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<CommunityHub>("/hubs/community"); // ✨ Real-time community hub
 
 // Welcome endpoint
 app.MapGet("/", () => new

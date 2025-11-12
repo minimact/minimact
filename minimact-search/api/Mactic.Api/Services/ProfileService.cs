@@ -39,11 +39,9 @@ public class ProfileService
                 Id = Guid.NewGuid(),
                 Username = username,
                 DisplayName = username,
-                CreatedAt = DateTime.UtcNow,
-                Reputation = 0,
-                ProjectCount = 0,
-                TotalSearches = 0,
-                TotalInstalls = 0
+                Email = $"{username}@example.com", // TODO: Get real email
+                JoinedAt = DateTime.UtcNow,
+                Reputation = 0
             };
 
             _db.Developers.Add(developer);
@@ -61,7 +59,7 @@ public class ProfileService
     /// </summary>
     public async Task<Project> EnsureProject(
         string url,
-        string title,
+        string name,
         string? description,
         string? category,
         string[] tags,
@@ -77,77 +75,47 @@ public class ProfileService
             {
                 Id = Guid.NewGuid(),
                 Url = url,
-                Title = title,
+                Name = name,
                 Description = description,
                 Category = category ?? "uncategorized",
                 Tags = tags,
                 DeveloperId = developer.Id,
                 CreatedAt = DateTime.UtcNow,
-                DeployCount = 1,
+                LastUpdatedAt = DateTime.UtcNow,
+                LastDeployedAt = DateTime.UtcNow,
                 ViewCount = 0,
-                SearchCount = 0,
-                StarCount = 0,
+                CloneCount = 1,
                 ForkCount = 0,
-                Rating = 0
+                AverageRating = 0,
+                ReviewCount = 0,
+                IsLive = true
             };
 
             _db.Projects.Add(project);
-            developer.ProjectCount++;
 
             _logger.LogInformation(
-                "Created new project: {Title} by {Username}",
-                title,
+                "Created new project: {Name} by {Username}",
+                name,
                 developer.Username);
         }
         else
         {
             // Update existing project
-            project.Title = title;
+            project.Name = name;
             project.Description = description ?? project.Description;
             project.Category = category ?? project.Category;
             project.Tags = tags.Length > 0 ? tags : project.Tags;
-            project.DeployCount++;
             project.LastDeployedAt = DateTime.UtcNow;
+            project.LastUpdatedAt = DateTime.UtcNow;
 
             _logger.LogInformation(
-                "Updated project: {Title} (deploy #{Count})",
-                title,
-                project.DeployCount);
+                "Updated project: {Name}",
+                name);
         }
 
-        project.LastUpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
         return project;
-    }
-
-    /// <summary>
-    /// Record activity in the community feed
-    /// </summary>
-    public async Task RecordActivity(
-        ActivityType type,
-        Developer developer,
-        Project project,
-        string details)
-    {
-        var activity = new Activity
-        {
-            Id = Guid.NewGuid(),
-            Type = type,
-            DeveloperId = developer.Id,
-            ProjectId = project.Id,
-            Details = details,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _db.Activities.Add(activity);
-        await _db.SaveChangesAsync();
-
-        _logger.LogInformation(
-            "Recorded activity: {Type} by {Username} on {Project}",
-            type,
-            developer.Username,
-            project.Title);
     }
 
     /// <summary>
@@ -165,21 +133,19 @@ public class ProfileService
             .ToListAsync();
 
         var usageCount = await _db.ProjectUsages
-            .Where(u => projects.Select(p => p.Id).Contains(u.UsedProjectId))
+            .Where(u => projects.Select(p => p.Id).Contains(u.ProjectId))
             .CountAsync();
 
         // Reputation formula
         var reputation = 0;
         reputation += projects.Count * 10; // 10 points per project
-        reputation += projects.Sum(p => p.DeployCount) * 2; // 2 points per deployment
-        reputation += projects.Sum(p => p.StarCount) * 5; // 5 points per star
+        reputation += projects.Sum(p => p.CloneCount) * 2; // 2 points per clone
+        reputation += projects.Sum(p => p.ViewCount) / 10; // 1 point per 10 views
         reputation += reviews.Count * 3; // 3 points per review
         reputation += (int)(reviews.Average(r => (double?)r.Rating) ?? 0 * 20); // 20 points per avg rating point
         reputation += usageCount * 8; // 8 points per usage
 
         developer.Reputation = reputation;
-        developer.TotalSearches = projects.Sum(p => p.SearchCount);
-        developer.TotalInstalls = usageCount;
 
         await _db.SaveChangesAsync();
 
@@ -187,49 +153,6 @@ public class ProfileService
             "Updated reputation for {Username}: {Reputation}",
             developer.Username,
             reputation);
-    }
-
-    /// <summary>
-    /// Track when someone uses a project (dependency)
-    /// </summary>
-    public async Task RecordUsage(Guid userId, Guid usedProjectId, Guid? userProjectId = null)
-    {
-        // Check if usage already exists
-        var existing = await _db.ProjectUsages
-            .FirstOrDefaultAsync(u =>
-                u.UserId == userId &&
-                u.UsedProjectId == usedProjectId &&
-                u.UserProjectId == userProjectId);
-
-        if (existing == null)
-        {
-            var usage = new ProjectUsage
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                UsedProjectId = usedProjectId,
-                UserProjectId = userProjectId,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _db.ProjectUsages.Add(usage);
-            await _db.SaveChangesAsync();
-
-            // Update reputation of the creator
-            var project = await _db.Projects
-                .Include(p => p.Developer)
-                .FirstOrDefaultAsync(p => p.Id == usedProjectId);
-
-            if (project?.Developer != null)
-            {
-                await UpdateReputation(project.Developer);
-            }
-
-            _logger.LogInformation(
-                "Recorded usage: User {UserId} using project {ProjectId}",
-                userId,
-                usedProjectId);
-        }
     }
 
     /// <summary>
@@ -258,18 +181,4 @@ public class ProfileService
         // In production, you'd have a proper user registry
         return $"user_{apiKey.GetHashCode():X8}";
     }
-}
-
-/// <summary>
-/// Activity types for the community feed
-/// </summary>
-public enum ActivityType
-{
-    ProjectCreated,
-    ProjectUpdated,
-    ProjectDeployed,
-    ProjectStarred,
-    ProjectForked,
-    ReviewPosted,
-    DependencyAdded
 }
