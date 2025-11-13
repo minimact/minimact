@@ -557,6 +557,14 @@ function generateComponent(component) {
   // Helper functions (function declarations in component body)
   if (component.helperFunctions && component.helperFunctions.length > 0) {
     for (const func of component.helperFunctions) {
+      // Skip custom hooks (they're generated as separate [Hook] classes)
+      if (func.name && func.name.startsWith('use') && func.params && func.params.length > 0) {
+        const firstParam = func.params[0];
+        if (firstParam.name === 'namespace') {
+          continue; // This is a custom hook, skip it
+        }
+      }
+
       lines.push('');
 
       const returnType = func.isAsync
@@ -583,6 +591,14 @@ function generateComponent(component) {
   // Helper functions (standalone functions referenced by component)
   if (component.topLevelHelperFunctions && component.topLevelHelperFunctions.length > 0) {
     for (const helper of component.topLevelHelperFunctions) {
+      // Skip custom hooks (they're generated as separate [Hook] classes)
+      if (helper.name && helper.name.startsWith('use') && helper.node && helper.node.params && helper.node.params.length > 0) {
+        const firstParam = helper.node.params[0];
+        if (firstParam && firstParam.name === 'namespace') {
+          continue; // This is a custom hook, skip it
+        }
+      }
+
       lines.push('');
       lines.push(`    // Helper function: ${helper.name}`);
 

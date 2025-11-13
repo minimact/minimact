@@ -1,0 +1,21 @@
+{
+  "componentName": "TestImportedHook",
+  "timestamp": "2025-11-13T23:43:05.529Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    },
+    {
+      "type": "useToggle",
+      "varName": "isOn1",
+      "index": 1
+    },
+    {
+      "type": "useToggle",
+      "varName": "isOn2",
+      "index": 2
+    }
+  ]
+}

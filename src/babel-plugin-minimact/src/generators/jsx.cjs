@@ -229,6 +229,18 @@ function generateChildren(children, component, indent) {
         continue; // Don't add to childList - comments are ignored
       }
 
+      // Check if this is a custom hook UI variable (e.g., {counterUI})
+      if (t.isIdentifier(expr) && component.customHooks) {
+        const hookInstance = component.customHooks.find(h => h.uiVarName === expr.name);
+        if (hookInstance) {
+          // This is a custom hook UI! Generate VComponentWrapper instead
+          const hexPath = child.__minimactPath || '';
+          const wrapperCode = generateCustomHookWrapper(hookInstance, hexPath, component, indent);
+          childList.push({ type: 'element', code: wrapperCode, node: child });
+          continue; // Skip normal expression handling
+        }
+      }
+
       // Skip structural JSX
       const isStructural = t.isJSXElement(expr) ||
                            t.isJSXFragment(expr) ||
@@ -290,6 +302,46 @@ function generateChildren(children, component, indent) {
   }
 
   return result;
+}
+
+/**
+ * Generate VComponentWrapper for custom hook UI (e.g., {counterUI})
+ *
+ * Example:
+ *   const [count, increment, , , counterUI] = useCounter('counter1', 0);
+ *   {counterUI}
+ *
+ * Generates:
+ *   new VComponentWrapper {
+ *     ComponentName = "counter1",
+ *     ComponentType = "UseCounterHook",
+ *     HexPath = "1.2.4",
+ *     InitialState = new Dictionary<string, object> { ["_config.start"] = 0 }
+ *   }
+ */
+function generateCustomHookWrapper(hookInstance, hexPath, component, indent) {
+  const { namespace, className, params } = hookInstance;
+
+  // Build InitialState dictionary from hook params
+  let stateCode = 'new Dictionary<string, object>()';
+
+  if (params && params.length > 0) {
+    const stateEntries = params.map((paramCode, index) => {
+      // Hook params become _config.param0, _config.param1, etc.
+      return `["_config.param${index}"] = ${paramCode}`;
+    });
+    stateCode = `new Dictionary<string, object> { ${stateEntries.join(', ')} }`;
+  }
+
+  const indentStr = '  '.repeat(indent);
+
+  return `new VComponentWrapper
+${indentStr}{
+${indentStr}  ComponentName = "${namespace}",
+${indentStr}  ComponentType = "${className}",
+${indentStr}  HexPath = "${hexPath}",
+${indentStr}  InitialState = ${stateCode}
+${indentStr}}`;
 }
 
 /**

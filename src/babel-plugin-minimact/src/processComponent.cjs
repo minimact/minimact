@@ -10,6 +10,10 @@ const { tsTypeToCSharpType } = require('./types/typeConversion.cjs');
 const { extractHook } = require('./extractors/hooks.cjs');
 const { extractLocalVariables } = require('./extractors/localVariables.cjs');
 const { inferPropTypes } = require('./analyzers/propTypeInference.cjs');
+const { isCustomHook } = require('./analyzers/hookDetector.cjs');
+const { analyzeHook } = require('./analyzers/hookAnalyzer.cjs');
+const { generateHookClass } = require('./generators/hookClassGenerator.cjs');
+const { analyzeImportedHooks } = require('./analyzers/hookImports.cjs');
 const {
   extractTemplates,
   extractAttributeTemplates,
@@ -24,12 +28,19 @@ const { HexPathGenerator } = require('./utils/hexPath.cjs');
 const { assignPathsToJSX } = require('./utils/pathAssignment.cjs');
 
 /**
- * Process a component function
+ * Process a component function OR custom hook
  */
 function processComponent(path, state) {
   const componentName = getComponentName(path);
 
   if (!componentName) return;
+
+  // 🔥 CUSTOM HOOK DETECTION - Process hooks before checking uppercase
+  if (isCustomHook(path)) {
+    console.log(`[Custom Hook] Detected: ${componentName}`);
+    return processCustomHook(path, state);
+  }
+
   if (componentName[0] !== componentName[0].toUpperCase()) return; // Not a component
 
   state.file.minimactComponents = state.file.minimactComponents || [];
@@ -48,6 +59,7 @@ function processComponent(path, state) {
     useModal: [],
     useToggle: [],
     useDropdown: [],
+    customHooks: [], // Custom hook instances (useCounter, useForm, etc.)
     eventHandlers: [],
     localVariables: [], // Local variables (const/let/var) in function body
     helperFunctions: [], // Helper functions declared in function body
@@ -152,6 +164,13 @@ function processComponent(path, state) {
       // (not nested functions inside other functions)
       if (funcPath.getFunctionParent() === path && funcPath.parent.type === 'BlockStatement') {
         const funcName = funcPath.node.id.name;
+
+        // Skip custom hooks (they're processed separately)
+        if (isCustomHook(funcPath)) {
+          funcPath.skip(); // Don't traverse into this hook
+          return;
+        }
+
         const params = funcPath.node.params.map(param => {
           if (t.isIdentifier(param)) {
             // Simple parameter: (name)
@@ -334,6 +353,91 @@ function processComponent(path, state) {
   state.file.componentPathsToNullify.push(path);
 
   state.file.minimactComponents.push(component);
+}
+
+/**
+ * Process a custom hook function
+ * Generates a [Hook] class that extends MinimactComponent
+ */
+function processCustomHook(path, state) {
+  const hookName = getComponentName(path);
+
+  console.log(`[Custom Hook] Processing ${hookName}...`);
+
+  // Analyze the hook structure
+  const hookAnalysis = analyzeHook(path);
+
+  if (!hookAnalysis) {
+    console.error(`[Custom Hook] Failed to analyze ${hookName}`);
+    return;
+  }
+
+  console.log(`[Custom Hook] Analysis complete:`, {
+    states: hookAnalysis.states?.length || 0,
+    methods: hookAnalysis.methods?.length || 0,
+    hasJSX: !!hookAnalysis.jsxElements,
+    returns: hookAnalysis.returnValues?.length || 0
+  });
+
+  // Create a minimal component context for the hook
+  const hookComponentContext = {
+    name: hookAnalysis.className,
+    stateTypes: new Map(),
+    dependencies: new Map(),
+    externalImports: new Set(),
+    clientComputedVars: new Set(),
+    eventHandlers: []
+  };
+
+  // Generate the hook class C# code
+  const hookClass = generateHookClass(hookAnalysis, hookComponentContext);
+
+  console.log(`[Custom Hook] Generated class: ${hookClass.name || hookAnalysis.className}`);
+
+  // Store hook class in state (as a special component)
+  state.file.minimactComponents = state.file.minimactComponents || [];
+
+  // Convert hook class to component-like structure for C# generation
+  const hookComponent = {
+    name: hookAnalysis.className,
+    isHook: true, // Flag to identify this as a hook class
+    hookData: hookClass, // Store the generated C# code
+    hookAnalysis: hookAnalysis, // Store the analysis data
+    props: [],
+    useState: (hookAnalysis.states || []).map(s => ({
+      varName: s.varName,
+      setterName: s.setterName,
+      initialValue: s.initialValue,
+      type: s.type
+    })),
+    useClientState: [],
+    useStateX: [],
+    useEffect: [],
+    useRef: [],
+    useMarkdown: [],
+    useTemplate: null,
+    useValidation: [],
+    useModal: [],
+    useToggle: [],
+    useDropdown: [],
+    eventHandlers: (hookAnalysis.eventHandlers || []),
+    localVariables: [],
+    helperFunctions: [],
+    renderBody: hookAnalysis.jsxElements,
+    pluginUsages: [],
+    stateTypes: new Map(),
+    dependencies: new Map(),
+    externalImports: new Set(),
+    clientComputedVars: new Set(),
+    templates: {}
+  };
+
+  state.file.minimactComponents.push(hookComponent);
+
+  // Don't nullify JSX for hooks (they need their render method)
+  // (processComponent adds components to componentPathsToNullify, but we skip that here)
+
+  console.log(`[Custom Hook] ✅ ${hookName} processed successfully`);
 }
 
 module.exports = {

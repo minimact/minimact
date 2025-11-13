@@ -87,6 +87,12 @@ function extractHook(path, component) {
     case 'useMvcViewModel':
       extractUseMvcViewModel(path, component);
       break;
+    default:
+      // Check if this is a custom hook (starts with 'use' and first param is 'namespace')
+      if (hookName.startsWith('use')) {
+        extractCustomHookCall(path, component, hookName);
+      }
+      break;
   }
 }
 
@@ -939,6 +945,65 @@ function findViewModelPropertyType(path, propertyName, component) {
 
   console.log(`[findViewModelPropertyType] Property ${propertyName} not found in interface`);
   return null;
+}
+
+/**
+ * Extract custom hook call (e.g., useCounter('counter1', 0))
+ * Custom hooks are treated as child components with lifted state
+ */
+function extractCustomHookCall(path, component, hookName) {
+  const parent = path.parent;
+
+  // Must be: const [x, y, z, ui] = useCounter('namespace', ...params)
+  if (!t.isVariableDeclarator(parent)) return;
+  if (!t.isArrayPattern(parent.id)) return;
+
+  const args = path.node.arguments;
+  if (args.length === 0) return;
+
+  // First argument must be namespace (string literal)
+  const namespaceArg = args[0];
+  if (!t.isStringLiteral(namespaceArg)) {
+    console.warn(`[Custom Hook] ${hookName} first argument must be a string literal (namespace)`);
+    return;
+  }
+
+  const namespace = namespaceArg.value;
+  const hookParams = args.slice(1); // Remaining params become InitialState
+
+  // Extract destructured variables
+  const elements = parent.id.elements;
+  const uiVarName = elements[elements.length - 1]?.name; // Last element is usually the UI
+
+  if (!uiVarName) {
+    console.warn(`[Custom Hook] ${hookName} must return UI as last element`);
+    return;
+  }
+
+  // Store custom hook instance in component
+  if (!component.customHooks) {
+    component.customHooks = [];
+  }
+
+  const generate = require('@babel/generator').default;
+
+  component.customHooks.push({
+    hookName,
+    className: `${capitalize(hookName)}Hook`,
+    namespace,
+    uiVarName, // Variable name that holds the UI (e.g., 'counterUI')
+    params: hookParams.map(p => generate(p).code),
+    returnValues: elements.map(e => e ? e.name : null).filter(Boolean)
+  });
+
+  console.log(`[Custom Hook] Found ${hookName}('${namespace}') → UI in {${uiVarName}}`);
+}
+
+/**
+ * Capitalize first letter
+ */
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 module.exports = {
