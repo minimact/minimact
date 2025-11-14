@@ -31,7 +31,7 @@ async function transpileComponent(jsxPath) {
       const path = require('path');
 
       const code = fs.readFileSync('${jsxPath.replace(/\\/g, '\\\\')}', 'utf-8');
-      const filename = '${path.basename(jsxPath)}';
+      const filename = '${jsxPath.replace(/\\/g, '\\\\')}'; // 🔥 Use full path instead of basename
 
       // Suppress console logs from Babel plugin (except DEBUG logs)
       const originalLog = console.log;

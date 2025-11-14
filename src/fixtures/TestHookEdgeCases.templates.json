@@ -1,10 +1,10 @@
 {
-  "component": "TestImportedHook",
+  "component": "TestHookEdgeCases",
   "version": "1.0",
-  "generatedAt": 1763086118294,
+  "generatedAt": 1763086279436,
   "templates": {
     "1.1.1": {
-      "template": "Imported Hook Test",
+      "template": "Hook Import Edge Cases Test",
       "bindings": [],
       "slots": [],
       "path": [
@@ -14,8 +14,22 @@
       ],
       "type": "static"
     },
+    "1.2.3": {
+      "template": "{0}",
+      "bindings": [
+        "toggleUI"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "dynamic"
+    },
     "1.2.1.1": {
-      "template": "Regular State (for comparison)",
+      "template": "1. Default Export (useToggle)",
       "bindings": [],
       "slots": [],
       "path": [
@@ -27,24 +41,28 @@
       "type": "static"
     },
     "1.2.2.1": {
-      "template": "Count: {0}",
+      "template": "Toggle is: {0}",
       "bindings": [
-        "count"
+        "isOn"
       ],
       "slots": [
-        18
+        11
       ],
       "path": [
         "1",
         "2",
         "2"
       ],
-      "type": "dynamic"
+      "type": "conditional",
+      "conditionalTemplates": {
+        "true": "ON",
+        "false": "OFF"
+      }
     },
-    "1.3.4": {
+    "1.3.3": {
       "template": "{0}",
       "bindings": [
-        "toggleUI1"
+        "counterUI"
       ],
       "slots": [
         0
@@ -56,7 +74,7 @@
       "type": "dynamic"
     },
     "1.3.1.1": {
-      "template": "Toggle 1 (starts OFF)",
+      "template": "2. Named Export (useCounter)",
       "bindings": [],
       "slots": [],
       "path": [
@@ -68,40 +86,24 @@
       "type": "static"
     },
     "1.3.2.1": {
-      "template": "Status: {0}",
+      "template": "Count: {0}",
       "bindings": [
-        "isOn1"
+        "count"
       ],
       "slots": [
-        8
+        7
       ],
       "path": [
         "1",
         "3",
         "2"
       ],
-      "type": "conditional",
-      "conditionalTemplates": {
-        "true": "Active",
-        "false": "Inactive"
-      }
+      "type": "dynamic"
     },
-    "1.3.3.1": {
-      "template": "External Toggle 1",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "3",
-        "3",
-        "1"
-      ],
-      "type": "static"
-    },
-    "1.4.4": {
+    "1.4.3": {
       "template": "{0}",
       "bindings": [
-        "toggleUI2"
+        "timerUI"
       ],
       "slots": [
         0
@@ -113,7 +115,7 @@
       "type": "dynamic"
     },
     "1.4.1.1": {
-      "template": "Toggle 2 (starts ON)",
+      "template": "3. Renamed Import (useTimer as Timer)",
       "bindings": [],
       "slots": [],
       "path": [
@@ -125,61 +127,140 @@
       "type": "static"
     },
     "1.4.2.1": {
-      "template": "Status: {0}",
+      "template": "Seconds: {0}",
       "bindings": [
-        "isOn2"
+        "seconds"
       ],
       "slots": [
-        8
+        9
       ],
       "path": [
         "1",
         "4",
         "2"
       ],
-      "type": "conditional",
-      "conditionalTemplates": {
-        "true": "Active",
-        "false": "Inactive"
-      }
+      "type": "dynamic"
     },
-    "1.4.3.1": {
-      "template": "External Toggle 2",
+    "1.5.3": {
+      "template": "{0}",
+      "bindings": [
+        "doublerUI"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "dynamic"
+    },
+    "1.5.1.1": {
+      "template": "4. Multiple Hooks from Same File (useDoubler)",
       "bindings": [],
       "slots": [],
       "path": [
         "1",
-        "4",
-        "3",
+        "5",
+        "1",
         "1"
       ],
       "type": "static"
     },
-    "1.5.1.1": {
-      "template": "Both toggles on: {0}",
-      "bindings": [
-        "__complex__"
-      ],
-      "slots": [],
-      "path": [
-        "1",
-        "5",
-        "1"
-      ],
-      "type": "dynamic"
-    },
     "1.5.2.1": {
-      "template": "At least one on: {0}",
+      "template": "Doubled value: {0}",
       "bindings": [
-        "__complex__"
+        "doubled"
       ],
-      "slots": [],
+      "slots": [
+        15
+      ],
       "path": [
         "1",
         "5",
         "2"
       ],
       "type": "dynamic"
+    },
+    "1.6.3": {
+      "template": "{0}",
+      "bindings": [
+        "localUI"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "6"
+      ],
+      "type": "dynamic"
+    },
+    "1.6.1.1": {
+      "template": "5. Inline + Imported Mix",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.6.2.1": {
+      "template": "Local message: {0}",
+      "bindings": [
+        "msg"
+      ],
+      "slots": [
+        15
+      ],
+      "path": [
+        "1",
+        "6",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.7.1.1": {
+      "template": "Summary",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.7.2.1": {
+      "template": "All hook values: {0} + {1} + {2} + {3} = {4}",
+      "bindings": [
+        "isOn",
+        "count",
+        "seconds",
+        "doubled",
+        "count.seconds.doubled"
+      ],
+      "slots": [
+        17,
+        23,
+        29,
+        35,
+        41
+      ],
+      "path": [
+        "1",
+        "7",
+        "2"
+      ],
+      "type": "conditional",
+      "conditionalTemplates": {
+        "true": "1",
+        "false": "0"
+      }
     },
     "1.@key": {
       "template": "1",
@@ -191,7 +272,7 @@
       "type": "attribute-static"
     },
     "1.@className": {
-      "template": "app",
+      "template": "test-edge-cases",
       "bindings": [],
       "slots": [],
       "path": [
@@ -220,7 +301,7 @@
       "type": "attribute-static"
     },
     "1.2.@className": {
-      "template": "counter-section",
+      "template": "section",
       "bindings": [],
       "slots": [],
       "path": [
@@ -262,7 +343,7 @@
       "type": "attribute-static"
     },
     "1.3.@className": {
-      "template": "toggle-section",
+      "template": "section",
       "bindings": [],
       "slots": [],
       "path": [
@@ -293,32 +374,6 @@
       ],
       "type": "attribute-static"
     },
-    "1.3.3.@key": {
-      "template": "1.3.3",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "3",
-        "3"
-      ],
-      "type": "attribute-static"
-    },
-    "1.3.3.@onClick": {
-      "template": "{0}",
-      "bindings": [
-        "toggle1"
-      ],
-      "slots": [
-        0
-      ],
-      "path": [
-        "1",
-        "3",
-        "3"
-      ],
-      "type": "attribute-dynamic"
-    },
     "1.4.@key": {
       "template": "1.4",
       "bindings": [],
@@ -330,7 +385,7 @@
       "type": "attribute-static"
     },
     "1.4.@className": {
-      "template": "toggle-section",
+      "template": "section",
       "bindings": [],
       "slots": [],
       "path": [
@@ -361,32 +416,6 @@
       ],
       "type": "attribute-static"
     },
-    "1.4.3.@key": {
-      "template": "1.4.3",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "4",
-        "3"
-      ],
-      "type": "attribute-static"
-    },
-    "1.4.3.@onClick": {
-      "template": "{0}",
-      "bindings": [
-        "toggle2"
-      ],
-      "slots": [
-        0
-      ],
-      "path": [
-        "1",
-        "4",
-        "3"
-      ],
-      "type": "attribute-dynamic"
-    },
     "1.5.@key": {
       "template": "1.5",
       "bindings": [],
@@ -398,7 +427,7 @@
       "type": "attribute-static"
     },
     "1.5.@className": {
-      "template": "combined-state",
+      "template": "section",
       "bindings": [],
       "slots": [],
       "path": [
@@ -425,6 +454,90 @@
       "path": [
         "1",
         "5",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.@key": {
+      "template": "1.6",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.@className": {
+      "template": "section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.1.@key": {
+      "template": "1.6.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.2.@key": {
+      "template": "1.6.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.@key": {
+      "template": "1.7",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.@className": {
+      "template": "summary",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.1.@key": {
+      "template": "1.7.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.@key": {
+      "template": "1.7.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
         "2"
       ],
       "type": "attribute-static"

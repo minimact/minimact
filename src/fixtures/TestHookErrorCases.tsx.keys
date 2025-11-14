@@ -1,0 +1,39 @@
+import { useState } from '@minimact/core';
+// This file tests edge cases that should be handled gracefully
+
+// Valid import
+import useToggle from './useToggle';
+
+// Test: Import from node_modules (should be skipped)
+// import { someHook } from 'some-library'; // Commented out for now
+
+// Test: Import non-existent file (should be skipped)
+// import useNonExistent from './useNonExistent'; // Commented out for now
+
+/**
+ * Component testing error handling edge cases
+ */
+export default function TestHookErrorCases() {
+  const [isOn, toggle, toggleUI] = useToggle('toggle1', true);
+
+  return (
+    <div key='1' className="test-error-cases">
+      <h1 key='1.1'>Hook Error Cases Test</h1>
+      <div key='1.2' className="section">
+        <h2 key='1.2.1'>Valid Import (Control)</h2>
+        <p key='1.2.2'>Toggle is: {isOn ? 'ON' : 'OFF'}</p>
+        <button key='1.2.3' onClick={toggle}>Manual Toggle</button>
+        {toggleUI}
+      </div>
+      <div key='1.3' className="section">
+        <h2 key='1.3.1'>Error Cases</h2>
+        <p key='1.3.2'>Check console for warnings about:</p>
+        <ul key='1.3.3'>
+          <li key='1.3.3.1'>Non-relative imports (node_modules) - should be skipped</li>
+          <li key='1.3.3.2'>Missing files - should be skipped gracefully</li>
+          <li key='1.3.3.3'>Circular imports - should be detected</li>
+        </ul>
+      </div>
+    </div>
+  );
+}

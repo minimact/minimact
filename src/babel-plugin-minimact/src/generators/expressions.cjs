@@ -381,6 +381,36 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return 'State';
     }
 
+    // 🔥 NEW: Check if this identifier is a custom hook return value
+    if (currentComponent && currentComponent.customHooks) {
+      for (const hookInstance of currentComponent.customHooks) {
+        if (!hookInstance.metadata || !hookInstance.metadata.returnValues) continue;
+
+        // Check if this identifier matches any non-UI return value
+        const returnValueIndex = hookInstance.returnValues.indexOf(node.name);
+        if (returnValueIndex !== -1) {
+          const returnValueMetadata = hookInstance.metadata.returnValues[returnValueIndex];
+
+          // Skip UI return values (they're handled separately as VComponentWrapper)
+          if (returnValueMetadata.type === 'jsx') {
+            return node.name; // Keep as-is for UI variables
+          }
+
+          // Replace with lifted state access for state/method returns
+          if (returnValueMetadata.type === 'state') {
+            // Access the hook's lifted state: State["hookNamespace.stateVarName"]
+            const liftedStatePath = `${hookInstance.namespace}.${returnValueMetadata.name}`;
+            return `GetState<dynamic>("${liftedStatePath}")`;
+          } else if (returnValueMetadata.type === 'method') {
+            // For methods, we can't call them from parent - warn and keep as-is for now
+            // In the future, we could emit a method that invokes the child component's method
+            console.warn(`[Custom Hook] Cannot access method '${node.name}' from hook '${hookInstance.hookName}' in parent component`);
+            return node.name;
+          }
+        }
+      }
+    }
+
     return node.name;
   }
 

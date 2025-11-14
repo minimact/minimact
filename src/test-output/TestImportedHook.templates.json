@@ -1,7 +1,7 @@
 {
   "component": "TestImportedHook",
   "version": "1.0",
-  "generatedAt": 1763078775724,
+  "generatedAt": 1763085862480,
   "templates": {
     "1.1.1": {
       "template": "Imported Hook Test",

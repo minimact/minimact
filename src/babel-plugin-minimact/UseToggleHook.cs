@@ -1,14 +1,12 @@
-using System;
+using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Extensions;
+using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Minimact.AspNetCore.Core;
-using Minimact.AspNetCore.Rendering;
-using Minimact.AspNetCore.Extensions;
-using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
 
-namespace MinimactTest.Components
-{
+namespace Minimact.Components;
+
 // ============================================================
 // HOOK CLASS - Generated from useToggle
 // ============================================================
@@ -104,6 +102,4 @@ public partial class TestImportedHook : MinimactComponent
     {
         SetState(nameof(count), count + 1);
     }
-}
-
 }
