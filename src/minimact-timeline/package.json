@@ -1,10 +1,10 @@
 {
-  "name": "@minimact/grains",
+  "name": "@minimact/timeline",
   "version": "0.1.0",
-  "description": "Autonomous, stateful, spawnable grain system with probabilistic routing and reward-based learning for Minimact 🌾",
+  "description": "Declarative, time-based state orchestration system with precise timing and server-side prediction for Minimact 🎬",
   "type": "module",
-  "main": "dist/grains.js",
-  "module": "dist/grains.esm.js",
+  "main": "dist/timeline.js",
+  "module": "dist/timeline.esm.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -17,15 +17,15 @@
   },
   "keywords": [
     "minimact",
-    "grains",
-    "actors",
-    "autonomous",
-    "probabilistic",
-    "reinforcement-learning",
-    "spatial-network",
-    "reactive",
-    "spawnable",
-    "stateful"
+    "timeline",
+    "animation",
+    "orchestration",
+    "keyframes",
+    "state-machine",
+    "temporal",
+    "choreography",
+    "presentation",
+    "flash"
   ],
   "author": "Minimact Team",
   "license": "MIT",

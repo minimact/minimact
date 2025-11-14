@@ -5,15 +5,15 @@ export default {
   input: 'src/index.ts',
   output: [
     {
-      file: 'dist/grains.js',
+      file: 'dist/timeline.js',
       format: 'iife',
-      name: 'MinimactGrains',
+      name: 'MinimactTimeline',
       globals: {
         '@minimact/core': 'Minimact'
       }
     },
     {
-      file: 'dist/grains.esm.js',
+      file: 'dist/timeline.esm.js',
       format: 'es'
     }
   ],

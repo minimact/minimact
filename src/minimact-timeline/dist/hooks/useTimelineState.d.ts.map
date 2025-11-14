@@ -1,0 +1,1 @@
+{"version":3,"file":"useTimelineState.d.ts","sourceRoot":"","sources":["../../src/hooks/useTimelineState.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAElD;;;;;;;;;;;;;;;;;;;;;;;;;;;GA2BG;AACH,wBAAgB,gBAAgB,CAAC,CAAC,EAChC,QAAQ,EAAE,cAAc,EACxB,QAAQ,EAAE,MAAM,EAChB,MAAM,EAAE,CAAC,KAAK,EAAE,CAAC,KAAK,IAAI,EAC1B,WAAW,GAAE,OAAe,GAC3B,IAAI,CAIN"}
