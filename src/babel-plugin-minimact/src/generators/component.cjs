@@ -446,6 +446,10 @@ function generateComponent(component) {
   // GetClientHandlers method - returns JavaScript code for client-only event handlers
   if (component.clientHandlers && component.clientHandlers.length > 0) {
     lines.push('');
+    lines.push('    /// <summary>');
+    lines.push('    /// Returns JavaScript event handlers for client-side execution');
+    lines.push('    /// These execute in the browser with bound hook context');
+    lines.push('    /// </summary>');
     lines.push('    protected override Dictionary<string, string> GetClientHandlers()');
     lines.push('    {');
     lines.push('        return new Dictionary<string, string>');
@@ -462,6 +466,52 @@ function generateComponent(component) {
 
       const comma = i < component.clientHandlers.length - 1 ? ',' : '';
       lines.push(`            ["${handler.name}"] = @"${escapedJs}"${comma}`);
+    }
+
+    lines.push('        };');
+    lines.push('    }');
+  }
+
+  // 🔥 NEW: GetClientEffects method - returns JavaScript effect callbacks
+  if (component.clientEffects && component.clientEffects.length > 0) {
+    lines.push('');
+    lines.push('    /// <summary>');
+    lines.push('    /// Returns JavaScript callbacks for useEffect hooks');
+    lines.push('    /// These execute in the browser with bound hook context');
+    lines.push('    /// </summary>');
+    lines.push('    protected override Dictionary<string, EffectDefinition> GetClientEffects()');
+    lines.push('    {');
+    lines.push('        return new Dictionary<string, EffectDefinition>');
+    lines.push('        {');
+
+    for (let i = 0; i < component.clientEffects.length; i++) {
+      const effect = component.clientEffects[i];
+
+      // Escape JavaScript for C# string literal
+      const escapedJs = effect.jsCode
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '');
+
+      // Extract dependency names from array
+      const deps = [];
+      if (effect.dependencies && effect.dependencies.elements) {
+        for (const dep of effect.dependencies.elements) {
+          if (dep && dep.name) {
+            deps.push(`"${dep.name}"`);
+          }
+        }
+      }
+      const depsArray = deps.length > 0 ? deps.join(', ') : '';
+
+      const comma = i < component.clientEffects.length - 1 ? ',' : '';
+
+      lines.push(`            ["${effect.name}"] = new EffectDefinition`);
+      lines.push(`            {`);
+      lines.push(`                Callback = @"${escapedJs}",`);
+      lines.push(`                Dependencies = new[] { ${depsArray} }`);
+      lines.push(`            }${comma}`);
     }
 
     lines.push('        };');

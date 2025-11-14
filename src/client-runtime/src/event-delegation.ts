@@ -132,34 +132,24 @@ export class EventDelegation {
       return null;
     }
 
-    // Check for @client: prefix (client-only handler)
-    let isClientOnly = false;
-    let cleanHandlerStr = handlerStr;
-
-    if (handlerStr.startsWith('@client:')) {
-      isClientOnly = true;
-      cleanHandlerStr = handlerStr.substring(8); // Remove '@client:' prefix
-    }
-
     // Parse handler string
     // Format: "MethodName" or "MethodName:arg1:arg2"
-    const parts = cleanHandlerStr.split(':');
+    const parts = handlerStr.split(':');
     const methodName = parts[0];
     const args = parts.slice(1);
 
     // Find component ID
     const componentId = this.findComponentId(element);
 
-    if (!componentId && !isClientOnly) {
+    if (!componentId) {
       console.warn('[Minimact] No component ID found for event handler:', handlerStr);
       return null;
     }
 
     return {
-      componentId: componentId || '',
+      componentId,
       methodName,
-      args,
-      isClientOnly
+      args
     };
   }
 
@@ -190,21 +180,6 @@ export class EventDelegation {
     const startTime = performance.now();
 
     try {
-      // Handle client-only handlers (run locally, don't call server)
-      if (handler.isClientOnly) {
-        const clientHandler = (window as any).MinimactHandlers?.[handler.methodName];
-
-        if (clientHandler && typeof clientHandler === 'function') {
-          this.log(`🟦 CLIENT HANDLER: ${handler.methodName}`, { handler });
-          clientHandler(event);
-          const latency = performance.now() - startTime;
-          this.log(`🟦 CLIENT HANDLER completed in ${latency.toFixed(2)}ms`, { handler });
-          return;
-        } else {
-          console.warn(`[Minimact] Client handler '${handler.methodName}' not found in window.MinimactHandlers`);
-          return;
-        }
-      }
       // Build args object
       const argsObj: any = {};
 
@@ -374,5 +349,4 @@ interface EventHandler {
   componentId: string;
   methodName: string;
   args: string[];
-  isClientOnly?: boolean; // True if handler runs client-side only (from window.MinimactHandlers)
 }

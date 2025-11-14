@@ -225,22 +225,28 @@ function extractEventHandler(value, component) {
       // Check if this is a client-only handler
       const isClientOnly = isClientOnlyHandler(processedBody);
 
-      if (isClientOnly) {
-        // Generate JavaScript code for client-only handler
-        const jsCode = generate(t.arrowFunctionExpression(processedParams, processedBody)).code;
+      // 🔥 NEW: Import helper functions from hooks.cjs
+      const { analyzeHookUsage, transformHandlerFunction } = require('./hooks.cjs');
 
-        // Add to clientHandlers collection (don't add to eventHandlers)
-        if (!component.clientHandlers) {
-          component.clientHandlers = [];
-        }
-        component.clientHandlers.push({
-          name: handlerName,
-          jsCode: jsCode
-        });
+      // 🔥 NEW: ALWAYS generate client-side handler
+      const hookCalls = analyzeHookUsage(t.arrowFunctionExpression(processedParams, processedBody));
 
-        // Return @client: prefixed handler ID
-        return `@client:${handlerName}`;
-      } else {
+      // Transform to regular function with hook mappings
+      const transformedFunction = transformHandlerFunction(processedBody, processedParams, hookCalls);
+      const jsCode = generate(transformedFunction).code;
+
+      // Add to clientHandlers collection
+      if (!component.clientHandlers) {
+        component.clientHandlers = [];
+      }
+      component.clientHandlers.push({
+        name: handlerName,
+        jsCode: jsCode,
+        hookCalls: hookCalls
+      });
+
+      // 🔥 ALSO add to eventHandlers if it modifies state (not client-only)
+      if (!isClientOnly) {
         // Server handler - add to eventHandlers collection
         component.eventHandlers.push({
           name: handlerName,
@@ -249,17 +255,17 @@ function extractEventHandler(value, component) {
           capturedParams: capturedParams,  // e.g., ['item', 'index']
           isAsync: isAsync  // Track if handler is async
         });
-
-        // Return handler registration string
-        // If there are captured params, append them as colon-separated interpolations
-        // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
-        if (capturedParams.length > 0) {
-          const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
-          return `${handlerName}:${capturedRefs}`;
-        }
-
-        return handlerName;
       }
+
+      // Return handler registration string
+      // If there are captured params, append them as colon-separated interpolations
+      // Format: "Handle0:{item}:{index}" - matches client's existing "Method:arg1:arg2" parser
+      if (capturedParams.length > 0) {
+        const capturedRefs = capturedParams.map(p => `{${p}}`).join(':');
+        return `${handlerName}:${capturedRefs}`;
+      }
+
+      return handlerName;
     }
 
     if (t.isIdentifier(expr)) {

@@ -46,11 +46,14 @@ export class Minimact {
 
     // Default options
     this.options = {
+      componentId: options.componentId,
       hubUrl: options.hubUrl || '/minimact',
       enableDebugLogging: options.enableDebugLogging || false,
       reconnectInterval: options.reconnectInterval || 5000,
       enableHotReload: options.enableHotReload !== false, // Default to true
-      hotReloadWsUrl: options.hotReloadWsUrl
+      hotReloadWsUrl: options.hotReloadWsUrl,
+      handlers: options.handlers || [],
+      effects: options.effects || []
     };
 
     // Initialize subsystems (using lightweight SignalM!)
@@ -127,6 +130,11 @@ export class Minimact {
 
     // Register all components with server
     await this.registerAllComponents();
+
+    // Attach event handlers and run effects (if provided in constructor)
+    if (this.options.componentId && (this.options.handlers.length > 0 || this.options.effects.length > 0)) {
+      this.attachHandlersAndEffects(this.options.componentId, this.rootElement);
+    }
 
     this.log('Minimact started');
   }
@@ -410,6 +418,130 @@ export class Minimact {
   }
 
   /**
+   * Attach event handlers and run effects for a component
+   * Implements the new client-side execution architecture with zero pollution
+   */
+  private attachHandlersAndEffects(componentId: string, element: HTMLElement): void {
+    const component = this.hydration.getComponent(componentId);
+    if (!component) {
+      console.warn(`[Minimact] Component ${componentId} not found for handler/effect attachment`);
+      return;
+    }
+
+    // Create hook context for this component
+    const hookContext = this.createHookContext(componentId, element, component.context);
+
+    // Attach event handlers
+    for (const handler of this.options.handlers) {
+      this.attachHandler(element, handler, hookContext);
+    }
+
+    // Run effects
+    for (const effect of this.options.effects) {
+      this.runEffect(effect, hookContext, component.context);
+    }
+
+    this.log('Attached handlers and effects', { componentId, handlerCount: this.options.handlers.length, effectCount: this.options.effects.length });
+  }
+
+  /**
+   * Create hook context object that provides useState, useRef, etc.
+   * This gets bound to handler/effect functions via .bind(hookContext)
+   */
+  private createHookContext(componentId: string, element: HTMLElement, componentContext: any): any {
+    return {
+      useState: (key: string) => {
+        const value = componentContext.state.get(key);
+        const setter = (newValue: any) => {
+          // 1. Update local state
+          componentContext.state.set(key, newValue);
+
+          // 2. Check hint queue (apply template patch instantly)
+          const stateChanges: Record<string, any> = { [key]: newValue };
+          const hint = this.hintQueue.matchHint(componentId, stateChanges);
+
+          if (hint) {
+            // CACHE HIT! Apply patches instantly
+            this.domPatcher.applyPatches(element, hint.patches);
+            this.log(`🟢 CACHE HIT! Hint '${hint.hintId}' matched`, { componentId, key, newValue });
+          }
+
+          // 3. Sync to server (background)
+          this.signalR.updateComponentState(componentId, key, newValue)
+            .catch(err => {
+              console.error('[Minimact] Failed to sync state to server:', err);
+            });
+        };
+        return [value, setter];
+      },
+
+      useRef: (key: string) => {
+        return componentContext.refs.get(key) || { current: null };
+      }
+    };
+  }
+
+  /**
+   * Attach a single event handler to the DOM
+   */
+  private attachHandler(rootElement: HTMLElement, handler: any, hookContext: any): void {
+    // Navigate to target element using DOM path
+    const element = this.navigateToDomElement(rootElement, handler.domPath);
+
+    if (element) {
+      // Bind handler to hook context
+      const boundHandler = handler.jsCode.bind(hookContext);
+
+      // Attach event listener
+      element.addEventListener(handler.eventType, boundHandler);
+
+      this.log(`Attached ${handler.eventType} handler`, { domPath: handler.domPath });
+    } else {
+      console.warn(`[Minimact] Could not find element at path ${handler.domPath}`);
+    }
+  }
+
+  /**
+   * Run a single effect
+   */
+  private runEffect(effect: any, hookContext: any, componentContext: any): void {
+    // Bind effect callback to hook context
+    const boundCallback = effect.callback.bind(hookContext);
+
+    // Execute effect (after render)
+    queueMicrotask(() => {
+      const cleanup = boundCallback();
+      if (typeof cleanup === 'function') {
+        // Store cleanup function in component context
+        if (!componentContext.effects) {
+          componentContext.effects = [];
+        }
+        componentContext.effects.push({ cleanup });
+      }
+    });
+
+    this.log('Effect executed', { dependencies: effect.dependencies });
+  }
+
+  /**
+   * Navigate to a DOM element using index path
+   * Example: [0, 1, 2] means root.children[0].children[1].children[2]
+   */
+  private navigateToDomElement(root: HTMLElement, path: number[]): HTMLElement | null {
+    let current: HTMLElement | ChildNode = root;
+
+    for (const index of path) {
+      if (current.childNodes[index]) {
+        current = current.childNodes[index];
+      } else {
+        return null;
+      }
+    }
+
+    return current as HTMLElement;
+  }
+
+  /**
    * Debug logging
    */
   private log(message: string, data?: any): void {
@@ -492,6 +624,7 @@ export type { ComponentMetadata } from './component-registry';
 
 // Types
 export * from './types';
+export type { HandlerConfig, EffectConfig } from './types';
 
 // Auto-initialize if data-minimact-auto-init is present
 if (typeof window !== 'undefined') {

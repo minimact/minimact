@@ -227,12 +227,16 @@ public class MinimactPageRenderer
             document.getElementById('minimact-viewmodel').textContent
         );
 
-        // Register client-only event handlers
-        window.MinimactHandlers = window.MinimactHandlers || {{}};
-{GenerateClientHandlersScript(component)}
-        // Initialize Minimact client runtime
+        // Initialize Minimact client runtime with handlers and effects
         const minimact = new Minimact.Minimact('#minimact-root', {{
-            enableDebugLogging: {enableDebugLogging}
+            componentId: '{component.ComponentId}',
+            enableDebugLogging: {enableDebugLogging},
+            handlers: [
+{GenerateHandlerConfigs(component)}
+            ],
+            effects: [
+{GenerateEffectConfigs(component)}
+            ]
         }});
         minimact.start();
 
@@ -284,9 +288,10 @@ public class MinimactPageRenderer
     }
 
     /// <summary>
-    /// Generate JavaScript to register client-only event handlers
+    /// Generate handler configurations with pre-computed DOM paths
+    /// Walks VNode tree, finds event handlers, converts hex paths to DOM indices
     /// </summary>
-    private string GenerateClientHandlersScript(MinimactComponent component)
+    private string GenerateHandlerConfigs(MinimactComponent component)
     {
         var clientHandlers = component.GetClientHandlers();
         if (clientHandlers == null || clientHandlers.Count == 0)
@@ -294,18 +299,102 @@ public class MinimactPageRenderer
             return string.Empty;
         }
 
-        var script = new System.Text.StringBuilder();
-        foreach (var handler in clientHandlers)
+        var handlers = new List<string>();
+        var vnode = component.CurrentVNode;
+        if (vnode == null)
         {
-            // Escape the JavaScript code for embedding in HTML
-            var escapedJs = handler.Value
-                .Replace("\\", "\\\\")  // Escape backslashes
-                .Replace("\"", "\\\""); // Escape quotes
-
-            script.AppendLine($"        window.MinimactHandlers['{handler.Key}'] = {escapedJs};");
+            return string.Empty;
         }
 
-        return script.ToString();
+        var pathConverter = new PathConverter(vnode);
+
+        // Walk VNode tree to find event handlers
+        WalkVNodeForHandlers(vnode, (node, hexPath) =>
+        {
+            if (node is VElement element)
+            {
+                foreach (var prop in element.Props)
+                {
+                    // Check for event handlers (onClick, onChange, onSubmit, etc.)
+                    if (prop.Key.StartsWith("on") && prop.Key.Length > 2 && char.IsUpper(prop.Key[2]))
+                    {
+                        var handlerName = prop.Value?.ToString();
+                        if (handlerName != null && clientHandlers.ContainsKey(handlerName))
+                        {
+                            var jsCode = clientHandlers[handlerName];
+
+                            // Convert hex path → DOM indices
+                            var domPath = pathConverter.HexPathToDomPath(hexPath);
+                            var domPathJson = JsonSerializer.Serialize(domPath);
+
+                            // Extract event type (onClick → click, onChange → change)
+                            var eventType = prop.Key.Substring(2).ToLowerInvariant();
+
+                            handlers.Add($@"                {{
+                    domPath: {domPathJson},
+                    eventType: ""{eventType}"",
+                    jsCode: {jsCode}
+                }}");
+                        }
+                    }
+                }
+            }
+        });
+
+        return string.Join(",\n", handlers);
+    }
+
+    /// <summary>
+    /// Generate effect configurations (no DOM paths needed)
+    /// Effects execute with hook context - they don't need to be bound to DOM elements
+    /// </summary>
+    private string GenerateEffectConfigs(MinimactComponent component)
+    {
+        var clientEffects = component.GetClientEffects();
+        if (clientEffects == null || clientEffects.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var effects = new List<string>();
+
+        foreach (var effect in clientEffects)
+        {
+            var depsJson = JsonSerializer.Serialize(effect.Value.Dependencies);
+
+            effects.Add($@"                {{
+                    callback: {effect.Value.Callback},
+                    dependencies: {depsJson}
+                }}");
+        }
+
+        return string.Join(",\n", effects);
+    }
+
+    /// <summary>
+    /// Walk VNode tree and execute callback for each node with its hex path
+    /// </summary>
+    private void WalkVNodeForHandlers(VNode node, Action<VNode, string> callback)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        // Get hex path for this node
+        var hexPath = node.Path ?? "";
+
+        // Execute callback for this node
+        callback(node, hexPath);
+
+        // Recurse into children
+        if (node is VElement element && element.Children != null)
+        {
+            foreach (var child in element.Children)
+            {
+                WalkVNodeForHandlers(child, callback);
+            }
+        }
     }
 
     /// <summary>

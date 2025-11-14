@@ -76,6 +76,8 @@ function processComponent(path, state) {
     customHooks: [], // Custom hook instances (useCounter, useForm, etc.)
     importedHookMetadata: importedHooks, // 🔥 NEW: Store imported hook metadata
     eventHandlers: [],
+    clientHandlers: [], // 🔥 NEW: Client-side event handlers (JavaScript functions)
+    clientEffects: [], // 🔥 NEW: Client-side effects (JavaScript callbacks for useEffect)
     localVariables: [], // Local variables (const/let/var) in function body
     helperFunctions: [], // Helper functions declared in function body
     renderBody: null,

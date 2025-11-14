@@ -137,7 +137,7 @@ public abstract class MinimactTimeline<TState> where TState : class, new()
     /// <summary>
     /// Add multiple keyframes at once
     /// </summary>
-    protected void Keyframes(params TimelineKeyframe<TState>[] keyframes)
+    protected void AddKeyframes(params TimelineKeyframe<TState>[] keyframes)
     {
         foreach (var kf in keyframes)
         {

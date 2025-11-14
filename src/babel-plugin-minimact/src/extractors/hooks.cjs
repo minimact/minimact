@@ -199,9 +199,36 @@ function extractUseEffect(path, component) {
   const callback = path.node.arguments[0];
   const dependencies = path.node.arguments[1];
 
+  // 1. Server-side C# (existing)
   component.useEffect.push({
     body: callback,
     dependencies: dependencies
+  });
+
+  // 2. 🔥 NEW: Client-side JavaScript
+  if (!component.clientEffects) {
+    component.clientEffects = [];
+  }
+
+  const effectIndex = component.clientEffects.length;
+
+  // Analyze what hooks are used in the effect
+  const hookCalls = analyzeHookUsage(callback);
+
+  // Transform arrow function to regular function with hook mapping
+  const transformedCallback = transformEffectCallback(callback, hookCalls);
+
+  // Generate JavaScript code
+  const jsCode = generate(transformedCallback, {
+    compact: false,
+    retainLines: false
+  }).code;
+
+  component.clientEffects.push({
+    name: `Effect_${effectIndex}`,
+    jsCode: jsCode,
+    dependencies: dependencies,
+    hookCalls: hookCalls
   });
 }
 
@@ -1048,6 +1075,132 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// ========================================
+// 🔥 Client-Side Execution Helpers
+// ========================================
+
+const generate = require('@babel/generator').default;
+const traverse = require('@babel/traverse').default;
+
+/**
+ * Analyze which hooks are used in a function body
+ * Returns array like: ["useState", "useRef", "useEffect"]
+ */
+function analyzeHookUsage(callback) {
+  const hooks = new Set();
+
+  // Traverse the callback AST
+  traverse(callback, {
+    CallExpression(path) {
+      const callee = path.node.callee;
+
+      // Check for direct hook calls: useState(), useRef(), etc.
+      if (t.isIdentifier(callee)) {
+        if (callee.name.startsWith('use') && /^use[A-Z]/.test(callee.name)) {
+          hooks.add(callee.name);
+        }
+      }
+    }
+  });
+
+  return Array.from(hooks);
+}
+
+/**
+ * Transform effect callback:
+ * - Arrow function → Regular function (for .bind() compatibility)
+ * - Inject hook mappings at top: const useState = this.useState;
+ * - Preserve async if present
+ * - Preserve cleanup return value
+ */
+function transformEffectCallback(callback, hookCalls) {
+  if (!t.isArrowFunctionExpression(callback) && !t.isFunctionExpression(callback)) {
+    throw new Error('Effect callback must be a function');
+  }
+
+  let functionBody = callback.body;
+
+  // If body is an expression, wrap in block statement
+  if (!t.isBlockStatement(functionBody)) {
+    functionBody = t.blockStatement([
+      t.returnStatement(functionBody)
+    ]);
+  }
+
+  // Build hook mapping statements
+  // const useState = this.useState;
+  // const useRef = this.useRef;
+  const hookMappings = hookCalls.map(hookName => {
+    return t.variableDeclaration('const', [
+      t.variableDeclarator(
+        t.identifier(hookName),
+        t.memberExpression(
+          t.thisExpression(),
+          t.identifier(hookName)
+        )
+      )
+    ]);
+  });
+
+  // Prepend hook mappings to function body
+  const newBody = t.blockStatement([
+    ...hookMappings,
+    ...functionBody.body
+  ]);
+
+  // Return regular function expression
+  return t.functionExpression(
+    null,                    // No name (anonymous)
+    callback.params,         // Keep original params (usually empty)
+    newBody,                 // Body with hook mappings
+    false,                   // Not a generator
+    callback.async || false  // Preserve async
+  );
+}
+
+/**
+ * Transform event handler:
+ * - Arrow function → Regular function
+ * - Inject hook mappings at top
+ * - Preserve event parameter (e)
+ * - Preserve async if present
+ */
+function transformHandlerFunction(body, params, hookCalls) {
+  let functionBody = body;
+
+  // If body is expression, wrap in block
+  if (!t.isBlockStatement(functionBody)) {
+    functionBody = t.blockStatement([
+      t.expressionStatement(functionBody)
+    ]);
+  }
+
+  // Build hook mappings
+  const hookMappings = hookCalls.map(hookName => {
+    return t.variableDeclaration('const', [
+      t.variableDeclarator(
+        t.identifier(hookName),
+        t.memberExpression(t.thisExpression(), t.identifier(hookName))
+      )
+    ]);
+  });
+
+  // Prepend hook mappings
+  const newBody = t.blockStatement([
+    ...hookMappings,
+    ...functionBody.body
+  ]);
+
+  // Return regular function
+  return t.functionExpression(
+    null,
+    params,        // Keep event parameter: (e) => ...
+    newBody,
+    false,
+    false          // Handlers are typically not async (unless await inside)
+  );
+}
+
 module.exports = {
   extractHook,
   extractUseState,
@@ -1069,5 +1222,9 @@ module.exports = {
   extractUsePredictHint,
   extractUseServerTask,
   extractUseMvcState,
-  extractUseMvcViewModel
+  extractUseMvcViewModel,
+  // 🔥 Export new helpers
+  analyzeHookUsage,
+  transformEffectCallback,
+  transformHandlerFunction
 };

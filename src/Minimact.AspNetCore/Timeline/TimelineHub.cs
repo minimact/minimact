@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Minimact.AspNetCore.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

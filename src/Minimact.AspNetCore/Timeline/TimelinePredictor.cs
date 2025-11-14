@@ -1,5 +1,4 @@
 using Minimact.AspNetCore.Core;
-using Minimact.AspNetCore.Reconciliation;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -12,11 +11,9 @@ namespace Minimact.AspNetCore.Timeline;
 /// </summary>
 public class TimelinePredictor
 {
-    private readonly RustBridge _reconciler;
-
-    public TimelinePredictor(RustBridge reconciler)
+    // Note: RustBridge is a static class, so we don't need an instance
+    public TimelinePredictor()
     {
-        _reconciler = reconciler;
     }
 
     /// <summary>
@@ -47,12 +44,12 @@ public class TimelinePredictor
             ApplyStateToComponent(component, keyframe.State);
 
             // Render component with this state
-            var currentVNode = component.Render();
+            var currentVNode = component.RenderComponent();
 
             // Compute patches from previous keyframe
             if (previousVNode != null)
             {
-                var patches = _reconciler.Reconcile(previousVNode, currentVNode);
+                var patches = RustBridge.Reconcile(previousVNode, currentVNode);
                 patchesByTime[keyframe.Time] = patches;
 
                 Console.WriteLine($"  - Generated {patches.Count} patches");
