@@ -24,21 +24,31 @@ function analyzeImportedHooks(filePath, state) {
   const currentFilePath = state.file.opts.filename;
   const currentDir = path.dirname(currentFilePath);
 
+  console.log(`[DEBUG hookImports] Current file: ${currentFilePath}`);
+  console.log(`[DEBUG hookImports] Current dir: ${currentDir}`);
+
   // Find all import declarations
   filePath.traverse({
     ImportDeclaration(importPath) {
       const source = importPath.node.source.value;
+      console.log(`[DEBUG hookImports] Found import: ${source}`);
 
       // Only process relative imports (potential hook files)
       if (!source.startsWith('./') && !source.startsWith('../')) {
+        console.log(`[DEBUG hookImports] Skipping non-relative import: ${source}`);
         return;
       }
 
+      console.log(`[DEBUG hookImports] Processing relative import: ${source}`);
+
       // Resolve the absolute path to the imported file
       const resolvedPath = resolveImportPath(source, currentDir);
+      console.log(`[DEBUG hookImports] Resolved path: ${resolvedPath}`);
       if (!resolvedPath || !fs.existsSync(resolvedPath)) {
+        console.log(`[DEBUG hookImports] File not found: ${resolvedPath}`);
         return;
       }
+      console.log(`[DEBUG hookImports] File exists, reading...`);
 
       // Read and parse the imported file
       try {

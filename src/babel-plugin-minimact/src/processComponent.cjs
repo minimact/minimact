@@ -45,6 +45,20 @@ function processComponent(path, state) {
 
   state.file.minimactComponents = state.file.minimactComponents || [];
 
+  // 🔥 NEW: Analyze imported hooks FIRST (before component processing)
+  // This allows us to detect hook metadata for cross-file imports
+  // NOTE: We pass state.file.path (Program) not path (Function), since imports are at file level
+  console.log(`[DEBUG Hook Import] Analyzing imports for ${componentName}...`);
+  const importedHooks = analyzeImportedHooks(state.file.path, state);
+  console.log(`[DEBUG Hook Import] Found ${importedHooks.size} imported hooks`);
+
+  if (importedHooks.size > 0) {
+    console.log(`[Hook Import] Found ${importedHooks.size} imported hook(s) in ${componentName}:`);
+    importedHooks.forEach((metadata, hookName) => {
+      console.log(`  - ${hookName} from ${metadata.filePath}`);
+    });
+  }
+
   const component = {
     name: componentName,
     props: [],
@@ -60,6 +74,7 @@ function processComponent(path, state) {
     useToggle: [],
     useDropdown: [],
     customHooks: [], // Custom hook instances (useCounter, useForm, etc.)
+    importedHookMetadata: importedHooks, // 🔥 NEW: Store imported hook metadata
     eventHandlers: [],
     localVariables: [], // Local variables (const/let/var) in function body
     helperFunctions: [], // Helper functions declared in function body
@@ -344,6 +359,71 @@ function processComponent(path, state) {
         console.log(`  - ${f.name}()`);
       });
     }
+  }
+
+  // 🔥 NEW: Generate C# classes for imported hooks
+  // After component processing is complete, check if any imported hooks were used
+  if (component.customHooks && component.customHooks.length > 0) {
+    const generatedHookClasses = new Set();  // Track to avoid duplicates
+
+    component.customHooks.forEach(hookInstance => {
+      // Check if this hook has metadata (was imported) and hasn't been generated yet
+      if (hookInstance.metadata && !generatedHookClasses.has(hookInstance.className)) {
+        // Create a minimal component context for the hook
+        const hookComponentContext = {
+          name: hookInstance.className,
+          stateTypes: new Map(),
+          dependencies: new Map(),
+          externalImports: new Set(),
+          clientComputedVars: new Set(),
+          eventHandlers: []
+        };
+
+        // Generate the hook class from metadata
+        const hookClass = generateHookClass(hookInstance.metadata, hookComponentContext);
+
+        // Create hook component structure (same as processCustomHook)
+        const hookComponent = {
+          name: hookInstance.className,
+          isHook: true, // Flag to identify this as a hook class
+          hookData: hookClass, // Store the generated C# code
+          hookAnalysis: hookInstance.metadata, // Store the analysis data
+          props: [],
+          useState: (hookInstance.metadata.states || []).map(s => ({
+            varName: s.varName,
+            setterName: s.setterName,
+            initialValue: s.initialValue,
+            type: s.type
+          })),
+          useClientState: [],
+          useStateX: [],
+          useEffect: [],
+          useRef: [],
+          useMarkdown: [],
+          useTemplate: null,
+          useValidation: [],
+          useModal: [],
+          useToggle: [],
+          useDropdown: [],
+          eventHandlers: (hookInstance.metadata.eventHandlers || []),
+          localVariables: [],
+          helperFunctions: [],
+          renderBody: hookInstance.metadata.jsxElements,
+          pluginUsages: [],
+          stateTypes: new Map(),
+          dependencies: new Map(),
+          externalImports: new Set(),
+          clientComputedVars: new Set(),
+          templates: {}
+        };
+
+        // Add hook component to the components list
+        state.file.minimactComponents.push(hookComponent);
+        generatedHookClasses.add(hookInstance.className);
+
+        console.log(`[Custom Hook] Generated C# class for imported hook: ${hookInstance.className}`);
+      }
+    });
   }
 
   // Store the component path so we can nullify JSX later (after .tsx.keys generation)

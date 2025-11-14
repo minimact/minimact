@@ -17,6 +17,13 @@ function extractHook(path, component) {
 
   const hookName = node.callee.name;
 
+  // 🔥 NEW: Check if this hook was imported (takes precedence over built-in hooks)
+  if (component.importedHookMetadata && component.importedHookMetadata.has(hookName)) {
+    console.log(`[Custom Hook] Found imported hook call: ${hookName}`);
+    extractCustomHookCall(path, component, hookName);
+    return;
+  }
+
   switch (hookName) {
     case 'useState':
       extractUseState(path, component, 'useState');
@@ -973,10 +980,42 @@ function extractCustomHookCall(path, component, hookName) {
 
   // Extract destructured variables
   const elements = parent.id.elements;
-  const uiVarName = elements[elements.length - 1]?.name; // Last element is usually the UI
+
+  // 🔥 NEW: Get hook metadata from imported hooks or inline hook
+  let hookMetadata = null;
+
+  // Check if this hook was imported
+  if (component.importedHookMetadata && component.importedHookMetadata.has(hookName)) {
+    hookMetadata = component.importedHookMetadata.get(hookName);
+    console.log(`[Custom Hook] Using imported metadata for ${hookName}`);
+  } else {
+    // TODO: Check if hook is defined inline in same file
+    console.log(`[Custom Hook] No metadata found for ${hookName}, assuming last return value is UI`);
+  }
+
+  // 🔥 NEW: Use returnValues from metadata to identify UI variable
+  let uiVarName = null;
+  if (hookMetadata && hookMetadata.returnValues) {
+    // Find the JSX return value
+    const jsxReturnIndex = hookMetadata.returnValues.findIndex(rv => rv.type === 'jsx');
+    if (jsxReturnIndex !== -1 && jsxReturnIndex < elements.length) {
+      const uiElement = elements[jsxReturnIndex];
+      if (uiElement && t.isIdentifier(uiElement)) {
+        uiVarName = uiElement.name;
+        console.log(`[Custom Hook] Found UI variable from metadata at index ${jsxReturnIndex}: ${uiVarName}`);
+      }
+    }
+  } else {
+    // Fallback: Assume last element is UI (old behavior)
+    const lastElement = elements[elements.length - 1];
+    if (lastElement && t.isIdentifier(lastElement)) {
+      uiVarName = lastElement.name;
+      console.log(`[Custom Hook] Using fallback: assuming last element is UI: ${uiVarName}`);
+    }
+  }
 
   if (!uiVarName) {
-    console.warn(`[Custom Hook] ${hookName} must return UI as last element`);
+    console.warn(`[Custom Hook] ${hookName} could not identify UI variable`);
     return;
   }
 
@@ -987,13 +1026,16 @@ function extractCustomHookCall(path, component, hookName) {
 
   const generate = require('@babel/generator').default;
 
+  const className = hookMetadata ? hookMetadata.className : `${capitalize(hookName)}Hook`;
+
   component.customHooks.push({
     hookName,
-    className: `${capitalize(hookName)}Hook`,
+    className,
     namespace,
     uiVarName, // Variable name that holds the UI (e.g., 'counterUI')
     params: hookParams.map(p => generate(p).code),
-    returnValues: elements.map(e => e ? e.name : null).filter(Boolean)
+    returnValues: elements.map(e => e ? e.name : null).filter(Boolean),
+    metadata: hookMetadata // 🔥 NEW: Store full metadata for later use
   });
 
   console.log(`[Custom Hook] Found ${hookName}('${namespace}') → UI in {${uiVarName}}`);
