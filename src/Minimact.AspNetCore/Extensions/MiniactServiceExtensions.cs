@@ -269,6 +269,13 @@ public class MinimactOptions
     public bool EnableDebugLogging { get; set; } = false;
 
     /// <summary>
+    /// Enable client debug mode (sends debug() calls to server for C# breakpoint debugging)
+    /// Set to true to enable window.minimactDebug() to send messages to MinimactHub.DebugMessage
+    /// (default: false)
+    /// </summary>
+    public bool EnableClientDebugMode { get; set; } = false;
+
+    /// <summary>
     /// Enable automatic plugin discovery via reflection (default: true)
     /// </summary>
     public bool AutoDiscoverPlugins { get; set; } = true;

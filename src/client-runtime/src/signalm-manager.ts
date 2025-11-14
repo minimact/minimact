@@ -1,6 +1,7 @@
 import { SignalMConnection, ConnectionState } from './signalm/index';
 import { Patch } from './types';
 import { ArrayOperation } from './hooks';
+import { DEBUG_MODE } from './debug-config';
 
 /**
  * Manages SignalM connection to the Minimact server hub
@@ -263,6 +264,29 @@ export class SignalMManager {
     } catch (error) {
       console.error(`[Minimact] Failed to invoke ${methodName}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Send debug message to server for centralized debugging
+   * Set a breakpoint in MinimactHub.DebugMessage to inspect client state
+   *
+   * Only sends to server if DEBUG_MODE is enabled (use setDebugMode(true))
+   * Always logs locally regardless of DEBUG_MODE
+   */
+  async debug(category: string, message: string, data?: any): Promise<void> {
+    // Always log locally
+    console.log(`[DEBUG] [${category}] ${message}`, data !== undefined ? data : '');
+
+    // Only send to server if DEBUG_MODE is enabled
+    if (!DEBUG_MODE) {
+      return;
+    }
+
+    try {
+      await this.connection.invoke('DebugMessage', category, message, data);
+    } catch (error) {
+      console.error('[Minimact] Failed to send debug message to server:', error);
     }
   }
 

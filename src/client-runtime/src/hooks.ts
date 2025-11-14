@@ -119,6 +119,14 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
       ? (newValue as (prev: T) => T)(context.state.get(stateKey) as T)
       : newValue;
 
+    // Debug: State change
+    context.signalR?.debug('state', 'useState called', {
+      componentId: context.componentId,
+      stateKey,
+      oldValue: context.state.get(stateKey),
+      newValue: actualNewValue
+    });
+
     // Build state change object for hint matching
     const stateChanges: Record<string, any> = {
       [stateKey]: actualNewValue
@@ -134,6 +142,16 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
 
       context.domPatcher.applyPatches(context.element, hint.patches);
 
+      // Debug: Template match success
+      context.signalR?.debug('templates', 'Template matched', {
+        componentId: context.componentId,
+        hintId: hint.hintId,
+        stateChanges,
+        patchCount: hint.patches.length,
+        latency,
+        confidence: hint.confidence
+      });
+
       // Notify playground of cache hit
       if (context.playgroundBridge) {
         context.playgroundBridge.cacheHit({
@@ -147,6 +165,13 @@ export function useState<T>(initialValue: T): [T, (newValue: T | ((prev: T) => T
     } else {
       // 🔴 CACHE MISS - No prediction found
       const latency = performance.now() - startTime;
+
+      // Debug: Template match failed
+      context.signalR?.debug('templates', 'Template match failed', {
+        componentId: context.componentId,
+        stateChanges,
+        latency
+      });
       console.log(`[Minimact] 🔴 CACHE MISS - No prediction for state change:`, stateChanges);
 
       // Notify playground of cache miss

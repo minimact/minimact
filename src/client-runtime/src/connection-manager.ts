@@ -57,6 +57,12 @@ export interface IConnectionManager {
   updateClientComputedState(componentId: string, computedValues: Record<string, any>): Promise<void>;
 
   /**
+   * Send debug message to server for centralized debugging
+   * Only sends to server if DEBUG_MODE is enabled
+   */
+  debug(category: string, message: string, data?: any): Promise<void>;
+
+  /**
    * Event subscription
    */
   on(event: string, handler: Function): void;

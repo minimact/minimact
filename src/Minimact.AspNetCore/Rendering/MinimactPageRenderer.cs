@@ -184,6 +184,7 @@ public class MinimactPageRenderer
         }
 
         var enableDebugLogging = options.EnableDebugLogging ? "true" : "false";
+        var enableClientDebugMode = options.EnableClientDebugMode ? "true" : "false";
 
         return $@"<!DOCTYPE html>
 <html lang=""en"">
@@ -226,6 +227,14 @@ public class MinimactPageRenderer
         window.__MINIMACT_VIEWMODEL__ = JSON.parse(
             document.getElementById('minimact-viewmodel').textContent
         );
+
+        // Enable client debug mode if configured
+        if ({enableClientDebugMode}) {{
+            if (typeof Minimact !== 'undefined' && Minimact.setDebugMode) {{
+                Minimact.setDebugMode(true);
+                console.log('[Minimact] Client debug mode enabled - debug() calls will be sent to server');
+            }}
+        }}
 
         // Initialize Minimact client runtime with handlers and effects
         const minimact = new Minimact.Minimact('#minimact-root', {{
@@ -526,6 +535,13 @@ public class MinimactPageRenderOptions
     /// Enable debug logging in client runtime (default: false)
     /// </summary>
     public bool EnableDebugLogging { get; set; } = false;
+
+    /// <summary>
+    /// Enable client debug mode - sends debug() calls to server for C# breakpoint debugging (default: false)
+    /// When enabled, window.minimactDebug() will send messages to MinimactHub.DebugMessage
+    /// Set a breakpoint in MinimactHub.DebugMessage to inspect client state in C#
+    /// </summary>
+    public bool EnableClientDebugMode { get; set; } = false;
 
     /// <summary>
     /// Enable cache busting by appending timestamp to script URL (default: false)

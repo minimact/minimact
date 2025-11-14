@@ -1468,6 +1468,32 @@ public class MinimactHub : Hub
 
     #endregion
 
+    #region Debug Methods
+
+    /// <summary>
+    /// Centralized debug endpoint for client-side debugging
+    /// Set a breakpoint here to inspect client state, events, or other debug data
+    /// </summary>
+    public async Task DebugMessage(string category, string message, object? data = null)
+    {
+        // 🔴 SET BREAKPOINT HERE 🔴
+        // Inspect parameters: category, message, data
+        Console.WriteLine($"[DEBUG] [{category}] {message}");
+
+        if (data != null)
+        {
+            var dataJson = JsonSerializer.Serialize(data, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            Console.WriteLine($"[DEBUG] Data: {dataJson}");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    #endregion
+
     #region State Inspector Methods (for SWIG Electron DevTools)
 
     /// <summary>

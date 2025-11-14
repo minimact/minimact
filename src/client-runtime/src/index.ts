@@ -63,7 +63,8 @@ export class Minimact {
     });
 
     this.domPatcher = new DOMPatcher({
-      debugLogging: this.options.enableDebugLogging
+      debugLogging: this.options.enableDebugLogging,
+      signalR: this.signalR
     });
 
     this.clientState = new ClientStateManager({
@@ -125,7 +126,10 @@ export class Minimact {
     this.eventDelegation = new EventDelegation(
       this.rootElement,
       (componentId, methodName, args) => this.signalR.invokeComponentMethod(componentId, methodName, args),
-      { debugLogging: this.options.enableDebugLogging }
+      {
+        debugLogging: this.options.enableDebugLogging,
+        signalR: this.signalR
+      }
     );
 
     // Register all components with server
@@ -190,6 +194,13 @@ export class Minimact {
       if (component) {
         this.domPatcher.applyPatches(component.element, patches as Patch[]);
         this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
+
+        // Debug: Prediction was wrong
+        this.signalR.debug('predictions', 'Prediction corrected', {
+          componentId,
+          patchCount: patches.length,
+          message: 'Server sent correction - original prediction was incorrect'
+        });
       }
     });
 
@@ -213,6 +224,12 @@ export class Minimact {
     // Handle reconnection
     this.signalR.on('reconnected', async () => {
       this.log('Reconnected - re-registering components');
+
+      // Debug: Reconnection
+      this.signalR.debug('connection', 'SignalR reconnected - re-registering components', {
+        timestamp: new Date().toISOString()
+      });
+
       await this.registerAllComponents();
     });
 
@@ -275,6 +292,12 @@ export class Minimact {
     // Handle errors
     this.signalR.on('error', ({ message }) => {
       console.error('[Minimact] Server error:', message);
+
+      // Debug: Server error
+      this.signalR.debug('errors', 'Server error received', {
+        errorMessage: message,
+        timestamp: new Date().toISOString()
+      });
     });
   }
 
@@ -292,6 +315,13 @@ export class Minimact {
           this.log('Registered component', { componentId });
         } catch (error) {
           console.error('[Minimact] Failed to register component:', componentId, error);
+
+          // Debug: Component registration failure
+          this.signalR.debug('components', 'Failed to register component', {
+            componentId,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
         }
       }
     }
@@ -548,6 +578,9 @@ export class Minimact {
     if (this.options.enableDebugLogging) {
       console.log(`[Minimact] ${message}`, data || '');
     }
+
+    // Always send to server if debug mode enabled
+    this.signalR?.debug('minimact', message, data);
   }
 }
 
@@ -560,6 +593,9 @@ export { HydrationManager } from './hydration';
 export { HintQueue } from './hint-queue';
 export { HotReloadManager } from './hot-reload';
 export type { HotReloadConfig, HotReloadMessage, HotReloadMetrics } from './hot-reload';
+
+// Debug utilities
+export { setDebugMode, DEBUG_MODE } from './debug-config';
 
 // Client-computed state (for external libraries)
 export {
@@ -652,6 +688,54 @@ if (typeof window !== 'undefined') {
 // Make available globally
 if (typeof window !== 'undefined') {
   (window as any).Minimact = Minimact;
+
+  /**
+   * Global debug helper for easy debugging from browser console
+   * Set a breakpoint in MinimactHub.DebugMessage (C#) to inspect client state
+   *
+   * @example
+   * // Enable debug mode (sends messages to server)
+   * minimactDebug.enable()
+   *
+   * @example
+   * // Send debug message to server
+   * minimactDebug('state', 'Current component state', { count: 5, isOpen: true })
+   *
+   * @example
+   * // Debug template matching issues:
+   * minimactDebug('templates', 'No template match', { componentId, stateChanges })
+   *
+   * @example
+   * // Disable debug mode
+   * minimactDebug.disable()
+   */
+  const minimactDebugFn = (category: string, message: string, data?: any) => {
+    const minimact = (window as any).minimact;
+    if (minimact && minimact.signalR) {
+      minimact.signalR.debug(category, message, data);
+    } else {
+      console.warn('[Minimact Debug] Minimact instance not found on window.minimact');
+      console.log(`[DEBUG] [${category}] ${message}`, data);
+    }
+  };
+
+  // Add helper methods
+  minimactDebugFn.enable = () => {
+    const { setDebugMode } = require('./signalr-manager');
+    setDebugMode(true);
+  };
+
+  minimactDebugFn.disable = () => {
+    const { setDebugMode } = require('./signalr-manager');
+    setDebugMode(false);
+  };
+
+  minimactDebugFn.isEnabled = () => {
+    const { DEBUG_MODE } = require('./signalr-manager');
+    return DEBUG_MODE;
+  };
+
+  (window as any).minimactDebug = minimactDebugFn;
 }
 
 export default Minimact;

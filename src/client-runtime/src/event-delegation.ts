@@ -1,6 +1,7 @@
 import type { HintQueue } from './hint-queue';
 import type { DOMPatcher } from './dom-patcher';
 import type { PlaygroundBridge } from './playground-bridge';
+import type { IConnectionManager } from './connection-manager';
 
 /**
  * Event delegation system for handling component events
@@ -14,6 +15,7 @@ export class EventDelegation {
   private hintQueue?: HintQueue;
   private domPatcher?: DOMPatcher;
   private playgroundBridge?: PlaygroundBridge;
+  private signalR?: IConnectionManager;
 
   constructor(
     rootElement: HTMLElement,
@@ -23,6 +25,7 @@ export class EventDelegation {
       hintQueue?: HintQueue;
       domPatcher?: DOMPatcher;
       playgroundBridge?: PlaygroundBridge;
+      signalR?: IConnectionManager;
     } = {}
   ) {
     this.rootElement = rootElement;
@@ -31,6 +34,7 @@ export class EventDelegation {
     this.hintQueue = options.hintQueue;
     this.domPatcher = options.domPatcher;
     this.playgroundBridge = options.playgroundBridge;
+    this.signalR = options.signalR;
     this.eventListeners = new Map();
 
     this.setupEventDelegation();
@@ -342,6 +346,9 @@ export class EventDelegation {
     if (this.debugLogging) {
       console.log(`[Minimact EventDelegation] ${message}`, data || '');
     }
+
+    // Always send to server if debug mode enabled
+    this.signalR?.debug('event-delegation', message, data);
   }
 }
 

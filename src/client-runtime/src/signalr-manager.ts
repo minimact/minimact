@@ -1,6 +1,10 @@
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr';
 import { Patch } from './types';
 import { ArrayOperation } from './hooks';
+import { DEBUG_MODE, setDebugMode } from './debug-config';
+
+// Re-export for backwards compatibility
+export { DEBUG_MODE, setDebugMode };
 
 /**
  * Manages SignalR connection to the Minimact server hub
@@ -240,6 +244,49 @@ export class SignalRManager {
     } catch (error) {
       console.error(`[Minimact] Failed to invoke ${methodName}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Send debug message to server for centralized debugging
+   * Set a breakpoint in MinimactHub.DebugMessage to inspect client state
+   *
+   * Only sends to server if DEBUG_MODE is enabled (use setDebugMode(true))
+   * Always logs locally regardless of DEBUG_MODE
+   *
+   * @param category - Debug category (e.g., 'state', 'hooks', 'templates', 'patches')
+   * @param message - Debug message
+   * @param data - Optional data object to inspect
+   *
+   * @example
+   * // Enable debug mode first
+   * import { setDebugMode } from '@minimact/core';
+   * setDebugMode(true);
+   *
+   * // Now debug calls will be sent to server
+   * signalR.debug('state', 'useState called', { stateKey, oldValue, newValue });
+   *
+   * @example
+   * // Debug template matching
+   * signalR.debug('templates', 'Template match failed', { componentId, stateChanges, availableTemplates });
+   *
+   * @example
+   * // From browser console
+   * minimactDebug('custom', 'My debug message', { foo: 'bar' });
+   */
+  async debug(category: string, message: string, data?: any): Promise<void> {
+    // Always log locally
+    console.log(`[DEBUG] [${category}] ${message}`, data !== undefined ? data : '');
+
+    // Only send to server if DEBUG_MODE is enabled
+    if (!DEBUG_MODE) {
+      return;
+    }
+
+    try {
+      await this.connection.invoke('DebugMessage', category, message, data);
+    } catch (error) {
+      console.error('[Minimact] Failed to send debug message to server:', error);
     }
   }
 
