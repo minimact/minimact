@@ -24,6 +24,7 @@ const { extractStructuralTemplates } = require('./extractors/structuralTemplates
 const { extractConditionalElementTemplates } = require('./extractors/conditionalElementTemplates.cjs');
 const { extractExpressionTemplates } = require('./extractors/expressionTemplates.cjs');
 const { analyzePluginUsage, validatePluginUsage } = require('./analyzers/analyzePluginUsage.cjs');
+const { analyzeTimeline } = require('./analyzers/timelineAnalyzer.cjs');
 const { HexPathGenerator } = require('./utils/hexPath.cjs');
 const { assignPathsToJSX } = require('./utils/pathAssignment.cjs');
 
@@ -311,6 +312,16 @@ function processComponent(path, state) {
           console.log(`  - ${JSON.stringify(et)}`);
         }
       });
+    }
+
+    // Analyze timeline usage (@minimact/timeline)
+    const timeline = analyzeTimeline(path, componentName);
+    if (timeline) {
+      component.timeline = timeline;
+      console.log(`[Minimact Timeline] Found timeline in ${componentName}:`);
+      console.log(`  - Duration: ${timeline.duration}ms`);
+      console.log(`  - Keyframes: ${timeline.keyframes.length}`);
+      console.log(`  - State bindings: ${timeline.stateBindings.size}`);
     }
 
     // Analyze plugin usage (Phase 3: Plugin System)

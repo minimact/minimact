@@ -1089,8 +1089,11 @@ const traverse = require('@babel/traverse').default;
 function analyzeHookUsage(callback) {
   const hooks = new Set();
 
-  // Traverse the callback AST
-  traverse(callback, {
+  // Create a minimal program wrapper to provide proper scope
+  const program = t.file(t.program([t.expressionStatement(callback)]));
+
+  // Traverse the program (which provides proper scope)
+  traverse(program, {
     CallExpression(path) {
       const callee = path.node.callee;
 

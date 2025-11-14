@@ -6,6 +6,7 @@ const t = require('@babel/types');
 const { generateRenderBody } = require('./renderBody.cjs');
 const { generateCSharpExpression, generateCSharpStatement, setCurrentComponent } = require('./expressions.cjs');
 const { generateServerTaskMethods } = require('./serverTask.cjs');
+const { generateTimelineAttributes } = require('./timelineGenerator.cjs');
 
 /**
  * Generate C# class for a component
@@ -15,6 +16,12 @@ function generateComponent(component) {
   setCurrentComponent(component);
 
   const lines = [];
+
+  // Timeline attributes (for @minimact/timeline)
+  if (component.timeline) {
+    const timelineAttrs = generateTimelineAttributes(component.timeline);
+    timelineAttrs.forEach(attr => lines.push(attr));
+  }
 
   // Loop template attributes (for predictive rendering)
   if (component.loopTemplates && component.loopTemplates.length > 0) {
