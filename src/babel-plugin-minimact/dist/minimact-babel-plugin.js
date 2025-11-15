@@ -10377,11 +10377,11 @@ ${protectedKeysCode}
 		          // Flush current literal elements
 		          if (currentLiteral.length > 0) {
 		            const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
-		            parts.push(`new List<object> { ${literalCode} }`);
+		            parts.push(`new[] { ${literalCode} }`);
 		            currentLiteral = [];
 		          }
-		          // Add spread array
-		          parts.push(`((IEnumerable<object>)${generateCSharpExpression(element.argument)})`);
+		          // Add spread array (cast to preserve type)
+		          parts.push(generateCSharpExpression(element.argument));
 		        } else {
 		          currentLiteral.push(element);
 		        }
@@ -10390,7 +10390,7 @@ ${protectedKeysCode}
 		      // Flush remaining literals
 		      if (currentLiteral.length > 0) {
 		        const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
-		        parts.push(`new List<object> { ${literalCode} }`);
+		        parts.push(`new[] { ${literalCode} }`);
 		      }
 
 		      // Combine with Concat
@@ -10404,6 +10404,12 @@ ${protectedKeysCode}
 
 		    // No spread - simple array literal
 		    const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
+
+		    // Infer type from first element if all are string literals
+		    if (node.elements.length > 0 && node.elements.every(e => t.isStringLiteral(e))) {
+		      return `new List<string> { ${elements} }`;
+		    }
+
 		    // Use List<dynamic> for empty arrays to be compatible with dynamic LINQ results
 		    const listType = elements.length === 0 ? 'dynamic' : 'object';
 		    return `new List<${listType}> { ${elements} }`;
@@ -10656,6 +10662,12 @@ ${protectedKeysCode}
 		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toUpperCase' })) {
 		      const object = generateCSharpExpression(node.callee.object);
 		      return `${object}.ToUpper()`;
+		    }
+
+		    // Handle .trim() → .Trim()
+		    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'trim' })) {
+		      const object = generateCSharpExpression(node.callee.object);
+		      return `${object}.Trim()`;
 		    }
 
 		    // Handle .substring(start, end) → .Substring(start, end)
@@ -35735,6 +35747,24 @@ ${protectedKeysCode}
 	}
 
 	/**
+	 * Convert non-boolean expressions to boolean for C# conditions
+	 * In JavaScript, any value can be truthy/falsy. In C#, we need explicit bools.
+	 * This wraps non-boolean expressions with a runtime type converter.
+	 */
+	function convertStringToBool(csharpTest, originalTestNode) {
+	  // If it's already a boolean expression, return as-is
+	  if (t$d.isBinaryExpression(originalTestNode) ||
+	      t$d.isLogicalExpression(originalTestNode) ||
+	      t$d.isUnaryExpression(originalTestNode, { operator: '!' })) {
+	    return csharpTest;
+	  }
+
+	  // For any other expression, wrap with ToBool() helper
+	  // This will handle strings, numbers, objects, etc. at runtime
+	  return `MinimactHelpers.ToBool(${csharpTest})`;
+	}
+
+	/**
 	 * Transpile individual TypeScript statement → C# statement
 	 */
 	function transpileStatement(statement) {
@@ -35792,7 +35822,11 @@ ${protectedKeysCode}
 	  }
 
 	  if (t$d.isIfStatement(statement)) {
-	    const test = transpileExpression$1(statement.test);
+	    let test = transpileExpression$1(statement.test);
+
+	    // Convert string truthy checks to proper C# boolean expressions
+	    test = convertStringToBool(test, statement.test);
+
 	    const consequent = transpileStatement(statement.consequent);
 	    const alternate = statement.alternate
 	      ? `\nelse\n{\n${indent$1(transpileStatement(statement.alternate), 4)}\n}`
@@ -36063,6 +36097,24 @@ ${protectedKeysCode}
 	  if (callee.endsWith('.split')) {
 	    const obj = callee.replace('.split', '');
 	    return `${obj}.Split(${args})`;
+	  }
+
+	  // Special handling for .trim() → .Trim()
+	  if (callee.endsWith('.trim')) {
+	    const obj = callee.replace('.trim', '');
+	    return `${obj}.Trim(${args})`;
+	  }
+
+	  // Special handling for .toLowerCase() → .ToLower()
+	  if (callee.endsWith('.toLowerCase')) {
+	    const obj = callee.replace('.toLowerCase', '');
+	    return `${obj}.ToLower(${args})`;
+	  }
+
+	  // Special handling for .toUpperCase() → .ToUpper()
+	  if (callee.endsWith('.toUpperCase')) {
+	    const obj = callee.replace('.toUpperCase', '');
+	    return `${obj}.ToUpper(${args})`;
 	  }
 
 	  // Special handling for fetch (convert to HttpClient call)

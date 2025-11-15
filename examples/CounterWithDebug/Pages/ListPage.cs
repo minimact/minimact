@@ -47,11 +47,10 @@ public partial class ListPage : MinimactComponent
 
     public void addItem()
     {
-        if (!string.IsNullOrWhiteSpace(newItem))
-        {
-            SetState(nameof(items), items.Concat(new[] { newItem }).ToList());
-            SetState(nameof(newItem), "");
-        }
+        if (MinimactHelpers.ToBool(newItem.Trim())) {
+    SetState(nameof(items), items.Concat(new[] { newItem }).ToList());
+    SetState(nameof(newItem), "");
+}
     }
 
     public void Handle1(dynamic value)

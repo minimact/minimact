@@ -41,6 +41,24 @@ function transpileBlockStatement(block) {
 }
 
 /**
+ * Convert non-boolean expressions to boolean for C# conditions
+ * In JavaScript, any value can be truthy/falsy. In C#, we need explicit bools.
+ * This wraps non-boolean expressions with a runtime type converter.
+ */
+function convertStringToBool(csharpTest, originalTestNode) {
+  // If it's already a boolean expression, return as-is
+  if (t.isBinaryExpression(originalTestNode) ||
+      t.isLogicalExpression(originalTestNode) ||
+      t.isUnaryExpression(originalTestNode, { operator: '!' })) {
+    return csharpTest;
+  }
+
+  // For any other expression, wrap with ToBool() helper
+  // This will handle strings, numbers, objects, etc. at runtime
+  return `MinimactHelpers.ToBool(${csharpTest})`;
+}
+
+/**
  * Transpile individual TypeScript statement → C# statement
  */
 function transpileStatement(statement) {
@@ -98,7 +116,11 @@ function transpileStatement(statement) {
   }
 
   if (t.isIfStatement(statement)) {
-    const test = transpileExpression(statement.test);
+    let test = transpileExpression(statement.test);
+
+    // Convert string truthy checks to proper C# boolean expressions
+    test = convertStringToBool(test, statement.test);
+
     const consequent = transpileStatement(statement.consequent);
     const alternate = statement.alternate
       ? `\nelse\n{\n${indent(transpileStatement(statement.alternate), 4)}\n}`
@@ -369,6 +391,24 @@ function transpileMethodCall(callee, args) {
   if (callee.endsWith('.split')) {
     const obj = callee.replace('.split', '');
     return `${obj}.Split(${args})`;
+  }
+
+  // Special handling for .trim() → .Trim()
+  if (callee.endsWith('.trim')) {
+    const obj = callee.replace('.trim', '');
+    return `${obj}.Trim(${args})`;
+  }
+
+  // Special handling for .toLowerCase() → .ToLower()
+  if (callee.endsWith('.toLowerCase')) {
+    const obj = callee.replace('.toLowerCase', '');
+    return `${obj}.ToLower(${args})`;
+  }
+
+  // Special handling for .toUpperCase() → .ToUpper()
+  if (callee.endsWith('.toUpperCase')) {
+    const obj = callee.replace('.toUpperCase', '');
+    return `${obj}.ToUpper(${args})`;
   }
 
   // Special handling for fetch (convert to HttpClient call)
