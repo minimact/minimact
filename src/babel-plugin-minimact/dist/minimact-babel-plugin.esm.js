@@ -94,7 +94,7 @@ var helpers = {
  * Type Conversion
  */
 
-const t$j = globalThis.__BABEL_TYPES__;
+const t$i = globalThis.__BABEL_TYPES__;
 
 /**
  * Convert TypeScript type annotation to C# type
@@ -103,30 +103,30 @@ function tsTypeToCSharpType$3(tsType) {
   if (!tsType) return 'dynamic';
 
   // TSStringKeyword -> string
-  if (t$j.isTSStringKeyword(tsType)) return 'string';
+  if (t$i.isTSStringKeyword(tsType)) return 'string';
 
   // TSNumberKeyword -> double
-  if (t$j.isTSNumberKeyword(tsType)) return 'double';
+  if (t$i.isTSNumberKeyword(tsType)) return 'double';
 
   // TSBooleanKeyword -> bool
-  if (t$j.isTSBooleanKeyword(tsType)) return 'bool';
+  if (t$i.isTSBooleanKeyword(tsType)) return 'bool';
 
   // TSAnyKeyword -> dynamic
-  if (t$j.isTSAnyKeyword(tsType)) return 'dynamic';
+  if (t$i.isTSAnyKeyword(tsType)) return 'dynamic';
 
   // TSArrayType -> List<T>
-  if (t$j.isTSArrayType(tsType)) {
+  if (t$i.isTSArrayType(tsType)) {
     const elementType = tsTypeToCSharpType$3(tsType.elementType);
     return `List<${elementType}>`;
   }
 
   // TSTypeLiteral (object type) -> dynamic
-  if (t$j.isTSTypeLiteral(tsType)) return 'dynamic';
+  if (t$i.isTSTypeLiteral(tsType)) return 'dynamic';
 
   // TSTypeReference (custom types, interfaces)
-  if (t$j.isTSTypeReference(tsType)) {
+  if (t$i.isTSTypeReference(tsType)) {
     // Handle @minimact/mvc type mappings
-    if (t$j.isIdentifier(tsType.typeName)) {
+    if (t$i.isIdentifier(tsType.typeName)) {
       const typeName = tsType.typeName.name;
 
       // Map @minimact/mvc types to C# types
@@ -168,17 +168,17 @@ function tsTypeToCSharpType$3(tsType) {
 function inferType$1(node) {
   if (!node) return 'dynamic';
 
-  if (t$j.isStringLiteral(node)) return 'string';
-  if (t$j.isNumericLiteral(node)) {
+  if (t$i.isStringLiteral(node)) return 'string';
+  if (t$i.isNumericLiteral(node)) {
     // Check if the number has a decimal point
     // If the value is a whole number, use int; otherwise use double
     const value = node.value;
     return Number.isInteger(value) ? 'int' : 'double';
   }
-  if (t$j.isBooleanLiteral(node)) return 'bool';
-  if (t$j.isNullLiteral(node)) return 'dynamic';
-  if (t$j.isArrayExpression(node)) return 'List<dynamic>';
-  if (t$j.isObjectExpression(node)) return 'dynamic';
+  if (t$i.isBooleanLiteral(node)) return 'bool';
+  if (t$i.isNullLiteral(node)) return 'dynamic';
+  if (t$i.isArrayExpression(node)) return 'List<dynamic>';
+  if (t$i.isObjectExpression(node)) return 'dynamic';
 
   return 'dynamic';
 }
@@ -193,7 +193,7 @@ var typeConversion = {
  * Dependency Analyzer
  */
 
-const t$i = globalThis.__BABEL_TYPES__;
+const t$h = globalThis.__BABEL_TYPES__;
 
 /**
  * Analyze dependencies in JSX expressions
@@ -206,7 +206,7 @@ function analyzeDependencies(jsxExpr, component) {
     if (!node) return;
 
     // Check if this is an identifier that's a state variable
-    if (t$i.isIdentifier(node)) {
+    if (t$h.isIdentifier(node)) {
       const name = node.name;
       if (component.stateTypes.has(name)) {
         deps.add({
@@ -217,25 +217,25 @@ function analyzeDependencies(jsxExpr, component) {
     }
 
     // Recursively walk the tree
-    if (t$i.isConditionalExpression(node)) {
+    if (t$h.isConditionalExpression(node)) {
       walk(node.test);
       walk(node.consequent);
       walk(node.alternate);
-    } else if (t$i.isLogicalExpression(node)) {
+    } else if (t$h.isLogicalExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$i.isMemberExpression(node)) {
+    } else if (t$h.isMemberExpression(node)) {
       walk(node.object);
       walk(node.property);
-    } else if (t$i.isCallExpression(node)) {
+    } else if (t$h.isCallExpression(node)) {
       walk(node.callee);
       node.arguments.forEach(walk);
-    } else if (t$i.isBinaryExpression(node)) {
+    } else if (t$h.isBinaryExpression(node)) {
       walk(node.left);
       walk(node.right);
-    } else if (t$i.isUnaryExpression(node)) {
+    } else if (t$h.isUnaryExpression(node)) {
       walk(node.argument);
-    } else if (t$i.isArrowFunctionExpression(node) || t$i.isFunctionExpression(node)) {
+    } else if (t$h.isArrowFunctionExpression(node) || t$h.isFunctionExpression(node)) {
       walk(node.body);
     }
   }
@@ -1015,83 +1015,91 @@ function requirePathAssignment () {
  * Pattern Detection
  */
 
-const t$h = globalThis.__BABEL_TYPES__;
+var detection;
+var hasRequiredDetection;
+
+function requireDetection () {
+	if (hasRequiredDetection) return detection;
+	hasRequiredDetection = 1;
+	const t = globalThis.__BABEL_TYPES__;
 
 
-/**
- * Detect if attributes contain spread operators
- */
-function hasSpreadProps(attributes) {
-  return attributes.some(attr => t$h.isJSXSpreadAttribute(attr));
+	/**
+	 * Detect if attributes contain spread operators
+	 */
+	function hasSpreadProps(attributes) {
+	  return attributes.some(attr => t.isJSXSpreadAttribute(attr));
+	}
+
+	/**
+	 * Detect if children contain dynamic patterns (like .map())
+	 */
+	function hasDynamicChildren(children) {
+	  return children.some(child => {
+	    if (!t.isJSXExpressionContainer(child)) return false;
+	    const expr = child.expression;
+
+	    // Check for .map() calls
+	    if (t.isCallExpression(expr) &&
+	        t.isMemberExpression(expr.callee) &&
+	        t.isIdentifier(expr.callee.property, { name: 'map' })) {
+	      return true;
+	    }
+
+	    // Check for array expressions from LINQ/Select
+	    if (t.isCallExpression(expr) &&
+	        t.isMemberExpression(expr.callee) &&
+	        (t.isIdentifier(expr.callee.property, { name: 'Select' }) ||
+	         t.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
+	      return true;
+	    }
+
+	    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
+	    if (t.isConditionalExpression(expr)) {
+	      if (t.isJSXElement(expr.consequent) || t.isJSXFragment(expr.consequent) ||
+	          t.isJSXElement(expr.alternate) || t.isJSXFragment(expr.alternate)) {
+	        return true;
+	      }
+	    }
+
+	    // Check for logical expressions with JSX: {condition && <Element/>}
+	    if (t.isLogicalExpression(expr)) {
+	      if (t.isJSXElement(expr.right) || t.isJSXFragment(expr.right)) {
+	        return true;
+	      }
+	    }
+
+	    return false;
+	  });
+	}
+
+	/**
+	 * Detect if props contain complex expressions
+	 */
+	function hasComplexProps(attributes) {
+	  return attributes.some(attr => {
+	    if (!t.isJSXAttribute(attr)) return false;
+	    const value = attr.value;
+
+	    if (!t.isJSXExpressionContainer(value)) return false;
+	    const expr = value.expression;
+
+	    // Check for conditional spread: {...(condition && { prop: value })}
+	    if (t.isConditionalExpression(expr) || t.isLogicalExpression(expr)) {
+	      return true;
+	    }
+
+	    return false;
+	  });
+	}
+
+	detection = {
+	  hasSpreadProps,
+	  hasDynamicChildren,
+	  hasComplexProps
+	};
+	return detection;
 }
-
-/**
- * Detect if children contain dynamic patterns (like .map())
- */
-function hasDynamicChildren(children) {
-  return children.some(child => {
-    if (!t$h.isJSXExpressionContainer(child)) return false;
-    const expr = child.expression;
-
-    // Check for .map() calls
-    if (t$h.isCallExpression(expr) &&
-        t$h.isMemberExpression(expr.callee) &&
-        t$h.isIdentifier(expr.callee.property, { name: 'map' })) {
-      return true;
-    }
-
-    // Check for array expressions from LINQ/Select
-    if (t$h.isCallExpression(expr) &&
-        t$h.isMemberExpression(expr.callee) &&
-        (t$h.isIdentifier(expr.callee.property, { name: 'Select' }) ||
-         t$h.isIdentifier(expr.callee.property, { name: 'ToArray' }))) {
-      return true;
-    }
-
-    // Check for conditionals with JSX: {condition ? <A/> : <B/>}
-    if (t$h.isConditionalExpression(expr)) {
-      if (t$h.isJSXElement(expr.consequent) || t$h.isJSXFragment(expr.consequent) ||
-          t$h.isJSXElement(expr.alternate) || t$h.isJSXFragment(expr.alternate)) {
-        return true;
-      }
-    }
-
-    // Check for logical expressions with JSX: {condition && <Element/>}
-    if (t$h.isLogicalExpression(expr)) {
-      if (t$h.isJSXElement(expr.right) || t$h.isJSXFragment(expr.right)) {
-        return true;
-      }
-    }
-
-    return false;
-  });
-}
-
-/**
- * Detect if props contain complex expressions
- */
-function hasComplexProps(attributes) {
-  return attributes.some(attr => {
-    if (!t$h.isJSXAttribute(attr)) return false;
-    const value = attr.value;
-
-    if (!t$h.isJSXExpressionContainer(value)) return false;
-    const expr = value.expression;
-
-    // Check for conditional spread: {...(condition && { prop: value })}
-    if (t$h.isConditionalExpression(expr) || t$h.isLogicalExpression(expr)) {
-      return true;
-    }
-
-    return false;
-  });
-}
-
-var detection = {
-  hasSpreadProps,
-  hasDynamicChildren,
-  hasComplexProps
-};
 
 var lib$5 = {};
 
@@ -9129,7 +9137,7 @@ function requireJsx$1 () {
 	hasRequiredJsx$1 = 1;
 	const t = globalThis.__BABEL_TYPES__;
 	const { escapeCSharpString } = helpers;
-	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = detection;
+	const { hasSpreadProps, hasDynamicChildren, hasComplexProps } = requireDetection();
 	const { extractEventHandler } = requireEventHandlers();
 	requirePathAssignment();
 	// Note: generateCSharpExpression, generateRuntimeHelperCall and generateJSXExpression will be lazy-loaded to avoid circular dependencies
@@ -41692,159 +41700,167 @@ var serverTask = {
  * Generates C# attributes and timeline metadata files from timeline analysis
  */
 
-/**
- * Generate C# attributes for timeline
- *
- * @param {Object} timeline - Timeline metadata from analyzer
- * @returns {string[]} - Array of C# attribute strings
- */
-function generateTimelineAttributes$1(timeline) {
-  const attributes = [];
+var timelineGenerator;
+var hasRequiredTimelineGenerator;
 
-  // 1. Generate [Timeline] attribute
-  const timelineAttrParts = [
-    `[Timeline("${timeline.timelineId}", ${timeline.duration}`
-  ];
+function requireTimelineGenerator () {
+	if (hasRequiredTimelineGenerator) return timelineGenerator;
+	hasRequiredTimelineGenerator = 1;
+	/**
+	 * Generate C# attributes for timeline
+	 *
+	 * @param {Object} timeline - Timeline metadata from analyzer
+	 * @returns {string[]} - Array of C# attribute strings
+	 */
+	function generateTimelineAttributes(timeline) {
+	  const attributes = [];
 
-  if (timeline.repeat) {
-    timelineAttrParts.push(', Repeat = true');
-  }
+	  // 1. Generate [Timeline] attribute
+	  const timelineAttrParts = [
+	    `[Timeline("${timeline.timelineId}", ${timeline.duration}`
+	  ];
 
-  if (timeline.repeatCount && timeline.repeatCount !== -1) {
-    timelineAttrParts.push(`, RepeatCount = ${timeline.repeatCount}`);
-  }
+	  if (timeline.repeat) {
+	    timelineAttrParts.push(', Repeat = true');
+	  }
 
-  if (timeline.easing && timeline.easing !== 'linear') {
-    timelineAttrParts.push(`, Easing = "${timeline.easing}"`);
-  }
+	  if (timeline.repeatCount && timeline.repeatCount !== -1) {
+	    timelineAttrParts.push(`, RepeatCount = ${timeline.repeatCount}`);
+	  }
 
-  timelineAttrParts.push(')]');
-  attributes.push(timelineAttrParts.join(''));
+	  if (timeline.easing && timeline.easing !== 'linear') {
+	    timelineAttrParts.push(`, Easing = "${timeline.easing}"`);
+	  }
 
-  // 2. Generate [TimelineKeyframe] attributes
-  timeline.keyframes.forEach(kf => {
-    Object.entries(kf.state).forEach(([stateKey, value]) => {
-      const valueStr = formatCSharpValue(value);
-      let keyframeAttr = `[TimelineKeyframe(${kf.time}, "${stateKey}", ${valueStr}`;
+	  timelineAttrParts.push(')]');
+	  attributes.push(timelineAttrParts.join(''));
 
-      if (kf.label) {
-        keyframeAttr += `, Label = "${kf.label}"`;
-      }
+	  // 2. Generate [TimelineKeyframe] attributes
+	  timeline.keyframes.forEach(kf => {
+	    Object.entries(kf.state).forEach(([stateKey, value]) => {
+	      const valueStr = formatCSharpValue(value);
+	      let keyframeAttr = `[TimelineKeyframe(${kf.time}, "${stateKey}", ${valueStr}`;
 
-      if (kf.easing) {
-        keyframeAttr += `, Easing = "${kf.easing}"`;
-      }
+	      if (kf.label) {
+	        keyframeAttr += `, Label = "${kf.label}"`;
+	      }
 
-      keyframeAttr += ')]';
-      attributes.push(keyframeAttr);
-    });
-  });
+	      if (kf.easing) {
+	        keyframeAttr += `, Easing = "${kf.easing}"`;
+	      }
 
-  // 3. Generate [TimelineStateBinding] attributes
-  timeline.stateBindings.forEach((binding, stateKey) => {
-    let bindingAttr = `[TimelineStateBinding("${stateKey}"`;
+	      keyframeAttr += ')]';
+	      attributes.push(keyframeAttr);
+	    });
+	  });
 
-    if (binding.interpolate) {
-      bindingAttr += ', Interpolate = true';
-    }
+	  // 3. Generate [TimelineStateBinding] attributes
+	  timeline.stateBindings.forEach((binding, stateKey) => {
+	    let bindingAttr = `[TimelineStateBinding("${stateKey}"`;
 
-    bindingAttr += ')]';
-    attributes.push(bindingAttr);
-  });
+	    if (binding.interpolate) {
+	      bindingAttr += ', Interpolate = true';
+	    }
 
-  return attributes;
+	    bindingAttr += ')]';
+	    attributes.push(bindingAttr);
+	  });
+
+	  return attributes;
+	}
+
+	/**
+	 * Format a value for C# code
+	 */
+	function formatCSharpValue(value) {
+	  if (typeof value === 'string') {
+	    // Escape quotes and backslashes
+	    const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+	    return `"${escaped}"`;
+	  } else if (typeof value === 'number') {
+	    return value.toString();
+	  } else if (typeof value === 'boolean') {
+	    return value ? 'true' : 'false';
+	  } else if (value === null) {
+	    return 'null';
+	  }
+	  return 'null';
+	}
+
+	/**
+	 * Generate timeline metadata JSON file
+	 *
+	 * @param {string} componentName - Component name
+	 * @param {Object} timeline - Timeline metadata
+	 * @param {Object} templates - Existing template metadata
+	 * @returns {Object} - Timeline metadata JSON
+	 */
+	function generateTimelineMetadataFile(componentName, timeline, templates) {
+	  return {
+	    component: componentName,
+	    timelineId: timeline.timelineId,
+	    duration: timeline.duration,
+	    repeat: timeline.repeat || false,
+	    repeatCount: timeline.repeatCount || -1,
+	    easing: timeline.easing || 'linear',
+	    stateBindings: Object.fromEntries(
+	      Array.from(timeline.stateBindings.entries()).map(([key, binding]) => [
+	        key,
+	        {
+	          interpolate: binding.interpolate,
+	          type: binding.stateType,
+	          setterName: binding.setterName
+	        }
+	      ])
+	    ),
+	    keyframes: timeline.keyframes.map(kf => ({
+	      time: kf.time,
+	      label: kf.label,
+	      state: kf.state,
+	      easing: kf.easing,
+	      affectedPaths: extractAffectedPaths(kf.state, templates)
+	    })),
+	    generatedAt: Date.now()
+	  };
+	}
+
+	/**
+	 * Extract hex paths affected by state changes in keyframe
+	 *
+	 * @param {Object} state - State object from keyframe
+	 * @param {Object} templates - Template metadata
+	 * @returns {string[]} - Array of affected hex paths
+	 */
+	function extractAffectedPaths(state, templates) {
+	  const paths = new Set();
+
+	  if (!templates) {
+	    return [];
+	  }
+
+	  // Find templates that reference these state keys
+	  Object.entries(templates).forEach(([path, template]) => {
+	    if (template.bindings && Array.isArray(template.bindings)) {
+	      // Check if any of the bindings match state keys
+	      template.bindings.forEach(binding => {
+	        // Binding might be "count" or "item.count" or nested
+	        const baseKey = binding.split('.')[0];
+	        if (baseKey in state) {
+	          paths.add(path);
+	        }
+	      });
+	    }
+	  });
+
+	  return Array.from(paths).sort();
+	}
+
+	timelineGenerator = {
+	  generateTimelineAttributes,
+	  generateTimelineMetadataFile
+	};
+	return timelineGenerator;
 }
-
-/**
- * Format a value for C# code
- */
-function formatCSharpValue(value) {
-  if (typeof value === 'string') {
-    // Escape quotes and backslashes
-    const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    return `"${escaped}"`;
-  } else if (typeof value === 'number') {
-    return value.toString();
-  } else if (typeof value === 'boolean') {
-    return value ? 'true' : 'false';
-  } else if (value === null) {
-    return 'null';
-  }
-  return 'null';
-}
-
-/**
- * Generate timeline metadata JSON file
- *
- * @param {string} componentName - Component name
- * @param {Object} timeline - Timeline metadata
- * @param {Object} templates - Existing template metadata
- * @returns {Object} - Timeline metadata JSON
- */
-function generateTimelineMetadataFile(componentName, timeline, templates) {
-  return {
-    component: componentName,
-    timelineId: timeline.timelineId,
-    duration: timeline.duration,
-    repeat: timeline.repeat || false,
-    repeatCount: timeline.repeatCount || -1,
-    easing: timeline.easing || 'linear',
-    stateBindings: Object.fromEntries(
-      Array.from(timeline.stateBindings.entries()).map(([key, binding]) => [
-        key,
-        {
-          interpolate: binding.interpolate,
-          type: binding.stateType,
-          setterName: binding.setterName
-        }
-      ])
-    ),
-    keyframes: timeline.keyframes.map(kf => ({
-      time: kf.time,
-      label: kf.label,
-      state: kf.state,
-      easing: kf.easing,
-      affectedPaths: extractAffectedPaths(kf.state, templates)
-    })),
-    generatedAt: Date.now()
-  };
-}
-
-/**
- * Extract hex paths affected by state changes in keyframe
- *
- * @param {Object} state - State object from keyframe
- * @param {Object} templates - Template metadata
- * @returns {string[]} - Array of affected hex paths
- */
-function extractAffectedPaths(state, templates) {
-  const paths = new Set();
-
-  if (!templates) {
-    return [];
-  }
-
-  // Find templates that reference these state keys
-  Object.entries(templates).forEach(([path, template]) => {
-    if (template.bindings && Array.isArray(template.bindings)) {
-      // Check if any of the bindings match state keys
-      template.bindings.forEach(binding => {
-        // Binding might be "count" or "item.count" or nested
-        const baseKey = binding.split('.')[0];
-        if (baseKey in state) {
-          paths.add(path);
-        }
-      });
-    }
-  });
-
-  return Array.from(paths).sort();
-}
-
-var timelineGenerator = {
-  generateTimelineAttributes: generateTimelineAttributes$1,
-  generateTimelineMetadataFile
-};
 
 /**
  * Razor Markdown to C# Conversion
@@ -42144,7 +42160,7 @@ const t = globalThis.__BABEL_TYPES__;
 const { generateRenderBody } = renderBody;
 const { generateCSharpExpression, generateCSharpStatement, setCurrentComponent } = requireExpressions();
 const { generateServerTaskMethods } = serverTask;
-const { generateTimelineAttributes } = timelineGenerator;
+const { generateTimelineAttributes } = requireTimelineGenerator();
 
 /**
  * Generate C# class for a component
@@ -64465,6 +64481,26 @@ var indexFull = function(babel) {
                     console.log(`[Minimact Templates] Generated ${templateFilePath}`);
                   } catch (error) {
                     console.error(`[Minimact Templates] Failed to write ${templateFilePath}:`, error);
+                  }
+                }
+
+                // Generate timeline metadata file if timeline exists
+                if (component.timeline) {
+                  const { generateTimelineMetadataFile } = requireTimelineGenerator();
+                  const timelineMetadata = generateTimelineMetadataFile(
+                    component.name,
+                    component.timeline,
+                    component.templates || {}
+                  );
+
+                  const outputDir = nodePath.dirname(inputFilePath);
+                  const timelineFilePath = nodePath.join(outputDir, `${component.name}.timeline-templates.json`);
+
+                  try {
+                    fs.writeFileSync(timelineFilePath, JSON.stringify(timelineMetadata, null, 2));
+                    console.log(`[Minimact Timeline] Generated ${timelineFilePath}`);
+                  } catch (error) {
+                    console.error(`[Minimact Timeline] Failed to write ${timelineFilePath}:`, error);
                   }
                 }
 

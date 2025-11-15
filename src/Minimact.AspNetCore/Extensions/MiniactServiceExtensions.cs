@@ -9,6 +9,7 @@ using Minimact.AspNetCore.Services;
 using Minimact.AspNetCore.Plugins;
 using Minimact.AspNetCore.Middleware;
 using Minimact.AspNetCore.SPA;
+using Minimact.AspNetCore.Rendering;
 using System.Reflection;
 
 namespace Minimact.AspNetCore.Extensions;
@@ -148,6 +149,9 @@ public static class MinimactServiceExtensions
     {
         var options = new MinimactSPAOptions();
         configure?.Invoke(options);
+
+        // Register page renderer (required for SPA)
+        services.AddSingleton<MinimactPageRenderer>();
 
         // Register SPA core services
         services.AddSingleton<SPASessionState>();

@@ -1,0 +1,59 @@
+import { useState } from '@minimact/core';
+import { Link } from '@minimact/spa';
+
+export default function CounterPage() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div key='1'>
+      <h2 key='1.1'>Simple Counter</h2>
+      <p key='1.2' style="font-size: 32px; font-weight: bold; color: #0066cc;">Count: {count}</p>
+      <div key='1.3' style="margin-top: 20px;">
+        <button
+          key='1.3.1'
+          onClick={() => setCount(count - 1)}
+          style="padding: 10px 20px; font-size: 16px; margin-right: 10px;">
+          Decrement
+        </button>
+        <button
+          key='1.3.2'
+          onClick={() => setCount(count + 1)}
+          style="padding: 10px 20px; font-size: 16px; margin-right: 10px;">
+          Increment
+        </button>
+        <button
+          key='1.3.3'
+          onClick={() => setCount(0)}
+          style="padding: 10px 20px; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+      <div
+        key='1.4'
+        style="margin-top: 40px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+        <h3 key='1.4.1'>🧭 Navigation Test</h3>
+        <p key='1.4.2'>Click the link below to navigate to the list page via SPA navigation (no page reload):</p>
+        <Link key='1.4.3' to="/list">Go to List Page →</Link>
+      </div>
+      <div
+        key='1.5'
+        style="margin-top: 20px; padding: 20px; background: #fffbea; border: 2px solid #f59e0b; border-radius: 8px;">
+        <h3 key='1.5.1' style="margin-top: 0;">🔍 Debug Mode Active</h3>
+        <p key='1.5.2'>Every button click sends debug messages to the server via SignalR!</p>
+        <ol key='1.5.3'>
+          <li key='1.5.3.1'>Open Visual Studio</li>
+          <li key='1.5.3.2'>Set breakpoint in <code key='1.5.3.2.2'>MinimactHub.cs</code> at line 27 (DebugMessage method)</li>
+          <li key='1.5.3.3'>Click any button above</li>
+          <li key='1.5.3.4'>Inspect the debug data: category, message, and data object</li>
+        </ol>
+        <p key='1.5.4'><strong key='1.5.4.1'>Debug categories you'll see:</strong></p>
+        <ul key='1.5.5'>
+          <li key='1.5.5.1'><code key='1.5.5.1.1'>state</code> - useState calls with old/new values</li>
+          <li key='1.5.5.2'><code key='1.5.5.2.1'>templates</code> - Template match results</li>
+          <li key='1.5.5.3'><code key='1.5.5.3.1'>minimact</code> - General framework activity</li>
+          <li key='1.5.5.4'><code key='1.5.5.4.1'>dom-patcher</code> - DOM patch operations</li>
+        </ul>
+      </div>
+    </div>
+  );
+}

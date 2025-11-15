@@ -1,0 +1,11 @@
+{
+  "componentName": "CounterPage",
+  "timestamp": "2025-11-15T00:42:12.856Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    }
+  ]
+}

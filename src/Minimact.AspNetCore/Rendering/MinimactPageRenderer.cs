@@ -56,17 +56,53 @@ public class MinimactPageRenderer
         // 1. Extract mutability metadata from ViewModel
         var mutability = ExtractMutabilityMetadata(viewModel);
 
-        // 2. Create component instance (parameterless constructor)
-        var component = ActivatorUtilities.CreateInstance<TComponent>(_serviceProvider);
+        // 2. Create page component instance
+        var pageComponent = ActivatorUtilities.CreateInstance<TComponent>(_serviceProvider);
 
         // 3. Set ViewModel and mutability on component
-        component.SetMvcViewModel(viewModel, mutability);
+        pageComponent.SetMvcViewModel(viewModel, mutability);
 
-        // 4. Register component
-        _registry.RegisterComponent(component);
+        // 4. Register page component
+        _registry.RegisterComponent(pageComponent);
 
-        // 5. Initialize and render
-        var vnode = await component.InitializeAndRenderAsync();
+        MinimactComponent component;
+        VNode vnode;
+
+        // 5. Check if SPA mode is enabled
+        if (options.UseSPA && !string.IsNullOrEmpty(options.ShellName))
+        {
+            // SPA mode: Render shell with page inside
+            var shellRegistry = _serviceProvider.GetService<SPA.ShellRegistry>();
+            if (shellRegistry != null)
+            {
+                var shell = shellRegistry.CreateShell(options.ShellName, viewModel, _serviceProvider);
+                if (shell != null)
+                {
+                    _registry.RegisterComponent(shell);
+                    vnode = shell.RenderWithPage(pageComponent);
+                    component = shell; // Use shell as the main component for HTML generation
+                }
+                else
+                {
+                    // Fallback: No shell found, render page only
+                    vnode = await pageComponent.InitializeAndRenderAsync();
+                    component = pageComponent;
+                }
+            }
+            else
+            {
+                // Fallback: SPA not configured, render page only
+                vnode = await pageComponent.InitializeAndRenderAsync();
+                component = pageComponent;
+            }
+        }
+        else
+        {
+            // Non-SPA mode: Render page only
+            vnode = await pageComponent.InitializeAndRenderAsync();
+            component = pageComponent;
+        }
+
         var html = vnode.ToHtml();
 
         // 6. Serialize ViewModel for client
@@ -611,4 +647,16 @@ public class MinimactPageRenderOptions
     /// Additional HTML to inject before &lt;/body&gt;
     /// </summary>
     public string? AdditionalBodyContent { get; set; }
+
+    /// <summary>
+    /// Enable SPA mode (default: false)
+    /// When true, renders page inside a shell component
+    /// </summary>
+    public bool UseSPA { get; set; } = false;
+
+    /// <summary>
+    /// Shell name to use (default: "Default")
+    /// Only used when UseSPA = true
+    /// </summary>
+    public string? ShellName { get; set; } = "Default";
 }

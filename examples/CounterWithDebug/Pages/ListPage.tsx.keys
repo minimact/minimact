@@ -1,0 +1,49 @@
+import { useState } from '@minimact/core';
+import { Link } from '@minimact/spa';
+
+export default function ListPage() {
+  const [items, setItems] = useState<string[]>(['Apple', 'Banana', 'Cherry']);
+  const [newItem, setNewItem] = useState('');
+
+  const addItem = () => {
+    if (newItem.trim()) {
+      setItems([...items, newItem]);
+      setNewItem('');
+    }
+  };
+
+  return (
+    <div key='1'>
+      <h2 key='1.1'>Simple List</h2>
+      <div key='1.2' style="margin-bottom: 20px;">
+        <input
+          key='1.2.1'
+          type="text"
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          placeholder="Add new item..."
+          style="padding: 8px; margin-right: 10px; width: 200px;" />
+        <button key='1.2.2' onClick={addItem} style="padding: 8px 16px;">
+          Add Item
+        </button>
+      </div>
+      <ul key='1.3' style="list-style: none; padding: 0;">
+        {items.map((item, index) => (
+          <li
+            key='1.3.1.1'
+            key={index}
+            style="padding: 10px; margin: 5px 0; background: #f0f0f0; border-radius: 4px;">
+            {item}
+          </li>
+        ))}
+      </ul>
+      <div
+        key='1.4'
+        style="margin-top: 40px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+        <h3 key='1.4.1'>🧭 Navigation Test</h3>
+        <p key='1.4.2'>Click the link below to navigate back to the counter page via SPA navigation (no page reload):</p>
+        <Link key='1.4.3' to="/">← Back to Counter</Link>
+      </div>
+    </div>
+  );
+}
