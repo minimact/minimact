@@ -1,0 +1,14 @@
+{
+  "name": "Minimact Documentation",
+  "version": "1.0.0",
+  "description": "Official documentation for the Minimact framework",
+  "entry": "pages/index.tsx",
+  "routes": {
+    "/": "pages/index.tsx",
+    "/getting-started": "pages/getting-started.tsx",
+    "/api": "pages/api.tsx"
+  },
+  "author": "minimact",
+  "license": "MIT",
+  "repository": "https://github.com/minimact/minimact"
+}
