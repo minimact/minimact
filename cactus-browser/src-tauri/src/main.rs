@@ -84,7 +84,9 @@ fn main() {
             clear_cache,
             read_local_file,
             runtime::execute_component,
-            signalm::signalm_invoke
+            signalm::signalm_invoke,
+            signalm::get_component_count,
+            signalm::clear_components
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

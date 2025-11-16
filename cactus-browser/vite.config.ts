@@ -16,6 +16,13 @@ export default defineConfig({
   // Environment variables
   envPrefix: ['VITE_', 'TAURI_'],
 
+  // Define process.env for browser compatibility
+  define: {
+    'process.env': {},
+    'process.platform': JSON.stringify(process.platform),
+    'process.version': JSON.stringify(process.version),
+  },
+
   build: {
     // Tauri uses Chromium on Windows & macOS, webkit on Linux
     target: process.env.TAURI_PLATFORM === 'windows' ? 'chrome105' : 'safari13',
