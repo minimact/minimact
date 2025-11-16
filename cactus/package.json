@@ -1,0 +1,36 @@
+{
+  "name": "postweb-index",
+  "version": "1.0.0",
+  "description": "The canonical registry of TSX-native websites for Cactus Browser",
+  "main": "sites.json",
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "generate-tags": "node scripts/generate-tags.js",
+    "update-stats": "node scripts/update-stats.js",
+    "check-sites": "node scripts/check-sites.js",
+    "test": "npm run validate",
+    "format": "prettier --write sites.json tags/*.json users/*.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/postweb/index.git"
+  },
+  "keywords": [
+    "gh://",
+    "cactus-browser",
+    "minimact",
+    "tsx",
+    "posthydration",
+    "registry",
+    "index"
+  ],
+  "author": "Posthydration Community",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/postweb/index/issues"
+  },
+  "homepage": "gh://postweb/index",
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}

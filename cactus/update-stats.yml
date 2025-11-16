@@ -1,0 +1,57 @@
+name: Update Stats Daily
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Update stats from GitHub API
+        run: npm run update-stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Generate tag files
+        run: npm run generate-tags
+        
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --quiet || echo "changed=true" >> $GITHUB_OUTPUT
+          
+      - name: Commit changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add sites.json tags/*.json users/*.json trending.json
+          git commit -m "📊 Update stats - $(date +'%Y-%m-%d')"
+          git push
+          
+      - name: Create summary
+        run: |
+          echo "## Stats Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Stats updated successfully" >> $GITHUB_STEP_SUMMARY
+          echo "📅 Date: $(date +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
