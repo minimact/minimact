@@ -1,0 +1,66 @@
+{
+  "updated": "2025-11-15T00:00:00Z",
+  "trending": [
+    {
+      "rank": 1,
+      "name": "Minimact UI Components",
+      "repo": "gh://minimact/ui-components",
+      "stars": 3421,
+      "starsThisWeek": 234,
+      "tags": ["components", "ui", "minimact"],
+      "description": "Production-ready UI components for Minimact applications"
+    },
+    {
+      "rank": 2,
+      "name": "Minimact Documentation",
+      "repo": "gh://minimact/docs",
+      "stars": 2347,
+      "starsThisWeek": 189,
+      "tags": ["docs", "framework", "minimact"],
+      "description": "Official documentation for the Minimact framework"
+    },
+    {
+      "rank": 3,
+      "name": "Cactus Browser Homepage",
+      "repo": "gh://minimact/cactus-homepage",
+      "stars": 1823,
+      "starsThisWeek": 156,
+      "tags": ["landing", "posthydration", "minimact"],
+      "description": "Official homepage for Cactus Browser"
+    },
+    {
+      "rank": 4,
+      "name": "Minimact Dashboard Template",
+      "repo": "gh://minimact/template-dashboard",
+      "stars": 1245,
+      "starsThisWeek": 98,
+      "tags": ["template", "dashboard", "minimact"],
+      "description": "Admin dashboard template with charts and real-time data"
+    },
+    {
+      "rank": 5,
+      "name": "Minimact Blog Template",
+      "repo": "gh://minimact/template-blog",
+      "stars": 892,
+      "starsThisWeek": 67,
+      "tags": ["template", "blog", "minimact"],
+      "description": "Minimal blog template with markdown support"
+    },
+    {
+      "rank": 6,
+      "name": "Minimact TodoMVC",
+      "repo": "gh://minimact/examples-todo",
+      "stars": 567,
+      "starsThisWeek": 43,
+      "tags": ["examples", "todo", "minimact"],
+      "description": "Classic TodoMVC implementation with instant interactions"
+    }
+  ],
+  "statistics": {
+    "totalSites": 1247,
+    "totalStars": 28934,
+    "newSitesThisWeek": 18,
+    "mostPopularTag": "blog",
+    "fastestGrowing": "gh://minimact/ui-components"
+  }
+}

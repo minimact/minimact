@@ -207,6 +207,26 @@ module.exports = function(babel) {
                   }
                 }
 
+                // Generate timeline metadata file if timeline exists
+                if (component.timeline) {
+                  const { generateTimelineMetadataFile } = require('./src/generators/timelineGenerator.cjs');
+                  const timelineMetadata = generateTimelineMetadataFile(
+                    component.name,
+                    component.timeline,
+                    component.templates || {}
+                  );
+
+                  const outputDir = nodePath.dirname(inputFilePath);
+                  const timelineFilePath = nodePath.join(outputDir, `${component.name}.timeline-templates.json`);
+
+                  try {
+                    fs.writeFileSync(timelineFilePath, JSON.stringify(timelineMetadata, null, 2));
+                    console.log(`[Minimact Timeline] Generated ${timelineFilePath}`);
+                  } catch (error) {
+                    console.error(`[Minimact Timeline] Failed to write ${timelineFilePath}:`, error);
+                  }
+                }
+
                 // 🔥 HOOK CHANGE DETECTION
                 // Extract hook signature and compare with previous to detect hook changes
                 const {

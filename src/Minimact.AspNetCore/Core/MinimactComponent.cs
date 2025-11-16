@@ -219,6 +219,19 @@ public abstract class MinimactComponent
     }
 
     /// <summary>
+    /// Returns client-side effect definitions (JavaScript callbacks for useEffect).
+    /// These are effects that execute in the browser with bound hook context.
+    ///
+    /// Override this method in generated components to provide useEffect implementations.
+    /// The page renderer will include these effects in the initial payload.
+    /// </summary>
+    /// <returns>Dictionary mapping effect IDs to effect definitions</returns>
+    protected internal virtual Dictionary<string, EffectDefinition> GetClientEffects()
+    {
+        return new Dictionary<string, EffectDefinition>();
+    }
+
+    /// <summary>
     /// Render with dynamic bindings compiled
     /// Server evaluates binding functions and inserts values into VNode tree
     /// </summary>
@@ -262,7 +275,7 @@ public abstract class MinimactComponent
     }
 
     // Protected version for generated components
-    protected void SetState(string key, object value) => SetStateInternal(key, value);
+    protected internal void SetState(string key, object value) => SetStateInternal(key, value);
 
     /// <summary>
     /// Get current state value (non-generic)
@@ -1716,4 +1729,24 @@ public abstract class MinimactComponent
     }
 
     #endregion
+}
+
+/// <summary>
+/// Client-side effect definition (useEffect)
+/// Contains JavaScript callback and dependency array for browser execution
+/// </summary>
+public class EffectDefinition
+{
+    /// <summary>
+    /// JavaScript callback function (as string)
+    /// Will be executed in browser with bound hook context
+    /// </summary>
+    public string Callback { get; set; } = "";
+
+    /// <summary>
+    /// Dependency array (state keys that trigger re-execution)
+    /// Empty array = run once on mount
+    /// null/undefined = run on every render
+    /// </summary>
+    public string[] Dependencies { get; set; } = Array.Empty<string>();
 }

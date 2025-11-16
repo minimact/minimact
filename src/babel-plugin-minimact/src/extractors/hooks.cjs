@@ -17,6 +17,13 @@ function extractHook(path, component) {
 
   const hookName = node.callee.name;
 
+  // 🔥 NEW: Check if this hook was imported (takes precedence over built-in hooks)
+  if (component.importedHookMetadata && component.importedHookMetadata.has(hookName)) {
+    console.log(`[Custom Hook] Found imported hook call: ${hookName}`);
+    extractCustomHookCall(path, component, hookName);
+    return;
+  }
+
   switch (hookName) {
     case 'useState':
       extractUseState(path, component, 'useState');
@@ -86,6 +93,12 @@ function extractHook(path, component) {
       break;
     case 'useMvcViewModel':
       extractUseMvcViewModel(path, component);
+      break;
+    default:
+      // Check if this is a custom hook (starts with 'use' and first param is 'namespace')
+      if (hookName.startsWith('use')) {
+        extractCustomHookCall(path, component, hookName);
+      }
       break;
   }
 }
@@ -186,9 +199,36 @@ function extractUseEffect(path, component) {
   const callback = path.node.arguments[0];
   const dependencies = path.node.arguments[1];
 
+  // 1. Server-side C# (existing)
   component.useEffect.push({
     body: callback,
     dependencies: dependencies
+  });
+
+  // 2. 🔥 NEW: Client-side JavaScript
+  if (!component.clientEffects) {
+    component.clientEffects = [];
+  }
+
+  const effectIndex = component.clientEffects.length;
+
+  // Analyze what hooks are used in the effect
+  const hookCalls = analyzeHookUsage(callback);
+
+  // Transform arrow function to regular function with hook mapping
+  const transformedCallback = transformEffectCallback(callback, hookCalls);
+
+  // Generate JavaScript code
+  const jsCode = generate(transformedCallback, {
+    compact: false,
+    retainLines: false
+  }).code;
+
+  component.clientEffects.push({
+    name: `Effect_${effectIndex}`,
+    jsCode: jsCode,
+    dependencies: dependencies,
+    hookCalls: hookCalls
   });
 }
 
@@ -941,6 +981,229 @@ function findViewModelPropertyType(path, propertyName, component) {
   return null;
 }
 
+/**
+ * Extract custom hook call (e.g., useCounter('counter1', 0))
+ * Custom hooks are treated as child components with lifted state
+ */
+function extractCustomHookCall(path, component, hookName) {
+  const parent = path.parent;
+
+  // Must be: const [x, y, z, ui] = useCounter('namespace', ...params)
+  if (!t.isVariableDeclarator(parent)) return;
+  if (!t.isArrayPattern(parent.id)) return;
+
+  const args = path.node.arguments;
+  if (args.length === 0) return;
+
+  // First argument must be namespace (string literal)
+  const namespaceArg = args[0];
+  if (!t.isStringLiteral(namespaceArg)) {
+    console.warn(`[Custom Hook] ${hookName} first argument must be a string literal (namespace)`);
+    return;
+  }
+
+  const namespace = namespaceArg.value;
+  const hookParams = args.slice(1); // Remaining params become InitialState
+
+  // Extract destructured variables
+  const elements = parent.id.elements;
+
+  // 🔥 NEW: Get hook metadata from imported hooks or inline hook
+  let hookMetadata = null;
+
+  // Check if this hook was imported
+  if (component.importedHookMetadata && component.importedHookMetadata.has(hookName)) {
+    hookMetadata = component.importedHookMetadata.get(hookName);
+    console.log(`[Custom Hook] Using imported metadata for ${hookName}`);
+  } else {
+    // TODO: Check if hook is defined inline in same file
+    console.log(`[Custom Hook] No metadata found for ${hookName}, assuming last return value is UI`);
+  }
+
+  // 🔥 NEW: Use returnValues from metadata to identify UI variable
+  let uiVarName = null;
+  if (hookMetadata && hookMetadata.returnValues) {
+    // Find the JSX return value
+    const jsxReturnIndex = hookMetadata.returnValues.findIndex(rv => rv.type === 'jsx');
+    if (jsxReturnIndex !== -1 && jsxReturnIndex < elements.length) {
+      const uiElement = elements[jsxReturnIndex];
+      if (uiElement && t.isIdentifier(uiElement)) {
+        uiVarName = uiElement.name;
+        console.log(`[Custom Hook] Found UI variable from metadata at index ${jsxReturnIndex}: ${uiVarName}`);
+      }
+    }
+  } else {
+    // Fallback: Assume last element is UI (old behavior)
+    const lastElement = elements[elements.length - 1];
+    if (lastElement && t.isIdentifier(lastElement)) {
+      uiVarName = lastElement.name;
+      console.log(`[Custom Hook] Using fallback: assuming last element is UI: ${uiVarName}`);
+    }
+  }
+
+  if (!uiVarName) {
+    console.warn(`[Custom Hook] ${hookName} could not identify UI variable`);
+    return;
+  }
+
+  // Store custom hook instance in component
+  if (!component.customHooks) {
+    component.customHooks = [];
+  }
+
+  const generate = require('@babel/generator').default;
+
+  const className = hookMetadata ? hookMetadata.className : `${capitalize(hookName)}Hook`;
+
+  component.customHooks.push({
+    hookName,
+    className,
+    namespace,
+    uiVarName, // Variable name that holds the UI (e.g., 'counterUI')
+    params: hookParams.map(p => generate(p).code),
+    returnValues: elements.map(e => e ? e.name : null).filter(Boolean),
+    metadata: hookMetadata // 🔥 NEW: Store full metadata for later use
+  });
+
+  console.log(`[Custom Hook] Found ${hookName}('${namespace}') → UI in {${uiVarName}}`);
+}
+
+/**
+ * Capitalize first letter
+ */
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ========================================
+// 🔥 Client-Side Execution Helpers
+// ========================================
+
+const generate = require('@babel/generator').default;
+const traverse = require('@babel/traverse').default;
+
+/**
+ * Analyze which hooks are used in a function body
+ * Returns array like: ["useState", "useRef", "useEffect"]
+ */
+function analyzeHookUsage(callback) {
+  const hooks = new Set();
+
+  // Create a minimal program wrapper to provide proper scope
+  const program = t.file(t.program([t.expressionStatement(callback)]));
+
+  // Traverse the program (which provides proper scope)
+  traverse(program, {
+    CallExpression(path) {
+      const callee = path.node.callee;
+
+      // Check for direct hook calls: useState(), useRef(), etc.
+      if (t.isIdentifier(callee)) {
+        if (callee.name.startsWith('use') && /^use[A-Z]/.test(callee.name)) {
+          hooks.add(callee.name);
+        }
+      }
+    }
+  });
+
+  return Array.from(hooks);
+}
+
+/**
+ * Transform effect callback:
+ * - Arrow function → Regular function (for .bind() compatibility)
+ * - Inject hook mappings at top: const useState = this.useState;
+ * - Preserve async if present
+ * - Preserve cleanup return value
+ */
+function transformEffectCallback(callback, hookCalls) {
+  if (!t.isArrowFunctionExpression(callback) && !t.isFunctionExpression(callback)) {
+    throw new Error('Effect callback must be a function');
+  }
+
+  let functionBody = callback.body;
+
+  // If body is an expression, wrap in block statement
+  if (!t.isBlockStatement(functionBody)) {
+    functionBody = t.blockStatement([
+      t.returnStatement(functionBody)
+    ]);
+  }
+
+  // Build hook mapping statements
+  // const useState = this.useState;
+  // const useRef = this.useRef;
+  const hookMappings = hookCalls.map(hookName => {
+    return t.variableDeclaration('const', [
+      t.variableDeclarator(
+        t.identifier(hookName),
+        t.memberExpression(
+          t.thisExpression(),
+          t.identifier(hookName)
+        )
+      )
+    ]);
+  });
+
+  // Prepend hook mappings to function body
+  const newBody = t.blockStatement([
+    ...hookMappings,
+    ...functionBody.body
+  ]);
+
+  // Return regular function expression
+  return t.functionExpression(
+    null,                    // No name (anonymous)
+    callback.params,         // Keep original params (usually empty)
+    newBody,                 // Body with hook mappings
+    false,                   // Not a generator
+    callback.async || false  // Preserve async
+  );
+}
+
+/**
+ * Transform event handler:
+ * - Arrow function → Regular function
+ * - Inject hook mappings at top
+ * - Preserve event parameter (e)
+ * - Preserve async if present
+ */
+function transformHandlerFunction(body, params, hookCalls) {
+  let functionBody = body;
+
+  // If body is expression, wrap in block
+  if (!t.isBlockStatement(functionBody)) {
+    functionBody = t.blockStatement([
+      t.expressionStatement(functionBody)
+    ]);
+  }
+
+  // Build hook mappings
+  const hookMappings = hookCalls.map(hookName => {
+    return t.variableDeclaration('const', [
+      t.variableDeclarator(
+        t.identifier(hookName),
+        t.memberExpression(t.thisExpression(), t.identifier(hookName))
+      )
+    ]);
+  });
+
+  // Prepend hook mappings
+  const newBody = t.blockStatement([
+    ...hookMappings,
+    ...functionBody.body
+  ]);
+
+  // Return regular function
+  return t.functionExpression(
+    null,
+    params,        // Keep event parameter: (e) => ...
+    newBody,
+    false,
+    false          // Handlers are typically not async (unless await inside)
+  );
+}
+
 module.exports = {
   extractHook,
   extractUseState,
@@ -962,5 +1225,9 @@ module.exports = {
   extractUsePredictHint,
   extractUseServerTask,
   extractUseMvcState,
-  extractUseMvcViewModel
+  extractUseMvcViewModel,
+  // 🔥 Export new helpers
+  analyzeHookUsage,
+  transformEffectCallback,
+  transformHandlerFunction
 };

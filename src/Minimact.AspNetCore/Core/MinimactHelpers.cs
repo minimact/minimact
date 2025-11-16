@@ -258,4 +258,45 @@ public static class Minimact
 
         return merged;
     }
+
+    /// <summary>
+    /// Converts any value to boolean using JavaScript truthy/falsy rules
+    /// Used by TypeScript→C# transpiler for if conditions
+    /// </summary>
+    /// <param name="value">Value to convert</param>
+    /// <returns>True if value is truthy, false if falsy</returns>
+    public static bool ToBool(object? value)
+    {
+        if (value == null)
+            return false;
+
+        // Already a bool
+        if (value is bool b)
+            return b;
+
+        // String: false if null, empty, or whitespace
+        if (value is string str)
+            return !string.IsNullOrWhiteSpace(str);
+
+        // Number: false if 0
+        if (value is int i)
+            return i != 0;
+        if (value is long l)
+            return l != 0;
+        if (value is float f)
+            return f != 0;
+        if (value is double d)
+            return d != 0;
+        if (value is decimal dec)
+            return dec != 0;
+
+        // Array/Collection: false if empty
+        if (value is IEnumerable enumerable and not string)
+        {
+            return enumerable.Cast<object>().Any();
+        }
+
+        // Everything else is truthy
+        return true;
+    }
 }

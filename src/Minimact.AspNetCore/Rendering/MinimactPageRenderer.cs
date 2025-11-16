@@ -56,17 +56,53 @@ public class MinimactPageRenderer
         // 1. Extract mutability metadata from ViewModel
         var mutability = ExtractMutabilityMetadata(viewModel);
 
-        // 2. Create component instance (parameterless constructor)
-        var component = ActivatorUtilities.CreateInstance<TComponent>(_serviceProvider);
+        // 2. Create page component instance
+        var pageComponent = ActivatorUtilities.CreateInstance<TComponent>(_serviceProvider);
 
         // 3. Set ViewModel and mutability on component
-        component.SetMvcViewModel(viewModel, mutability);
+        pageComponent.SetMvcViewModel(viewModel, mutability);
 
-        // 4. Register component
-        _registry.RegisterComponent(component);
+        // 4. Register page component
+        _registry.RegisterComponent(pageComponent);
 
-        // 5. Initialize and render
-        var vnode = await component.InitializeAndRenderAsync();
+        MinimactComponent component;
+        VNode vnode;
+
+        // 5. Check if SPA mode is enabled
+        if (options.UseSPA && !string.IsNullOrEmpty(options.ShellName))
+        {
+            // SPA mode: Render shell with page inside
+            var shellRegistry = _serviceProvider.GetService<SPA.ShellRegistry>();
+            if (shellRegistry != null)
+            {
+                var shell = shellRegistry.CreateShell(options.ShellName, viewModel, _serviceProvider);
+                if (shell != null)
+                {
+                    _registry.RegisterComponent(shell);
+                    vnode = shell.RenderWithPage(pageComponent);
+                    component = shell; // Use shell as the main component for HTML generation
+                }
+                else
+                {
+                    // Fallback: No shell found, render page only
+                    vnode = await pageComponent.InitializeAndRenderAsync();
+                    component = pageComponent;
+                }
+            }
+            else
+            {
+                // Fallback: SPA not configured, render page only
+                vnode = await pageComponent.InitializeAndRenderAsync();
+                component = pageComponent;
+            }
+        }
+        else
+        {
+            // Non-SPA mode: Render page only
+            vnode = await pageComponent.InitializeAndRenderAsync();
+            component = pageComponent;
+        }
+
         var html = vnode.ToHtml();
 
         // 6. Serialize ViewModel for client
@@ -184,6 +220,7 @@ public class MinimactPageRenderer
         }
 
         var enableDebugLogging = options.EnableDebugLogging ? "true" : "false";
+        var enableClientDebugMode = options.EnableClientDebugMode ? "true" : "false";
 
         return $@"<!DOCTYPE html>
 <html lang=""en"">
@@ -227,12 +264,24 @@ public class MinimactPageRenderer
             document.getElementById('minimact-viewmodel').textContent
         );
 
-        // Register client-only event handlers
-        window.MinimactHandlers = window.MinimactHandlers || {{}};
-{GenerateClientHandlersScript(component)}
-        // Initialize Minimact client runtime
+        // Enable client debug mode if configured
+        if ({enableClientDebugMode}) {{
+            if (typeof Minimact !== 'undefined' && Minimact.setDebugMode) {{
+                Minimact.setDebugMode(true);
+                console.log('[Minimact] Client debug mode enabled - debug() calls will be sent to server');
+            }}
+        }}
+
+        // Initialize Minimact client runtime with handlers and effects
         const minimact = new Minimact.Minimact('#minimact-root', {{
-            enableDebugLogging: {enableDebugLogging}
+            componentId: '{component.ComponentId}',
+            enableDebugLogging: {enableDebugLogging},
+            handlers: [
+{GenerateHandlerConfigs(component)}
+            ],
+            effects: [
+{GenerateEffectConfigs(component)}
+            ]
         }});
         minimact.start();
 
@@ -284,9 +333,10 @@ public class MinimactPageRenderer
     }
 
     /// <summary>
-    /// Generate JavaScript to register client-only event handlers
+    /// Generate handler configurations with pre-computed DOM paths
+    /// Walks VNode tree, finds event handlers, converts hex paths to DOM indices
     /// </summary>
-    private string GenerateClientHandlersScript(MinimactComponent component)
+    private string GenerateHandlerConfigs(MinimactComponent component)
     {
         var clientHandlers = component.GetClientHandlers();
         if (clientHandlers == null || clientHandlers.Count == 0)
@@ -294,18 +344,102 @@ public class MinimactPageRenderer
             return string.Empty;
         }
 
-        var script = new System.Text.StringBuilder();
-        foreach (var handler in clientHandlers)
+        var handlers = new List<string>();
+        var vnode = component.CurrentVNode;
+        if (vnode == null)
         {
-            // Escape the JavaScript code for embedding in HTML
-            var escapedJs = handler.Value
-                .Replace("\\", "\\\\")  // Escape backslashes
-                .Replace("\"", "\\\""); // Escape quotes
-
-            script.AppendLine($"        window.MinimactHandlers['{handler.Key}'] = {escapedJs};");
+            return string.Empty;
         }
 
-        return script.ToString();
+        var pathConverter = new PathConverter(vnode);
+
+        // Walk VNode tree to find event handlers
+        WalkVNodeForHandlers(vnode, (node, hexPath) =>
+        {
+            if (node is VElement element)
+            {
+                foreach (var prop in element.Props)
+                {
+                    // Check for event handlers (onClick, onChange, onSubmit, etc.)
+                    if (prop.Key.StartsWith("on") && prop.Key.Length > 2 && char.IsUpper(prop.Key[2]))
+                    {
+                        var handlerName = prop.Value?.ToString();
+                        if (handlerName != null && clientHandlers.ContainsKey(handlerName))
+                        {
+                            var jsCode = clientHandlers[handlerName];
+
+                            // Convert hex path → DOM indices
+                            var domPath = pathConverter.HexPathToDomPath(hexPath);
+                            var domPathJson = JsonSerializer.Serialize(domPath);
+
+                            // Extract event type (onClick → click, onChange → change)
+                            var eventType = prop.Key.Substring(2).ToLowerInvariant();
+
+                            handlers.Add($@"                {{
+                    domPath: {domPathJson},
+                    eventType: ""{eventType}"",
+                    jsCode: {jsCode}
+                }}");
+                        }
+                    }
+                }
+            }
+        });
+
+        return string.Join(",\n", handlers);
+    }
+
+    /// <summary>
+    /// Generate effect configurations (no DOM paths needed)
+    /// Effects execute with hook context - they don't need to be bound to DOM elements
+    /// </summary>
+    private string GenerateEffectConfigs(MinimactComponent component)
+    {
+        var clientEffects = component.GetClientEffects();
+        if (clientEffects == null || clientEffects.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var effects = new List<string>();
+
+        foreach (var effect in clientEffects)
+        {
+            var depsJson = JsonSerializer.Serialize(effect.Value.Dependencies);
+
+            effects.Add($@"                {{
+                    callback: {effect.Value.Callback},
+                    dependencies: {depsJson}
+                }}");
+        }
+
+        return string.Join(",\n", effects);
+    }
+
+    /// <summary>
+    /// Walk VNode tree and execute callback for each node with its hex path
+    /// </summary>
+    private void WalkVNodeForHandlers(VNode node, Action<VNode, string> callback)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        // Get hex path for this node
+        var hexPath = node.Path ?? "";
+
+        // Execute callback for this node
+        callback(node, hexPath);
+
+        // Recurse into children
+        if (node is VElement element && element.Children != null)
+        {
+            foreach (var child in element.Children)
+            {
+                WalkVNodeForHandlers(child, callback);
+            }
+        }
     }
 
     /// <summary>
@@ -439,6 +573,13 @@ public class MinimactPageRenderOptions
     public bool EnableDebugLogging { get; set; } = false;
 
     /// <summary>
+    /// Enable client debug mode - sends debug() calls to server for C# breakpoint debugging (default: false)
+    /// When enabled, window.minimactDebug() will send messages to MinimactHub.DebugMessage
+    /// Set a breakpoint in MinimactHub.DebugMessage to inspect client state in C#
+    /// </summary>
+    public bool EnableClientDebugMode { get; set; } = false;
+
+    /// <summary>
     /// Enable cache busting by appending timestamp to script URL (default: false)
     /// Recommended for development to ensure latest script is loaded
     /// </summary>
@@ -506,4 +647,16 @@ public class MinimactPageRenderOptions
     /// Additional HTML to inject before &lt;/body&gt;
     /// </summary>
     public string? AdditionalBodyContent { get; set; }
+
+    /// <summary>
+    /// Enable SPA mode (default: false)
+    /// When true, renders page inside a shell component
+    /// </summary>
+    public bool UseSPA { get; set; } = false;
+
+    /// <summary>
+    /// Shell name to use (default: "Default")
+    /// Only used when UseSPA = true
+    /// </summary>
+    public string? ShellName { get; set; } = "Default";
 }

@@ -1,6 +1,7 @@
 import type { HintQueue } from './hint-queue';
 import type { DOMPatcher } from './dom-patcher';
 import type { PlaygroundBridge } from './playground-bridge';
+import type { IConnectionManager } from './connection-manager';
 
 /**
  * Event delegation system for handling component events
@@ -14,6 +15,7 @@ export class EventDelegation {
   private hintQueue?: HintQueue;
   private domPatcher?: DOMPatcher;
   private playgroundBridge?: PlaygroundBridge;
+  private signalR?: IConnectionManager;
 
   constructor(
     rootElement: HTMLElement,
@@ -23,6 +25,7 @@ export class EventDelegation {
       hintQueue?: HintQueue;
       domPatcher?: DOMPatcher;
       playgroundBridge?: PlaygroundBridge;
+      signalR?: IConnectionManager;
     } = {}
   ) {
     this.rootElement = rootElement;
@@ -31,6 +34,7 @@ export class EventDelegation {
     this.hintQueue = options.hintQueue;
     this.domPatcher = options.domPatcher;
     this.playgroundBridge = options.playgroundBridge;
+    this.signalR = options.signalR;
     this.eventListeners = new Map();
 
     this.setupEventDelegation();
@@ -132,34 +136,24 @@ export class EventDelegation {
       return null;
     }
 
-    // Check for @client: prefix (client-only handler)
-    let isClientOnly = false;
-    let cleanHandlerStr = handlerStr;
-
-    if (handlerStr.startsWith('@client:')) {
-      isClientOnly = true;
-      cleanHandlerStr = handlerStr.substring(8); // Remove '@client:' prefix
-    }
-
     // Parse handler string
     // Format: "MethodName" or "MethodName:arg1:arg2"
-    const parts = cleanHandlerStr.split(':');
+    const parts = handlerStr.split(':');
     const methodName = parts[0];
     const args = parts.slice(1);
 
     // Find component ID
     const componentId = this.findComponentId(element);
 
-    if (!componentId && !isClientOnly) {
+    if (!componentId) {
       console.warn('[Minimact] No component ID found for event handler:', handlerStr);
       return null;
     }
 
     return {
-      componentId: componentId || '',
+      componentId,
       methodName,
-      args,
-      isClientOnly
+      args
     };
   }
 
@@ -190,21 +184,6 @@ export class EventDelegation {
     const startTime = performance.now();
 
     try {
-      // Handle client-only handlers (run locally, don't call server)
-      if (handler.isClientOnly) {
-        const clientHandler = (window as any).MinimactHandlers?.[handler.methodName];
-
-        if (clientHandler && typeof clientHandler === 'function') {
-          this.log(`🟦 CLIENT HANDLER: ${handler.methodName}`, { handler });
-          clientHandler(event);
-          const latency = performance.now() - startTime;
-          this.log(`🟦 CLIENT HANDLER completed in ${latency.toFixed(2)}ms`, { handler });
-          return;
-        } else {
-          console.warn(`[Minimact] Client handler '${handler.methodName}' not found in window.MinimactHandlers`);
-          return;
-        }
-      }
       // Build args object
       const argsObj: any = {};
 
@@ -367,6 +346,9 @@ export class EventDelegation {
     if (this.debugLogging) {
       console.log(`[Minimact EventDelegation] ${message}`, data || '');
     }
+
+    // Always send to server if debug mode enabled
+    this.signalR?.debug('event-delegation', message, data);
   }
 }
 
@@ -374,5 +356,4 @@ interface EventHandler {
   componentId: string;
   methodName: string;
   args: string[];
-  isClientOnly?: boolean; // True if handler runs client-side only (from window.MinimactHandlers)
 }

@@ -9,6 +9,7 @@ using Minimact.AspNetCore.Services;
 using Minimact.AspNetCore.Plugins;
 using Minimact.AspNetCore.Middleware;
 using Minimact.AspNetCore.SPA;
+using Minimact.AspNetCore.Rendering;
 using System.Reflection;
 
 namespace Minimact.AspNetCore.Extensions;
@@ -149,6 +150,9 @@ public static class MinimactServiceExtensions
         var options = new MinimactSPAOptions();
         configure?.Invoke(options);
 
+        // Register page renderer (required for SPA)
+        services.AddSingleton<MinimactPageRenderer>();
+
         // Register SPA core services
         services.AddSingleton<SPASessionState>();
         services.AddSingleton<ShellRegistry>();
@@ -267,6 +271,13 @@ public class MinimactOptions
     /// Enable debug logging (default: false)
     /// </summary>
     public bool EnableDebugLogging { get; set; } = false;
+
+    /// <summary>
+    /// Enable client debug mode (sends debug() calls to server for C# breakpoint debugging)
+    /// Set to true to enable window.minimactDebug() to send messages to MinimactHub.DebugMessage
+    /// (default: false)
+    /// </summary>
+    public bool EnableClientDebugMode { get; set; } = false;
 
     /// <summary>
     /// Enable automatic plugin discovery via reflection (default: true)

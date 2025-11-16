@@ -1,0 +1,144 @@
+[
+  {
+    "name": "Minimact Documentation",
+    "repo": "gh://minimact/docs",
+    "entry": "pages/index.tsx",
+    "tags": ["docs", "framework", "minimact"],
+    "description": "Official documentation for the Minimact framework - the posthydrationist rendering engine",
+    "author": "minimact",
+    "homepage": "https://github.com/minimact",
+    "license": "MIT",
+    "version": "1.0.0",
+    "updated": "2025-11-15",
+    "created": "2025-01-01",
+    "stars": 2347,
+    "forks": 156,
+    "featured": true,
+    "screenshot": "https://raw.githubusercontent.com/minimact/docs/main/screenshot.png",
+    "links": {
+      "github": "https://github.com/minimact/minimact",
+      "website": "https://minimact.dev",
+      "docs": "gh://minimact/docs",
+      "demo": "gh://minimact/examples"
+    }
+  },
+  {
+    "name": "Cactus Browser Homepage",
+    "repo": "gh://minimact/cactus-homepage",
+    "entry": "pages/index.tsx",
+    "tags": ["landing", "posthydration", "minimact"],
+    "description": "Official homepage for Cactus Browser - the TSX-native web browser",
+    "author": "minimact",
+    "homepage": "https://github.com/minimact",
+    "license": "MIT",
+    "version": "1.0.0",
+    "updated": "2025-11-15",
+    "created": "2025-01-15",
+    "stars": 1823,
+    "forks": 89,
+    "featured": true,
+    "screenshot": "https://raw.githubusercontent.com/minimact/cactus-homepage/main/screenshot.png",
+    "links": {
+      "github": "https://github.com/minimact/cactus-browser",
+      "website": "https://posthydration.dev"
+    }
+  },
+  {
+    "name": "Minimact TodoMVC",
+    "repo": "gh://minimact/examples-todo",
+    "entry": "pages/index.tsx",
+    "tags": ["examples", "todo", "minimact"],
+    "description": "Classic TodoMVC implementation demonstrating Minimact's instant interactions",
+    "author": "minimact",
+    "license": "MIT",
+    "updated": "2025-11-10",
+    "stars": 567,
+    "forks": 234,
+    "featured": false,
+    "links": {
+      "github": "https://github.com/minimact/examples",
+      "demo": "gh://minimact/examples-todo"
+    }
+  },
+  {
+    "name": "Minimact Blog Template",
+    "repo": "gh://minimact/template-blog",
+    "entry": "pages/index.tsx",
+    "tags": ["template", "blog", "minimact"],
+    "description": "Minimal blog template with markdown support and zero-config setup",
+    "author": "minimact",
+    "license": "MIT",
+    "updated": "2025-11-12",
+    "stars": 892,
+    "forks": 445,
+    "featured": true,
+    "links": {
+      "github": "https://github.com/minimact/templates",
+      "demo": "gh://minimact/template-blog"
+    }
+  },
+  {
+    "name": "Minimact Dashboard Template",
+    "repo": "gh://minimact/template-dashboard",
+    "entry": "pages/index.tsx",
+    "tags": ["template", "dashboard", "minimact"],
+    "description": "Admin dashboard template with charts, tables, and real-time data",
+    "author": "minimact",
+    "license": "MIT",
+    "updated": "2025-11-08",
+    "stars": 1245,
+    "forks": 567,
+    "featured": true,
+    "links": {
+      "github": "https://github.com/minimact/templates",
+      "demo": "gh://minimact/template-dashboard"
+    }
+  },
+  {
+    "name": "Minimact UI Components",
+    "repo": "gh://minimact/ui-components",
+    "entry": "docs/index.tsx",
+    "tags": ["components", "ui", "minimact"],
+    "description": "Production-ready UI components for Minimact applications",
+    "author": "minimact",
+    "license": "MIT",
+    "updated": "2025-11-14",
+    "stars": 3421,
+    "forks": 789,
+    "featured": true,
+    "components": [
+      {
+        "name": "Button",
+        "path": "src/Button.tsx",
+        "description": "Customizable button with variants and sizes"
+      },
+      {
+        "name": "Modal",
+        "path": "src/Modal.tsx",
+        "description": "Accessible modal dialog with backdrop"
+      },
+      {
+        "name": "Dropdown",
+        "path": "src/Dropdown.tsx",
+        "description": "Dropdown menu with keyboard navigation"
+      },
+      {
+        "name": "Input",
+        "path": "src/Input.tsx",
+        "description": "Text input with validation support"
+      },
+      {
+        "name": "Card",
+        "path": "src/Card.tsx",
+        "description": "Content card with header and footer"
+      }
+    ],
+    "dependencies": {
+      "@minimact/core": "^1.0.0"
+    },
+    "links": {
+      "github": "https://github.com/minimact/ui-components",
+      "docs": "gh://minimact/ui-components/docs"
+    }
+  }
+]

@@ -6,6 +6,7 @@ const t = require('@babel/types');
 const { generateRenderBody } = require('./renderBody.cjs');
 const { generateCSharpExpression, generateCSharpStatement, setCurrentComponent } = require('./expressions.cjs');
 const { generateServerTaskMethods } = require('./serverTask.cjs');
+const { generateTimelineAttributes } = require('./timelineGenerator.cjs');
 
 /**
  * Generate C# class for a component
@@ -15,6 +16,12 @@ function generateComponent(component) {
   setCurrentComponent(component);
 
   const lines = [];
+
+  // Timeline attributes (for @minimact/timeline)
+  if (component.timeline) {
+    const timelineAttrs = generateTimelineAttributes(component.timeline);
+    timelineAttrs.forEach(attr => lines.push(attr));
+  }
 
   // Loop template attributes (for predictive rendering)
   if (component.loopTemplates && component.loopTemplates.length > 0) {
@@ -446,6 +453,10 @@ function generateComponent(component) {
   // GetClientHandlers method - returns JavaScript code for client-only event handlers
   if (component.clientHandlers && component.clientHandlers.length > 0) {
     lines.push('');
+    lines.push('    /// <summary>');
+    lines.push('    /// Returns JavaScript event handlers for client-side execution');
+    lines.push('    /// These execute in the browser with bound hook context');
+    lines.push('    /// </summary>');
     lines.push('    protected override Dictionary<string, string> GetClientHandlers()');
     lines.push('    {');
     lines.push('        return new Dictionary<string, string>');
@@ -462,6 +473,52 @@ function generateComponent(component) {
 
       const comma = i < component.clientHandlers.length - 1 ? ',' : '';
       lines.push(`            ["${handler.name}"] = @"${escapedJs}"${comma}`);
+    }
+
+    lines.push('        };');
+    lines.push('    }');
+  }
+
+  // 🔥 NEW: GetClientEffects method - returns JavaScript effect callbacks
+  if (component.clientEffects && component.clientEffects.length > 0) {
+    lines.push('');
+    lines.push('    /// <summary>');
+    lines.push('    /// Returns JavaScript callbacks for useEffect hooks');
+    lines.push('    /// These execute in the browser with bound hook context');
+    lines.push('    /// </summary>');
+    lines.push('    protected override Dictionary<string, EffectDefinition> GetClientEffects()');
+    lines.push('    {');
+    lines.push('        return new Dictionary<string, EffectDefinition>');
+    lines.push('        {');
+
+    for (let i = 0; i < component.clientEffects.length; i++) {
+      const effect = component.clientEffects[i];
+
+      // Escape JavaScript for C# string literal
+      const escapedJs = effect.jsCode
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '');
+
+      // Extract dependency names from array
+      const deps = [];
+      if (effect.dependencies && effect.dependencies.elements) {
+        for (const dep of effect.dependencies.elements) {
+          if (dep && dep.name) {
+            deps.push(`"${dep.name}"`);
+          }
+        }
+      }
+      const depsArray = deps.length > 0 ? deps.join(', ') : '';
+
+      const comma = i < component.clientEffects.length - 1 ? ',' : '';
+
+      lines.push(`            ["${effect.name}"] = new EffectDefinition`);
+      lines.push(`            {`);
+      lines.push(`                Callback = @"${escapedJs}",`);
+      lines.push(`                Dependencies = new[] { ${depsArray} }`);
+      lines.push(`            }${comma}`);
     }
 
     lines.push('        };');
@@ -557,6 +614,14 @@ function generateComponent(component) {
   // Helper functions (function declarations in component body)
   if (component.helperFunctions && component.helperFunctions.length > 0) {
     for (const func of component.helperFunctions) {
+      // Skip custom hooks (they're generated as separate [Hook] classes)
+      if (func.name && func.name.startsWith('use') && func.params && func.params.length > 0) {
+        const firstParam = func.params[0];
+        if (firstParam.name === 'namespace') {
+          continue; // This is a custom hook, skip it
+        }
+      }
+
       lines.push('');
 
       const returnType = func.isAsync
@@ -583,6 +648,14 @@ function generateComponent(component) {
   // Helper functions (standalone functions referenced by component)
   if (component.topLevelHelperFunctions && component.topLevelHelperFunctions.length > 0) {
     for (const helper of component.topLevelHelperFunctions) {
+      // Skip custom hooks (they're generated as separate [Hook] classes)
+      if (helper.name && helper.name.startsWith('use') && helper.node && helper.node.params && helper.node.params.length > 0) {
+        const firstParam = helper.node.params[0];
+        if (firstParam && firstParam.name === 'namespace') {
+          continue; // This is a custom hook, skip it
+        }
+      }
+
       lines.push('');
       lines.push(`    // Helper function: ${helper.name}`);
 

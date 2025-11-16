@@ -41,6 +41,7 @@ Minimact brings the familiar React developer experience to server-side rendering
 🧠 [Core Innovations](#core-innovations) •
 🌐 [SPA Mode](#-single-page-application-spa-mode) •
 🌳 [Lifted State](#-lifted-state-components) •
+🪝 [Custom Hooks](#-custom-hooks-hooks-as-components) •
 🔐 [Protected State](#-useprotectedstate) •
 🎨 [Swig IDE](#-minimact-swig---desktop-ide-for-minimact) •
 🏗️ [Architecture](#architecture-overview) •
@@ -837,6 +838,64 @@ function UserProfile() {
 
 ---
 
+### 🪝 Custom Hooks (Hooks as Components)
+Create reusable stateful logic with UI - hooks return both values AND JSX:
+
+```typescript
+// Define a hook (note the required namespace parameter!)
+function useCounter(namespace: string, start: number = 0) {
+  const [count, setCount] = useState(start);
+
+  const increment = () => setCount(count + 1);
+  const decrement = () => setCount(count - 1);
+  const reset = () => setCount(start);
+
+  // Hooks can return JSX! (unlike React)
+  const ui = (
+    <div className="counter-widget">
+      <button onClick={decrement}>-</button>
+      <span>{count}</span>
+      <button onClick={increment}>+</button>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+
+  return [count, increment, decrement, reset, ui];
+}
+
+// Use the hook with multiple independent instances
+function Dashboard() {
+  const [count1, increment1, , , counterUI1] = useCounter('counter1', 0);
+  const [count2, increment2, , , counterUI2] = useCounter('counter2', 10);
+
+  return (
+    <div>
+      <h2>Counter 1: {count1}</h2>
+      <button onClick={increment1}>External +1</button>
+      {counterUI1}
+
+      <h2>Counter 2: {count2}</h2>
+      <button onClick={increment2}>External +1</button>
+      {counterUI2}
+    </div>
+  );
+}
+```
+
+**Under the hood:** Custom hooks are **child components with syntactic sugar**. The `useCounter('counter1', 0)` call compiles to a `VComponentWrapper` - reusing the Lifted State infrastructure with zero runtime overhead!
+
+**Benefits:**
+- ✅ Multiple independent instances with unique namespaces
+- ✅ Can return JSX UI (unlike React hooks)
+- ✅ Reuses VComponentWrapper + Lifted State Pattern
+- ✅ Parent can observe child hook state: `State["counter1.count"]`
+- ✅ Type-safe C# classes with `[Hook]` attribute
+- ✅ Hot reload preserves hook state
+
+**[🪝 Custom Hooks Guide →](./docs/CUSTOM_HOOKS_IMPLEMENTATION.md)**
+
+---
+
 ### 🔒 useProtectedState
 Lifted state with access control:
 
@@ -1119,6 +1178,7 @@ Minimact offers two runtime versions optimized for different scenarios:
 - ✅ Template Prediction System (Phases 1-9)
 - ✅ Lifted State Component System
 - ✅ useProtectedState Hook
+- ✅ Custom Hooks (Hooks as Child Components with UI return)
 - ✅ Minimact Swig IDE
 - ✅ Minimact Punch (Base Features)
 - ✅ State Synchronization (client → server)

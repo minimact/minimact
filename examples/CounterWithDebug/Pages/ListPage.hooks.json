@@ -1,0 +1,16 @@
+{
+  "componentName": "ListPage",
+  "timestamp": "2025-11-15T01:08:03.894Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "items",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "newItem",
+      "index": 1
+    }
+  ]
+}

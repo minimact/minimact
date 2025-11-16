@@ -1,0 +1,10 @@
+{
+  "componentName": "UseDoublerHook",
+  "timestamp": "2025-11-14T02:11:19.436Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "index": 0
+    }
+  ]
+}

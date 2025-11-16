@@ -36,7 +36,14 @@ function generateCSharpFile(components, state) {
 
   // Generate each component
   for (const component of components) {
-    lines.push(...generateComponent(component));
+    // Check if this is a custom hook with pre-generated code
+    if (component.isHook && component.hookData) {
+      // Use the pre-generated hook class code
+      lines.push(component.hookData);
+    } else {
+      // Normal component generation
+      lines.push(...generateComponent(component));
+    }
     lines.push('');
   }
 

@@ -113,12 +113,26 @@ export interface ComponentState {
   [key: string]: any;
 }
 
+export interface HandlerConfig {
+  domPath: number[];
+  eventType: string;
+  jsCode: Function;
+}
+
+export interface EffectConfig {
+  callback: Function;
+  dependencies: string[];
+}
+
 export interface MinimactOptions {
+  componentId?: string;
   hubUrl?: string;
   enableDebugLogging?: boolean;
   reconnectInterval?: number;
   enableHotReload?: boolean;
   hotReloadWsUrl?: string;
+  handlers?: HandlerConfig[];
+  effects?: EffectConfig[];
 }
 
 export interface ComponentMetadata {

@@ -46,21 +46,24 @@ export class Minimact {
 
     // Default options
     this.options = {
+      componentId: options.componentId,
       hubUrl: options.hubUrl || '/minimact',
       enableDebugLogging: options.enableDebugLogging || false,
       reconnectInterval: options.reconnectInterval || 5000,
       enableHotReload: options.enableHotReload !== false, // Default to true
-      hotReloadWsUrl: options.hotReloadWsUrl
+      hotReloadWsUrl: options.hotReloadWsUrl,
+      handlers: options.handlers || [],
+      effects: options.effects || []
     };
 
     // Initialize subsystems (using lightweight SignalM!)
-    this.signalR = new SignalMManager(this.options.hubUrl, {
-      reconnectInterval: this.options.reconnectInterval,
+    this.signalR = SignalMManager.createDefault(this.options.hubUrl, {
       debugLogging: this.options.enableDebugLogging
     });
 
     this.domPatcher = new DOMPatcher({
-      debugLogging: this.options.enableDebugLogging
+      debugLogging: this.options.enableDebugLogging,
+      signalR: this.signalR
     });
 
     this.clientState = new ClientStateManager({
@@ -122,11 +125,19 @@ export class Minimact {
     this.eventDelegation = new EventDelegation(
       this.rootElement,
       (componentId, methodName, args) => this.signalR.invokeComponentMethod(componentId, methodName, args),
-      { debugLogging: this.options.enableDebugLogging }
+      {
+        debugLogging: this.options.enableDebugLogging,
+        signalR: this.signalR
+      }
     );
 
     // Register all components with server
     await this.registerAllComponents();
+
+    // Attach event handlers and run effects (if provided in constructor)
+    if (this.options.componentId && (this.options.handlers.length > 0 || this.options.effects.length > 0)) {
+      this.attachHandlersAndEffects(this.options.componentId, this.rootElement);
+    }
 
     this.log('Minimact started');
   }
@@ -182,6 +193,13 @@ export class Minimact {
       if (component) {
         this.domPatcher.applyPatches(component.element, patches as Patch[]);
         this.log('Correction applied (prediction was incorrect)', { componentId, patchCount: patches.length });
+
+        // Debug: Prediction was wrong
+        this.signalR.debug('predictions', 'Prediction corrected', {
+          componentId,
+          patchCount: patches.length,
+          message: 'Server sent correction - original prediction was incorrect'
+        });
       }
     });
 
@@ -205,6 +223,12 @@ export class Minimact {
     // Handle reconnection
     this.signalR.on('reconnected', async () => {
       this.log('Reconnected - re-registering components');
+
+      // Debug: Reconnection
+      this.signalR.debug('connection', 'SignalR reconnected - re-registering components', {
+        timestamp: new Date().toISOString()
+      });
+
       await this.registerAllComponents();
     });
 
@@ -267,6 +291,12 @@ export class Minimact {
     // Handle errors
     this.signalR.on('error', ({ message }) => {
       console.error('[Minimact] Server error:', message);
+
+      // Debug: Server error
+      this.signalR.debug('errors', 'Server error received', {
+        errorMessage: message,
+        timestamp: new Date().toISOString()
+      });
     });
   }
 
@@ -284,6 +314,13 @@ export class Minimact {
           this.log('Registered component', { componentId });
         } catch (error) {
           console.error('[Minimact] Failed to register component:', componentId, error);
+
+          // Debug: Component registration failure
+          this.signalR.debug('components', 'Failed to register component', {
+            componentId,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          });
         }
       }
     }
@@ -410,12 +447,139 @@ export class Minimact {
   }
 
   /**
+   * Attach event handlers and run effects for a component
+   * Implements the new client-side execution architecture with zero pollution
+   */
+  private attachHandlersAndEffects(componentId: string, element: HTMLElement): void {
+    const component = this.hydration.getComponent(componentId);
+    if (!component) {
+      console.warn(`[Minimact] Component ${componentId} not found for handler/effect attachment`);
+      return;
+    }
+
+    // Create hook context for this component
+    const hookContext = this.createHookContext(componentId, element, component.context);
+
+    // Attach event handlers
+    for (const handler of this.options.handlers) {
+      this.attachHandler(element, handler, hookContext);
+    }
+
+    // Run effects
+    for (const effect of this.options.effects) {
+      this.runEffect(effect, hookContext, component.context);
+    }
+
+    this.log('Attached handlers and effects', { componentId, handlerCount: this.options.handlers.length, effectCount: this.options.effects.length });
+  }
+
+  /**
+   * Create hook context object that provides useState, useRef, etc.
+   * This gets bound to handler/effect functions via .bind(hookContext)
+   */
+  private createHookContext(componentId: string, element: HTMLElement, componentContext: any): any {
+    return {
+      useState: (key: string) => {
+        const value = componentContext.state.get(key);
+        const setter = (newValue: any) => {
+          // 1. Update local state
+          componentContext.state.set(key, newValue);
+
+          // 2. Check hint queue (apply template patch instantly)
+          const stateChanges: Record<string, any> = { [key]: newValue };
+          const hint = this.hintQueue.matchHint(componentId, stateChanges);
+
+          if (hint) {
+            // CACHE HIT! Apply patches instantly
+            this.domPatcher.applyPatches(element, hint.patches);
+            this.log(`🟢 CACHE HIT! Hint '${hint.hintId}' matched`, { componentId, key, newValue });
+          }
+
+          // 3. Sync to server (background)
+          this.signalR.updateComponentState(componentId, key, newValue)
+            .catch(err => {
+              console.error('[Minimact] Failed to sync state to server:', err);
+            });
+        };
+        return [value, setter];
+      },
+
+      useRef: (key: string) => {
+        return componentContext.refs.get(key) || { current: null };
+      }
+    };
+  }
+
+  /**
+   * Attach a single event handler to the DOM
+   */
+  private attachHandler(rootElement: HTMLElement, handler: any, hookContext: any): void {
+    // Navigate to target element using DOM path
+    const element = this.navigateToDomElement(rootElement, handler.domPath);
+
+    if (element) {
+      // Bind handler to hook context
+      const boundHandler = handler.jsCode.bind(hookContext);
+
+      // Attach event listener
+      element.addEventListener(handler.eventType, boundHandler);
+
+      this.log(`Attached ${handler.eventType} handler`, { domPath: handler.domPath });
+    } else {
+      console.warn(`[Minimact] Could not find element at path ${handler.domPath}`);
+    }
+  }
+
+  /**
+   * Run a single effect
+   */
+  private runEffect(effect: any, hookContext: any, componentContext: any): void {
+    // Bind effect callback to hook context
+    const boundCallback = effect.callback.bind(hookContext);
+
+    // Execute effect (after render)
+    queueMicrotask(() => {
+      const cleanup = boundCallback();
+      if (typeof cleanup === 'function') {
+        // Store cleanup function in component context
+        if (!componentContext.effects) {
+          componentContext.effects = [];
+        }
+        componentContext.effects.push({ cleanup });
+      }
+    });
+
+    this.log('Effect executed', { dependencies: effect.dependencies });
+  }
+
+  /**
+   * Navigate to a DOM element using index path
+   * Example: [0, 1, 2] means root.children[0].children[1].children[2]
+   */
+  private navigateToDomElement(root: HTMLElement, path: number[]): HTMLElement | null {
+    let current: HTMLElement | ChildNode = root;
+
+    for (const index of path) {
+      if (current.childNodes[index]) {
+        current = current.childNodes[index];
+      } else {
+        return null;
+      }
+    }
+
+    return current as HTMLElement;
+  }
+
+  /**
    * Debug logging
    */
   private log(message: string, data?: any): void {
     if (this.options.enableDebugLogging) {
       console.log(`[Minimact] ${message}`, data || '');
     }
+
+    // Always send to server if debug mode enabled
+    this.signalR?.debug('minimact', message, data);
   }
 }
 
@@ -428,6 +592,9 @@ export { HydrationManager } from './hydration';
 export { HintQueue } from './hint-queue';
 export { HotReloadManager } from './hot-reload';
 export type { HotReloadConfig, HotReloadMessage, HotReloadMetrics } from './hot-reload';
+
+// Debug utilities
+export { setDebugMode, DEBUG_MODE } from './debug-config';
 
 // Client-computed state (for external libraries)
 export {
@@ -492,6 +659,7 @@ export type { ComponentMetadata } from './component-registry';
 
 // Types
 export * from './types';
+export type { HandlerConfig, EffectConfig } from './types';
 
 // Auto-initialize if data-minimact-auto-init is present
 if (typeof window !== 'undefined') {
@@ -519,6 +687,54 @@ if (typeof window !== 'undefined') {
 // Make available globally
 if (typeof window !== 'undefined') {
   (window as any).Minimact = Minimact;
+
+  /**
+   * Global debug helper for easy debugging from browser console
+   * Set a breakpoint in MinimactHub.DebugMessage (C#) to inspect client state
+   *
+   * @example
+   * // Enable debug mode (sends messages to server)
+   * minimactDebug.enable()
+   *
+   * @example
+   * // Send debug message to server
+   * minimactDebug('state', 'Current component state', { count: 5, isOpen: true })
+   *
+   * @example
+   * // Debug template matching issues:
+   * minimactDebug('templates', 'No template match', { componentId, stateChanges })
+   *
+   * @example
+   * // Disable debug mode
+   * minimactDebug.disable()
+   */
+  const minimactDebugFn = (category: string, message: string, data?: any) => {
+    const minimact = (window as any).minimact;
+    if (minimact && minimact.signalR) {
+      minimact.signalR.debug(category, message, data);
+    } else {
+      console.warn('[Minimact Debug] Minimact instance not found on window.minimact');
+      console.log(`[DEBUG] [${category}] ${message}`, data);
+    }
+  };
+
+  // Add helper methods
+  minimactDebugFn.enable = () => {
+    const { setDebugMode } = require('./signalr-manager');
+    setDebugMode(true);
+  };
+
+  minimactDebugFn.disable = () => {
+    const { setDebugMode } = require('./signalr-manager');
+    setDebugMode(false);
+  };
+
+  minimactDebugFn.isEnabled = () => {
+    const { DEBUG_MODE } = require('./signalr-manager');
+    return DEBUG_MODE;
+  };
+
+  (window as any).minimactDebug = minimactDebugFn;
 }
 
 export default Minimact;

@@ -1,0 +1,142 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #0a0a0a;
+  color: #e0e0e0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #3d7a52;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #90ee90;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #b0d0b0;
+  font-weight: 300;
+}
+
+/* Status Bar */
+.status-bar {
+  background: #1a1a1a;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid #333;
+  font-size: 0.85rem;
+  font-family: 'Courier New', monospace;
+}
+
+.status-loading {
+  color: #ffa500;
+}
+
+.status-ready {
+  color: #90ee90;
+}
+
+.status-loading::before {
+  content: '⏳ ';
+}
+
+.status-ready::before {
+  content: '✅ ';
+}
+
+/* Content */
+.content {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+  background: #0f0f0f;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+}
+
+.spinner {
+  font-size: 4rem;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner p {
+  color: #888;
+  font-size: 1.2rem;
+}
+
+.rendered-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #1a1a1a;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.rendered-content h1 {
+  color: #90ee90;
+  margin-bottom: 1rem;
+}
+
+.rendered-content p {
+  color: #d0d0d0;
+  line-height: 1.6;
+}
+
+/* Footer */
+.footer {
+  background: #1a1a1a;
+  padding: 1rem 2rem;
+  border-top: 1px solid #333;
+  font-size: 0.85rem;
+  color: #888;
+  text-align: center;
+}
+
+/* Utility classes */
+.error {
+  color: #ff6b6b;
+  padding: 1rem;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 4px;
+}

@@ -15,6 +15,23 @@ const { getPathFromNode } = require('../utils/pathAssignment.cjs');
 let currentComponent = null;
 
 /**
+ * Convert C# string truthy checks to proper boolean expressions
+ * Wraps non-boolean expressions with MinimactHelpers.ToBool()
+ */
+function convertStringToBool(csharpTest, originalTestNode) {
+  // If it's already a boolean expression, return as-is
+  if (t.isBinaryExpression(originalTestNode) ||
+      t.isLogicalExpression(originalTestNode) ||
+      t.isUnaryExpression(originalTestNode, { operator: '!' })) {
+    return csharpTest;
+  }
+
+  // For any other expression, wrap with ToBool() helper
+  // This will handle strings, numbers, objects, etc. at runtime
+  return `MinimactHelpers.ToBool(${csharpTest})`;
+}
+
+/**
  * Generate expression for use in boolean context (conditionals, logical operators)
  * Wraps expressions in MObject for JavaScript truthiness semantics
  */
@@ -260,7 +277,11 @@ function generateCSharpStatement(node) {
   }
 
   if (t.isIfStatement(node)) {
-    const test = generateCSharpExpression(node.test);
+    let test = generateCSharpExpression(node.test);
+
+    // Convert string truthy checks to proper C# boolean expressions
+    test = convertStringToBool(test, node.test);
+
     let result = `if (${test}) {\n`;
 
     // Handle consequent (then branch)
@@ -381,6 +402,36 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return 'State';
     }
 
+    // 🔥 NEW: Check if this identifier is a custom hook return value
+    if (currentComponent && currentComponent.customHooks) {
+      for (const hookInstance of currentComponent.customHooks) {
+        if (!hookInstance.metadata || !hookInstance.metadata.returnValues) continue;
+
+        // Check if this identifier matches any non-UI return value
+        const returnValueIndex = hookInstance.returnValues.indexOf(node.name);
+        if (returnValueIndex !== -1) {
+          const returnValueMetadata = hookInstance.metadata.returnValues[returnValueIndex];
+
+          // Skip UI return values (they're handled separately as VComponentWrapper)
+          if (returnValueMetadata.type === 'jsx') {
+            return node.name; // Keep as-is for UI variables
+          }
+
+          // Replace with lifted state access for state/method returns
+          if (returnValueMetadata.type === 'state') {
+            // Access the hook's lifted state: State["hookNamespace.stateVarName"]
+            const liftedStatePath = `${hookInstance.namespace}.${returnValueMetadata.name}`;
+            return `GetState<dynamic>("${liftedStatePath}")`;
+          } else if (returnValueMetadata.type === 'method') {
+            // For methods, we can't call them from parent - warn and keep as-is for now
+            // In the future, we could emit a method that invokes the child component's method
+            console.warn(`[Custom Hook] Cannot access method '${node.name}' from hook '${hookInstance.hookName}' in parent component`);
+            return node.name;
+          }
+        }
+      }
+    }
+
     return node.name;
   }
 
@@ -496,11 +547,11 @@ function generateCSharpExpression(node, inInterpolation = false) {
           // Flush current literal elements
           if (currentLiteral.length > 0) {
             const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
-            parts.push(`new List<object> { ${literalCode} }`);
+            parts.push(`new[] { ${literalCode} }`);
             currentLiteral = [];
           }
-          // Add spread array
-          parts.push(`((IEnumerable<object>)${generateCSharpExpression(element.argument)})`);
+          // Add spread array (cast to preserve type)
+          parts.push(generateCSharpExpression(element.argument));
         } else {
           currentLiteral.push(element);
         }
@@ -509,7 +560,7 @@ function generateCSharpExpression(node, inInterpolation = false) {
       // Flush remaining literals
       if (currentLiteral.length > 0) {
         const literalCode = currentLiteral.map(e => generateCSharpExpression(e)).join(', ');
-        parts.push(`new List<object> { ${literalCode} }`);
+        parts.push(`new[] { ${literalCode} }`);
       }
 
       // Combine with Concat
@@ -523,6 +574,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
 
     // No spread - simple array literal
     const elements = node.elements.map(e => generateCSharpExpression(e)).join(', ');
+
+    // Infer type from first element if all are string literals
+    if (node.elements.length > 0 && node.elements.every(e => t.isStringLiteral(e))) {
+      return `new List<string> { ${elements} }`;
+    }
+
     // Use List<dynamic> for empty arrays to be compatible with dynamic LINQ results
     const listType = elements.length === 0 ? 'dynamic' : 'object';
     return `new List<${listType}> { ${elements} }`;
@@ -775,6 +832,12 @@ function generateCSharpExpression(node, inInterpolation = false) {
     if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toUpperCase' })) {
       const object = generateCSharpExpression(node.callee.object);
       return `${object}.ToUpper()`;
+    }
+
+    // Handle .trim() → .Trim()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'trim' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.Trim()`;
     }
 
     // Handle .substring(start, end) → .Substring(start, end)

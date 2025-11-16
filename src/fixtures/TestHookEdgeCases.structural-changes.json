@@ -1,0 +1,516 @@
+{
+  "componentName": "TestHookEdgeCases",
+  "timestamp": "2025-11-14T02:11:19.437Z",
+  "sourceFile": "J:\\projects\\minimact-2\\minimact\\src\\fixtures\\TestHookEdgeCases.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "test-edge-cases"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h1"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.4",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.5",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.6",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.7",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h1",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "Hook Import Edge Cases Test"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2",
+        "attributes": {
+          "className": "section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "p"
+          },
+          {
+            "type": "expression",
+            "path": "1.2.3",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.2.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1",
+            "value": "1. Default Export (useToggle)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.2.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.2.1",
+            "value": "Toggle is:"
+          },
+          {
+            "type": "expression",
+            "path": "1.2.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.3",
+        "attributes": {
+          "className": "section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2",
+            "tag": "p"
+          },
+          {
+            "type": "expression",
+            "path": "1.3.3",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.3.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1.1",
+            "value": "2. Named Export (useCounter)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.3.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.2.1",
+            "value": "Count:"
+          },
+          {
+            "type": "expression",
+            "path": "1.3.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.4",
+        "attributes": {
+          "className": "section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.4.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2",
+            "tag": "p"
+          },
+          {
+            "type": "expression",
+            "path": "1.4.3",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.4.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.1.1",
+            "value": "3. Renamed Import (useTimer as Timer)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.4.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.2.1",
+            "value": "Seconds:"
+          },
+          {
+            "type": "expression",
+            "path": "1.4.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.5",
+        "attributes": {
+          "className": "section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.5.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.5.2",
+            "tag": "p"
+          },
+          {
+            "type": "expression",
+            "path": "1.5.3",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.5.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.5.1.1",
+            "value": "4. Multiple Hooks from Same File (useDoubler)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.5.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.5.2.1",
+            "value": "Doubled value:"
+          },
+          {
+            "type": "expression",
+            "path": "1.5.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.6",
+        "attributes": {
+          "className": "section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.6.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.6.2",
+            "tag": "p"
+          },
+          {
+            "type": "expression",
+            "path": "1.6.3",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.6.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.6.1.1",
+            "value": "5. Inline + Imported Mix"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.6.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.6.2.1",
+            "value": "Local message:"
+          },
+          {
+            "type": "expression",
+            "path": "1.6.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.7",
+        "attributes": {
+          "className": "summary"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.7.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.7.2",
+            "tag": "p"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.7.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.1.1",
+            "value": "Summary"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.7.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.2.1",
+            "value": "All hook values:"
+          },
+          {
+            "type": "expression",
+            "path": "1.7.2.2",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "text",
+            "path": "1.7.2.3",
+            "value": "+"
+          },
+          {
+            "type": "expression",
+            "path": "1.7.2.4",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "text",
+            "path": "1.7.2.5",
+            "value": "+"
+          },
+          {
+            "type": "expression",
+            "path": "1.7.2.6",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "text",
+            "path": "1.7.2.7",
+            "value": "+"
+          },
+          {
+            "type": "expression",
+            "path": "1.7.2.8",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "text",
+            "path": "1.7.2.9",
+            "value": "="
+          },
+          {
+            "type": "expression",
+            "path": "1.7.2.10",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -184,6 +184,142 @@ module.exports = {
       ],
       buildCommand: 'npm run build',
       installDependencies: true
+    },
+    {
+      name: '@minimact/dynamic',
+      source: 'src/minimact-dynamic',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/spatial',
+      source: 'src/minimact-spatial',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/grains',
+      source: 'src/minimact-grains',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/grid',
+      source: 'src/minimact-grid',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/timeline',
+      source: 'src/minimact-timeline',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/spa',
+      source: 'src/minimact-spa',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/mvc',
+      source: 'src/minimact-mvc',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
+    },
+    {
+      name: '@minimact/x',
+      source: 'src/minimact-x',
+      include: [
+        'dist/**/*',
+        'src/**/*',
+        'package.json',
+        'README.md'
+      ],
+      exclude: [
+        'node_modules',
+        '*.log',
+        '.git'
+      ],
+      buildCommand: 'npm run build',
+      installDependencies: true
     }
   ],
 
@@ -202,14 +338,22 @@ module.exports = {
       // Which packages this target needs
       packages: [
         '@minimact/babel-plugin',
-        '@minimact/punch',
         '@minimact/core',
+        '@minimact/punch',
         '@minimact/query',
         '@minimact/trees',
         '@minimact/quantum',
         '@minimact/md',
         '@minimact/charts',
-        '@minimact/powered'
+        '@minimact/powered',
+        '@minimact/dynamic',
+        '@minimact/spatial',
+        '@minimact/grains',
+        '@minimact/grid',
+        '@minimact/timeline',
+        '@minimact/spa',
+        '@minimact/mvc',
+        '@minimact/x'
       ]
     }
     // Add more targets as needed:

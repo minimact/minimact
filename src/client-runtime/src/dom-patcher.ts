@@ -1,4 +1,5 @@
 import { Patch, VNode, VElement, VText } from './types';
+import { IConnectionManager } from './connection-manager';
 
 /**
  * Applies DOM patches from the server to the actual DOM
@@ -6,9 +7,11 @@ import { Patch, VNode, VElement, VText } from './types';
  */
 export class DOMPatcher {
   private debugLogging: boolean;
+  private signalR?: IConnectionManager;
 
-  constructor(options: { debugLogging?: boolean } = {}) {
+  constructor(options: { debugLogging?: boolean; signalR?: IConnectionManager } = {}) {
     this.debugLogging = options.debugLogging || false;
+    this.signalR = options.signalR;
   }
 
   /**
@@ -22,6 +25,13 @@ export class DOMPatcher {
         this.applyPatch(rootElement, patch);
       } catch (error) {
         console.error('[Minimact] Failed to apply patch:', patch, error);
+
+        // Debug: Patch application failure
+        this.signalR?.debug('patches', 'Failed to apply patch', {
+          patch,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
       }
     }
   }
@@ -34,6 +44,14 @@ export class DOMPatcher {
 
     if (!targetElement && patch.type !== 'Create') {
       console.warn('[Minimact] Target element not found for patch:', patch);
+
+      // Debug: Element not found
+      this.signalR?.debug('patches', 'Target element not found', {
+        patchType: patch.type,
+        path: patch.path,
+        patch
+      });
+
       return;
     }
 
@@ -306,5 +324,8 @@ export class DOMPatcher {
     if (this.debugLogging) {
       console.log(`[Minimact DOMPatcher] ${message}`, data || '');
     }
+
+    // Always send to server if debug mode enabled (independent of debugLogging flag)
+    this.signalR?.debug('dom-patcher', message, data);
   }
 }

@@ -1,0 +1,11 @@
+{
+  "componentName": "TestImportedHook",
+  "timestamp": "2025-11-14T02:09:25.179Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    }
+  ]
+}

@@ -302,6 +302,9 @@ FakesAssemblies/
 node_modules/
 mact_modules/
 
+# Minimact distribution files
+dist/zip/
+
 # Visual Studio 6 build log
 *.plg
 
