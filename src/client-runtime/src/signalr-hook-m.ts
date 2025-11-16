@@ -40,7 +40,7 @@ export function useSignalR<T = any>(
   disconnect: () => Promise<void>;
 } {
   // Create SignalM manager for this hub (lightweight client for SignalR server)
-  const manager = new SignalMManager(hubUrl, {
+  const manager = SignalMManager.createDefault(hubUrl, {
     reconnectInterval: options.reconnectInterval,
     debugLogging: options.debugLogging
   });

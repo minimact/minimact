@@ -1,0 +1,37 @@
+{
+  "productName": "Cactus Browser",
+  "version": "0.1.0",
+  "identifier": "com.minimact.cactus-browser",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": false,
+    "targets": "all",
+    "icon": [
+      "../cactus.ico"
+    ],
+    "resources": [
+      "../minimact-runtime-aot/bin/Release/net8.0/win-x64/publish/*"
+    ]
+  },
+  "plugins": {},
+  "app": {
+    "windows": [
+      {
+        "title": "Cactus Browser",
+        "width": 1280,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}

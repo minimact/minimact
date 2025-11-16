@@ -1,4 +1,4 @@
-import { SignalMConnection, ConnectionState } from './signalm/index';
+import { ISignalMTransport, WebSocketTransport, ConnectionState } from './signalm/index';
 import { Patch } from './types';
 import { ArrayOperation } from './hooks';
 import { DEBUG_MODE } from './debug-config';
@@ -8,22 +8,62 @@ import { DEBUG_MODE } from './debug-config';
  *
  * Drop-in replacement for SignalRManager using lightweight SignalM
  * Bundle size: ~3 KB gzipped (vs 18 KB with SignalR)
+ *
+ * SignalM² - Now supports pluggable transports (WebSocket, Tauri IPC, etc.)
  */
 export class SignalMManager {
-  private connection: SignalMConnection;
+  private transport: ISignalMTransport;
   private debugLogging: boolean;
   private eventHandlers: Map<string, Set<Function>>;
 
-  constructor(hubUrl: string = '/minimact', options: { reconnectInterval?: number; debugLogging?: boolean } = {}) {
+  /**
+   * Create SignalMManager with a custom transport
+   */
+  constructor(transport: ISignalMTransport, options: { debugLogging?: boolean } = {}) {
+    this.transport = transport;
     this.debugLogging = options.debugLogging || false;
     this.eventHandlers = new Map();
 
-    // SignalM uses built-in exponential backoff, reconnectInterval is ignored
-    this.connection = new SignalMConnection(hubUrl, {
-      debug: this.debugLogging
-    });
-
     this.setupEventHandlers();
+  }
+
+  /**
+   * Create SignalMManager with default WebSocket transport
+   * (Backward compatible with old constructor)
+   */
+  static createDefault(hubUrl: string = '/minimact', options: { debugLogging?: boolean } = {}): SignalMManager {
+    return new SignalMManager(
+      new WebSocketTransport(hubUrl, { debug: options.debugLogging }),
+      options
+    );
+  }
+
+  /**
+   * Create SignalMManager with WebSocket transport
+   */
+  static createWebTransport(url: string, options: { debugLogging?: boolean } = {}): SignalMManager {
+    return new SignalMManager(
+      new WebSocketTransport(url, { debug: options.debugLogging }),
+      options
+    );
+  }
+
+  /**
+   * Auto-detect environment and create appropriate transport
+   * - Uses Tauri transport if running in Tauri (must be provided via options)
+   * - Uses WebSocket transport otherwise
+   */
+  static createAuto(fallbackUrl?: string, options: { debugLogging?: boolean; tauriTransport?: any } = {}): SignalMManager {
+    if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+      if (!options.tauriTransport) {
+        throw new Error('[SignalM²] Tauri environment detected but no TauriTransport provided. Import TauriTransport and pass it via options.tauriTransport');
+      }
+      console.log('[SignalM²] Detected Tauri environment → Using Tauri transport');
+      return new SignalMManager(new options.tauriTransport(), options);
+    }
+
+    console.log('[SignalM²] Web environment → Using WebSocket transport');
+    return SignalMManager.createWebTransport(fallbackUrl || '/minimact', options);
   }
 
   /**
@@ -31,31 +71,31 @@ export class SignalMManager {
    */
   private setupEventHandlers(): void {
     // Handle component updates from server
-    this.connection.on('UpdateComponent', (componentId: string, html: string) => {
+    this.transport.on('UpdateComponent', (componentId: string, html: string) => {
       this.log('UpdateComponent', { componentId, html });
       this.emit('updateComponent', { componentId, html });
     });
 
     // Handle patch updates from server
-    this.connection.on('ApplyPatches', (componentId: string, patches: Patch[]) => {
+    this.transport.on('ApplyPatches', (componentId: string, patches: Patch[]) => {
       this.log('ApplyPatches', { componentId, patches });
       this.emit('applyPatches', { componentId, patches });
     });
 
     // Handle predicted patches (sent immediately for instant feedback)
-    this.connection.on('ApplyPrediction', (data: { componentId: string, patches: Patch[], confidence: number }) => {
+    this.transport.on('ApplyPrediction', (data: { componentId: string, patches: Patch[], confidence: number }) => {
       this.log(`ApplyPrediction (${(data.confidence * 100).toFixed(0)}% confident)`, { componentId: data.componentId, patches: data.patches });
       this.emit('applyPrediction', { componentId: data.componentId, patches: data.patches, confidence: data.confidence });
     });
 
     // Handle correction if prediction was wrong
-    this.connection.on('ApplyCorrection', (data: { componentId: string, patches: Patch[] }) => {
+    this.transport.on('ApplyCorrection', (data: { componentId: string, patches: Patch[] }) => {
       this.log('ApplyCorrection (prediction was incorrect)', { componentId: data.componentId, patches: data.patches });
       this.emit('applyCorrection', { componentId: data.componentId, patches: data.patches });
     });
 
     // Handle hint queueing (usePredictHint)
-    this.connection.on('QueueHint', (data: {
+    this.transport.on('QueueHint', (data: {
       componentId: string,
       hintId: string,
       patches: Patch[],
@@ -70,52 +110,60 @@ export class SignalMManager {
     });
 
     // Handle errors from server
-    this.connection.on('Error', (message: string) => {
+    this.transport.on('Error', (message: string) => {
       console.error('[Minimact] Server error:', message);
       this.emit('error', { message });
     });
 
     // Handle hot reload messages
-    this.connection.on('HotReload:TemplateMap', (data: any) => {
+    this.transport.on('HotReload:TemplateMap', (data: any) => {
       this.log('HotReload:TemplateMap', data);
       this.emit('HotReload:TemplateMap', data);
     });
 
-    this.connection.on('HotReload:TemplatePatch', (data: any) => {
+    this.transport.on('HotReload:TemplatePatch', (data: any) => {
       this.log('HotReload:TemplatePatch', data);
       this.emit('HotReload:TemplatePatch', data);
     });
 
-    this.connection.on('HotReload:FileChange', (data: any) => {
+    this.transport.on('HotReload:FileChange', (data: any) => {
       this.log('HotReload:FileChange', data);
       this.emit('HotReload:FileChange', data);
     });
 
-    this.connection.on('HotReload:Error', (data: any) => {
+    this.transport.on('HotReload:Error', (data: any) => {
       console.error('[Minimact Hot Reload] Error:', data.error);
       this.emit('HotReload:Error', data);
     });
 
-    // Handle reconnection
-    this.connection.onReconnecting(() => {
-      this.log('Reconnecting...');
-      this.emit('reconnecting', {});
-    });
+    // Handle reconnection (optional methods)
+    if (this.transport.onReconnecting) {
+      this.transport.onReconnecting(() => {
+        this.log('Reconnecting...');
+        this.emit('reconnecting', {});
+      });
+    }
 
-    this.connection.onReconnected(() => {
-      this.log('Reconnected');
-      this.emit('reconnected', { connectionId: null }); // SignalM doesn't expose connectionId
-    });
+    if (this.transport.onReconnected) {
+      this.transport.onReconnected(() => {
+        this.log('Reconnected');
+        this.emit('reconnected', { connectionId: null });
+      });
+    }
 
-    this.connection.onDisconnected(() => {
-      this.log('Connection closed');
-      this.emit('closed', {});
-    });
+    if (this.transport.onClose) {
+      this.transport.onClose(() => {
+        this.log('Connection closed');
+        this.emit('closed', {});
+      });
+    }
 
-    this.connection.onConnected(() => {
-      this.log('Connected to Minimact hub');
-      this.emit('connected', { connectionId: null }); // SignalM doesn't expose connectionId
-    });
+    if (this.transport.onConnected) {
+      this.transport.onConnected(() => {
+        this.log('Connected to Minimact hub');
+        this.emit('connected', { connectionId: null });
+      });
+    }
   }
 
   /**
@@ -123,7 +171,7 @@ export class SignalMManager {
    */
   async start(): Promise<void> {
     try {
-      await this.connection.start();
+      await this.transport.connect();
       // Connected event already emitted by onConnected handler
     } catch (error) {
       console.error('[Minimact] Failed to connect:', error);
@@ -135,7 +183,7 @@ export class SignalMManager {
    * Stop the SignalM connection
    */
   async stop(): Promise<void> {
-    await this.connection.stop();
+    await this.transport.disconnect();
     this.log('Disconnected from Minimact hub');
   }
 
@@ -144,7 +192,7 @@ export class SignalMManager {
    */
   async registerComponent(componentId: string): Promise<void> {
     try {
-      await this.connection.invoke('RegisterComponent', componentId);
+      await this.transport.send('RegisterComponent', componentId);
       this.log('Registered component', { componentId });
     } catch (error) {
       console.error('[Minimact] Failed to register component:', error);
@@ -158,7 +206,7 @@ export class SignalMManager {
   async invokeComponentMethod(componentId: string, methodName: string, args: any = {}): Promise<void> {
     try {
       const argsJson = JSON.stringify(args);
-      await this.connection.invoke('InvokeComponentMethod', componentId, methodName, argsJson);
+      await this.transport.send('InvokeComponentMethod', componentId, methodName, argsJson);
       this.log('Invoked method', { componentId, methodName, args });
     } catch (error) {
       console.error('[Minimact] Failed to invoke method:', error);
@@ -172,7 +220,7 @@ export class SignalMManager {
   async updateClientState(componentId: string, key: string, value: any): Promise<void> {
     try {
       const valueJson = JSON.stringify(value);
-      await this.connection.invoke('UpdateClientState', componentId, key, valueJson);
+      await this.transport.send('UpdateClientState', componentId, key, valueJson);
       this.log('Updated client state', { componentId, key, value });
     } catch (error) {
       console.error('[Minimact] Failed to update client state:', error);
@@ -185,7 +233,7 @@ export class SignalMManager {
    */
   async updateClientComputedState(componentId: string, computedValues: Record<string, any>): Promise<void> {
     try {
-      await this.connection.invoke('UpdateClientComputedState', componentId, computedValues);
+      await this.transport.send('UpdateClientComputedState', componentId, computedValues);
       this.log('Updated client-computed state', { componentId, computedValues });
     } catch (error) {
       console.error('[Minimact] Failed to update client-computed state:', error);
@@ -199,7 +247,7 @@ export class SignalMManager {
    */
   async updateComponentState(componentId: string, stateKey: string, value: any): Promise<void> {
     try {
-      await this.connection.invoke('UpdateComponentState', componentId, stateKey, value);
+      await this.transport.send('UpdateComponentState', componentId, stateKey, value);
       this.log('Updated component state', { componentId, stateKey, value });
     } catch (error) {
       console.error('[Minimact] Failed to update component state:', error);
@@ -213,7 +261,7 @@ export class SignalMManager {
    */
   async updateDomElementState(componentId: string, stateKey: string, snapshot: any): Promise<void> {
     try {
-      await this.connection.invoke('UpdateDomElementState', componentId, stateKey, snapshot);
+      await this.transport.send('UpdateDomElementState', componentId, stateKey, snapshot);
       this.log('Updated DOM element state', { componentId, stateKey, snapshot });
     } catch (error) {
       console.error('[Minimact] Failed to update DOM element state:', error);
@@ -232,7 +280,7 @@ export class SignalMManager {
     operation: ArrayOperation
   ): Promise<void> {
     try {
-      await this.connection.invoke('UpdateComponentStateWithOperation', componentId, stateKey, newValue, operation);
+      await this.transport.send('UpdateComponentStateWithOperation', componentId, stateKey, newValue, operation);
       this.log('Updated component state with operation', { componentId, stateKey, operation, newValue });
     } catch (error) {
       console.error('[Minimact] Failed to update component state with operation:', error);
@@ -246,7 +294,7 @@ export class SignalMManager {
    */
   async updateQueryResults(componentId: string, queryKey: string, results: any[]): Promise<void> {
     try {
-      await this.connection.invoke('UpdateQueryResults', componentId, queryKey, results);
+      await this.transport.send('UpdateQueryResults', componentId, queryKey, results);
       this.log('Updated query results', { componentId, queryKey, resultCount: results.length });
     } catch (error) {
       console.error('[Minimact] Failed to update query results:', error);
@@ -259,7 +307,7 @@ export class SignalMManager {
    */
   async invoke(methodName: string, ...args: any[]): Promise<void> {
     try {
-      await this.connection.invoke(methodName, ...args);
+      await this.transport.send(methodName, ...args);
       this.log(`Invoked ${methodName}`, { args });
     } catch (error) {
       console.error(`[Minimact] Failed to invoke ${methodName}:`, error);
@@ -284,7 +332,7 @@ export class SignalMManager {
     }
 
     try {
-      await this.connection.invoke('DebugMessage', category, message, data);
+      await this.transport.send('DebugMessage', category, message, data);
     } catch (error) {
       console.error('[Minimact] Failed to send debug message to server:', error);
     }
@@ -331,10 +379,10 @@ export class SignalMManager {
 
   /**
    * Get connection state
-   * Maps SignalM ConnectionState to SignalR HubConnectionState for compatibility
+   * Returns true if connected, false otherwise
    */
   get state(): string {
-    return this.connection.connectionState;
+    return this.transport.isConnected() ? 'Connected' : 'Disconnected';
   }
 
   /**

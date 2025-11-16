@@ -57,8 +57,7 @@ export class Minimact {
     };
 
     // Initialize subsystems (using lightweight SignalM!)
-    this.signalR = new SignalMManager(this.options.hubUrl, {
-      reconnectInterval: this.options.reconnectInterval,
+    this.signalR = SignalMManager.createDefault(this.options.hubUrl, {
       debugLogging: this.options.enableDebugLogging
     });
 

@@ -38,5 +38,9 @@ export { EventEmitter } from './EventEmitter';
 // Export main connection class
 export { SignalMConnection } from './SignalMConnection';
 
+// Export transport interfaces
+export type { ISignalMTransport } from './ISignalMTransport';
+export { WebSocketTransport } from './WebSocketTransport';
+
 // Version
 export const VERSION = '0.1.0';
