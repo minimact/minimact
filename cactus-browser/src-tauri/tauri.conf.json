@@ -15,7 +15,8 @@
       "../cactus.ico"
     ],
     "resources": [
-      "../minimact-runtime-aot/bin/Release/net8.0/win-x64/publish/*"
+      "../minimact-runtime/bin/Release/net8.0/win-x64/publish/*",
+      "assets/*"
     ]
   },
   "plugins": {},
@@ -31,7 +32,11 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
+      }
     }
   }
 }

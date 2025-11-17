@@ -13,9 +13,9 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 REM Check if runtime is built
-if not exist "minimact-runtime-aot\bin\Release\net8.0\win-x64\publish\minimact-runtime-aot.exe" (
+if not exist "minimact-runtime\bin\Release\net8.0\win-x64\publish\minimact-runtime.exe" (
     echo Runtime not found! Building first...
-    call build-runtime.bat
+    call build-runtime-roslyn.bat
     if %ERRORLEVEL% NEQ 0 exit /b 1
 )
 

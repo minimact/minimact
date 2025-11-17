@@ -12,7 +12,7 @@ public class Program
             if (args.Length < 2)
             {
                 Console.Error.WriteLine("Usage: minimact-runtime <command> <request.json>");
-                Console.Error.WriteLine("Commands: Initialize, UpdateComponentState");
+                Console.Error.WriteLine("Commands: Execute");
                 return 1;
             }
 
@@ -24,41 +24,6 @@ public class Program
 
             switch (command)
             {
-                case "Initialize":
-                    {
-                        var request = JsonSerializer.Deserialize<RenderRequest>(requestJson);
-                        if (request == null)
-                        {
-                            Console.Error.WriteLine("Invalid RenderRequest JSON");
-                            return 1;
-                        }
-
-                        var result = ComponentManager.InitializeComponent(request);
-                        responseJson = JsonSerializer.Serialize(result);
-                        Console.WriteLine(responseJson);
-                        return result.Success ? 0 : 1;
-                    }
-
-                case "UpdateComponentState":
-                    {
-                        var request = JsonSerializer.Deserialize<UpdateStateRequest>(requestJson);
-                        if (request == null)
-                        {
-                            Console.Error.WriteLine("Invalid UpdateStateRequest JSON");
-                            return 1;
-                        }
-
-                        var result = ComponentManager.UpdateComponentState(
-                            request.ComponentId,
-                            request.StateKey,
-                            request.Value
-                        );
-
-                        responseJson = JsonSerializer.Serialize(result);
-                        Console.WriteLine(responseJson);
-                        return result.Success ? 0 : 1;
-                    }
-
                 case "Execute":
                     {
                         // Legacy command for backward compatibility
@@ -77,7 +42,7 @@ public class Program
 
                 default:
                     Console.Error.WriteLine($"Unknown command: {command}");
-                    Console.Error.WriteLine("Valid commands: Initialize, UpdateComponentState, Execute");
+                    Console.Error.WriteLine("Valid commands: Execute");
                     return 1;
             }
         }

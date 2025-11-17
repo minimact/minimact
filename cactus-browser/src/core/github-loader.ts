@@ -53,9 +53,26 @@ export async function loadFromGitHub(
     const cached = await fileCache.get(url);
     if (cached) {
       console.log(`[GitHubLoader] Using cached version`);
+      const files = new Map([[entryPath, cached.content]]);
+
+      // Compile if requested
+      let compiled: Map<string, any> | undefined;
+      if (compile) {
+        console.log(`[GitHubLoader] Compiling cached file...`);
+        compiled = new Map();
+        try {
+          const result = await compileTsxSource(cached.content, entryPath);
+          compiled.set(entryPath, result);
+          console.log(`[GitHubLoader] Compiled ${entryPath}`);
+        } catch (error) {
+          console.error(`[GitHubLoader] Failed to compile ${entryPath}:`, error);
+        }
+      }
+
       return {
-        files: new Map([[entryPath, cached.content]]),
-        entryPath
+        files,
+        entryPath,
+        compiled
       };
     }
   }

@@ -52,7 +52,7 @@ public static class ComponentExecutor
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>Minimact Component</title>
-    <script src=""http://localhost:1420/minimact-client-runtime.js""></script>
+    <script src=""asset://localhost/client-runtime.js""></script>
     <style>
         body {{
             margin: 0;
