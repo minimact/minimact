@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App-phase2'; // Using Phase 2 App with GitHub loader
+import App from './App-phase3'; // Using Phase 3 App - Full execution pipeline
 import './styles/app.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

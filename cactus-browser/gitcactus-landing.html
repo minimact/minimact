@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitCactus - The Fastest Browser in the West</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rye&family=Inter:wght@400;600;700&display=swap');
+
+        .font-western {
+            font-family: 'Rye', cursive;
+        }
+
+        .bg-desert {
+            background: linear-gradient(to bottom, #f4a460 0%, #d2691e 50%, #8b4513 100%);
+        }
+
+        .bg-wood {
+            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+        }
+
+        .text-shadow-western {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .cactus-animate {
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-amber-100 to-orange-200 font-['Inter']">
+    <!-- Hero Section -->
+    <div class="bg-desert min-h-screen relative overflow-hidden">
+        <!-- Western Border Top -->
+        <div class="absolute top-0 left-0 right-0 h-4 bg-wood border-b-4 border-yellow-700"></div>
+
+        <!-- Floating Cacti -->
+        <div class="absolute bottom-20 left-10 text-6xl cactus-animate opacity-30">🌵</div>
+        <div class="absolute bottom-32 right-20 text-8xl cactus-animate opacity-20" style="animation-delay: 1s;">🌵</div>
+        <div class="absolute top-40 left-1/4 text-5xl cactus-animate opacity-25" style="animation-delay: 2s;">🌵</div>
+
+        <div class="container mx-auto px-6 py-20 relative z-10">
+            <!-- Header -->
+            <nav class="flex justify-between items-center mb-20">
+                <div class="text-4xl font-western text-yellow-300 text-shadow-western">
+                    🌵 GitCactus
+                </div>
+                <div class="space-x-6">
+                    <a href="#features" class="text-yellow-100 hover:text-yellow-300 font-semibold">Features</a>
+                    <a href="#examples" class="text-yellow-100 hover:text-yellow-300 font-semibold">The Frontier</a>
+                    <a href="#download" class="bg-yellow-500 text-brown-900 px-6 py-2 rounded-lg font-bold hover:bg-yellow-400 transition shadow-lg">
+                        Get Cactus Browser
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Hero Content -->
+            <div class="text-center mt-20">
+                <h1 class="text-8xl font-western text-yellow-300 mb-6 text-shadow-western">
+                    The Fastest Browser<br/>in the West
+                </h1>
+                <p class="text-3xl text-yellow-100 mb-4 font-semibold text-shadow-western">
+                    No servers. No builds. No bull.
+                </p>
+                <p class="text-2xl text-yellow-200 mb-12 text-shadow-western">
+                    Just pure TSX, straight from the git.
+                </p>
+
+                <div class="flex gap-6 justify-center">
+                    <a href="#download" class="bg-yellow-500 text-brown-900 px-10 py-4 rounded-xl text-xl font-bold hover:bg-yellow-400 transition shadow-2xl transform hover:scale-105">
+                        🤠 Download Now
+                    </a>
+                    <a href="#learn" class="bg-transparent border-4 border-yellow-300 text-yellow-300 px-10 py-4 rounded-xl text-xl font-bold hover:bg-yellow-300 hover:text-brown-900 transition shadow-2xl">
+                        Browse the Frontier →
+                    </a>
+                </div>
+
+                <!-- Stats Banner -->
+                <div class="mt-20 bg-black bg-opacity-40 backdrop-blur-sm rounded-2xl p-8 inline-block border-4 border-yellow-700">
+                    <div class="grid grid-cols-3 gap-12 text-center">
+                        <div>
+                            <div class="text-5xl font-bold text-yellow-300">~0.1ms</div>
+                            <div class="text-yellow-100 font-semibold mt-2">Latency</div>
+                            <div class="text-yellow-200 text-sm">100x faster than WebSocket</div>
+                        </div>
+                        <div>
+                            <div class="text-5xl font-bold text-yellow-300">$0</div>
+                            <div class="text-yellow-100 font-semibold mt-2">Server Costs</div>
+                            <div class="text-yellow-200 text-sm">GitHub is free</div>
+                        </div>
+                        <div>
+                            <div class="text-5xl font-bold text-yellow-300">100%</div>
+                            <div class="text-yellow-100 font-semibold mt-2">Offline</div>
+                            <div class="text-yellow-200 text-sm">No network needed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Western Border Bottom -->
+        <div class="absolute bottom-0 left-0 right-0 h-4 bg-wood border-t-4 border-yellow-700"></div>
+    </div>
+
+    <!-- Features Section -->
+    <div id="features" class="py-20 bg-gradient-to-b from-orange-200 to-amber-100">
+        <div class="container mx-auto px-6">
+            <h2 class="text-6xl font-western text-center text-brown-800 mb-16">
+                🏜️ The Outlaw's Advantage
+            </h2>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Feature Card 1 -->
+                <div class="bg-wood rounded-xl p-8 shadow-2xl border-4 border-yellow-700 transform hover:scale-105 transition">
+                    <div class="text-6xl mb-4 text-center">🏜️</div>
+                    <h3 class="text-2xl font-bold text-yellow-300 mb-4 text-center">No Servers Required</h3>
+                    <p class="text-yellow-100 text-center">
+                        Runs TSX without asking permission from servers. Your code, your machine, your rules.
+                    </p>
+                </div>
+
+                <!-- Feature Card 2 -->
+                <div class="bg-wood rounded-xl p-8 shadow-2xl border-4 border-yellow-700 transform hover:scale-105 transition">
+                    <div class="text-6xl mb-4 text-center">🔫</div>
+                    <h3 class="text-2xl font-bold text-yellow-300 mb-4 text-center">Lightning Fast</h3>
+                    <p class="text-yellow-100 text-center">
+                        Faster draw than any server in town. 100x faster than traditional web apps.
+                    </p>
+                </div>
+
+                <!-- Feature Card 3 -->
+                <div class="bg-wood rounded-xl p-8 shadow-2xl border-4 border-yellow-700 transform hover:scale-105 transition">
+                    <div class="text-6xl mb-4 text-center">🌵</div>
+                    <h3 class="text-2xl font-bold text-yellow-300 mb-4 text-center">Off the Grid</h3>
+                    <p class="text-yellow-100 text-center">
+                        Offline-first. No internet? No problem. Works in the desert, no water needed.
+                    </p>
+                </div>
+
+                <!-- Feature Card 4 -->
+                <div class="bg-wood rounded-xl p-8 shadow-2xl border-4 border-yellow-700 transform hover:scale-105 transition">
+                    <div class="text-6xl mb-4 text-center">⚡</div>
+                    <h3 class="text-2xl font-bold text-yellow-300 mb-4 text-center">Posthydrationist</h3>
+                    <p class="text-yellow-100 text-center">
+                        We skipped the whole "server" phase. Went straight to native.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="py-20 bg-gradient-to-b from-amber-100 to-orange-100">
+        <div class="container mx-auto px-6">
+            <h2 class="text-6xl font-western text-center text-brown-800 mb-16">
+                🤠 How the Magic Happens
+            </h2>
+
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-2xl p-12 border-4 border-brown-700">
+                    <div class="space-y-8">
+                        <!-- Step 1 -->
+                        <div class="flex items-start gap-6">
+                            <div class="bg-yellow-500 text-brown-900 rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                                1
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-brown-800 mb-2">Write TSX</h3>
+                                <p class="text-brown-600">
+                                    Just regular React/TSX. Use hooks, state, effects - everything you know and love.
+                                </p>
+                                <code class="block mt-3 bg-gray-100 p-3 rounded text-sm">
+                                    export default function Counter() { ... }
+                                </code>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex items-start gap-6">
+                            <div class="bg-yellow-500 text-brown-900 rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                                2
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-brown-800 mb-2">Push to GitHub</h3>
+                                <p class="text-brown-600">
+                                    Git push and you're done. No build step. No deployment. No infrastructure.
+                                </p>
+                                <code class="block mt-3 bg-gray-100 p-3 rounded text-sm">
+                                    git push origin main
+                                </code>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex items-start gap-6">
+                            <div class="bg-yellow-500 text-brown-900 rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                                3
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-brown-800 mb-2">Open in Cactus Browser</h3>
+                                <p class="text-brown-600">
+                                    Type the gh:// URL and it loads instantly. Runs with native desktop performance.
+                                </p>
+                                <code class="block mt-3 bg-gray-100 p-3 rounded text-sm">
+                                    gh://username/repo/App.tsx
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison -->
+                    <div class="mt-12 pt-8 border-t-2 border-brown-200">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-red-50 border-2 border-red-300 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3 text-xl">❌ Traditional Web:</h4>
+                                <ul class="text-red-700 space-y-2 text-sm">
+                                    <li>• Write code</li>
+                                    <li>• Build/bundle</li>
+                                    <li>• Deploy to server</li>
+                                    <li>• Pay for hosting</li>
+                                    <li>• Maintain infrastructure</li>
+                                    <li>• Debug deployment issues</li>
+                                </ul>
+                            </div>
+                            <div class="bg-green-50 border-2 border-green-300 rounded-lg p-6">
+                                <h4 class="font-bold text-green-800 mb-3 text-xl">✅ Cactus Browser:</h4>
+                                <ul class="text-green-700 space-y-2 text-sm">
+                                    <li>• Write code</li>
+                                    <li>• Git push</li>
+                                    <li>• Done! 🎉</li>
+                                    <li>&nbsp;</li>
+                                    <li>&nbsp;</li>
+                                    <li>&nbsp;</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Frontier (Examples) -->
+    <div id="examples" class="py-20 bg-gradient-to-b from-orange-100 to-amber-200">
+        <div class="container mx-auto px-6">
+            <h2 class="text-6xl font-western text-center text-brown-800 mb-4">
+                🗺️ The Frontier
+            </h2>
+            <p class="text-center text-brown-600 text-xl mb-16">
+                Apps running wild and free on GitHub
+            </p>
+
+            <div class="max-w-4xl mx-auto space-y-4">
+                <!-- Example 1 -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-2 border-brown-300 hover:shadow-2xl transition transform hover:scale-102">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="text-4xl">📍</div>
+                            <div>
+                                <code class="text-lg font-mono text-blue-600">gh://minimact/docs/pages/index.tsx</code>
+                                <p class="text-brown-600 mt-1">Simple counter. Counts cattle.</p>
+                            </div>
+                        </div>
+                        <button class="bg-yellow-500 text-brown-900 px-6 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">
+                            Open →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Example 2 -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-2 border-brown-300 hover:shadow-2xl transition transform hover:scale-102">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="text-4xl">📍</div>
+                            <div>
+                                <code class="text-lg font-mono text-blue-600">gh://minimact/examples/todo.tsx</code>
+                                <p class="text-brown-600 mt-1">Todo list. Track your bounties.</p>
+                            </div>
+                        </div>
+                        <button class="bg-yellow-500 text-brown-900 px-6 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">
+                            Open →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Example 3 -->
+                <div class="bg-white rounded-xl p-6 shadow-lg border-2 border-brown-300 hover:shadow-2xl transition transform hover:scale-102">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="text-4xl">📍</div>
+                            <div>
+                                <code class="text-lg font-mono text-blue-600">gh://minimact/apps/dashboard.tsx</code>
+                                <p class="text-brown-600 mt-1">Real-time dashboard. Monitor the gold rush.</p>
+                            </div>
+                        </div>
+                        <button class="bg-yellow-500 text-brown-900 px-6 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">
+                            Open →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="#" class="text-brown-700 hover:text-brown-900 font-semibold text-lg underline">
+                    Browse more on GitHub →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Section -->
+    <div id="download" class="py-20 bg-wood">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-6xl font-western text-yellow-300 mb-8 text-shadow-western">
+                🌵 Get Cactus Browser
+            </h2>
+            <p class="text-2xl text-yellow-100 mb-12 text-shadow-western">
+                Join the revolution. Ditch the servers.
+            </p>
+
+            <div class="flex gap-6 justify-center mb-12">
+                <a href="#" class="bg-yellow-500 text-brown-900 px-12 py-5 rounded-xl text-2xl font-bold hover:bg-yellow-400 transition shadow-2xl transform hover:scale-105">
+                    🪟 Download for Windows
+                </a>
+                <a href="#" class="bg-yellow-500 text-brown-900 px-12 py-5 rounded-xl text-2xl font-bold hover:bg-yellow-400 transition shadow-2xl transform hover:scale-105">
+                    🍎 Download for Mac
+                </a>
+                <a href="#" class="bg-yellow-500 text-brown-900 px-12 py-5 rounded-xl text-2xl font-bold hover:bg-yellow-400 transition shadow-2xl transform hover:scale-105">
+                    🐧 Download for Linux
+                </a>
+            </div>
+
+            <p class="text-yellow-200 text-sm">
+                Free and open source. MIT License. No tracking. No telemetry. No nonsense.
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-b from-amber-900 to-brown-800 py-12 border-t-4 border-yellow-700">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="font-western text-3xl text-yellow-400 mb-4">GitCactus</h3>
+                    <p class="text-amber-100 text-base leading-relaxed">
+                        The world's first TSX-native, GitHub-native, posthydrationist web browser.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-xl text-yellow-400 mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-amber-100 hover:text-yellow-300 transition">Documentation</a></li>
+                        <li><a href="#" class="text-amber-100 hover:text-yellow-300 transition">GitHub Repository</a></li>
+                        <li><a href="#" class="text-amber-100 hover:text-yellow-300 transition">Examples</a></li>
+                        <li><a href="#" class="text-amber-100 hover:text-yellow-300 transition">Community</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-xl text-yellow-400 mb-4">Built With</h4>
+                    <ul class="space-y-2 text-amber-100">
+                        <li>⚡ Rust + Tauri</li>
+                        <li>🎯 C# + Roslyn</li>
+                        <li>🦀 Minimact Reconciler</li>
+                        <li>🔥 SignalM²</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t-2 border-amber-700 pt-8 text-center">
+                <p class="text-yellow-300 font-western text-2xl mb-3 text-shadow-western">
+                    "In the Wild West of the web, we don't need no stinking servers." 🌵
+                </p>
+                <p class="text-amber-200 text-base font-semibold">
+                    Est. 2025 | No VC funding. No cloud bills. No BS.
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

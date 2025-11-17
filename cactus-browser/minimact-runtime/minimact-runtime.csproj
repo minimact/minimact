@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!-- NO AOT - we need Roslyn! -->
+    <PublishAot>false</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslyn for dynamic C# compilation -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Minimact.AspNetCore">
+      <HintPath>../../src/Minimact.AspNetCore/bin/Release/net8.0/Minimact.AspNetCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

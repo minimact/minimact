@@ -8,6 +8,9 @@ dependencies:
   '@minimact/babel-plugin':
     specifier: file:../src/babel-plugin-minimact
     version: file:../src/babel-plugin-minimact(@babel/core@7.23.0)
+  '@tauri-apps/api':
+    specifier: ^2.0.0
+    version: 2.0.0
   '@tauri-apps/plugin-fs':
     specifier: ^2.4.4
     version: 2.4.4
@@ -28,9 +31,6 @@ devDependencies:
   '@babel/preset-typescript':
     specifier: ^7.23.0
     version: 7.23.0(@babel/core@7.23.0)
-  '@tauri-apps/api':
-    specifier: ^2.0.0
-    version: 2.0.0
   '@tauri-apps/cli':
     specifier: ^2.0.0
     version: 2.0.0
@@ -867,7 +867,7 @@ packages:
 
   /@tauri-apps/api@2.0.0:
     resolution: {integrity: sha512-moKgCp2EX7X5GiOx/G/bmoEpkFQVVmyS98UaJU4xUVzan+E1BdwlAKcbip+cGldshYOqL4JSwAEN1OkRXeug0Q==}
-    dev: true
+    dev: false
 
   /@tauri-apps/api@2.9.0:
     resolution: {integrity: sha512-qD5tMjh7utwBk9/5PrTA/aGr3i5QaJ/Mlt7p8NilQ45WgbifUNPyKWsA63iQ8YfQq6R8ajMapU+/Q8nMcPRLNw==}

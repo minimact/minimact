@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@minimact/babel-plugin": "file:../src/babel-plugin-minimact",
+    "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-fs": "^2.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -21,7 +22,6 @@
     "@babel/core": "^7.23.0",
     "@babel/preset-react": "^7.23.0",
     "@babel/preset-typescript": "^7.23.0",
-    "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/cli": "^2.0.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.0",
