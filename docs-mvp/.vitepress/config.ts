@@ -74,7 +74,8 @@ export default defineConfig({
         {
           text: 'Plugin System',
           items: [
-            { text: 'Creating Plugins', link: '/v1.0/guide/creating-plugins' }
+            { text: 'Creating Plugins', link: '/v1.0/guide/creating-plugins' },
+            { text: 'Babel → RustScript Guide', link: '/v1.0/guide/babel-to-rustscript' }
           ]
         },
         {
