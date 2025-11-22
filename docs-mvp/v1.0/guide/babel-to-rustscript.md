@@ -12,6 +12,662 @@ Write your plugin once, run it on both Babel and SWC platforms. Get JavaScript c
 
 ---
 
+## RustScript File Types
+
+RustScript has three types of files, each serving a different purpose:
+
+### Plugin vs Writer vs Module
+
+| Type | Purpose | Has Visitors? | Transforms AST? | Outputs Code? |
+|------|---------|---------------|-----------------|---------------|
+| **`plugin`** | Transform AST in-place | ✅ Yes | ✅ Yes | ❌ No |
+| **`writer`** | Generate code from AST | ✅ Yes (read-only) | ❌ No | ✅ Yes |
+| **Module** | Reusable functions | ❌ No | ❌ No | ❌ No |
+
+### Plugin Files
+
+**Purpose:** Transform the AST directly (like standard Babel plugins)
+
+**Use when:** You want to modify JavaScript/TypeScript code
+
+**Example:**
+```rustscript
+// transform-hooks.rsc
+plugin HookTransformer {
+    fn visit_call_expression(node: &mut CallExpression, ctx: &Context) {
+        // Modify the AST - transform useState to useCustomState
+        if let Expression::Identifier(ref mut id) = node.callee {
+            if id.name == "useState" {
+                id.name = "useCustomState";  // AST is modified!
+            }
+        }
+    }
+}
+```
+
+**Compiles to:**
+- **Babel:** Standard visitor that uses `path.replaceWith()`, `path.remove()`, etc.
+- **SWC:** `VisitMut` implementation that modifies nodes in-place
+
+**Key characteristics:**
+- Visitor methods receive `&mut NodeType` (mutable references)
+- Can modify, replace, or remove nodes
+- No return value - transformations happen in-place
+- Output is the transformed AST (which becomes transformed code)
+
+### Writer Files
+
+**Purpose:** Read the AST and generate output code (transpilers/code generators)
+
+**Use when:** You want to convert code to a different language (React → C#, etc.)
+
+**Example:**
+```rustscript
+// react-to-csharp.rsc
+writer ReactToCSharp {
+    struct State {
+        output: String,
+    }
+
+    fn init() -> State {
+        State { output: String::new() }
+    }
+
+    fn visit_function_declaration(node: &FunctionDeclaration, ctx: &Context) {
+        // Read the AST and generate C# code
+        if let Some(ref id) = node.id {
+            self.state.output.push_str(&format!("public class {} {{\n", id.name));
+
+            // Visit children to process body
+            node.visit_children(self);
+
+            self.state.output.push_str("}\n");
+        }
+    }
+
+    fn visit_call_expression(node: &CallExpression, ctx: &Context) {
+        // Generate C# for useState → field declaration
+        if let Expression::Identifier(ref id) = node.callee {
+            if id.name == "useState" {
+                self.state.output.push_str("    private dynamic _state;\n");
+            }
+        }
+    }
+
+    fn finish(self) -> String {
+        self.state.output
+    }
+}
+```
+
+**Compiles to:**
+- **Babel:** Visitor with string builder that returns generated code in `post()` hook
+- **SWC:** `Visit` (read-only) implementation that accumulates output
+
+**Key characteristics:**
+- Visitor methods receive `&NodeType` (immutable references - read-only!)
+- Cannot modify the AST
+- Accumulates output in `state` (usually a `String` or `CodeBuilder`)
+- Has lifecycle methods: `init()` (setup) and `finish()` (return output)
+- Returns generated code as a string
+
+### Module Files
+
+**Purpose:** Reusable helper functions and types (no visitors)
+
+**Use when:** You want to share utility code between plugins/writers
+
+**Example:**
+```rustscript
+// helpers.rsc
+pub struct ComponentInfo {
+    pub name: Str,
+    pub props: Vec<PropInfo>,
+}
+
+pub struct PropInfo {
+    pub name: Str,
+    pub type_name: Str,
+}
+
+pub fn getComponentName(node: &FunctionDeclaration) -> Option<Str> {
+    if let Some(ref id) = node.id {
+        Some(id.name.clone())
+    } else {
+        None
+    }
+}
+
+pub fn isComponentName(name: &Str) -> bool {
+    if name.is_empty() {
+        return false;
+    }
+    name.chars().next().unwrap().is_uppercase()
+}
+
+pub fn escapeCSharpString(s: &Str) -> Str {
+    s.replace("\\", "\\\\")
+     .replace("\"", "\\\"")
+     .replace("\n", "\\n")
+}
+```
+
+**Compiles to:**
+- **Babel:** CommonJS module with exported functions
+- **SWC:** Rust module with public functions
+
+**Key characteristics:**
+- No visitor methods
+- Just functions, structs, and enums
+- Exported with `pub` keyword
+- Imported with `use` statements
+- Pure logic - no AST traversal
+
+### Choosing the Right Type
+
+```mermaid
+graph TD
+    A[What do you need?] --> B{Modify existing code?}
+    B -->|Yes| C[Use 'plugin']
+    B -->|No| D{Generate new code?}
+    D -->|Yes| E[Use 'writer']
+    D -->|No| F{Share utility functions?}
+    F -->|Yes| G[Use module file]
+    F -->|No| H[Use 'plugin' or 'writer']
+```
+
+**Examples:**
+
+| Task | File Type | Example |
+|------|-----------|---------|
+| Remove console.log calls | `plugin` | Transform AST to remove nodes |
+| Convert React → C# | `writer` | Read AST, generate C# code |
+| Helper functions for type mapping | Module | Reusable `tsTypeToCSharpType()` |
+| Add TypeScript type annotations | `plugin` | Modify AST to add type nodes |
+| Generate GraphQL schema from TypeScript | `writer` | Read TS types, output schema |
+| Shared data structures | Module | `ComponentInfo` struct used by both |
+
+### Using Together
+
+A typical project combines all three:
+
+```
+minimact-transpiler/
+├── main.rsc              # writer - main transpiler
+├── extractors/
+│   ├── hooks.rsc         # module - extract hook info
+│   ├── props.rsc         # module - extract props
+│   └── jsx.rsc           # module - extract JSX
+├── generators/
+│   ├── csharp.rsc        # module - generate C# code
+│   └── templates.rsc     # module - generate templates
+└── utils/
+    ├── helpers.rsc       # module - utility functions
+    └── types.rsc         # module - shared type definitions
+```
+
+**main.rsc (writer):**
+```rustscript
+use "./extractors/hooks.rsc" { extractHooks };
+use "./generators/csharp.rsc" { generateCSharpClass };
+use "./utils/helpers.rsc" { getComponentName };
+
+writer MinimactTranspiler {
+    fn visit_function_declaration(node: &FunctionDeclaration, ctx: &Context) {
+        if let Some(name) = getComponentName(node) {
+            let hooks = extractHooks(node);
+            let csharp = generateCSharpClass(&name, &hooks);
+            self.state.output.push_str(&csharp);
+        }
+    }
+}
+```
+
+::: tip When to Use What
+- **`plugin`** - You're making a typical Babel plugin that transforms code
+- **`writer`** - You're building a transpiler (React→C#, TS→GraphQL, etc.)
+- **Module** - You have helper functions used by plugins/writers
+:::
+
+::: warning Common Mistake
+Don't use `plugin` for transpilation! If you're generating code in a different language, use `writer`. The key difference:
+- `plugin` modifies the AST → output is still JavaScript/TypeScript
+- `writer` reads the AST → output is any language you generate
+:::
+
+---
+
+## Rust Concepts for JavaScript Developers
+
+RustScript borrows several concepts from Rust that may be unfamiliar to JavaScript developers. Here are the essentials:
+
+### Ownership & Borrowing
+
+**JavaScript:** Everything is a reference, garbage collected automatically
+```javascript
+const obj = { name: "Component" };
+const copy = obj;           // Both point to same object
+copy.name = "NewName";      // Original obj is also changed
+```
+
+**RustScript:** Values have owners, must explicitly clone or borrow
+```rustscript
+let obj = ComponentInfo { name: "Component" };
+let copy = obj;             // ERROR: obj is moved, can't use it anymore!
+
+// Instead, explicitly clone:
+let copy = obj.clone();     // Now we have two separate objects
+copy.name = "NewName";      // Original obj is unchanged
+
+// Or borrow with reference:
+let reference = &obj;       // Borrow (read-only access)
+let name = reference.name.clone();  // Can read, but need to clone to own
+```
+
+**Key Rules:**
+1. **Move** - By default, assignment moves ownership (original becomes invalid)
+2. **Clone** - Explicitly copy with `.clone()` to create independent copy
+3. **Borrow** - Use `&` to temporarily access without taking ownership
+
+::: tip Why This Matters
+JavaScript's automatic garbage collection hides memory management. Rust (and RustScript) makes it explicit:
+- `.clone()` tells you when data is being copied
+- `&` tells you when data is being shared (read-only)
+- `&mut` tells you when data is being shared (writable)
+
+This explicitness helps prevent bugs and makes code easier to understand!
+:::
+
+### Mutable vs Immutable
+
+**JavaScript:**
+```javascript
+const name = "Component";
+name = "NewName";          // ERROR: const is immutable
+
+let count = 0;
+count = 1;                 // OK: let is mutable
+
+const items = [];
+items.push("item");        // OK: const binding, mutable contents
+```
+
+**RustScript:**
+```rustscript
+let name = "Component";
+name = "NewName";          // ERROR: let is immutable by default!
+
+let mut count = 0;
+count = 1;                 // OK: mut makes it mutable
+
+let mut items = vec![];
+items.push("item");        // OK: mut required for mutation
+```
+
+**Key Difference:** In RustScript, use `let mut` for any variable that will change.
+
+**Common Pattern:**
+```rustscript
+// Building a string incrementally - needs mut
+let mut code = String::new();
+code.push_str("public class ");
+code.push_str(&component_name);
+code.push_str(" {\n");
+
+// Collecting items - needs mut
+let mut hooks = vec![];
+for call in &call_expressions {
+    if is_hook(call) {
+        hooks.push(extract_hook(call));
+    }
+}
+```
+
+### References: `&` and `&mut`
+
+**JavaScript:** No distinction between read-only and read-write references
+```javascript
+function processNode(node) {
+    node.name = "Modified";    // Can always modify
+}
+```
+
+**RustScript:** Explicit read-only (`&`) vs read-write (`&mut`) references
+```rustscript
+// Read-only reference (cannot modify)
+fn get_name(node: &FunctionDeclaration) -> Str {
+    node.name.clone()          // Can read
+    // node.name = "New";      // ERROR: cannot modify through &
+}
+
+// Mutable reference (can modify)
+fn rename(node: &mut FunctionDeclaration, new_name: Str) {
+    if let Some(ref mut id) = node.id {
+        id.name = new_name;    // OK: &mut allows modification
+    }
+}
+```
+
+**Reference Rules:**
+1. `&T` - Immutable reference (read-only, many allowed)
+2. `&mut T` - Mutable reference (read-write, only one at a time)
+3. Can have many `&T` **OR** one `&mut T`, but not both
+
+**Visitor Pattern:**
+```rustscript
+// Plugin visitors: mutable (can modify AST)
+fn visit_call_expression(node: &mut CallExpression, ctx: &Context) {
+    node.callee = new_callee;  // Modify the AST
+}
+
+// Writer visitors: immutable (read-only)
+fn visit_call_expression(node: &CallExpression, ctx: &Context) {
+    let callee_name = node.callee.name.clone();  // Read only
+    // node.callee = ...;  // ERROR: cannot modify in writer
+}
+```
+
+### The `.clone()` Requirement
+
+**JavaScript:** Values are automatically copied when needed
+```javascript
+const name = node.id.name;       // Automatic copy
+const items = arr.slice();       // Explicit copy with slice()
+```
+
+**RustScript:** Must explicitly clone to own a value
+```rustscript
+let name = node.id.name.clone();  // Explicit clone to own
+let items = arr.clone();          // Explicit clone
+
+// Why clone?
+let original = "Hello";
+let reference = &original;        // Just borrowing
+let owned = original.clone();     // Now I own a copy
+
+// After this, I can use 'owned' even if 'original' goes away
+```
+
+**When to Clone:**
+- ✅ Extracting a value from a struct: `let name = node.id.name.clone()`
+- ✅ Storing a value for later: `self.state.names.push(node.name.clone())`
+- ✅ Returning a value from a reference: `return node.name.clone()`
+- ❌ Just reading temporarily: `if node.name == "useState"` (no clone needed)
+
+**Performance Note:**
+```rustscript
+// ❌ Bad: Multiple clones of same value
+let name1 = node.id.name.clone();
+let name2 = node.id.name.clone();
+let name3 = node.id.name.clone();
+
+// ✅ Good: Clone once, use references
+let name = node.id.name.clone();
+let name_ref = &name;
+process_name(name_ref);
+save_name(name_ref);
+```
+
+### Option Type (Handling null/undefined)
+
+**JavaScript:**
+```javascript
+function getName(node) {
+    if (node.id) {
+        return node.id.name;
+    }
+    return null;
+}
+
+const name = getName(node);
+if (name !== null) {
+    console.log(name);
+}
+```
+
+**RustScript:**
+```rustscript
+fn get_name(node: &FunctionDeclaration) -> Option<Str> {
+    if let Some(ref id) = node.id {
+        Some(id.name.clone())
+    } else {
+        None
+    }
+}
+
+let name = get_name(node);
+if let Some(n) = name {
+    // use n
+}
+
+// Or with match
+match get_name(node) {
+    Some(n) => { /* use n */ }
+    None => { /* handle missing */ }
+}
+```
+
+**Common Option Methods:**
+```rustscript
+// Unwrap with default
+let name = node.id.unwrap_or("Anonymous");
+
+// Unwrap with computed default
+let name = node.id.unwrap_or_else(|| generate_name());
+
+// Check if present
+if node.id.is_some() { }
+if node.id.is_none() { }
+
+// Transform if present
+let upper = node.id.map(|id| id.name.to_uppercase());
+
+// Chain operations
+let result = node.id
+    .and_then(|id| get_component_info(id))
+    .unwrap_or(default_info);
+```
+
+### Pattern Matching with `if let` and `match`
+
+**JavaScript:**
+```javascript
+if (node.type === 'Identifier') {
+    const name = node.name;
+    process(name);
+}
+
+switch (node.type) {
+    case 'Identifier':
+        return node.name;
+    case 'MemberExpression':
+        return node.property.name;
+    default:
+        return null;
+}
+```
+
+**RustScript:**
+```rustscript
+// if let - unwrap and check in one step
+if let Expression::Identifier(ref id) = node {
+    let name = id.name.clone();
+    process(&name);
+}
+
+// match - exhaustive pattern matching
+match node {
+    Expression::Identifier(ref id) => id.name.clone(),
+    Expression::MemberExpression(ref member) => member.property.name.clone(),
+    _ => "unknown",
+}
+```
+
+**Pattern Matching Power:**
+```rustscript
+// Match with conditions
+match node {
+    Expression::Identifier(ref id) if id.name.starts_with("use") => {
+        // It's a hook!
+    }
+    Expression::Identifier(ref id) => {
+        // Other identifier
+    }
+    _ => {}
+}
+
+// Nested patterns
+match node.init {
+    Some(Expression::CallExpression(ref call)) => {
+        if let Expression::Identifier(ref callee) = call.callee {
+            if callee.name == "useState" {
+                // Found useState call!
+            }
+        }
+    }
+    _ => {}
+}
+```
+
+### The `ref` Keyword in Patterns
+
+**Why `ref`?**
+```rustscript
+// Without ref - tries to move the value out
+if let Some(id) = node.id {
+    // ERROR: node.id is moved, can't use node anymore
+}
+
+// With ref - borrows instead of moving
+if let Some(ref id) = node.id {
+    // OK: id is a reference, node.id is still accessible
+    let name = id.name.clone();
+}
+
+// Mutable reference
+if let Some(ref mut id) = node.id {
+    // OK: can modify through mutable reference
+    id.name = "NewName";
+}
+```
+
+**Common Pattern:**
+```rustscript
+// ❌ This moves and causes errors later
+match call.callee {
+    Expression::Identifier(id) => {
+        // id is moved from call.callee
+    }
+    _ => {}
+}
+// call.callee is now unusable!
+
+// ✅ This borrows safely
+match call.callee {
+    Expression::Identifier(ref id) => {
+        // id is a reference
+        let name = id.name.clone();
+    }
+    _ => {}
+}
+// call.callee is still usable
+```
+
+### Type Annotations
+
+**JavaScript:** Types are optional (TypeScript) or inferred
+```javascript
+const name = "Component";              // inferred as string
+const count: number = 0;               // explicit type
+
+function process(node) {               // any
+    return node.name;                  // any
+}
+```
+
+**RustScript:** Types often required, especially for function signatures
+```rustscript
+let name = "Component";                // inferred as &str/Str
+let count: i32 = 0;                    // explicit type
+
+// Function parameters and return types are required
+fn process(node: &FunctionDeclaration) -> Option<Str> {
+    if let Some(ref id) = node.id {
+        Some(id.name.clone())
+    } else {
+        None
+    }
+}
+
+// Struct fields need types
+struct ComponentInfo {
+    name: Str,                         // type required
+    props: Vec<PropInfo>,              // type required
+    has_jsx: bool,                     // type required
+}
+```
+
+### Common Type Conversions
+
+| JavaScript | RustScript | Notes |
+|------------|------------|-------|
+| `"string"` | `"string"` or `String::new()` | String literals or String type |
+| `42` | `42` | Number literal |
+| `42.5` | `42.5` | Float literal |
+| `true` | `true` | Boolean |
+| `null` | `None` | Use `Option<T>` |
+| `undefined` | `None` | Use `Option<T>` |
+| `[]` | `vec![]` | Vector (dynamic array) |
+| `{}` | `HashMap::new()` | HashMap |
+| `new Set()` | `HashSet::new()` | HashSet |
+
+### Quick Reference: Common Patterns
+
+```rustscript
+// Clone when extracting from struct
+let name = node.id.name.clone();
+
+// Borrow when just reading
+if node.name == "Component" { }
+
+// Mutable for building/collecting
+let mut items = vec![];
+items.push(item);
+
+// Pattern match with ref to avoid move
+if let Some(ref id) = node.id {
+    // use id
+}
+
+// Option handling
+let name = node.id.unwrap_or("default");
+if let Some(n) = node.id {
+    // use n
+}
+
+// Iterate with references
+for item in &items {
+    // item is &T
+}
+
+for item in &mut items {
+    // item is &mut T, can modify
+}
+```
+
+::: tip Learning More
+These are the essentials you need for RustScript. You don't need to be a Rust expert - just understand:
+1. **Ownership** - Values have owners, use `.clone()` to copy
+2. **Mutability** - Use `let mut` for changing values
+3. **References** - `&` for read, `&mut` for write
+4. **Option** - Use instead of `null`/`undefined`
+5. **Pattern Matching** - `if let` and `match` for type checking
+
+The rest will become natural as you convert code!
+:::
+
+---
+
 ## Basic Structure
 
 ### Module Exports/Imports
@@ -36,11 +692,14 @@ module.exports = {
 **RustScript:**
 ```rustscript
 // helpers.rsc
+
+// You can use snake_case (Rust style)
 pub fn escape_csharp_string(s: &Str) -> Str {
     s.replace("\\", "\\\\")
 }
 
-pub fn get_component_name(node: &FunctionDeclaration) -> Option<Str> {
+// Or camelCase (JavaScript style) - both work!
+pub fn getComponentName(node: &FunctionDeclaration) -> Option<Str> {
     if let Some(ref id) = node.id {
         return Some(id.name.clone());
     }
@@ -51,9 +710,17 @@ pub fn get_component_name(node: &FunctionDeclaration) -> Option<Str> {
 **Key Changes:**
 - `function` → `pub fn` (for exports)
 - `module.exports = {}` → just use `pub fn`
-- camelCase → snake_case for function names
+- Function names can use **either** camelCase or snake_case (your choice!)
 - `null` → `None` (use `Option<T>`)
 - Add explicit types to parameters and return values
+
+::: tip Naming Convention
+RustScript supports both `camelCase` and `snake_case` for function names. Use whatever matches your project style:
+- `getComponentName()` - matches JavaScript conventions
+- `get_component_name()` - matches Rust conventions
+
+Both compile correctly to both targets!
+:::
 
 ### Using Modules
 
@@ -233,7 +900,7 @@ plugin MinimactPlugin {
 - `visitor: { ... }` → `plugin PluginName { ... }`
 - `MethodName(path)` → `fn visit_method_name(node: &mut NodeType, ctx: &Context)`
 - `path.node` → `node` (direct access)
-- PascalCase → snake_case for method names
+- Visitor methods use `snake_case` to match AST node types (`FunctionDeclaration` → `visit_function_declaration`)
 
 ### Visitor with State
 
@@ -278,6 +945,673 @@ plugin MinimactPlugin {
     }
 }
 ```
+
+---
+
+## Lifecycle Methods (Enter/Exit)
+
+Babel visitors support `enter` and `exit` hooks for fine-grained control over traversal timing.
+
+### Program Enter/Exit
+
+**Babel:**
+```javascript
+module.exports = function() {
+  return {
+    visitor: {
+      Program: {
+        enter(path, state) {
+          console.log('Starting transformation');
+          state.components = [];
+          state.currentComponent = null;
+        },
+
+        exit(path, state) {
+          console.log('Finishing transformation');
+          console.log(`Found ${state.components.length} components`);
+
+          // Write output files, etc.
+          writeOutputFiles(state.components);
+        }
+      }
+    }
+  };
+};
+```
+
+**RustScript:**
+```rustscript
+plugin MinimactPlugin {
+    struct State {
+        components: Vec<ComponentInfo>,
+        current_component: Option<ComponentInfo>,
+    }
+
+    fn visit_program_enter(node: &mut Program, ctx: &Context) {
+        // Called before traversing program children
+        self.state.components = vec![];
+        self.state.current_component = None;
+    }
+
+    fn visit_program_exit(node: &mut Program, ctx: &Context) {
+        // Called after traversing all program children
+        let count = self.state.components.len();
+        // Write output files, etc.
+        write_output_files(&self.state.components);
+    }
+}
+```
+
+**Key Pattern:**
+- `Program` in Babel → `visit_program_enter` and `visit_program_exit` in RustScript
+- Use `_enter` for initialization, `_exit` for cleanup/output
+
+### Function Declaration Enter/Exit
+
+**Babel:**
+```javascript
+visitor: {
+  FunctionDeclaration: {
+    enter(path, state) {
+      const name = path.node.id.name;
+
+      // Set up context for this function
+      state.currentFunction = {
+        name,
+        hooks: [],
+        hasJSX: false
+      };
+    },
+
+    exit(path, state) {
+      // Function traversal complete - finalize
+      const func = state.currentFunction;
+
+      if (func.hasJSX && func.hooks.length > 0) {
+        state.components.push(func);
+      }
+
+      state.currentFunction = null;
+    }
+  },
+
+  // These run between enter/exit
+  CallExpression(path, state) {
+    if (isHook(path.node.callee)) {
+      state.currentFunction.hooks.push(extractHook(path.node));
+    }
+  },
+
+  JSXElement(path, state) {
+    state.currentFunction.hasJSX = true;
+  }
+}
+```
+
+**RustScript:**
+```rustscript
+plugin MinimactPlugin {
+    struct State {
+        components: Vec<FunctionInfo>,
+        current_function: Option<FunctionInfo>,
+    }
+
+    struct FunctionInfo {
+        name: Str,
+        hooks: Vec<HookInfo>,
+        has_jsx: bool,
+    }
+
+    fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+        // This is the "enter" phase
+        if let Some(ref id) = node.id {
+            let name = id.name.clone();
+
+            // Set up context for this function
+            self.state.current_function = Some(FunctionInfo {
+                name,
+                hooks: vec![],
+                has_jsx: false,
+            });
+        }
+
+        // Visit children (CallExpression, JSXElement, etc. will run here)
+        node.visit_children(self);
+
+        // After children are visited, we're in "exit" phase
+        // Call the exit handler
+        self.visit_function_declaration_exit(node, ctx);
+    }
+
+    fn visit_function_declaration_exit(node: &mut FunctionDeclaration, ctx: &Context) {
+        // Function traversal complete - finalize
+        if let Some(func) = self.state.current_function.take() {
+            if func.has_jsx && !func.hooks.is_empty() {
+                self.state.components.push(func);
+            }
+        }
+    }
+
+    fn visit_call_expression(node: &mut CallExpression, ctx: &Context) {
+        if is_hook(&node.callee) {
+            if let Some(ref mut func) = self.state.current_function {
+                func.hooks.push(extract_hook(node));
+            }
+        }
+    }
+
+    fn visit_jsx_element(node: &mut JSXElement, ctx: &Context) {
+        if let Some(ref mut func) = self.state.current_function {
+            func.has_jsx = true;
+        }
+    }
+}
+```
+
+**Key Differences:**
+- In Babel, `enter`/`exit` are separate blocks
+- In RustScript, you manually call `visit_children()` between enter and exit logic
+- Exit handler is a separate method: `visit_<node_type>_exit`
+
+### Alternative Pattern: Explicit Enter/Exit Methods
+
+For clarity, you can split enter/exit into separate methods:
+
+**RustScript:**
+```rustscript
+fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+    // Enter phase
+    self.visit_function_declaration_enter(node, ctx);
+
+    // Visit children
+    node.visit_children(self);
+
+    // Exit phase
+    self.visit_function_declaration_exit(node, ctx);
+}
+
+fn visit_function_declaration_enter(node: &mut FunctionDeclaration, ctx: &Context) {
+    if let Some(ref id) = node.id {
+        self.state.current_function = Some(FunctionInfo {
+            name: id.name.clone(),
+            hooks: vec![],
+            has_jsx: false,
+        });
+    }
+}
+
+fn visit_function_declaration_exit(node: &mut FunctionDeclaration, ctx: &Context) {
+    if let Some(func) = self.state.current_function.take() {
+        if func.has_jsx && !func.hooks.is_empty() {
+            self.state.components.push(func);
+        }
+    }
+}
+```
+
+::: tip Best Practice
+Explicitly naming your enter/exit methods makes the code more readable and matches Babel's structure better.
+:::
+
+### Common Lifecycle Patterns
+
+#### Initialization and Cleanup
+
+**Babel:**
+```javascript
+visitor: {
+  Program: {
+    enter(path, state) {
+      state.file.metadata = { transforms: [] };
+    },
+    exit(path, state) {
+      writeMetadata(state.file.metadata);
+    }
+  }
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_program_enter(node: &mut Program, ctx: &Context) {
+    self.state.metadata = Metadata { transforms: vec![] };
+}
+
+fn visit_program_exit(node: &mut Program, ctx: &Context) {
+    write_metadata(&self.state.metadata);
+}
+```
+
+#### Scope Entry/Exit
+
+**Babel:**
+```javascript
+visitor: {
+  FunctionDeclaration: {
+    enter(path, state) {
+      state.scopeStack.push(new Map());
+    },
+    exit(path, state) {
+      state.scopeStack.pop();
+    }
+  },
+
+  Identifier(path, state) {
+    const currentScope = state.scopeStack[state.scopeStack.length - 1];
+    currentScope.set(path.node.name, path.node);
+  }
+}
+```
+
+**RustScript:**
+```rustscript
+plugin ScopeTracker {
+    struct State {
+        scope_stack: Vec<HashMap<Str, Identifier>>,
+    }
+
+    fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+        // Enter: push new scope
+        self.state.scope_stack.push(HashMap::new());
+
+        // Visit children
+        node.visit_children(self);
+
+        // Exit: pop scope
+        self.state.scope_stack.pop();
+    }
+
+    fn visit_identifier(node: &mut Identifier, ctx: &Context) {
+        if let Some(current_scope) = self.state.scope_stack.last_mut() {
+            current_scope.insert(node.name.clone(), node.clone());
+        }
+    }
+}
+```
+
+#### Collecting and Finalizing
+
+**Babel:**
+```javascript
+visitor: {
+  FunctionDeclaration: {
+    enter(path, state) {
+      state.currentHooks = [];
+    },
+    exit(path, state) {
+      if (state.currentHooks.length > 0) {
+        generateHookClass(path.node.id.name, state.currentHooks);
+      }
+    }
+  },
+
+  CallExpression(path, state) {
+    if (isHook(path.node.callee)) {
+      state.currentHooks.push(path.node);
+    }
+  }
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+    // Enter: initialize collection
+    let mut current_hooks = vec![];
+
+    // Traverse and collect (using nested visitor with local state)
+    traverse(node) {
+        let hooks = &mut current_hooks;  // Capture outer variable
+
+        fn visit_call_expression(call: &mut CallExpression, ctx: &Context) {
+            if is_hook(&call.callee) {
+                self.hooks.push(call.clone());
+            }
+        }
+    }
+
+    // Exit: finalize
+    if !current_hooks.is_empty() {
+        if let Some(ref id) = node.id {
+            generate_hook_class(&id.name, &current_hooks);
+        }
+    }
+}
+```
+
+### Lifecycle Method Reference
+
+| Babel | RustScript | When Called |
+|-------|------------|-------------|
+| `Program: { enter }` | `visit_program_enter` | Before visiting any nodes |
+| `Program: { exit }` | `visit_program_exit` | After visiting all nodes |
+| `FunctionDeclaration: { enter }` | Start of `visit_function_declaration` (before `visit_children`) | Entering function |
+| `FunctionDeclaration: { exit }` | `visit_function_declaration_exit` or end of `visit_function_declaration` (after `visit_children`) | Leaving function |
+| `CallExpression: { enter }` | Start of `visit_call_expression` | Entering call expression |
+| `CallExpression: { exit }` | `visit_call_expression_exit` | Leaving call expression |
+
+::: warning Important
+In RustScript, you control enter/exit timing by:
+1. Placing "enter" logic before `node.visit_children(self)`
+2. Placing "exit" logic after `node.visit_children(self)`
+3. Or calling separate `visit_<node>_exit()` methods
+
+Unlike Babel, you must **manually call** `visit_children()` to traverse!
+:::
+
+---
+
+## Nested & Conditional Traversal
+
+### Manual Nested Traversal
+
+**Babel:**
+```javascript
+module.exports = function() {
+  return {
+    visitor: {
+      FunctionDeclaration(path) {
+        // Only traverse inside async functions
+        if (path.node.async) {
+          path.traverse({
+            CallExpression(innerPath) {
+              // Handle await calls
+              if (t.isIdentifier(innerPath.node.callee, { name: 'await' })) {
+                // ...
+              }
+            }
+          });
+        }
+      }
+    }
+  };
+};
+```
+
+**RustScript:**
+```rustscript
+plugin AsyncTransform {
+    fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+        // Only traverse inside async functions
+        if node.is_async {
+            // Manual traversal with inline visitor
+            traverse(node) {
+                fn visit_call_expression(call: &mut CallExpression, ctx: &Context) {
+                    if let Expression::Identifier(ref id) = call.callee {
+                        if id.name == "await" {
+                            // Handle await calls
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+**Key Pattern:** Use `traverse(node) { ... }` to create a scoped visitor that only runs on specific subtrees.
+
+### Conditional Child Visiting
+
+**Babel:**
+```javascript
+FunctionDeclaration(path) {
+  const name = path.node.id.name;
+
+  if (name.startsWith('Component')) {
+    // Process component functions differently
+    path.traverse({
+      JSXElement(jsxPath) {
+        // Extract JSX from components
+      }
+    });
+  } else {
+    // Skip JSX processing for non-components
+    path.skip();
+  }
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+    if let Some(ref id) = node.id {
+        if id.name.starts_with("Component") {
+            // Process component functions differently
+            traverse(node.body) {
+                fn visit_jsx_element(jsx: &mut JSXElement, ctx: &Context) {
+                    // Extract JSX from components
+                }
+            }
+        }
+        // If not a component, children won't be visited
+        // (we didn't call node.visit_children(self))
+    }
+}
+```
+
+**Key Pattern:** Control whether children are visited by choosing whether to call `node.visit_children(self)` or use `traverse()`.
+
+### Stateful Nested Traversal
+
+**Babel:**
+```javascript
+FunctionDeclaration(path, state) {
+  const hooks = [];
+
+  path.traverse({
+    CallExpression(innerPath) {
+      if (isHook(innerPath.node.callee)) {
+        hooks.push(extractHook(innerPath.node));
+      }
+    }
+  });
+
+  state.componentHooks.set(path.node.id.name, hooks);
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+    if let Some(ref id) = node.id {
+        let component_name = id.name.clone();
+
+        // Traverse with local state
+        traverse(node.body) {
+            let mut hooks = vec![];  // Local state for this traversal
+
+            fn visit_call_expression(call: &mut CallExpression, ctx: &Context) {
+                if is_hook(&call.callee) {
+                    self.hooks.push(extract_hook(call));
+                }
+            }
+        }
+
+        // After traversal, hooks vec is accessible here
+        // Store in plugin state
+        self.state.component_hooks.insert(component_name, hooks);
+    }
+}
+```
+
+**Key Pattern:** Declare local state variables inside `traverse() { let mut state = ...; }` to collect data during nested traversal.
+
+### Using Named Visitors
+
+**Babel:**
+```javascript
+// Define reusable visitor
+const jsxExtractor = {
+  JSXElement(path) {
+    this.elements.push(path.node);
+  }
+};
+
+// Use it conditionally
+FunctionDeclaration(path) {
+  if (isComponent(path.node)) {
+    const state = { elements: [] };
+    path.traverse(jsxExtractor, state);
+    // Use state.elements
+  }
+}
+```
+
+**RustScript:**
+```rustscript
+// Define reusable visitor plugin
+plugin JSXExtractor {
+    struct State {
+        elements: Vec<JSXElement>,
+    }
+
+    fn visit_jsx_element(node: &mut JSXElement, ctx: &Context) {
+        self.state.elements.push(node.clone());
+    }
+}
+
+// Main plugin
+plugin ComponentTransform {
+    fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+        if is_component(node) {
+            // Use named visitor with `using` keyword
+            traverse(node.body) using JSXExtractor;
+
+            // Access extracted elements from visitor state
+            // (mechanism TBD - may need to return state)
+        }
+    }
+}
+```
+
+**Key Pattern:** Use `traverse(node) using VisitorName` to apply a predefined visitor to a subtree.
+
+### Stopping Traversal
+
+**Babel:**
+```javascript
+CallExpression(path) {
+  if (path.node.callee.name === 'dangerousFunction') {
+    // Don't traverse into arguments
+    path.skip();
+    return;
+  }
+
+  // Continue normal traversal
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_call_expression(node: &mut CallExpression, ctx: &Context) {
+    if let Expression::Identifier(ref id) = node.callee {
+        if id.name == "dangerousFunction" {
+            // Don't traverse into arguments
+            // Just return without calling visit_children
+            return;
+        }
+    }
+
+    // Continue normal traversal
+    node.visit_children(self);
+}
+```
+
+**Key Pattern:** Control traversal by choosing when to call `node.visit_children(self)`.
+
+### Selective Child Visiting
+
+**Babel:**
+```javascript
+FunctionDeclaration(path) {
+  // Only visit the body, not the params
+  path.get('body').traverse({
+    Identifier(innerPath) {
+      // Process identifiers in body only
+    }
+  });
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+    // Only visit the body, not the params
+    traverse(&mut node.body) {
+        fn visit_identifier(id: &mut Identifier, ctx: &Context) {
+            // Process identifiers in body only
+        }
+    }
+
+    // Don't call node.visit_children(self) - we handled traversal manually
+}
+```
+
+### Multiple Nested Visitors
+
+**Babel:**
+```javascript
+FunctionDeclaration(path) {
+  // First pass: collect hooks
+  const hooks = [];
+  path.traverse({
+    CallExpression(innerPath) {
+      if (isHook(innerPath.node)) {
+        hooks.push(innerPath.node);
+      }
+    }
+  });
+
+  // Second pass: collect JSX
+  const jsx = [];
+  path.traverse({
+    JSXElement(innerPath) {
+      jsx.push(innerPath.node);
+    }
+  });
+}
+```
+
+**RustScript:**
+```rustscript
+fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context) {
+    // First pass: collect hooks
+    let mut hooks = vec![];
+    traverse(node) {
+        fn visit_call_expression(call: &mut CallExpression, ctx: &Context) {
+            if is_hook(call) {
+                self.hooks.push(call.clone());
+            }
+        }
+    }
+
+    // Second pass: collect JSX (traverse again on same node)
+    let mut jsx = vec![];
+    traverse(node) {
+        fn visit_jsx_element(elem: &mut JSXElement, ctx: &Context) {
+            self.jsx.push(elem.clone());
+        }
+    }
+
+    // Use hooks and jsx
+    process_component(hooks, jsx);
+}
+```
+
+**Key Pattern:** You can call `traverse()` multiple times on the same node for multiple passes.
+
+::: tip When to Use Nested Traversal
+Use `traverse()` when you need to:
+- Process only specific subtrees conditionally
+- Collect data from children without modifying plugin state
+- Apply different visitor logic to different parts of the tree
+- Make multiple passes over the same subtree
+:::
+
+::: warning Performance Note
+Multiple `traverse()` calls on the same subtree can be expensive. Consider combining into a single pass when possible.
+:::
 
 ---
 
