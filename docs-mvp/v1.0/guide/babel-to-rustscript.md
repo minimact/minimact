@@ -2116,6 +2116,415 @@ Target-specific code breaks the "write once" guarantee. Use only when absolutely
 
 ---
 
+## AI Translation Guide
+
+This appendix provides structured rules for AI assistants translating Babel plugins to RustScript.
+
+### Translation Decision Tree
+
+```
+START: Analyze Babel plugin
+│
+├─> Does it transform AST in-place?
+│   ├─> YES: Use `plugin` declaration
+│   └─> NO: ↓
+│
+├─> Does it generate code in different language?
+│   ├─> YES: Use `writer` declaration
+│   └─> NO: ↓
+│
+└─> Is it just helper functions?
+    └─> YES: Use module (no plugin/writer)
+```
+
+### Formal Mapping Rules
+
+#### Rule 1: Visitor Method Names
+
+```
+BABEL                           RUSTSCRIPT
+-----                           ----------
+Identifier(path)           →    fn visit_identifier(node: &mut Identifier, ctx: &Context)
+FunctionDeclaration(path)  →    fn visit_function_declaration(node: &mut FunctionDeclaration, ctx: &Context)
+CallExpression(path)       →    fn visit_call_expression(node: &mut CallExpression, ctx: &Context)
+
+Pattern: PascalCase → visit_ + snake_case
+```
+
+#### Rule 2: Lifecycle Methods
+
+```
+BABEL                                RUSTSCRIPT
+-----                                ----------
+Program: { enter(path) }        →    fn visit_program_enter(node: &mut Program, ctx: &Context)
+Program: { exit(path) }         →    fn visit_program_exit(node: &mut Program, ctx: &Context)
+FunctionDeclaration: { enter }  →    Start of visit_function_declaration before visit_children()
+FunctionDeclaration: { exit }   →    fn visit_function_declaration_exit OR end of visit_function_declaration
+```
+
+#### Rule 3: Property Access
+
+```
+BABEL                      RUSTSCRIPT
+-----                      ----------
+path.node.name        →    node.name.clone()              // ALWAYS clone when extracting
+path.node.id          →    node.id.as_ref()               // Option needs as_ref() or clone()
+path.node.params[0]   →    node.params.get(0)             // Array access returns Option
+path.node.body        →    &node.body OR node.body.clone() // Depends on usage
+```
+
+#### Rule 4: Type Checking
+
+```
+BABEL                                          RUSTSCRIPT
+-----                                          ----------
+t.isIdentifier(node)                      →    matches!(node, Identifier)
+t.isCallExpression(node)                  →    matches!(node, CallExpression)
+t.isIdentifier(node, { name: "foo" })     →    matches!(node, Identifier) && node.name == "foo"
+t.isMemberExpression(node) && ...         →    if let Expression::MemberExpression(ref m) = node { ... }
+```
+
+#### Rule 5: Null/Undefined Handling
+
+```
+BABEL                          RUSTSCRIPT
+-----                          ----------
+if (x !== null)           →    if let Some(ref x) = x { }
+if (x == null)            →    if x.is_none() { }
+return null               →    return None
+x || default              →    x.unwrap_or(default)
+x?.y?.z                   →    x.and_then(|a| a.y).and_then(|b| b.z)
+```
+
+#### Rule 6: State Management
+
+```
+BABEL                                    RUSTSCRIPT
+-----                                    ----------
+state.componentName = x              →   self.state.component_name = x
+state.items = []                     →   self.state.items = vec![]
+state.items.push(x)                  →   self.state.items.push(x)
+state.currentFunction = null         →   self.state.current_function = None
+const x = state.currentFunction      →   let x = &self.state.current_function (or clone)
+```
+
+#### Rule 7: Traversal Control
+
+```
+BABEL                                    RUSTSCRIPT
+-----                                    ----------
+path.traverse({ Visitor })          →    traverse(node) { visitor methods }
+path.skip()                         →    return (without calling visit_children)
+path.stop()                         →    return from outer visitor
+(automatic child visit)             →    node.visit_children(self)  // MUST call explicitly
+```
+
+#### Rule 8: Collections
+
+```
+BABEL                          RUSTSCRIPT
+-----                          ----------
+[]                        →    vec![]
+arr.push(x)              →    arr.push(x)
+arr.length               →    arr.len()
+arr.filter(x => ...)     →    arr.iter().filter(|x| ...).collect()
+arr.map(x => ...)        →    arr.iter().map(|x| ...).collect()
+for (const x of arr)     →    for x in &arr { }
+{}                       →    HashMap::new()
+obj[key]                 →    map.get(key)  // Returns Option
+obj[key] = val           →    map.insert(key, val)
+```
+
+### Common Babel Patterns → RustScript
+
+#### Pattern: Array Destructuring (useState)
+
+```javascript
+// BABEL
+const [value, setter] = arr.elements;
+if (value && setter) {
+    const valueName = value.name;
+}
+```
+
+```rustscript
+// RUSTSCRIPT
+if arr.elements.len() >= 2 {
+    if let (Some(Pattern::Ident(ref value_name)), Some(Pattern::Ident(ref setter_name))) =
+        (&arr.elements[0], &arr.elements[1]) {
+        // use value_name, setter_name
+    }
+}
+```
+
+#### Pattern: Nested Visitor with State
+
+```javascript
+// BABEL
+const hooks = [];
+path.traverse({
+    CallExpression(innerPath) {
+        hooks.push(innerPath.node);
+    }
+});
+```
+
+```rustscript
+// RUSTSCRIPT
+let mut hooks = vec![];
+traverse(node) {
+    fn visit_call_expression(call: &mut CallExpression, ctx: &Context) {
+        self.hooks.push(call.clone());
+    }
+}
+// hooks is accessible here
+```
+
+#### Pattern: Conditional Traversal
+
+```javascript
+// BABEL
+if (isComponent(path.node)) {
+    path.traverse({ JSXElement(p) { ... } });
+}
+```
+
+```rustscript
+// RUSTSCRIPT
+if is_component(node) {
+    traverse(node) {
+        fn visit_jsx_element(jsx: &mut JSXElement, ctx: &Context) {
+            // ...
+        }
+    }
+}
+```
+
+### AST Node Construction Mappings
+
+```
+BABEL                                         RUSTSCRIPT
+-----                                         ----------
+t.identifier("name")                     →    Identifier { name: "name", span: DUMMY_SP }
+t.stringLiteral("text")                  →    StringLiteral { value: "text", span: DUMMY_SP }
+t.numericLiteral(42)                     →    NumericLiteral { value: 42, span: DUMMY_SP }
+t.booleanLiteral(true)                   →    BooleanLiteral { value: true, span: DUMMY_SP }
+t.callExpression(callee, args)           →    CallExpression { callee, arguments: args, span: DUMMY_SP }
+t.memberExpression(obj, prop)            →    MemberExpression { object: obj, property: prop, computed: false, span: DUMMY_SP }
+```
+
+### Anti-Patterns to Avoid
+
+❌ **DON'T**: Clone in comparisons
+```rustscript
+if node.name.clone() == "useState" { }  // Unnecessary clone
+```
+
+✅ **DO**: Compare directly
+```rustscript
+if node.name == "useState" { }
+```
+
+---
+
+❌ **DON'T**: Forget to clone when storing
+```rustscript
+self.state.names.push(node.name);  // ERROR: tries to move
+```
+
+✅ **DO**: Clone when extracting
+```rustscript
+self.state.names.push(node.name.clone());
+```
+
+---
+
+❌ **DON'T**: Pattern match without `ref`
+```rustscript
+if let Some(id) = node.id {  // Moves node.id
+    // node.id is now unusable
+}
+```
+
+✅ **DO**: Use `ref` to borrow
+```rustscript
+if let Some(ref id) = node.id {  // Borrows node.id
+    // node.id is still accessible
+}
+```
+
+---
+
+❌ **DON'T**: Use `plugin` for transpilation
+```rustscript
+plugin ReactToCSharp {  // WRONG - use writer
+    fn visit_function_declaration(node: &mut FunctionDeclaration) {
+        // Generating C# code...
+    }
+}
+```
+
+✅ **DO**: Use `writer` for code generation
+```rustscript
+writer ReactToCSharp {  // CORRECT
+    fn visit_function_declaration(node: &FunctionDeclaration) {
+        // Generating C# code...
+    }
+}
+```
+
+### Translation Checklist
+
+When translating a Babel plugin, verify:
+
+- [ ] **File Type**: Chose correct `plugin` vs `writer` vs module
+- [ ] **Imports**: Added `use` statements for all modules
+- [ ] **Visitor Names**: Converted PascalCase → `visit_` + snake_case
+- [ ] **Mutable Refs**: Used `&mut` for plugins, `&` for writers
+- [ ] **Lifecycle**: Split `enter`/`exit` into separate methods or inline
+- [ ] **Cloning**: Added `.clone()` when extracting values
+- [ ] **References**: Used `ref` in all pattern matches
+- [ ] **Options**: Converted `null` → `None`, added `if let Some(...)`
+- [ ] **Mutability**: Added `let mut` for all modified variables
+- [ ] **Collections**: Converted arrays to `vec![]`, objects to `HashMap::new()`
+- [ ] **Children**: Called `visit_children()` or `traverse()` explicitly
+- [ ] **Types**: Added type annotations to function signatures and structs
+
+### Edge Cases
+
+#### Multiple Pattern Alternatives
+
+```javascript
+// BABEL - checking multiple node types
+if (t.isIdentifier(node) || t.isMemberExpression(node)) {
+    process(node);
+}
+```
+
+```rustscript
+// RUSTSCRIPT
+match node {
+    Expression::Identifier(_) | Expression::MemberExpression(_) => {
+        process(node);
+    }
+    _ => {}
+}
+```
+
+#### Optional Chaining
+
+```javascript
+// BABEL
+const name = node.id?.name;
+```
+
+```rustscript
+// RUSTSCRIPT
+let name = node.id.as_ref().map(|id| id.name.clone());
+// Or with if let
+let name = if let Some(ref id) = node.id {
+    Some(id.name.clone())
+} else {
+    None
+};
+```
+
+#### Array Methods with Index
+
+```javascript
+// BABEL
+arr.forEach((item, index) => {
+    console.log(index, item);
+});
+```
+
+```rustscript
+// RUSTSCRIPT
+for (index, item) in arr.iter().enumerate() {
+    // use index and item
+}
+```
+
+### File I/O Translation
+
+```
+BABEL                                    RUSTSCRIPT
+-----                                    ----------
+require('fs')                       →    use fs;
+fs.writeFileSync(path, content)     →    fs::write_file(&path, &content)?;
+fs.readFileSync(path, 'utf-8')      →    fs::read_file(&path)?;
+fs.existsSync(path)                 →    fs::file_exists(&path);
+path.join(dir, file)                →    format!("{}/{}", dir, file);
+JSON.stringify(obj)                 →    json::stringify(obj);
+JSON.parse(str)                     →    json::parse(&str)?;
+```
+
+### Algorithm: Full Translation Process
+
+```
+1. Analyze Babel plugin structure
+   ├─> Identify main visitor object
+   ├─> Identify state variables
+   ├─> Identify helper functions
+   └─> Identify external dependencies
+
+2. Choose RustScript file type
+   ├─> Transforms AST? → plugin
+   ├─> Generates code? → writer
+   └─> Just helpers? → module
+
+3. Create module structure
+   ├─> Create main plugin/writer file
+   ├─> Create module files for helpers
+   └─> Add use statements
+
+4. Translate state
+   ├─> Create struct State { }
+   ├─> Convert property types ([] → Vec, {} → HashMap, null → Option)
+   └─> Add to plugin/writer declaration
+
+5. Translate each visitor method
+   ├─> Rename: PascalCase → visit_snake_case
+   ├─> Change signature: (path) → (node: &mut Type, ctx: &Context)
+   ├─> Change path.node.X → node.X.clone()
+   ├─> Add if let Some(ref x) for nullable fields
+   ├─> Change state.X → self.state.X
+   └─> Add node.visit_children(self) if needed
+
+6. Translate lifecycle methods
+   ├─> Program: { enter } → visit_program_enter
+   ├─> Program: { exit } → visit_program_exit
+   └─> Node: { enter, exit } → split into _enter/_exit methods
+
+7. Translate helper functions
+   ├─> Move to module files
+   ├─> Add pub fn
+   ├─> Add type annotations
+   ├─> Convert null → Option
+   └─> Add .clone() calls
+
+8. Handle nested traversal
+   ├─> path.traverse({ ... }) → traverse(node) { ... }
+   └─> Move state to traverse block if needed
+
+9. Test compilation
+   └─> Fix any remaining type errors
+
+10. Verify semantics
+    └─> Ensure behavior matches original Babel plugin
+```
+
+---
+
+::: tip For AI Assistants
+When translating Babel plugins:
+1. **Always** consult this formal mapping section
+2. **Always** use the translation checklist
+3. **Always** verify with the anti-patterns section
+4. **Prefer** explicit patterns over clever shortcuts
+5. **Ask** the user if encountering unmapped Babel APIs
+:::
+
 ::: tip Need Help?
 The conversion process can be challenging. Don't hesitate to refer to existing RustScript examples and the specification when you get stuck!
 :::
