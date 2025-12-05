@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Reluxer</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>ameritusweb</Authors>
+    <Company>ameritusweb</Company>
+    <Description>A token-based pattern matching and visitor framework for C#, inspired by Babel's AST traversal. Designed for transforming TSX/JSX to C# or other source-to-source transformations.</Description>
+    <PackageTags>lexer;tokenizer;pattern-matching;jsx;tsx;typescript;parser;ast</PackageTags>
+    <PackageLicenseExpression>LGPL-2.1-only</PackageLicenseExpression>
+    <Copyright>Copyright © 2025 ameritusweb</Copyright>
+    <PackageProjectUrl>https://github.com/ameritusweb/reluxer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ameritusweb/reluxer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>lux-image-4.png</PackageIcon>
+
+    <!-- Source Link for debugging -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\lux-image-4.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

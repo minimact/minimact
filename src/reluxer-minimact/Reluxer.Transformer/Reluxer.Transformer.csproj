@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>Reluxer.Transformer</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>ameritusweb</Authors>
+    <Company>ameritusweb</Company>
+    <Description>Transform TSX/JSX React components into C# using Reluxer's token-based pattern matching. Generates VNode trees, state management, and event handlers for server-side rendering frameworks.</Description>
+    <PackageTags>tsx;jsx;react;transformer;codegen;csharp;server-side-rendering;ssr</PackageTags>
+    <PackageLicenseExpression>LGPL-2.1-only</PackageLicenseExpression>
+    <Copyright>Copyright © 2025 ameritusweb</Copyright>
+    <PackageProjectUrl>https://github.com/ameritusweb/reluxer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ameritusweb/reluxer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>lux-image-4.png</PackageIcon>
+
+    <!-- Source Link for debugging -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Reluxer\Reluxer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\lux-image-4.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

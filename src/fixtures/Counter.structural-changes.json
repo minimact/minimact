@@ -1,6 +1,6 @@
 {
   "componentName": "Counter",
-  "timestamp": "2025-12-05T18:58:59.882Z",
+  "timestamp": "2025-12-05T20:32:54.221Z",
   "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedStateSimple.tsx",
   "changes": [
     {
@@ -93,12 +93,6 @@
           }
         ]
       }
-    },
-    {
-      "type": "hook-added",
-      "hookType": "useState",
-      "varName": "count",
-      "index": 0
     }
   ]
 }

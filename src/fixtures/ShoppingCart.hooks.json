@@ -1,5 +1,11 @@
 {
   "componentName": "ShoppingCart",
-  "timestamp": "2025-12-05T19:07:13.918Z",
-  "hooks": []
+  "timestamp": "2025-12-05T20:44:40.280Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "isLoading",
+      "index": 0
+    }
+  ]
 }

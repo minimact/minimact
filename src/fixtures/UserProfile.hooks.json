@@ -1,5 +1,11 @@
 {
   "componentName": "UserProfile",
-  "timestamp": "2025-12-05T19:07:23.583Z",
-  "hooks": []
+  "timestamp": "2025-12-05T20:44:40.279Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "isLoading",
+      "index": 0
+    }
+  ]
 }
