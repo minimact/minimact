@@ -68,6 +68,8 @@ module.exports = function(babel) {
 
           // Collect all top-level function declarations for potential inclusion as helpers
           state.file.topLevelFunctions = [];
+          // Collect all top-level const declarations (like PRODUCTS = [...])
+          state.file.topLevelConstants = [];
 
           path.traverse({
             FunctionDeclaration(funcPath) {
@@ -81,6 +83,38 @@ module.exports = function(babel) {
                     node: funcPath.node,
                     path: funcPath
                   });
+                }
+              }
+            },
+            VariableDeclaration(varPath) {
+              // Only collect top-level const declarations
+              if (varPath.parent.type === 'Program' || varPath.parent.type === 'ExportNamedDeclaration') {
+                if (varPath.node.kind === 'const') {
+                  for (const declarator of varPath.node.declarations) {
+                    if (declarator.id && declarator.id.type === 'Identifier') {
+                      const constName = declarator.id.name;
+                      // Skip if it's a hook (starts with use)
+                      if (constName.startsWith('use')) {
+                        continue;
+                      }
+                      // Skip if it looks like a React component (PascalCase function that returns JSX)
+                      // Components are functions, not arrays/objects, so check if init is ArrowFunction/Function
+                      if (declarator.init &&
+                          (declarator.init.type === 'ArrowFunctionExpression' ||
+                           declarator.init.type === 'FunctionExpression')) {
+                        // Check if the name looks like a component (starts with uppercase, not ALL_CAPS)
+                        const isAllCaps = constName === constName.toUpperCase();
+                        if (!isAllCaps && constName[0] === constName[0].toUpperCase()) {
+                          continue; // Skip PascalCase function - likely a component
+                        }
+                      }
+                      state.file.topLevelConstants.push({
+                        name: constName,
+                        node: declarator,
+                        init: declarator.init
+                      });
+                    }
+                  }
                 }
               }
             }

@@ -374,6 +374,39 @@ function processComponent(path, state) {
     }
   }
 
+  // Detect which top-level constants are referenced by this component
+  if (state.file.topLevelConstants && state.file.topLevelConstants.length > 0) {
+    const referencedConstNames = new Set();
+
+    // Traverse the component to find all identifier references
+    path.traverse({
+      Identifier(idPath) {
+        const constName = idPath.node.name;
+        // Check if this matches a top-level constant
+        const topLevelConst = state.file.topLevelConstants.find(c => c.name === constName);
+        if (topLevelConst) {
+          referencedConstNames.add(constName);
+        }
+      }
+    });
+
+    // Add referenced constants to component's topLevelConstants array
+    component.topLevelConstants = state.file.topLevelConstants
+      .filter(c => referencedConstNames.has(c.name))
+      .map(c => ({
+        name: c.name,
+        node: c.node,
+        init: c.init
+      }));
+
+    if (component.topLevelConstants.length > 0) {
+      console.log(`[Minimact Constants] Component '${componentName}' references ${component.topLevelConstants.length} top-level constant(s):`);
+      component.topLevelConstants.forEach(c => {
+        console.log(`  - ${c.name}`);
+      });
+    }
+  }
+
   // 🔥 NEW: Generate C# classes for imported hooks
   // After component processing is complete, check if any imported hooks were used
   if (component.customHooks && component.customHooks.length > 0) {

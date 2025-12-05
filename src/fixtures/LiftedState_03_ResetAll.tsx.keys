@@ -1,0 +1,149 @@
+// Pattern 2.1: Parent Modifying Child State - Reset All Button
+// Parent can reset all child components at once
+
+import { Component, state, setState } from '@minimact/core';
+
+// Child component: Counter
+export function Counter() {
+  const count = state.count;
+
+  return (
+    <div key='1' className="counter">
+      <h3 key='1.1'>Counter</h3>
+      <p key='1.2'>Count: <span key='1.2.2' id="counter-value">{count}</span></p>
+      <button
+        key='1.3'
+        id="increment-btn"
+        type="button"
+        onClick={() => setState('count', count + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+
+// Child component: Timer
+export function Timer() {
+  const seconds = state.seconds;
+
+  const handleTick = () => {
+    setState('seconds', seconds + 1);
+  };
+
+  return (
+    <div key='1' className="timer">
+      <h3 key='1.1'>Timer</h3>
+      <p key='1.2'>Seconds: <span key='1.2.2' id="timer-value">{seconds}</span></p>
+      <button key='1.3' id="tick-btn" type="button" onClick={handleTick}>
+        Tick
+      </button>
+    </div>
+  );
+}
+
+// Child component: Form
+export function Form() {
+  const text = state.text;
+
+  return (
+    <div key='1' className="form">
+      <h3 key='1.1'>Form</h3>
+      <input
+        key='1.2'
+        id="text-input"
+        type="text"
+        placeholder="Enter text..."
+        value={text}
+        onInput={(e) => setState('text', e.target.value)} />
+      <p key='1.3'>Length: <span key='1.3.2' id="text-length">{text.length}</span></p>
+    </div>
+  );
+}
+
+// Parent component: Dashboard
+export default function Dashboard() {
+  const counterValue = state["Counter.count"];
+  const timerValue = state["Timer.seconds"];
+  const formValue = state["Form.text"];
+
+  const handleResetAll = () => {
+    // Parent resets all child components at once
+    setState("Counter.count", 0);
+    setState("Timer.seconds", 0);
+    setState("Form.text", "");
+  };
+
+  const handleResetCounter = () => {
+    setState("Counter.count", 0);
+  };
+
+  const handleResetTimer = () => {
+    setState("Timer.seconds", 0);
+  };
+
+  const handleResetForm = () => {
+    setState("Form.text", "");
+  };
+
+  const hasChanges = counterValue !== 0 || timerValue !== 0 || formValue !== "";
+
+  return (
+    <div key='1' id="dashboard-root">
+      <h1 key='1.1'>Dashboard</h1>
+      {/* Parent-level controls */}
+      <div key='1.2' className="controls">
+        <button
+          key='1.2.1'
+          id="reset-all-btn"
+          type="button"
+          onClick={handleResetAll}
+          disabled={!hasChanges}>
+          Reset All Components
+        </button>
+
+        <button
+          key='1.2.2'
+          id="reset-counter-btn"
+          type="button"
+          onClick={handleResetCounter}
+          disabled={counterValue === 0}>
+          Reset Counter Only
+        </button>
+
+        <button
+          key='1.2.3'
+          id="reset-timer-btn"
+          type="button"
+          onClick={handleResetTimer}
+          disabled={timerValue === 0}>
+          Reset Timer Only
+        </button>
+
+        <button
+          key='1.2.4'
+          id="reset-form-btn"
+          type="button"
+          onClick={handleResetForm}
+          disabled={formValue === ""}>
+          Reset Form Only
+        </button>
+      </div>
+      <Component key='1.3' name="Counter" state={{ count: 0 }}>
+        <Counter key='1.3.1' />
+      </Component>
+      <Component key='1.4' name="Timer" state={{ seconds: 0 }}>
+        <Timer key='1.4.1' />
+      </Component>
+      <Component key='1.5' name="Form" state={{ text: "" }}>
+        <Form key='1.5.1' />
+      </Component>
+      {/* Status display for testing */}
+      <div key='1.6' id="status" className="status">
+        <p key='1.6.1'>Counter: <span key='1.6.1.2' id="status-counter">{counterValue}</span></p>
+        <p key='1.6.2'>Timer: <span key='1.6.2.2' id="status-timer">{timerValue}</span></p>
+        <p key='1.6.3'>Form Text: <span key='1.6.3.2' id="status-form">"{formValue}"</span></p>
+        <p key='1.6.4'>Has Changes: <span key='1.6.4.2' id="has-changes">{hasChanges ? 'Yes' : 'No'}</span></p>
+      </div>
+    </div>
+  );
+}

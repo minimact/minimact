@@ -1,0 +1,116 @@
+{
+  "componentName": "MessageInput",
+  "timestamp": "2025-12-05T18:04:06.440Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedState_05_Chat.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "message-input"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "textarea"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "p"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "textarea",
+        "path": "1.1",
+        "attributes": {
+          "id": "message-textarea",
+          "value": "__DYNAMIC__",
+          "onInput": "__DYNAMIC__",
+          "onKeyPress": "__DYNAMIC__",
+          "placeholder": "Type a message..."
+        },
+        "children": []
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.2",
+        "attributes": {
+          "id": "send-btn",
+          "type": "button",
+          "onClick": "__DYNAMIC__",
+          "disabled": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1",
+            "value": "Send"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1",
+            "value": "Characters:"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2",
+            "tag": "span"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2",
+      "vnode": {
+        "type": "element",
+        "tag": "span",
+        "path": "1.3.2",
+        "attributes": {
+          "id": "char-count"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.3.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    }
+  ]
+}

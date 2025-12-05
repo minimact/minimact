@@ -1,0 +1,215 @@
+{
+  "component": "PaymentForm",
+  "version": "1.0",
+  "generatedAt": 1764961197043,
+  "templates": {
+    "1.1.1": {
+      "template": "Payment",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.5.1.1": {
+      "template": "✓",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "form-section {0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [
+        13
+      ],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@id": {
+      "template": "card-input",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@placeholder": {
+      "template": "Card Number",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@id": {
+      "template": "cvv-input",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@placeholder": {
+      "template": "CVV",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@id": {
+      "template": "expiry-input",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@placeholder": {
+      "template": "Expiry (MM/YY)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.5": {
+      "type": "conditional-element",
+      "conditionExpression": "isValid",
+      "conditionBindings": [
+        "isValid"
+      ],
+      "conditionMapping": {
+        "isValid": "isValid"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "span",
+          "hexPath": "1.5.1",
+          "attributes": {
+            "key": "1.5.1",
+            "className": "check-mark"
+          },
+          "children": [
+            {
+              "type": "text",
+              "value": "✓",
+              "hexPath": "1.5.1.1"
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

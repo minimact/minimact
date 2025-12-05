@@ -1,0 +1,147 @@
+{
+  "component": "NavBar",
+  "version": "1.0",
+  "generatedAt": 1764960799581,
+  "templates": {
+    "1.1.1": {
+      "template": "My Store",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1": {
+      "template": "🛒",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1.1": {
+      "template": "{0}",
+      "bindings": [
+        "cartCount"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "nav-bar",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@className": {
+      "template": "logo",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@id": {
+      "template": "cart-icon",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "cart-icon",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.2.2": {
+      "type": "conditional-element",
+      "conditionExpression": "cartCount > 0",
+      "conditionBindings": [
+        "cartCount"
+      ],
+      "conditionMapping": {
+        "cartCount": "cartCount"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "span",
+          "hexPath": "1.2.2.1",
+          "attributes": {
+            "key": "1.2.2.1",
+            "id": "cart-badge",
+            "className": "badge"
+          },
+          "children": [
+            {
+              "type": "text",
+              "binding": "cartCount",
+              "hexPath": "1.2.2.1.1"
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

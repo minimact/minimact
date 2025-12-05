@@ -1,0 +1,114 @@
+{
+  "component": "MessageList",
+  "version": "1.0",
+  "generatedAt": 1764957846439,
+  "templates": {
+    "1.1.1": {
+      "template": "Messages ({0})",
+      "bindings": [
+        "messages.length"
+      ],
+      "slots": [
+        10
+      ],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.2.1.1.1": {
+      "template": "No messages yet. Start the conversation!",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "message-list",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@id": {
+      "template": "messages-container",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.2.1": {
+      "type": "conditional-element",
+      "conditionExpression": "messages.length === 0",
+      "conditionBindings": [
+        "messages.length"
+      ],
+      "conditionMapping": {
+        "messages.length": "messages.length"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "p",
+          "hexPath": "1.2.1.1",
+          "attributes": {
+            "key": "1.2.1.1",
+            "id": "no-messages"
+          },
+          "children": [
+            {
+              "type": "text",
+              "value": "No messages yet. Start the conversation!",
+              "hexPath": "1.2.1.1.1"
+            }
+          ]
+        }
+      },
+      "operator": "?"
+    }
+  }
+}

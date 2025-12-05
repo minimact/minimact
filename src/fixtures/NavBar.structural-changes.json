@@ -1,0 +1,75 @@
+{
+  "componentName": "NavBar",
+  "timestamp": "2025-12-05T18:53:19.582Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedState_06_ShoppingCart.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "nav",
+        "path": "1",
+        "attributes": {
+          "className": "nav-bar"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.1",
+        "attributes": {
+          "className": "logo"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "My Store"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2",
+        "attributes": {
+          "id": "cart-icon",
+          "className": "cart-icon"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1",
+            "value": "🛒"
+          },
+          {
+            "type": "expression",
+            "path": "1.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    }
+  ]
+}

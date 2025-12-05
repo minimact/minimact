@@ -1,0 +1,48 @@
+{
+  "componentName": "ProductList",
+  "timestamp": "2025-12-05T18:53:19.583Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedState_06_ShoppingCart.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "product-list"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h2"
+          },
+          {
+            "type": "expression",
+            "path": "1.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "Products"
+          }
+        ]
+      }
+    }
+  ]
+}

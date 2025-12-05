@@ -1,0 +1,578 @@
+{
+  "componentName": "ProductDetailsPage",
+  "timestamp": "2025-12-05T15:16:09.722Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\ProductDetailsPage.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h1"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.3",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.4",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.5",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.6",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.7",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.8",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.9",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.10",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.11",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.12",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.13",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.14",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h1",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.1.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2.1",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1",
+            "value": "$"
+          },
+          {
+            "type": "expression",
+            "path": "1.2.1.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2.2",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.2.1",
+            "value": "Logged in as:"
+          },
+          {
+            "type": "expression",
+            "path": "1.2.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.3",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.1",
+            "tag": "label"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vnode": {
+        "type": "element",
+        "tag": "label",
+        "path": "1.3.1",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1.1",
+            "value": "Quantity:"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.3.2",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.2.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2.2",
+            "tag": "span"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2.3",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.3.2.1",
+        "attributes": {
+          "onClick": "__DYNAMIC__",
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.2.1.1",
+            "value": "-"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "span",
+        "path": "1.3.2.2",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.3.2.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2.3",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.3.2.3",
+        "attributes": {
+          "onClick": "__DYNAMIC__",
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.2.3.1",
+            "value": "+"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.4",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.4.1",
+            "tag": "label"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2",
+            "tag": "select"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.1",
+      "vnode": {
+        "type": "element",
+        "tag": "label",
+        "path": "1.4.1",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.1.1",
+            "value": "Color:"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2",
+      "vnode": {
+        "type": "element",
+        "tag": "select",
+        "path": "1.4.2",
+        "attributes": {
+          "value": "__DYNAMIC__",
+          "onChange": "__DYNAMIC__",
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.4.2.1",
+            "tag": "option"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2.2",
+            "tag": "option"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2.3",
+            "tag": "option"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2.4",
+            "tag": "option"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.4.2.1",
+        "attributes": {
+          "value": "Black"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.2.1.1",
+            "value": "Black"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.4.2.2",
+        "attributes": {
+          "value": "White"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.2.2.1",
+            "value": "White"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2.3",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.4.2.3",
+        "attributes": {
+          "value": "Red"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.2.3.1",
+            "value": "Red"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2.4",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.4.2.4",
+        "attributes": {
+          "value": "Blue"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.2.4.1",
+            "value": "Blue"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.6",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.6.1",
+            "tag": "button"
+          },
+          {
+            "type": "expression",
+            "path": "1.6.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6.1",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.6.1",
+        "attributes": {
+          "onClick": "__DYNAMIC__",
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.6.1.1",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "text",
+            "path": "1.6.1.2",
+            "value": "Details"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.7",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.7.1",
+            "tag": "strong"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.1",
+      "vnode": {
+        "type": "element",
+        "tag": "strong",
+        "path": "1.7.1",
+        "attributes": {
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.1.1",
+            "value": "Total: $"
+          },
+          {
+            "type": "expression",
+            "path": "1.7.1.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.8",
+        "attributes": {
+          "onClick": "__DYNAMIC__",
+          "style": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.8.1",
+            "value": "Add to Cart"
+          }
+        ]
+      }
+    }
+  ]
+}

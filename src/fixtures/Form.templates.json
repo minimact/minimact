@@ -1,0 +1,158 @@
+{
+  "component": "Form",
+  "version": "1.0",
+  "generatedAt": 1764961137813,
+  "templates": {
+    "1.1.1": {
+      "template": "Form",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.1": {
+      "template": "Length:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "text.length"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "form",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@id": {
+      "template": "text-input",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@placeholder": {
+      "template": "Enter text...",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@value": {
+      "template": "{0}",
+      "bindings": [
+        "text"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@key": {
+      "template": "1.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@id": {
+      "template": "text-length",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    }
+  }
+}

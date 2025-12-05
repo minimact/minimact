@@ -1,0 +1,160 @@
+// Pattern 3.1: Cross-Component Communication - Chat Application
+// Parent coordinates state between MessageInput and MessageList
+
+import { Component, state, setState } from '@minimact/core';
+
+// Child component: ChatHeader
+export function ChatHeader() {
+  const unreadCount = state.unreadCount;
+
+  return (
+    <div key='1' className="chat-header">
+      <h2 key='1.1'>Chat Room</h2>
+      {unreadCount > 0 && (
+        <span key='1.2.1' id="unread-badge" className="unread-badge">{unreadCount}</span>
+      )}
+    </div>
+  );
+}
+
+// Child component: MessageList
+export function MessageList() {
+  const messages = state.messages || [];
+
+  return (
+    <div key='1' className="message-list">
+      <h3 key='1.1'>Messages ({messages.length})</h3>
+      <div key='1.2' id="messages-container">
+        {messages.length === 0 ? (
+          <p key='1.2.1.1' id="no-messages">No messages yet. Start the conversation!</p>
+        ) : (
+          messages.map(msg => (
+            <div key={msg.id} className="message" data-message-id={msg.id}>
+              <strong>{msg.author}:</strong> {msg.text}
+              <span className="timestamp">{msg.timestamp}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Child component: MessageInput
+export function MessageInput({ onSend }: { onSend: () => void }) {
+  const draft = state.draft;
+
+  const handleKeyPress = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+
+  return (
+    <div key='1' className="message-input">
+      <textarea
+        key='1.1'
+        id="message-textarea"
+        value={draft}
+        onInput={(e) => setState('draft', e.target.value)}
+        onKeyPress={handleKeyPress}
+        placeholder="Type a message..." />
+      <button
+        key='1.2'
+        id="send-btn"
+        type="button"
+        onClick={onSend}
+        disabled={!draft.trim()}>
+        Send
+      </button>
+      <p key='1.3'>Characters: <span key='1.3.2' id="char-count">{draft.length}</span></p>
+    </div>
+  );
+}
+
+// Parent component: ChatPage
+export default function ChatPage() {
+  const draft = state["MessageInput.draft"];
+  const messages = state["MessageList.messages"] || [];
+  const isTyping = draft.length > 0;
+
+  const handleSend = () => {
+    if (draft.trim()) {
+      // Add message to list
+      const newMessage = {
+        id: Date.now(),
+        text: draft,
+        author: "Me",
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      setState("MessageList.messages", [...messages, newMessage]);
+
+      // Clear input
+      setState("MessageInput.draft", "");
+
+      // Update unread count badge
+      setState("ChatHeader.unreadCount", 0);
+    }
+  };
+
+  const handleAddBotMessage = () => {
+    const botMessage = {
+      id: Date.now(),
+      text: "This is a bot message",
+      author: "Bot",
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setState("MessageList.messages", [...messages, botMessage]);
+    setState("ChatHeader.unreadCount", (state["ChatHeader.unreadCount"] || 0) + 1);
+  };
+
+  const handleClear = () => {
+    setState("MessageList.messages", []);
+    setState("MessageInput.draft", "");
+    setState("ChatHeader.unreadCount", 0);
+  };
+
+  return (
+    <div key='1' id="chat-root">
+      <Component key='1.1' name="ChatHeader" state={{ unreadCount: 0 }}>
+        <ChatHeader key='1.1.1' />
+      </Component>
+      <Component key='1.2' name="MessageList" state={{ messages: [] }}>
+        <MessageList key='1.2.1' />
+      </Component>
+      {/* Typing indicator based on input state */}
+      {isTyping && (
+        <div key='1.3.1' id="typing-indicator" className="typing-indicator">
+          You are typing...
+        </div>
+      )}
+      <Component key='1.4' name="MessageInput" state={{ draft: "" }}>
+        <MessageInput key='1.4.1' onSend={handleSend} />
+      </Component>
+      {/* Parent controls */}
+      <div key='1.5' className="controls">
+        <button key='1.5.1' id="add-bot-btn" type="button" onClick={handleAddBotMessage}>
+          Add Bot Message
+        </button>
+        <button
+          key='1.5.2'
+          id="clear-btn"
+          type="button"
+          onClick={handleClear}
+          disabled={messages.length === 0 && draft === ""}>
+          Clear All
+        </button>
+      </div>
+      {/* Status display for testing */}
+      <div key='1.6' id="status" className="status">
+        <p key='1.6.1'>Message Count: <span key='1.6.1.2' id="message-count">{messages.length}</span></p>
+        <p key='1.6.2'>Draft Length: <span key='1.6.2.2' id="draft-length">{draft.length}</span></p>
+        <p key='1.6.3'>Is Typing: <span key='1.6.3.2' id="is-typing">{isTyping ? 'Yes' : 'No'}</span></p>
+        <p key='1.6.4'>Unread: <span key='1.6.4.2' id="unread-count">{state["ChatHeader.unreadCount"] || 0}</span></p>
+      </div>
+    </div>
+  );
+}

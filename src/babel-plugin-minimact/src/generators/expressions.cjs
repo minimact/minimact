@@ -477,13 +477,13 @@ function generateCSharpExpression(node, inInterpolation = false) {
     // Special case: state.key or state["key"] (state proxy)
     if (t.isIdentifier(node.object, { name: 'state' })) {
       if (node.computed) {
-        // state["someKey"] or state["Child.key"] → State["someKey"] or State["Child.key"]
+        // state["someKey"] or state["Child.key"] → GetState<dynamic>("someKey")
         const key = generateCSharpExpression(node.property, inInterpolation);
-        return `State[${key}]`;
+        return `GetState<dynamic>(${key})`;
       } else {
-        // state.someKey → State["someKey"]
+        // state.someKey → GetState<dynamic>("someKey")
         const key = node.property.name;
-        return `State["${key}"]`;
+        return `GetState<dynamic>("${key}")`;
       }
     }
 
@@ -500,8 +500,9 @@ function generateCSharpExpression(node, inInterpolation = false) {
 
     // Handle JavaScript to C# API conversions
     if (propertyName === 'length' && !node.computed) {
-      // array.length → array.Count
-      return `${object}.Count`;
+      // JavaScript .length → C# .Length (strings/arrays) or .Count (List<T>)
+      // Use MinimactHelpers.GetLength() which handles both strings and collections
+      return `MinimactHelpers.GetLength(${object})`;
     }
 
     // Handle event object property access (e.target.value → e.Target.Value)
@@ -642,19 +643,48 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `(${left}) ?? (${right})`;
     } else if (node.operator === '&&') {
       // Check if right side is a boolean expression (comparison, logical, etc.)
+      // CallExpressions that return booleans: .includes(), .startsWith(), .endsWith(), .Contains(), etc.
+      const booleanMethods = ['includes', 'startsWith', 'endsWith', 'some', 'every', 'has', 'Contains', 'StartsWith', 'EndsWith'];
+      const rightIsCallToBoolMethod = t.isCallExpression(node.right) &&
+                                       t.isMemberExpression(node.right.callee) &&
+                                       t.isIdentifier(node.right.callee.property) &&
+                                       booleanMethods.includes(node.right.callee.property.name);
+
       const rightIsBooleanExpr = t.isBinaryExpression(node.right) ||
                                   t.isLogicalExpression(node.right) ||
-                                  t.isUnaryExpression(node.right);
+                                  t.isUnaryExpression(node.right) ||
+                                  t.isBooleanLiteral(node.right) ||
+                                  rightIsCallToBoolMethod;
 
-      if (rightIsBooleanExpr) {
-        // JavaScript: a && (b > 0)
-        // C#: (a) && (b > 0) - boolean AND
-        return `(${left}) && (${right})`;
-      } else {
-        // JavaScript: a && <jsx> or a && someValue
-        // C#: a != null ? value : VNull (for objects)
+      // Check if this is JSX context (right side is JSX element)
+      const rightIsJSX = t.isJSXElement(node.right) || t.isJSXFragment(node.right);
+
+      if (rightIsJSX) {
+        // JavaScript: a && <jsx>
+        // C#: a != null ? <jsx> : VNull
         const nodePath = node.__minimactPath || '';
         return `(${left}) != null ? (${right}) : new VNull("${nodePath}")`;
+      } else if (rightIsBooleanExpr) {
+        // JavaScript: a && (b > 0)
+        // C#: need to ensure left side is boolean too
+        // If left is not already boolean, wrap in null check or ToBool
+        const leftIsBooleanExpr = t.isBinaryExpression(node.left) ||
+                                   t.isLogicalExpression(node.left) ||
+                                   t.isUnaryExpression(node.left) ||
+                                   t.isBooleanLiteral(node.left);
+
+        if (leftIsBooleanExpr) {
+          return `(${left}) && (${right})`;
+        } else {
+          // Left is not boolean (e.g., identifier or member expression)
+          // Use null check for nullable types
+          return `(${left}) != null && (${right})`;
+        }
+      } else {
+        // JavaScript: a && someValue - guard expression
+        // C#: (a) != null && ... - but we need to handle this differently
+        // For most cases in conditions, use boolean AND
+        return `MinimactHelpers.ToBool(${left}) && MinimactHelpers.ToBool(${right})`;
       }
     }
 
@@ -685,6 +715,13 @@ function generateCSharpExpression(node, inInterpolation = false) {
         t.isIdentifier(node.callee.property, { name: 'min' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
       return `Math.Min(${args})`;
+    }
+
+    // Handle Math.random() → new Random().NextDouble()
+    if (t.isMemberExpression(node.callee) &&
+        t.isIdentifier(node.callee.object, { name: 'Math' }) &&
+        t.isIdentifier(node.callee.property, { name: 'random' })) {
+      return 'new Random().NextDouble()';
     }
 
     // Handle other Math methods (floor, ceil, round, pow, log, etc.) → Pascal case
@@ -750,10 +787,69 @@ function generateCSharpExpression(node, inInterpolation = false) {
       }
     }
 
+    // Handle setTimeout(callback, delay) → Task.Delay(delay).ContinueWith(_ => callback())
+    if (t.isIdentifier(node.callee, { name: 'setTimeout' })) {
+      if (node.arguments.length >= 2) {
+        const callback = node.arguments[0];
+        const delay = generateCSharpExpression(node.arguments[1]);
+
+        // Handle arrow function or function expression callback
+        if (t.isArrowFunctionExpression(callback) || t.isFunctionExpression(callback)) {
+          let body;
+          if (t.isBlockStatement(callback.body)) {
+            body = callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ');
+          } else {
+            // Expression body - add semicolon since it's a statement in the lambda
+            body = generateCSharpExpression(callback.body) + ';';
+          }
+          return `Task.Delay(${delay}).ContinueWith(_ => { ${body} })`;
+        } else {
+          // Identifier callback
+          const callbackName = generateCSharpExpression(callback);
+          return `Task.Delay(${delay}).ContinueWith(_ => ${callbackName}())`;
+        }
+      }
+      return `Task.CompletedTask`;
+    }
+
+    // Handle setInterval - similar to setTimeout but with a loop
+    if (t.isIdentifier(node.callee, { name: 'setInterval' })) {
+      // For now, just translate to a single delayed call with a comment
+      if (node.arguments.length >= 2) {
+        const callback = node.arguments[0];
+        const delay = generateCSharpExpression(node.arguments[1]);
+        const callbackCode = t.isArrowFunctionExpression(callback) || t.isFunctionExpression(callback)
+          ? '/* interval callback */'
+          : generateCSharpExpression(callback);
+        return `/* setInterval(${delay}ms) - requires timer implementation */ Task.CompletedTask`;
+      }
+      return `Task.CompletedTask`;
+    }
+
+    // Handle clearTimeout/clearInterval - no-op for now
+    if (t.isIdentifier(node.callee, { name: 'clearTimeout' }) ||
+        t.isIdentifier(node.callee, { name: 'clearInterval' })) {
+      return `/* ${node.callee.name} - timer cancellation */ Task.CompletedTask`;
+    }
+
     // Handle alert() → Console.WriteLine() (or custom alert implementation)
     if (t.isIdentifier(node.callee, { name: 'alert' })) {
       const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(' + ');
       return `Console.WriteLine(${args})`;
+    }
+
+    // Handle prompt() → placeholder (browser-only function)
+    // In server-side C#, prompt doesn't exist - return null as placeholder
+    if (t.isIdentifier(node.callee, { name: 'prompt' })) {
+      const message = node.arguments.length > 0 ? generateCSharpExpression(node.arguments[0]) : '""';
+      // Return a placeholder that indicates user input is needed
+      return `/* prompt(${message}) - requires UI */ (string?)null`;
+    }
+
+    // Handle confirm() → placeholder (browser-only function)
+    if (t.isIdentifier(node.callee, { name: 'confirm' })) {
+      const message = node.arguments.length > 0 ? generateCSharpExpression(node.arguments[0]) : '""';
+      return `/* confirm(${message}) - requires UI */ false`;
     }
 
     // Handle String(value) → value.ToString()
@@ -822,6 +918,18 @@ function generateCSharpExpression(node, inInterpolation = false) {
       return `${object}.ToString("g")`;
     }
 
+    // Handle .toLocaleTimeString() → .ToString("t") (DateTime - time only)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLocaleTimeString' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.ToString("t")`;
+    }
+
+    // Handle .toLocaleDateString() → .ToString("d") (DateTime - date only)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLocaleDateString' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      return `${object}.ToString("d")`;
+    }
+
     // Handle .toLowerCase() → .ToLower()
     if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'toLowerCase' })) {
       const object = generateCSharpExpression(node.callee.object);
@@ -838,6 +946,34 @@ function generateCSharpExpression(node, inInterpolation = false) {
     if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'trim' })) {
       const object = generateCSharpExpression(node.callee.object);
       return `${object}.Trim()`;
+    }
+
+    // Handle .includes(value) → .Contains(value) (string/array method)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'includes' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `${object}.Contains(${args})`;
+    }
+
+    // Handle .indexOf(value) → .IndexOf(value)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'indexOf' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `${object}.IndexOf(${args})`;
+    }
+
+    // Handle .startsWith(value) → .StartsWith(value)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'startsWith' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `${object}.StartsWith(${args})`;
+    }
+
+    // Handle .endsWith(value) → .EndsWith(value)
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'endsWith' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      const args = node.arguments.map(arg => generateCSharpExpression(arg)).join(', ');
+      return `${object}.EndsWith(${args})`;
     }
 
     // Handle .substring(start, end) → .Substring(start, end)
@@ -935,6 +1071,63 @@ function generateCSharpExpression(node, inInterpolation = false) {
           const castedLambda = needsCast ? `(Func<dynamic, dynamic>)(${lambdaExpr})` : lambdaExpr;
 
           return `${castedObject}.Select(${castedLambda}).ToList()`;
+        }
+      }
+    }
+
+    // Handle .reduce() → .Aggregate()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'reduce' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      if (node.arguments.length >= 1) {
+        const callback = node.arguments[0];
+        const initialValue = node.arguments.length >= 2 ? generateCSharpExpression(node.arguments[1]) : null;
+
+        if (t.isArrowFunctionExpression(callback) || t.isFunctionExpression(callback)) {
+          const params = callback.params.map(p => t.isIdentifier(p) ? p.name : generateCSharpExpression(p));
+          // reduce callback is (accumulator, current) => ...
+          const paramStr = params.length === 1 ? params[0] : `(${params.join(', ')})`;
+
+          let body;
+          if (t.isBlockStatement(callback.body)) {
+            // Block body - need to extract return statement
+            body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
+          } else {
+            body = generateCSharpExpression(callback.body);
+          }
+
+          if (initialValue !== null) {
+            return `${object}.Aggregate(${initialValue}, ${paramStr} => ${body})`;
+          } else {
+            return `${object}.Aggregate(${paramStr} => ${body})`;
+          }
+        }
+      }
+    }
+
+    // Handle .filter() → .Where()
+    if (t.isMemberExpression(node.callee) && t.isIdentifier(node.callee.property, { name: 'filter' })) {
+      const object = generateCSharpExpression(node.callee.object);
+      if (node.arguments.length > 0) {
+        const callback = node.arguments[0];
+
+        // Special case: .filter(Boolean) → .Where(x => x != null && !string.IsNullOrEmpty(x?.ToString()))
+        // This is a JS pattern to filter out falsy values (null, undefined, "", 0, false)
+        if (t.isIdentifier(callback, { name: 'Boolean' })) {
+          return `${object}.Where(x => x != null).ToList()`;
+        }
+
+        if (t.isArrowFunctionExpression(callback) || t.isFunctionExpression(callback)) {
+          const params = callback.params.map(p => t.isIdentifier(p) ? p.name : generateCSharpExpression(p));
+          const paramStr = params.length === 1 ? params[0] : `(${params.join(', ')})`;
+
+          let body;
+          if (t.isBlockStatement(callback.body)) {
+            body = `{ ${callback.body.body.map(stmt => generateCSharpStatement(stmt)).join(' ')} }`;
+          } else {
+            body = generateCSharpExpression(callback.body);
+          }
+
+          return `${object}.Where(${paramStr} => ${body}).ToList()`;
         }
       }
     }

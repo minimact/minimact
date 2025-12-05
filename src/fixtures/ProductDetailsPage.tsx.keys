@@ -1,0 +1,224 @@
+import { useMvcState, useMvcViewModel } from '@minimact/mvc';
+import { useState } from '@minimact/core';
+
+// TypeScript interface matching C# ViewModel
+interface ProductViewModel {
+  productName: string;
+  price: number;
+  isAdminRole: boolean;
+  userEmail: string;
+  initialQuantity: number;
+  initialSelectedColor: string;
+  initialIsExpanded: boolean;
+}
+
+export function ProductDetailsPage() {
+  // ❌ IMMUTABLE - Returns [value] only (no setter)
+  const [productName] = useMvcState<string>('productName');
+  const [price] = useMvcState<number>('price');
+  const [isAdmin] = useMvcState<boolean>('isAdminRole');
+
+  // ✅ MUTABLE - Returns [value, setter]
+  const [quantity, setQuantity] = useMvcState<number>('initialQuantity', {
+    sync: 'immediate' // Sync to server immediately
+  });
+
+  const [color, setColor] = useMvcState<string>('initialSelectedColor');
+  const [isExpanded, setIsExpanded] = useMvcState<boolean>('initialIsExpanded');
+
+  // Access entire ViewModel (read-only)
+  const viewModel = useMvcViewModel<ProductViewModel>();
+
+  // Mix with regular Minimact state
+  const [cartTotal, setCartTotal] = useState(0);
+
+  const handleQuantityChange = (delta: number) => {
+    const newQuantity = Math.max(1, quantity + delta);
+    setQuantity(newQuantity);
+    setCartTotal(price * newQuantity);
+  };
+
+  const handleAddToCart = () => {
+    alert(`Added ${quantity} x ${productName} to cart! Total: $${cartTotal.toFixed(2)}`);
+  };
+
+  return (
+    <div
+      key='1'
+      style={{ padding: '20px', fontFamily: 'system-ui, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+      <h1 key='1.1'>{productName}</h1>
+      <div key='1.2' style={{ marginBottom: '20px' }}>
+        <div
+          key='1.2.1'
+          style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563eb' }}>
+          ${price.toFixed(2)}
+        </div>
+        <div key='1.2.2' style={{ color: '#6b7280', fontSize: '14px' }}>
+          Logged in as: {viewModel?.userEmail}
+        </div>
+      </div>
+      {/* Quantity Selector */}
+      <div key='1.3' style={{ marginBottom: '20px' }}>
+        <label
+          key='1.3.1'
+          style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+          Quantity:
+        </label>
+        <div
+          key='1.3.2'
+          style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            key='1.3.2.1'
+            onClick={() => handleQuantityChange(-1)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#e5e7eb',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}>
+            -
+          </button>
+          <span
+            key='1.3.2.2'
+            style={{ fontSize: '20px', fontWeight: 'bold', minWidth: '40px', textAlign: 'center' }}>
+            {quantity}
+          </span>
+          <button
+            key='1.3.2.3'
+            onClick={() => handleQuantityChange(1)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#e5e7eb',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}>
+            +
+          </button>
+        </div>
+      </div>
+      {/* Color Selector */}
+      <div key='1.4' style={{ marginBottom: '20px' }}>
+        <label
+          key='1.4.1'
+          style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+          Color:
+        </label>
+        <select
+          key='1.4.2'
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            border: '1px solid #d1d5db',
+            borderRadius: '4px',
+            fontSize: '14px'
+          }}>
+          <option key='1.4.2.1' value="Black">Black</option>
+          <option key='1.4.2.2' value="White">White</option>
+          <option key='1.4.2.3' value="Red">Red</option>
+          <option key='1.4.2.4' value="Blue">Blue</option>
+        </select>
+      </div>
+      {/* Admin Controls */}
+      {isAdmin && (
+        <div
+          key='1.5.1'
+          style={{
+            padding: '16px',
+            backgroundColor: '#fef3c7',
+            border: '1px solid #fbbf24',
+            borderRadius: '8px',
+            marginBottom: '20px'
+          }}>
+          <h3 key='1.5.1.1' style={{ marginTop: 0 }}>Admin Controls</h3>
+          <button
+            key='1.5.1.2'
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginRight: '8px'
+            }}>
+            Edit Product
+          </button>
+          <button
+            key='1.5.1.3'
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}>
+            Delete Product
+          </button>
+        </div>
+      )}
+      {/* Expandable Details */}
+      <div key='1.6' style={{ marginBottom: '20px' }}>
+        <button
+          key='1.6.1'
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f3f4f6',
+            border: '1px solid #d1d5db',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}>
+          {isExpanded ? 'Hide' : 'Show'} Details
+        </button>
+
+        {isExpanded && (
+          <div
+            key='1.6.2.1'
+            style={{
+              marginTop: '12px',
+              padding: '16px',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px'
+            }}>
+            <h3 key='1.6.2.1.1'>Product Specifications</h3>
+            <p key='1.6.2.1.2'>This is where detailed product information would go.</p>
+          </div>
+        )}
+      </div>
+      {/* Cart Total */}
+      <div
+        key='1.7'
+        style={{
+          padding: '16px',
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #86efac',
+          borderRadius: '8px',
+          marginBottom: '20px'
+        }}>
+        <strong key='1.7.1' style={{ fontSize: '18px' }}>Total: ${cartTotal.toFixed(2)}</strong>
+      </div>
+      {/* Add to Cart Button */}
+      <button
+        key='1.8'
+        onClick={handleAddToCart}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#10b981',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          fontSize: '16px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          width: '100%'
+        }}>
+        Add to Cart
+      </button>
+    </div>
+  );
+}

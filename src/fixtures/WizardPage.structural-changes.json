@@ -1,0 +1,459 @@
+{
+  "componentName": "WizardPage",
+  "timestamp": "2025-12-05T18:56:50.306Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedState_04_Wizard.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "id": "wizard-root"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h1"
+          },
+          {
+            "type": "expression",
+            "path": "1.2",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.4",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.5",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.6",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.7",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.8",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.9",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "expression",
+            "path": "1.10",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.11",
+            "tag": "div"
+          },
+          {
+            "type": "expression",
+            "path": "1.12",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.13",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h1",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "Setup Wizard"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2",
+        "attributes": {
+          "className": "progress-bar"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.2.3",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2.1",
+        "attributes": {
+          "id": "progress-1",
+          "className": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2.2",
+        "attributes": {
+          "id": "progress-2",
+          "className": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.2.1",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2.3",
+        "attributes": {
+          "id": "progress-3",
+          "className": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.3.1",
+            "value": "3"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.7",
+        "attributes": {
+          "className": "wizard-nav"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.7.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.7.2",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.1",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.7.1",
+        "attributes": {
+          "id": "back-btn",
+          "type": "button",
+          "onClick": "__DYNAMIC__",
+          "disabled": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.1.1",
+            "value": "← Back"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.2",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.7.2",
+        "attributes": {
+          "id": "next-btn",
+          "type": "button",
+          "onClick": "__DYNAMIC__",
+          "disabled": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.2.1",
+            "value": "Next →"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.8",
+        "attributes": {
+          "id": "status",
+          "className": "status"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.8.1",
+            "tag": "p"
+          },
+          {
+            "type": "element",
+            "path": "1.8.2",
+            "tag": "p"
+          },
+          {
+            "type": "element",
+            "path": "1.8.3",
+            "tag": "p"
+          },
+          {
+            "type": "element",
+            "path": "1.8.4",
+            "tag": "p"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.1",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.8.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.8.1.1",
+            "value": "Current Step:"
+          },
+          {
+            "type": "element",
+            "path": "1.8.1.2",
+            "tag": "span"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "span",
+        "path": "1.8.1.2",
+        "attributes": {
+          "id": "current-step"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.1.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.8.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.8.2.1",
+            "value": "Step 1 Complete:"
+          },
+          {
+            "type": "element",
+            "path": "1.8.2.2",
+            "tag": "span"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "span",
+        "path": "1.8.2.2",
+        "attributes": {
+          "id": "step1-status"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.2.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.8.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.8.3.1",
+            "value": "Step 2 Complete:"
+          },
+          {
+            "type": "element",
+            "path": "1.8.3.2",
+            "tag": "span"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.2",
+      "vnode": {
+        "type": "element",
+        "tag": "span",
+        "path": "1.8.3.2",
+        "attributes": {
+          "id": "step2-status"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.3.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.4",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.8.4",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.8.4.1",
+            "value": "Step 3 Complete:"
+          },
+          {
+            "type": "element",
+            "path": "1.8.4.2",
+            "tag": "span"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.4.2",
+      "vnode": {
+        "type": "element",
+        "tag": "span",
+        "path": "1.8.4.2",
+        "attributes": {
+          "id": "step3-status"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.4.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -260,6 +260,37 @@ public static class Minimact
     }
 
     /// <summary>
+    /// Gets the length of a string, array, or collection
+    /// Used by TypeScript→C# transpiler for .length property access
+    /// </summary>
+    /// <param name="value">String, array, or collection</param>
+    /// <returns>Length/Count of the value, or 0 if null</returns>
+    public static int GetLength(object? value)
+    {
+        if (value == null)
+            return 0;
+
+        // String
+        if (value is string str)
+            return str.Length;
+
+        // Array
+        if (value is Array arr)
+            return arr.Length;
+
+        // Collection (List<T>, etc.)
+        if (value is ICollection collection)
+            return collection.Count;
+
+        // IEnumerable (fallback - less efficient)
+        if (value is IEnumerable enumerable)
+            return enumerable.Cast<object>().Count();
+
+        // Unknown type - return 0
+        return 0;
+    }
+
+    /// <summary>
     /// Converts any value to boolean using JavaScript truthy/falsy rules
     /// Used by TypeScript→C# transpiler for if conditions
     /// </summary>

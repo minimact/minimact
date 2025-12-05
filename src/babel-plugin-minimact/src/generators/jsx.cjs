@@ -425,7 +425,7 @@ function generateComponentWrapper(node, parentComponent, indent) {
       const properties = stateExpr.properties.map(prop => {
         if (t.isObjectProperty(prop)) {
           const key = t.isIdentifier(prop.key) ? prop.key.name : prop.key.value;
-          const value = generateCSharpExpression(prop.value, parentComponent, 0);
+          const value = generateCSharpExpression(prop.value);
           return `["${key}"] = ${value}`;
         }
         return '';

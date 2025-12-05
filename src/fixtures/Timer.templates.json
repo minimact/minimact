@@ -1,0 +1,159 @@
+{
+  "component": "Timer",
+  "version": "1.0",
+  "generatedAt": 1764961137812,
+  "templates": {
+    "1.1.1": {
+      "template": "Timer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1": {
+      "template": "Seconds:",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "seconds"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.3.1": {
+      "template": "Tick",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "timer",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@id": {
+      "template": "timer-value",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@id": {
+      "template": "tick-btn",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@type": {
+      "template": "button",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleTick"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-dynamic"
+    }
+  }
+}

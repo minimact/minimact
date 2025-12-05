@@ -46,6 +46,15 @@ function generateRuntimeHelperCall(tagName, attributes, children, component, ind
           const { convertStyleObjectToCss } = require('../utils/styleConverter.cjs');
           const cssString = convertStyleObjectToCss(value.expression);
           propValue = `"${cssString}"`;
+        } else if (name.startsWith('on') && (t.isArrowFunctionExpression(value.expression) || t.isFunctionExpression(value.expression))) {
+          // Event handlers with inline functions - skip them for runtime props
+          // They should be registered separately via event handler registration
+          // For now, store as a placeholder string
+          continue; // Skip event handler props in anonymous objects
+        } else if (name.startsWith('on') && t.isIdentifier(value.expression)) {
+          // Event handler passed as identifier reference (e.g., onClick={handleSubmit})
+          // Convert to string handler name for SignalR to call
+          propValue = `"${value.expression.name}"`;
         } else {
           propValue = generateCSharpExpression(value.expression);
         }

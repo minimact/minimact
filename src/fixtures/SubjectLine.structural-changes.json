@@ -1,0 +1,67 @@
+{
+  "componentName": "SubjectLine",
+  "timestamp": "2025-12-05T18:58:19.545Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedState_07_EmailComposer.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "subject-line"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "label"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "input"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "label",
+        "path": "1.1",
+        "attributes": {
+          "htmlFor": "subject-input"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "Subject:"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "input",
+        "path": "1.2",
+        "attributes": {
+          "id": "subject-input",
+          "type": "text",
+          "value": "__DYNAMIC__",
+          "onInput": "__DYNAMIC__",
+          "placeholder": "Enter subject..."
+        },
+        "children": []
+      }
+    }
+  ]
+}

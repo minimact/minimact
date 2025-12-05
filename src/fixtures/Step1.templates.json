@@ -1,0 +1,175 @@
+{
+  "component": "Step1",
+  "version": "1.0",
+  "generatedAt": 1764961010302,
+  "templates": {
+    "1.1.1": {
+      "template": "Step 1: Basic Information",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.1.1": {
+      "template": "✓ Complete",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "wizard-step {0}",
+      "bindings": [
+        "__complex__"
+      ],
+      "slots": [
+        12
+      ],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@id": {
+      "template": "step1-name",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@placeholder": {
+      "template": "Name",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@id": {
+      "template": "step1-email",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@type": {
+      "template": "email",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@placeholder": {
+      "template": "Email",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.4": {
+      "type": "conditional-element",
+      "conditionExpression": "complete",
+      "conditionBindings": [
+        "complete"
+      ],
+      "conditionMapping": {
+        "complete": "complete"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "span",
+          "hexPath": "1.4.1",
+          "attributes": {
+            "key": "1.4.1",
+            "className": "check"
+          },
+          "children": [
+            {
+              "type": "text",
+              "value": "✓ Complete",
+              "hexPath": "1.4.1.1"
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

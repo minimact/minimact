@@ -1,0 +1,95 @@
+{
+  "component": "ChatHeader",
+  "version": "1.0",
+  "generatedAt": 1764957846438,
+  "templates": {
+    "1.1.1": {
+      "template": "Chat Room",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1": {
+      "template": "{0}",
+      "bindings": [
+        "unreadCount"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "chat-header",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.2": {
+      "type": "conditional-element",
+      "conditionExpression": "unreadCount > 0",
+      "conditionBindings": [
+        "unreadCount"
+      ],
+      "conditionMapping": {
+        "unreadCount": "unreadCount"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "span",
+          "hexPath": "1.2.1",
+          "attributes": {
+            "key": "1.2.1",
+            "id": "unread-badge",
+            "className": "unread-badge"
+          },
+          "children": [
+            {
+              "type": "text",
+              "binding": "unreadCount",
+              "hexPath": "1.2.1.1"
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

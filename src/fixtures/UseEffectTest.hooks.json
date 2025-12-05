@@ -1,0 +1,26 @@
+{
+  "componentName": "UseEffectTest",
+  "timestamp": "2025-12-05T19:03:15.066Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "message",
+      "index": 1
+    },
+    {
+      "type": "useEffect",
+      "depsCount": 1,
+      "index": 2
+    },
+    {
+      "type": "useEffect",
+      "depsCount": 1,
+      "index": 3
+    }
+  ]
+}

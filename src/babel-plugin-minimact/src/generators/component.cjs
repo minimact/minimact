@@ -9,6 +9,49 @@ const { generateServerTaskMethods } = require('./serverTask.cjs');
 const { generateTimelineAttributes } = require('./timelineGenerator.cjs');
 
 /**
+ * Collect all identifiers referenced in an AST node
+ */
+function collectReferencedIdentifiers(node, identifiers = new Set()) {
+  if (!node) return identifiers;
+
+  if (t.isIdentifier(node)) {
+    identifiers.add(node.name);
+  } else if (t.isBlockStatement(node)) {
+    node.body.forEach(stmt => collectReferencedIdentifiers(stmt, identifiers));
+  } else if (t.isExpressionStatement(node)) {
+    collectReferencedIdentifiers(node.expression, identifiers);
+  } else if (t.isIfStatement(node)) {
+    collectReferencedIdentifiers(node.test, identifiers);
+    collectReferencedIdentifiers(node.consequent, identifiers);
+    collectReferencedIdentifiers(node.alternate, identifiers);
+  } else if (t.isBinaryExpression(node) || t.isLogicalExpression(node)) {
+    collectReferencedIdentifiers(node.left, identifiers);
+    collectReferencedIdentifiers(node.right, identifiers);
+  } else if (t.isUnaryExpression(node)) {
+    collectReferencedIdentifiers(node.argument, identifiers);
+  } else if (t.isCallExpression(node)) {
+    collectReferencedIdentifiers(node.callee, identifiers);
+    node.arguments.forEach(arg => collectReferencedIdentifiers(arg, identifiers));
+  } else if (t.isMemberExpression(node)) {
+    collectReferencedIdentifiers(node.object, identifiers);
+  } else if (t.isConditionalExpression(node)) {
+    collectReferencedIdentifiers(node.test, identifiers);
+    collectReferencedIdentifiers(node.consequent, identifiers);
+    collectReferencedIdentifiers(node.alternate, identifiers);
+  } else if (t.isReturnStatement(node)) {
+    collectReferencedIdentifiers(node.argument, identifiers);
+  } else if (t.isVariableDeclaration(node)) {
+    node.declarations.forEach(decl => {
+      collectReferencedIdentifiers(decl.init, identifiers);
+    });
+  } else if (t.isAssignmentExpression(node)) {
+    collectReferencedIdentifiers(node.right, identifiers);
+  }
+
+  return identifiers;
+}
+
+/**
  * Generate C# class for a component
  */
 function generateComponent(component) {
@@ -90,6 +133,19 @@ function generateComponent(component) {
 
   lines.push(`public partial class ${component.name} : ${baseClass}`);
   lines.push('{');
+
+  // Top-level constants (module-level const declarations like PRODUCTS = [...])
+  if (component.topLevelConstants && component.topLevelConstants.length > 0) {
+    lines.push('    // Module-level constants');
+    for (const constant of component.topLevelConstants) {
+      const { generateCSharpExpression } = require('./expressions.cjs');
+      const csharpValue = generateCSharpExpression(constant.init);
+      // Determine type from the init expression
+      const csharpType = inferCSharpTypeFromInit(constant.init);
+      lines.push(`    private static readonly ${csharpType} ${constant.name} = ${csharpValue};`);
+    }
+    lines.push('');
+  }
 
   // Template properties (from useTemplate)
   if (component.useTemplate && component.useTemplate.props) {
@@ -293,6 +349,55 @@ function generateComponent(component) {
     }
   }
 
+  // Detect which local variables are referenced by event handlers
+  // These need to be class-level computed properties, not local vars in Render()
+  const handlerReferencedVars = new Set();
+  for (const handler of component.eventHandlers) {
+    if (handler.body) {
+      const refs = collectReferencedIdentifiers(handler.body);
+      refs.forEach(ref => handlerReferencedVars.add(ref));
+    }
+  }
+
+  // Build a map of local variable dependencies
+  const regularLocalVars = component.localVariables.filter(v => !v.isClientComputed);
+  const localVarMap = new Map();
+  for (const v of regularLocalVars) {
+    localVarMap.set(v.name, v);
+  }
+
+  // Recursively expand handler-referenced vars to include their dependencies
+  // (e.g., if canSend uses hasRecipients, hasRecipients needs to be promoted too)
+  const allPromotedVars = new Set(handlerReferencedVars);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const varName of allPromotedVars) {
+      const localVar = localVarMap.get(varName);
+      if (localVar && localVar.init) {
+        const deps = collectReferencedIdentifiers(localVar.init);
+        for (const dep of deps) {
+          if (localVarMap.has(dep) && !allPromotedVars.has(dep)) {
+            allPromotedVars.add(dep);
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  // Local variables that are accessed by event handlers (or their dependencies) become computed properties
+  const handlerAccessedVars = regularLocalVars.filter(v => allPromotedVars.has(v.name));
+
+  if (handlerAccessedVars.length > 0) {
+    lines.push('    // Computed properties (accessed by event handlers)');
+    for (const localVar of handlerAccessedVars) {
+      // Generate as expression-bodied property
+      lines.push(`    private ${localVar.type === 'var' ? 'dynamic' : localVar.type} ${localVar.name} => ${localVar.initialValue};`);
+    }
+    lines.push('');
+  }
+
   // Server Task methods (useServerTask)
   const serverTaskMethods = generateServerTaskMethods(component);
   for (const line of serverTaskMethods) {
@@ -321,12 +426,13 @@ function generateComponent(component) {
     lines.push('');
   }
 
-  // Local variables (exclude client-computed ones, they're properties now)
-  const regularLocalVars = component.localVariables.filter(v => !v.isClientComputed);
-  for (const localVar of regularLocalVars) {
+  // Local variables inside Render() (exclude client-computed and handler-accessed ones)
+  const renderLocalVars = regularLocalVars.filter(v => !allPromotedVars.has(v.name));
+
+  for (const localVar of renderLocalVars) {
     lines.push(`        ${localVar.type} ${localVar.name} = ${localVar.initialValue};`);
   }
-  if (regularLocalVars.length > 0) {
+  if (renderLocalVars.length > 0) {
     lines.push('');
   }
 
@@ -772,6 +878,12 @@ function inferCSharpTypeFromInit(node) {
 
   // Logical expressions
   if (t.isLogicalExpression(node)) {
+    // For || and ?? operators used as default values (e.g., state.x || []),
+    // infer type from the right-hand side (the fallback value)
+    if (node.operator === '||' || node.operator === '??') {
+      return inferCSharpTypeFromInit(node.right);
+    }
+    // For && operator, it typically returns bool or the last truthy value
     return 'bool';
   }
 
