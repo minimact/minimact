@@ -469,7 +469,7 @@ async function main() {
     log(`${'='.repeat(80)}\n`, colors.cyan);
     log(`✓ Total lines: ${lines.length}`, colors.green);
 
-    // Write C# code to output file with proper wrapping for compilation
+    // Write C# code to output file (raw Babel output, no re-wrapping)
     // Each component gets its own folder to avoid conflicts
     const componentName = filename.replace(/\.(jsx|tsx)$/, '');
     const outputDir = path.join(__dirname, 'test-output-babel', componentName);
@@ -481,36 +481,8 @@ async function main() {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Wrap C# code in namespace and add using statements for compilation
-
-    // Strip out the babel plugin's own using statements and namespace declaration
-    let cleanedCode = csharpCode;
-
-    // Remove using statements at the beginning
-    cleanedCode = cleanedCode.replace(/^using [^;]+;[\r\n]*/gm, '');
-
-    // Remove file-scoped namespace declaration
-    cleanedCode = cleanedCode.replace(/namespace [^;]+;[\r\n]*/g, '');
-
-    // Remove empty lines at the beginning
-    cleanedCode = cleanedCode.replace(/^[\r\n]+/, '');
-
-    const compilableCode = `using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Minimact.AspNetCore.Core;
-using Minimact.AspNetCore.Rendering;
-using Minimact.AspNetCore.Extensions;
-using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
-
-namespace MinimactTest.Components
-{
-${cleanedCode}
-}
-`;
-
-    fs.writeFileSync(outputPath, compilableCode, 'utf-8');
+    // Write raw Babel output directly (no re-wrapping)
+    fs.writeFileSync(outputPath, csharpCode, 'utf-8');
     log(`\n✓ Wrote C# output to: ${outputPath}`, colors.green);
 
     // Create a .csproj file for compilation
@@ -637,7 +609,7 @@ ${cleanedCode}
           log(`  - Element keys: ${Object.keys(reluxerResult.keysJson.keys || {}).length}`, colors.cyan);
         }
 
-        // Compare outputs
+        // Compare outputs (raw Babel output vs Reluxer output)
         compareOutputs(
           { csharpCode, templatesJson },
           reluxerResult,

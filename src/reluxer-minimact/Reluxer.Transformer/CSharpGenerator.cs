@@ -44,7 +44,7 @@ public class CSharpGenerator
 
     private void WriteUsings()
     {
-        // Match Babel plugin output order
+        // Match proper Minimact output order
         WriteLine("using Minimact.AspNetCore.Core;");
         WriteLine("using Minimact.AspNetCore.Extensions;");
         WriteLine("using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;");
@@ -55,6 +55,19 @@ public class CSharpGenerator
 
     private void GenerateComponent(ComponentModel component)
     {
+        // Hook classes get special treatment
+        if (component.IsHook)
+        {
+            GenerateHookClass(component);
+            return;
+        }
+
+        // Timeline attributes (before [Component])
+        if (component.TimelineConfig != null)
+        {
+            WriteTimelineAttributes(component.TimelineConfig);
+        }
+
         WriteLine("[Component]");
         var partial = _options.GeneratePartialClasses ? "partial " : "";
         WriteLine($"public {partial}class {component.Name} : MinimactComponent");
@@ -191,6 +204,178 @@ public class CSharpGenerator
 
         _indentLevel--;
         WriteLine("}");
+    }
+
+    /// <summary>
+    /// Generates a [Hook] class from a custom hook function (useXxx).
+    /// Hook classes have:
+    /// - [Hook] attribute instead of [Component]
+    /// - _config.* properties for hook parameters
+    /// - State fields for internal state
+    /// - State setters for state mutation
+    /// - Hook methods (increment, decrement, etc.)
+    /// - Optional UI rendering via "ui" variable
+    /// </summary>
+    private void GenerateHookClass(ComponentModel hook)
+    {
+        // Convert useCounter -> UseCounterHook
+        var className = char.ToUpper(hook.Name[0]) + hook.Name.Substring(1) + "Hook";
+
+        WriteLine("// ============================================================");
+        WriteLine($"// HOOK CLASS - Generated from {hook.Name}");
+        WriteLine("// ============================================================");
+        WriteLine("[Hook]");
+        var partial = _options.GeneratePartialClasses ? "partial " : "";
+        WriteLine($"public {partial}class {className} : MinimactComponent");
+        WriteLine("{");
+        _indentLevel++;
+
+        // Configuration properties (from hook parameters)
+        if (hook.HookConfig?.Parameters.Count > 0)
+        {
+            WriteLine("// Configuration (from hook arguments)");
+            foreach (var param in hook.HookConfig.Parameters)
+            {
+                var safeName = EscapeCSharpKeyword(param.Name);
+                WriteLine($"private dynamic {safeName} => GetState<dynamic>(\"_config.{param.Name}\");");
+            }
+            WriteLine();
+        }
+
+        // Hook state fields
+        if (hook.StateFields.Count > 0)
+        {
+            WriteLine("// Hook state");
+            foreach (var state in hook.StateFields)
+            {
+                WriteLine("[State]");
+                var initialValue = state.InitialValue ?? "null";
+                // Check if initial value references a config parameter
+                if (hook.HookConfig?.Parameters.Any(p => p.Name == initialValue) == true)
+                {
+                    WriteLine($"private dynamic {state.Name} = {initialValue};");
+                }
+                else
+                {
+                    var csharpType = ConvertTypeToCSharp(state.Type);
+                    var convertedInitial = ConvertInitialValue(state.InitialValue, state.Type);
+                    WriteLine($"private {csharpType} {state.Name} = {convertedInitial};");
+                }
+            }
+            WriteLine();
+        }
+
+        // State setters
+        if (hook.StateFields.Count > 0)
+        {
+            WriteLine("// State setters");
+            foreach (var state in hook.StateFields)
+            {
+                WriteLine($"private void {state.SetterName}(dynamic value)");
+                WriteLine("{");
+                _indentLevel++;
+                WriteLine($"SetState(nameof({state.Name}), value);");
+                _indentLevel--;
+                WriteLine("}");
+                WriteLine();
+            }
+        }
+
+        // Hook methods (increment, decrement, reset, etc.)
+        if (hook.HelperFunctions.Count > 0)
+        {
+            WriteLine("// Hook methods");
+            foreach (var helper in hook.HelperFunctions)
+            {
+                GenerateHookMethod(helper, hook);
+            }
+        }
+
+        // Render method (for "ui" variable)
+        if (hook.RenderTree != null)
+        {
+            WriteLine("// Hook UI rendering");
+            WriteLine("protected override VNode Render()");
+            WriteLine("{");
+            _indentLevel++;
+
+            WriteLine("StateManager.SyncMembersToState(this);");
+            WriteLine();
+
+            WriteIndent();
+            Write("return ");
+            GenerateVNode(hook.RenderTree, isReturn: true);
+            _sb.AppendLine(";");
+
+            _indentLevel--;
+            WriteLine("}");
+        }
+
+        _indentLevel--;
+        WriteLine("}");
+    }
+
+    /// <summary>
+    /// Generates a hook method (like increment, decrement, reset).
+    /// These are simpler than component event handlers.
+    /// </summary>
+    private void GenerateHookMethod(HelperFunction helper, ComponentModel hook)
+    {
+        var paramList = helper.Parameters.Count > 0
+            ? string.Join(", ", helper.Parameters.Select(p => $"dynamic {p}"))
+            : "";
+
+        WriteLine($"private void {helper.Name}({paramList})");
+        WriteLine("{");
+        _indentLevel++;
+
+        var body = ConvertHookMethodBody(helper.Body, hook);
+        foreach (var line in body.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            WriteLine(line.Trim());
+        }
+
+        _indentLevel--;
+        WriteLine("}");
+        WriteLine();
+    }
+
+    /// <summary>
+    /// Converts a hook method body, handling setter calls.
+    /// </summary>
+    private string ConvertHookMethodBody(string body, ComponentModel hook)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return "";
+
+        var result = body.Trim();
+
+        // Remove outer braces if present
+        if (result.StartsWith("{") && result.EndsWith("}"))
+            result = result[1..^1].Trim();
+
+        // Convert setXxx(value) to setXxx((value)) - wrap in parentheses
+        // This handles expressions like setCount(count + 1)
+        foreach (var state in hook.StateFields)
+        {
+            var pattern = new System.Text.RegularExpressions.Regex(
+                $@"{state.SetterName}\s*\(\s*([^)]+)\s*\)");
+            result = pattern.Replace(result, match =>
+            {
+                var value = match.Groups[1].Value.Trim();
+                return $"{state.SetterName}(({value}))";
+            });
+        }
+
+        // Apply general expression conversion
+        result = ConvertExpression(result);
+
+        // Ensure statements end with semicolons
+        if (!string.IsNullOrEmpty(result) && !result.EndsWith(";") && !result.EndsWith("}"))
+        {
+            result += ";";
+        }
+
+        return result;
     }
 
     private void GenerateHelperFunction(HelperFunction helper)
@@ -856,6 +1041,79 @@ public class CSharpGenerator
                 .Replace("\n", "\\n")
                 .Replace("\r", "\\r")
                 .Replace("\t", "\\t");
+    }
+
+    /// <summary>
+    /// C# reserved keywords that need to be escaped with @ prefix.
+    /// </summary>
+    private static readonly HashSet<string> CSharpKeywords = new()
+    {
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+        "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+        "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+        "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+        "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
+        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual",
+        "void", "volatile", "while"
+    };
+
+    /// <summary>
+    /// Escapes a C# keyword by prefixing with @.
+    /// </summary>
+    private string EscapeCSharpKeyword(string name)
+    {
+        return CSharpKeywords.Contains(name) ? $"@{name}" : name;
+    }
+
+    #endregion
+
+    #region Timeline Attributes
+
+    /// <summary>
+    /// Writes timeline-related attributes before the [Component] attribute.
+    /// Generates:
+    /// - [Timeline("Name", duration, Repeat = bool, Easing = "string")]
+    /// - [TimelineKeyframe(time, "stateName", value, Label = "label")]
+    /// - [TimelineStateBinding("stateName", Interpolate = bool)]
+    /// </summary>
+    private void WriteTimelineAttributes(TimelineModel timeline)
+    {
+        // [Timeline] attribute
+        var repeatPart = timeline.Repeat ? ", Repeat = true" : "";
+        var easingPart = !string.IsNullOrEmpty(timeline.Easing) ? $", Easing = \"{timeline.Easing}\"" : "";
+        WriteLine($"[Timeline(\"{timeline.Name}\", {timeline.Duration}{repeatPart}{easingPart})]");
+
+        // [TimelineKeyframe] attributes - one per state per keyframe
+        foreach (var keyframe in timeline.Keyframes)
+        {
+            var labelPart = !string.IsNullOrEmpty(keyframe.Label) ? $", Label = \"{keyframe.Label}\"" : "";
+
+            // Format value based on type
+            string formattedValue;
+            if (int.TryParse(keyframe.Value, out var intVal))
+            {
+                formattedValue = intVal.ToString();
+            }
+            else if (double.TryParse(keyframe.Value, out var doubleVal))
+            {
+                formattedValue = doubleVal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                formattedValue = $"\"{keyframe.Value}\"";
+            }
+
+            WriteLine($"[TimelineKeyframe({keyframe.Time}, \"{keyframe.StateName}\", {formattedValue}{labelPart})]");
+        }
+
+        // [TimelineStateBinding] attributes
+        foreach (var binding in timeline.StateBindings)
+        {
+            var interpolatePart = binding.Interpolate ? ", Interpolate = true" : "";
+            WriteLine($"[TimelineStateBinding(\"{binding.StateName}\"{interpolatePart})]");
+        }
     }
 
     #endregion

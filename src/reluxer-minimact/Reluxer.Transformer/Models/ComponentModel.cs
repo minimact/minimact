@@ -75,33 +75,84 @@ public class HookParameter
 
 /// <summary>
 /// Timeline configuration for animations.
+/// Generates [Timeline] attribute on component.
 /// </summary>
 public class TimelineModel
 {
+    /// <summary>
+    /// Timeline name (e.g., "AnimatedCounter_Timeline")
+    /// </summary>
     public string Name { get; set; } = "";
+
+    /// <summary>
+    /// Duration in milliseconds
+    /// </summary>
     public int Duration { get; set; }
-    public string Easing { get; set; } = "easeInOut";
+
+    /// <summary>
+    /// Whether timeline repeats
+    /// </summary>
+    public bool Repeat { get; set; }
+
+    /// <summary>
+    /// Easing function (e.g., "ease-in-out")
+    /// </summary>
+    public string? Easing { get; set; }
+
+    /// <summary>
+    /// Keyframes for this timeline.
+    /// Each keyframe can have multiple state values.
+    /// </summary>
     public List<TimelineKeyframe> Keyframes { get; } = new();
+
+    /// <summary>
+    /// State bindings for this timeline.
+    /// </summary>
     public List<TimelineStateBinding> StateBindings { get; } = new();
 }
 
 /// <summary>
 /// A keyframe in a timeline.
+/// Generates [TimelineKeyframe(time, "stateName", value, Label = "label")] attribute.
 /// </summary>
 public class TimelineKeyframe
 {
-    public int At { get; set; }
-    public string Property { get; set; } = "";
+    /// <summary>
+    /// Time in milliseconds
+    /// </summary>
+    public int Time { get; set; }
+
+    /// <summary>
+    /// State name being set
+    /// </summary>
+    public string StateName { get; set; } = "";
+
+    /// <summary>
+    /// Value at this keyframe (as string representation)
+    /// </summary>
     public string Value { get; set; } = "";
+
+    /// <summary>
+    /// Optional label for this keyframe
+    /// </summary>
+    public string? Label { get; set; }
 }
 
 /// <summary>
 /// A state binding for a timeline.
+/// Generates [TimelineStateBinding("stateName", Interpolate = bool)] attribute.
 /// </summary>
 public class TimelineStateBinding
 {
+    /// <summary>
+    /// State name being bound
+    /// </summary>
     public string StateName { get; set; } = "";
-    public string Property { get; set; } = "";
+
+    /// <summary>
+    /// Whether to interpolate values (true for numbers, false for strings)
+    /// </summary>
+    public bool Interpolate { get; set; }
 }
 
 /// <summary>

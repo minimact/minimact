@@ -80,7 +80,7 @@ class Program
 
             var options = new TransformOptions
             {
-                Namespace = "MinimactTest.Components",
+                Namespace = "Minimact.Components",
                 GeneratePartialClasses = true,
                 IncludeUsings = true,
                 GenerateTemplates = true

@@ -90,14 +90,19 @@ public class ComponentVisitor : TokenVisitor
     [TokenPattern(@"\k""function"" (\i)", Priority = 80)]
     public void VisitFunction(TokenMatch match, string name)
     {
-        // Only capture PascalCase names as components
-        if (!char.IsUpper(name[0])) return;
+        // Capture PascalCase names as components
+        // Also capture lowercase "use*" functions as custom hooks
+        bool isHook = name.StartsWith("use") && name.Length > 3 && char.IsLower(name[0]);
+        bool isComponent = char.IsUpper(name[0]);
+
+        if (!isComponent && !isHook) return;
 
         var component = new ComponentModel
         {
             Name = name,
             IsDefault = false,
-            IsExported = false
+            IsExported = false,
+            IsHook = isHook
         };
 
         _componentStartIndex = match.StartIndex;

@@ -1,13 +1,11 @@
-using System;
+using Minimact.AspNetCore.Core;
+using Minimact.AspNetCore.Extensions;
+using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Minimact.AspNetCore.Core;
-using Minimact.AspNetCore.Rendering;
-using Minimact.AspNetCore.Extensions;
-using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
 
-namespace MinimactTest.Components;
+namespace Minimact.Components;
 
 [Component]
 public partial class Counter : MinimactComponent
@@ -22,13 +20,18 @@ public partial class Counter : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        return MinimactHelpers.createElement("div", null, new VElement("span", "1.1", new Dictionary<string, string> { ["id"] = "counter-value" }, new VNode[]
+        return new VElement("div", "1", new Dictionary<string, string> { ["id"] = "counter-root" }, new VNode[]
         {
-            new VText($"{(count)}", "1.1.1")
-        }), new VElement("span", "1.2", new Dictionary<string, string> { ["id"] = "message" }, new VNode[]
-        {
-            new VText($"{(message)}", "1.2.1")
-        }), new VElement("button", "1.3", new Dictionary<string, string> { ["id"] = "increment-btn", ["type"] = "button", ["onclick"] = "Handle0" }, "Increment"));
+            new VElement("span", "1.1", new Dictionary<string, string> { ["id"] = "counter-value" }, new VNode[]
+            {
+                new VText($"{(count)}", "1.1.1")
+            }),
+            new VElement("span", "1.2", new Dictionary<string, string> { ["id"] = "message" }, new VNode[]
+            {
+                new VText($"{(message)}", "1.2.1")
+            }),
+            new VElement("button", "1.3", new Dictionary<string, string> { ["id"] = "increment-btn", ["type"] = "button", ["onclick"] = "Handle0" }, "Increment")
+        });
     }
 
     public void Handle0()

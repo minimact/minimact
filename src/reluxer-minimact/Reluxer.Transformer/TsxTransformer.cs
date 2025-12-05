@@ -63,6 +63,11 @@ public class TsxTransformer
             }
         }
 
+        // Phase 1.6: Process custom hooks (useXxx functions)
+        // This identifies hook functions and extracts their parameters
+        var customHookVisitor = new CustomHookVisitor(components);
+        customHookVisitor.Visit(tokens, source, sharedContext);
+
         // Phase 2: Extract state (useState hooks) - assigns hook indices
         foreach (var component in components)
         {
@@ -88,6 +93,13 @@ public class TsxTransformer
                 var refVisitor = new RefVisitor(component);
                 refVisitor.Visit(tokens, source, sharedContext);
             }
+        }
+
+        // Phase 2.7: Extract timeline hooks (useTimeline, useTimelineState)
+        foreach (var component in components)
+        {
+            var timelineVisitor = new TimelineVisitor(component);
+            timelineVisitor.Visit(tokens, source, sharedContext);
         }
 
         // Phase 3: Extract event handlers and local variables

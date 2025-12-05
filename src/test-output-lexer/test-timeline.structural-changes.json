@@ -1,0 +1,208 @@
+{
+  "componentName": "AnimatedCounter",
+  "timestamp": "2025-12-05T23:03:37.3625344Z",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vNode": {
+        "type": "element",
+        "path": "1",
+        "tag": "div",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h1"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1",
+        "tag": "h1",
+        "attributes": {
+          "style": ""
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1"
+          },
+          {
+            "type": "expression",
+            "path": "1.1.2"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.1.1",
+        "value": "Count:"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2",
+      "vNode": {
+        "type": "expression",
+        "path": "1.1.2",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2",
+        "tag": "div",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.2.3",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.2.4",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.1",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.1.1",
+        "value": "Pause"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.2",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.2.1",
+        "value": "Play"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.3",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.3.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.3.1",
+        "value": "Stop"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.4",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.4",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.4.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.4.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.4.1",
+        "value": "Jump to Midpoint"
+      }
+    }
+  ]
+}
