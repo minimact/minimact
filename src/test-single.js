@@ -2,10 +2,11 @@
 
 /**
  * Test single JSX file - transpile to C# and display output
+ * Runs both Babel plugin and Reluxer transformer, then compares outputs.
  * Usage: node test-single.js <filename.jsx>
  */
 
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -109,6 +110,311 @@ async function transpileComponent(jsxPath) {
   });
 }
 
+/**
+ * Transpile using Reluxer (C# transformer)
+ */
+async function transpileWithReluxer(jsxPath) {
+  return new Promise((resolve, reject) => {
+    const reluxerDir = path.join(__dirname, 'reluxer-minimact', 'Reluxer.Transformer.Tests');
+
+    // Run the Reluxer transformer
+    const proc = spawn('dotnet', ['run', '--', jsxPath], {
+      cwd: reluxerDir,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    proc.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        // Parse the output - look for generated files
+        const filename = path.basename(jsxPath).replace(/\.(jsx|tsx)$/, '');
+        const outputDir = path.join(__dirname, 'test-output-lexer');
+
+        const result = {
+          csharpCode: '',
+          templatesJson: null,
+          hooksJson: null,
+          structuralChangesJson: null,
+          keysJson: null,
+          stdout
+        };
+
+        // Read generated files
+        const csPath = path.join(outputDir, `${filename}.cs`);
+        const templatesPath = path.join(outputDir, `${filename}.templates.json`);
+        const hooksPath = path.join(outputDir, `${filename}.hooks.json`);
+        const structuralPath = path.join(outputDir, `${filename}.structural-changes.json`);
+        const keysPath = path.join(outputDir, `${filename}.tsx.keys`);
+
+        try {
+          if (fs.existsSync(csPath)) {
+            result.csharpCode = fs.readFileSync(csPath, 'utf-8');
+          }
+          if (fs.existsSync(templatesPath)) {
+            result.templatesJson = JSON.parse(fs.readFileSync(templatesPath, 'utf-8'));
+          }
+          if (fs.existsSync(hooksPath)) {
+            result.hooksJson = JSON.parse(fs.readFileSync(hooksPath, 'utf-8'));
+          }
+          if (fs.existsSync(structuralPath)) {
+            result.structuralChangesJson = JSON.parse(fs.readFileSync(structuralPath, 'utf-8'));
+          }
+          if (fs.existsSync(keysPath)) {
+            result.keysJson = JSON.parse(fs.readFileSync(keysPath, 'utf-8'));
+          }
+        } catch (err) {
+          // Some files may not exist
+        }
+
+        resolve(result);
+      } else {
+        reject(new Error(`Reluxer failed (code ${code}): ${stderr}\n${stdout}`));
+      }
+    });
+
+    proc.on('error', reject);
+  });
+}
+
+/**
+ * Normalize C# code for comparison
+ * - Extracts and sorts using statements
+ * - Normalizes whitespace
+ * - Removes comments
+ * - Returns structured representation
+ */
+function normalizeCSharpCode(code) {
+  if (!code) return { usings: [], namespace: '', body: '' };
+
+  // Normalize line endings
+  code = code.replace(/\r\n/g, '\n');
+
+  // Extract using statements
+  const usingRegex = /^using\s+[^;]+;/gm;
+  const usings = (code.match(usingRegex) || [])
+    .map(u => u.trim())
+    .sort();
+
+  // Remove using statements from code
+  let body = code.replace(usingRegex, '');
+
+  // Extract namespace
+  const namespaceMatch = body.match(/namespace\s+([^;{]+)[;{]/);
+  const namespace = namespaceMatch ? namespaceMatch[1].trim() : '';
+
+  // Remove namespace declaration
+  body = body.replace(/namespace\s+[^;{]+[;{]/, '');
+
+  // Remove comments
+  body = body.replace(/^\s*\/\/.*$/gm, '');      // Single-line comments
+  body = body.replace(/\/\*[\s\S]*?\*\//g, '');  // Multi-line comments
+
+  // Normalize whitespace (but preserve structure)
+  body = body
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n');
+
+  return { usings, namespace, body };
+}
+
+/**
+ * Compare two outputs and show differences
+ */
+function compareOutputs(babelResult, reluxerResult, filename) {
+  log(`\n${'━'.repeat(80)}`, colors.cyan);
+  log(`\n🔍 COMPARISON: Babel vs Reluxer\n`, colors.cyan);
+
+  const differences = [];
+
+  // Normalize both C# outputs
+  const babelNorm = normalizeCSharpCode(babelResult.csharpCode);
+  const reluxerNorm = normalizeCSharpCode(reluxerResult.csharpCode);
+
+  // Compare usings (after sorting, should be equivalent)
+  const babelUsings = babelNorm.usings.join('\n');
+  const reluxerUsings = reluxerNorm.usings.join('\n');
+
+  if (babelUsings === reluxerUsings) {
+    log(`  ✅ Using statements: IDENTICAL (${babelNorm.usings.length} usings)`, colors.green);
+  } else {
+    const missingInReluxer = babelNorm.usings.filter(u => !reluxerNorm.usings.includes(u));
+    const missingInBabel = reluxerNorm.usings.filter(u => !babelNorm.usings.includes(u));
+
+    if (missingInReluxer.length === 0 && missingInBabel.length === 0) {
+      log(`  ✅ Using statements: EQUIVALENT (different order, same content)`, colors.green);
+    } else {
+      log(`  ⚠️  Using statements: DIFFERENT`, colors.yellow);
+      if (missingInReluxer.length > 0) {
+        log(`    Missing in Reluxer: ${missingInReluxer.join(', ')}`, colors.red);
+      }
+      if (missingInBabel.length > 0) {
+        log(`    Missing in Babel: ${missingInBabel.join(', ')}`, colors.yellow);
+      }
+      differences.push('usings');
+    }
+  }
+
+  // Compare namespace
+  if (babelNorm.namespace === reluxerNorm.namespace) {
+    log(`  ✅ Namespace: IDENTICAL (${babelNorm.namespace || '(none)'})`, colors.green);
+  } else {
+    log(`  ⚠️  Namespace: DIFFERENT`, colors.yellow);
+    log(`    Babel:   ${babelNorm.namespace || '(none)'}`, colors.red);
+    log(`    Reluxer: ${reluxerNorm.namespace || '(none)'}`, colors.green);
+    differences.push('namespace');
+  }
+
+  // Compare body (the actual class code)
+  const babelBody = babelNorm.body.replace(/\s+/g, ' ').trim();
+  const reluxerBody = reluxerNorm.body.replace(/\s+/g, ' ').trim();
+
+  if (babelBody === reluxerBody) {
+    log(`  ✅ Class body: IDENTICAL`, colors.green);
+  } else {
+    // Check if they're structurally similar (same tokens, different formatting)
+    const babelTokens = babelBody.split(/\s+/).filter(t => t.length > 0);
+    const reluxerTokens = reluxerBody.split(/\s+/).filter(t => t.length > 0);
+
+    if (JSON.stringify(babelTokens) === JSON.stringify(reluxerTokens)) {
+      log(`  ✅ Class body: EQUIVALENT (same tokens, different formatting)`, colors.green);
+    } else {
+      log(`  ❌ Class body: DIFFERENT`, colors.red);
+      differences.push('class-body');
+
+      // Find first difference
+      const babelLines = babelNorm.body.split('\n');
+      const reluxerLines = reluxerNorm.body.split('\n');
+      let diffCount = 0;
+
+      for (let i = 0; i < Math.max(babelLines.length, reluxerLines.length) && diffCount < 5; i++) {
+        const bLine = (babelLines[i] || '').trim();
+        const rLine = (reluxerLines[i] || '').trim();
+        if (bLine !== rLine) {
+          log(`    Line ${i + 1}:`, colors.yellow);
+          log(`      Babel:   ${bLine.substring(0, 70)}`, colors.red);
+          log(`      Reluxer: ${rLine.substring(0, 70)}`, colors.green);
+          diffCount++;
+        }
+      }
+      if (diffCount >= 5) {
+        log(`    ... (more differences)`, colors.yellow);
+      }
+    }
+  }
+
+  // Compare templates
+  const babelTemplates = babelResult.templatesJson?.templates || {};
+  const reluxerTemplates = reluxerResult.templatesJson?.templates || {};
+  const babelTemplateKeys = Object.keys(babelTemplates).sort();
+  const reluxerTemplateKeys = Object.keys(reluxerTemplates).sort();
+
+  // Separate content templates from attribute templates
+  const isContentKey = k => !k.includes('@');
+  const babelContentKeys = babelTemplateKeys.filter(isContentKey);
+  const reluxerContentKeys = reluxerTemplateKeys.filter(isContentKey);
+  const babelAttrKeys = babelTemplateKeys.filter(k => !isContentKey(k));
+  const reluxerAttrKeys = reluxerTemplateKeys.filter(k => !isContentKey(k));
+
+  // Compare content templates (more important)
+  if (JSON.stringify(babelContentKeys) === JSON.stringify(reluxerContentKeys)) {
+    log(`  ✅ Content templates: IDENTICAL (${babelContentKeys.length} templates)`, colors.green);
+  } else {
+    const onlyInBabel = babelContentKeys.filter(k => !reluxerContentKeys.includes(k));
+    const onlyInReluxer = reluxerContentKeys.filter(k => !babelContentKeys.includes(k));
+
+    if (onlyInBabel.length === 0 && onlyInReluxer.length === 0) {
+      log(`  ✅ Content templates: EQUIVALENT`, colors.green);
+    } else {
+      log(`  ⚠️  Content templates: DIFFERENT`, colors.yellow);
+      differences.push('content-templates');
+      if (onlyInBabel.length > 0) {
+        log(`    Only in Babel: ${onlyInBabel.join(', ')}`, colors.red);
+      }
+      if (onlyInReluxer.length > 0) {
+        log(`    Only in Reluxer: ${onlyInReluxer.join(', ')}`, colors.green);
+      }
+    }
+  }
+
+  // Compare attribute templates (less critical - different approaches are OK)
+  if (babelAttrKeys.length === reluxerAttrKeys.length) {
+    log(`  ✅ Attribute templates: SAME COUNT (${babelAttrKeys.length} attrs)`, colors.green);
+  } else {
+    log(`  ℹ️  Attribute templates: DIFFERENT COUNT (Babel: ${babelAttrKeys.length}, Reluxer: ${reluxerAttrKeys.length})`, colors.cyan);
+    // Not adding to differences - attribute template differences are often acceptable
+  }
+
+  // Compare template content for shared keys
+  const sharedKeys = babelContentKeys.filter(k => reluxerContentKeys.includes(k));
+  let templateContentDiffs = 0;
+  for (const key of sharedKeys) {
+    const babelTpl = babelTemplates[key];
+    const reluxerTpl = reluxerTemplates[key];
+    if (babelTpl.template !== reluxerTpl.template) {
+      if (templateContentDiffs === 0) {
+        log(`  ⚠️  Template content differences:`, colors.yellow);
+      }
+      if (templateContentDiffs < 3) {
+        log(`    ${key}: "${babelTpl.template}" vs "${reluxerTpl.template}"`, colors.yellow);
+      }
+      templateContentDiffs++;
+    }
+  }
+  if (templateContentDiffs > 3) {
+    log(`    ... and ${templateContentDiffs - 3} more`, colors.yellow);
+  }
+  if (templateContentDiffs > 0) {
+    differences.push('template-content');
+  } else if (sharedKeys.length > 0) {
+    log(`  ✅ Template content: IDENTICAL for ${sharedKeys.length} shared templates`, colors.green);
+  }
+
+  // Compare hooks
+  const babelHooks = babelResult.hooksJson?.hooks || [];
+  const reluxerHooks = reluxerResult.hooksJson?.hooks || [];
+
+  if (reluxerResult.hooksJson) {
+    log(`  📎 Hooks (Reluxer): ${reluxerHooks.length} hooks found`, colors.cyan);
+    reluxerHooks.forEach(h => {
+      log(`    - ${h.type}: ${h.varName || '(unnamed)'} [index: ${h.index}]`, colors.cyan);
+    });
+  }
+
+  // Show structural changes if available
+  if (reluxerResult.structuralChangesJson) {
+    const changes = reluxerResult.structuralChangesJson.changes || [];
+    log(`  🏗️  Structural changes (Reluxer): ${changes.length} operations`, colors.cyan);
+  }
+
+  // Show keys if available
+  if (reluxerResult.keysJson) {
+    const keyCount = Object.keys(reluxerResult.keysJson.keys || {}).length;
+    log(`  🔑 Element keys (Reluxer): ${keyCount} keys generated`, colors.cyan);
+  }
+
+  // Summary
+  log(`\n${'━'.repeat(80)}`, colors.cyan);
+  if (differences.length === 0) {
+    log(`\n✅ RESULT: Outputs are equivalent!`, colors.green);
+  } else {
+    log(`\n⚠️  RESULT: ${differences.length} difference(s) found: ${differences.join(', ')}`, colors.yellow);
+  }
+
+  return differences;
+}
+
 async function main() {
   const inputPath = process.argv[2];
 
@@ -164,17 +470,18 @@ async function main() {
     log(`✓ Total lines: ${lines.length}`, colors.green);
 
     // Write C# code to output file with proper wrapping for compilation
-    const outputFilename = filename.replace(/\.(jsx|tsx)$/, '.cs');
-    const outputPath = path.join(__dirname, 'test-output', outputFilename);
+    // Each component gets its own folder to avoid conflicts
+    const componentName = filename.replace(/\.(jsx|tsx)$/, '');
+    const outputDir = path.join(__dirname, 'test-output-babel', componentName);
+    const outputFilename = componentName + '.cs';
+    const outputPath = path.join(outputDir, outputFilename);
 
-    // Create test-output directory if it doesn't exist
-    const outputDir = path.join(__dirname, 'test-output');
+    // Create component-specific directory if it doesn't exist
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
     // Wrap C# code in namespace and add using statements for compilation
-    const componentName = filename.replace(/\.(jsx|tsx)$/, '');
 
     // Strip out the babel plugin's own using statements and namespace declaration
     let cleanedCode = csharpCode;
@@ -205,6 +512,25 @@ ${cleanedCode}
 
     fs.writeFileSync(outputPath, compilableCode, 'utf-8');
     log(`\n✓ Wrote C# output to: ${outputPath}`, colors.green);
+
+    // Create a .csproj file for compilation
+    const csprojContent = `<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\\..\\Minimact.AspNetCore\\Minimact.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>
+`;
+    const csprojPath = path.join(outputDir, `${componentName}.csproj`);
+    fs.writeFileSync(csprojPath, csprojContent, 'utf-8');
 
     // Try to compile the C# code
     log(`\nCompiling C# code...`, colors.yellow);
@@ -263,7 +589,7 @@ ${cleanedCode}
 
       // Write Templates JSON to output file
       const templatesOutputFilename = filename.replace(/\.(jsx|tsx)$/, '.templates.json');
-      const templatesOutputPath = path.join(__dirname, 'test-output', templatesOutputFilename);
+      const templatesOutputPath = path.join(outputDir, templatesOutputFilename);
       fs.writeFileSync(templatesOutputPath, JSON.stringify(templatesJson, null, 2), 'utf-8');
       log(`✓ Wrote templates JSON to: ${templatesOutputPath}`, colors.green);
 
@@ -282,8 +608,56 @@ ${cleanedCode}
       log(`\n⚠ No templates JSON generated`, colors.yellow);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // RELUXER TRANSPILATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    log(`\n${'═'.repeat(80)}`, colors.cyan);
+    log(`\n🦀 RELUXER TRANSPILATION\n`, colors.cyan);
+
+    try {
+      log(`Transpiling ${filename} with Reluxer...`, colors.yellow);
+      const reluxerResult = await transpileWithReluxer(jsxPath);
+
+      if (reluxerResult.csharpCode) {
+        log(`\n✓ Reluxer transpiled successfully`, colors.green);
+
+        // Show summary
+        log(`  - C# code: ${reluxerResult.csharpCode.split('\n').length} lines`, colors.cyan);
+        if (reluxerResult.templatesJson) {
+          log(`  - Templates: ${Object.keys(reluxerResult.templatesJson.templates || {}).length}`, colors.cyan);
+        }
+        if (reluxerResult.hooksJson) {
+          log(`  - Hooks: ${reluxerResult.hooksJson.hooks?.length || 0}`, colors.cyan);
+        }
+        if (reluxerResult.structuralChangesJson) {
+          log(`  - Structural changes: ${reluxerResult.structuralChangesJson.changes?.length || 0}`, colors.cyan);
+        }
+        if (reluxerResult.keysJson) {
+          log(`  - Element keys: ${Object.keys(reluxerResult.keysJson.keys || {}).length}`, colors.cyan);
+        }
+
+        // Compare outputs
+        compareOutputs(
+          { csharpCode, templatesJson },
+          reluxerResult,
+          filename
+        );
+      } else {
+        log(`\n⚠ Reluxer did not produce C# output`, colors.yellow);
+        if (reluxerResult.stdout) {
+          log(`\nReluxer output:`, colors.yellow);
+          console.log(reluxerResult.stdout);
+        }
+      }
+    } catch (reluxerErr) {
+      log(`\n⚠ Reluxer transpilation failed: ${reluxerErr.message}`, colors.yellow);
+    }
+
+    log(`\n✓ Done!`, colors.green);
+
   } catch (err) {
-    log(`\n✗ Failed: ${err.message}`, colors.red);
+    log(`\n✗ Babel failed: ${err.message}`, colors.red);
     process.exit(1);
   }
 }

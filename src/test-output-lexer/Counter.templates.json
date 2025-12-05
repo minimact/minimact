@@ -1,56 +1,8 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1764974104679,
+  "generatedAt": 1764974106602,
   "templates": {
-    "1.1.1": {
-      "template": "{0}",
-      "bindings": [
-        "count"
-      ],
-      "slots": [
-        0
-      ],
-      "path": [
-        "1",
-        "1"
-      ],
-      "type": "dynamic"
-    },
-    "1.2.1": {
-      "template": "{0}",
-      "bindings": [
-        "message"
-      ],
-      "slots": [
-        0
-      ],
-      "path": [
-        "1",
-        "2"
-      ],
-      "type": "dynamic"
-    },
-    "1.3.1": {
-      "template": "Increment",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "3",
-        "1"
-      ],
-      "type": "static"
-    },
-    "1.@key": {
-      "template": "1",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1"
-      ],
-      "type": "attribute-static"
-    },
     "1.@id": {
       "template": "counter-root",
       "bindings": [],
@@ -60,12 +12,11 @@
       ],
       "type": "attribute-static"
     },
-    "1.1.@key": {
-      "template": "1.1",
+    "1.@key": {
+      "template": "1",
       "bindings": [],
       "slots": [],
       "path": [
-        "1",
         "1"
       ],
       "type": "attribute-static"
@@ -80,15 +31,29 @@
       ],
       "type": "attribute-static"
     },
-    "1.2.@key": {
-      "template": "1.2",
+    "1.1.@key": {
+      "template": "1.1",
       "bindings": [],
       "slots": [],
       "path": [
         "1",
-        "2"
+        "1"
       ],
       "type": "attribute-static"
+    },
+    "1.1.1": {
+      "template": "{0}",
+      "bindings": [
+        "count"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "dynamic"
     },
     "1.2.@id": {
       "template": "message",
@@ -100,15 +65,29 @@
       ],
       "type": "attribute-static"
     },
-    "1.3.@key": {
-      "template": "1.3",
+    "1.2.@key": {
+      "template": "1.2",
       "bindings": [],
       "slots": [],
       "path": [
         "1",
-        "3"
+        "2"
       ],
       "type": "attribute-static"
+    },
+    "1.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "message"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "dynamic"
     },
     "1.3.@id": {
       "template": "increment-btn",
@@ -129,6 +108,27 @@
         "3"
       ],
       "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1": {
+      "template": "Increment",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "static"
     }
   }
 }

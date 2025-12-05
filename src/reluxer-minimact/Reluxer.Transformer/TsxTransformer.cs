@@ -63,11 +63,31 @@ public class TsxTransformer
             }
         }
 
-        // Phase 2: Extract state (useState hooks)
+        // Phase 2: Extract state (useState hooks) - assigns hook indices
         foreach (var component in components)
         {
             var stateVisitor = new StateVisitor(component);
             stateVisitor.Visit(tokens, source, sharedContext);
+        }
+
+        // Phase 2.5: Extract effects (useEffect hooks)
+        if (_options.GenerateHooks)
+        {
+            foreach (var component in components)
+            {
+                var effectVisitor = new EffectVisitor(component);
+                effectVisitor.Visit(tokens, source, sharedContext);
+            }
+        }
+
+        // Phase 2.6: Extract refs (useRef hooks)
+        if (_options.GenerateHooks)
+        {
+            foreach (var component in components)
+            {
+                var refVisitor = new RefVisitor(component);
+                refVisitor.Visit(tokens, source, sharedContext);
+            }
         }
 
         // Phase 3: Extract event handlers and local variables
@@ -103,6 +123,71 @@ public class TsxTransformer
             }
         }
 
+        // Phase 7: Generate hooks JSON
+        if (_options.GenerateHooks)
+        {
+            var hooksGenerator = new HooksGenerator();
+            if (components.Count == 1)
+            {
+                result.HooksJson = hooksGenerator.Generate(components[0]);
+            }
+            else if (components.Count > 1)
+            {
+                result.HooksJson = hooksGenerator.Generate(components);
+            }
+        }
+
+        // Phase 8: Generate structural changes JSON
+        if (_options.GenerateStructuralChanges)
+        {
+            var structuralGenerator = new StructuralChangesGenerator();
+            if (components.Count == 1)
+            {
+                result.StructuralChangesJson = structuralGenerator.Generate(
+                    components[0],
+                    _options.SourceFilePath);
+            }
+            else if (components.Count > 1)
+            {
+                // For multiple components, concatenate JSON (could be improved)
+                var allChanges = components.Select(c =>
+                    structuralGenerator.Generate(c, _options.SourceFilePath));
+                result.StructuralChangesJson = "[" + string.Join(",", allChanges) + "]";
+            }
+        }
+
+        // Phase 9: Generate keys JSON
+        if (_options.GenerateKeys)
+        {
+            var keysGenerator = new KeysGenerator();
+
+            // Load existing keys if available
+            if (!string.IsNullOrEmpty(_options.ExistingKeysPath) &&
+                File.Exists(_options.ExistingKeysPath))
+            {
+                try
+                {
+                    var existingKeysContent = File.ReadAllText(_options.ExistingKeysPath);
+                    keysGenerator.LoadExistingKeys(existingKeysContent);
+                }
+                catch
+                {
+                    // Ignore errors loading existing keys - will generate new ones
+                }
+            }
+
+            if (components.Count == 1)
+            {
+                result.KeysJson = keysGenerator.Generate(components[0], tokens);
+            }
+            else if (components.Count > 1)
+            {
+                // For multiple components, generate keys for first component
+                // (typically each file has one main component)
+                result.KeysJson = keysGenerator.Generate(components[0], tokens);
+            }
+        }
+
         return result;
     }
 }
@@ -112,7 +197,7 @@ public class TsxTransformer
 /// </summary>
 public class TransformOptions
 {
-    public string Namespace { get; set; } = "MinimactTest.Components";
+    public string Namespace { get; set; } = "Minimact.Components";
     public bool GeneratePartialClasses { get; set; } = true;
     public bool IncludeUsings { get; set; } = true;
     public string IndentString { get; set; } = "    ";
@@ -121,6 +206,32 @@ public class TransformOptions
     /// If true, generates template JSON alongside C# code.
     /// </summary>
     public bool GenerateTemplates { get; set; } = true;
+
+    /// <summary>
+    /// If true, generates hooks.json for hook tracking.
+    /// </summary>
+    public bool GenerateHooks { get; set; } = true;
+
+    /// <summary>
+    /// If true, generates structural-changes.json for hot reload.
+    /// </summary>
+    public bool GenerateStructuralChanges { get; set; } = true;
+
+    /// <summary>
+    /// If true, generates tsx.keys for stable element identification.
+    /// </summary>
+    public bool GenerateKeys { get; set; } = true;
+
+    /// <summary>
+    /// Path to existing .tsx.keys file for key persistence.
+    /// If set and file exists, keys will be reused.
+    /// </summary>
+    public string? ExistingKeysPath { get; set; }
+
+    /// <summary>
+    /// Source file path (included in structural-changes.json).
+    /// </summary>
+    public string? SourceFilePath { get; set; }
 }
 
 /// <summary>
@@ -139,6 +250,21 @@ public class TransformResult
     public string TemplateJson { get; set; } = "";
 
     /// <summary>
+    /// Generated hooks JSON for hook tracking.
+    /// </summary>
+    public string HooksJson { get; set; } = "";
+
+    /// <summary>
+    /// Generated structural changes JSON for hot reload.
+    /// </summary>
+    public string StructuralChangesJson { get; set; } = "";
+
+    /// <summary>
+    /// Generated keys JSON for stable element identification.
+    /// </summary>
+    public string KeysJson { get; set; } = "";
+
+    /// <summary>
     /// Parsed component models (intermediate representation).
     /// </summary>
     public List<ComponentModel> Components { get; set; } = new();
@@ -155,13 +281,30 @@ public class TransformResult
 
     /// <summary>
     /// Gets file outputs for writing to disk.
+    /// Yields tuples of (extension, content) for each generated file.
     /// </summary>
     public IEnumerable<(string Extension, string Content)> GetOutputs()
     {
         yield return (".cs", Code);
+
         if (!string.IsNullOrEmpty(TemplateJson))
         {
             yield return (".templates.json", TemplateJson);
+        }
+
+        if (!string.IsNullOrEmpty(HooksJson))
+        {
+            yield return (".hooks.json", HooksJson);
+        }
+
+        if (!string.IsNullOrEmpty(StructuralChangesJson))
+        {
+            yield return (".structural-changes.json", StructuralChangesJson);
+        }
+
+        if (!string.IsNullOrEmpty(KeysJson))
+        {
+            yield return (".tsx.keys", KeysJson);
         }
     }
 }

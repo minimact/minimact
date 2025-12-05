@@ -44,14 +44,13 @@ public class CSharpGenerator
 
     private void WriteUsings()
     {
-        WriteLine("using System;");
+        // Match Babel plugin output order
+        WriteLine("using Minimact.AspNetCore.Core;");
+        WriteLine("using Minimact.AspNetCore.Extensions;");
+        WriteLine("using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;");
         WriteLine("using System.Collections.Generic;");
         WriteLine("using System.Linq;");
         WriteLine("using System.Threading.Tasks;");
-        WriteLine("using Minimact.AspNetCore.Core;");
-        WriteLine("using Minimact.AspNetCore.Rendering;");
-        WriteLine("using Minimact.AspNetCore.Extensions;");
-        WriteLine("using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;");
     }
 
     private void GenerateComponent(ComponentModel component)
@@ -390,7 +389,7 @@ public class CSharpGenerator
         // Generate attributes dictionary
         var attrs = GenerateAttributesDictionary(element.Attributes);
 
-        // Check if any children are lists - if so, use createElement which handles varargs
+        // Check if any children are lists - if so, we need special handling
         var hasListChild = element.Children.Any(c => c is VListModel);
 
         if (element.Children.Count == 0 && !HasTextContent(element))
@@ -404,12 +403,11 @@ public class CSharpGenerator
             var escapedText = EscapeString(textChild.Text);
             Write($"new VElement(\"{tag}\", \"{path}\", {attrs}, \"{escapedText}\")");
         }
-        else if (isRoot || hasListChild)
+        else if (hasListChild)
         {
-            // Use MinimactHelpers.createElement for:
-            // - Root elements (varargs children)
-            // - Elements containing list children (Select().ToArray() results)
-            Write($"MinimactHelpers.createElement(\"{tag}\", null, ");
+            // Use MinimactHelpers.createElement for elements containing list children
+            // (Select().ToArray() results need varargs handling)
+            Write($"MinimactHelpers.createElement(\"{tag}\", {attrs}, ");
 
             for (int i = 0; i < element.Children.Count; i++)
             {
@@ -422,7 +420,7 @@ public class CSharpGenerator
         }
         else
         {
-            // Multiple children
+            // Multiple children - use VNode[] array syntax (same for root and non-root)
             Write($"new VElement(\"{tag}\", \"{path}\", {attrs}, new VNode[]");
             _sb.AppendLine();
             WriteIndent();

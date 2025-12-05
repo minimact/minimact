@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "componentName": "Counter",
+  "generatedAt": 1764974106627,
+  "keys": {
+    "div:8:5": "10000000",
+    "span:9:7": "20000000",
+    "span:10:7": "30000000",
+    "button:11:7": "40000000"
+  },
+  "nextKey": "50000000"
+}

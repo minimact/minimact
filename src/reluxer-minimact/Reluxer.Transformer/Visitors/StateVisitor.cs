@@ -57,7 +57,8 @@ public class StateVisitor : TokenVisitor
         var stateField = new StateField
         {
             Name = stateName,
-            SetterName = setterName
+            SetterName = setterName,
+            HookIndex = _component.NextHookIndex++
         };
 
         // Extract initial value from parentheses
@@ -95,7 +96,8 @@ public class StateVisitor : TokenVisitor
             LocalName = localName,
             ViewModelKey = cleanKey,
             Type = MapTsTypeToCSharp(typeName),
-            SetterName = "" // No setter for immutable
+            SetterName = "", // No setter for immutable
+            HookIndex = _component.NextHookIndex++
         });
     }
 
@@ -114,7 +116,8 @@ public class StateVisitor : TokenVisitor
             LocalName = localName,
             ViewModelKey = cleanKey,
             Type = MapTsTypeToCSharp(typeName),
-            SetterName = setterName
+            SetterName = setterName,
+            HookIndex = _component.NextHookIndex++
         });
     }
 

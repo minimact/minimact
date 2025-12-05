@@ -1,15 +1,14 @@
 {
   "componentName": "Counter",
-  "timestamp": "2025-12-05T22:35:04.681Z",
-  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\Counter.tsx",
+  "timestamp": "2025-12-05T22:35:06.6251361Z",
   "changes": [
     {
       "type": "insert",
       "path": "1",
-      "vnode": {
+      "vNode": {
         "type": "element",
-        "tag": "div",
         "path": "1",
+        "tag": "div",
         "attributes": {
           "id": "counter-root"
         },
@@ -35,60 +34,84 @@
     {
       "type": "insert",
       "path": "1.1",
-      "vnode": {
+      "vNode": {
         "type": "element",
-        "tag": "span",
         "path": "1.1",
+        "tag": "span",
         "attributes": {
           "id": "counter-value"
         },
         "children": [
           {
             "type": "expression",
-            "path": "1.1.1",
-            "value": "__DYNAMIC__"
+            "path": "1.1.1"
           }
         ]
       }
     },
     {
       "type": "insert",
+      "path": "1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.1.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
       "path": "1.2",
-      "vnode": {
+      "vNode": {
         "type": "element",
-        "tag": "span",
         "path": "1.2",
+        "tag": "span",
         "attributes": {
           "id": "message"
         },
         "children": [
           {
             "type": "expression",
-            "path": "1.2.1",
-            "value": "__DYNAMIC__"
+            "path": "1.2.1"
           }
         ]
       }
     },
     {
       "type": "insert",
+      "path": "1.2.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.2.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
       "path": "1.3",
-      "vnode": {
+      "vNode": {
         "type": "element",
-        "tag": "button",
         "path": "1.3",
+        "tag": "button",
         "attributes": {
           "id": "increment-btn",
           "type": "button",
-          "onClick": "__DYNAMIC__"
+          "onclick": "__DYNAMIC__"
         },
         "children": [
           {
             "type": "text",
-            "path": "1.3.1",
-            "value": "Increment"
+            "path": "1.3.1"
           }
         ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.1",
+        "value": "Increment"
       }
     }
   ]

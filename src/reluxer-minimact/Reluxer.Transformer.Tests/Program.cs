@@ -113,14 +113,18 @@ class Program
             Log(new string('=', 80) + "\n", Cyan);
             Log($"✓ Total lines: {lines.Length}", Green);
 
-            // Write output files
+            // Write ALL output files using GetOutputs()
             Directory.CreateDirectory(TestOutputDir);
 
-            var csOutputPath = Path.Combine(TestOutputDir, Path.ChangeExtension(filename, ".cs"));
-            File.WriteAllText(csOutputPath, result.Code);
-            Log($"\n✓ Wrote C# output to: {csOutputPath}", Green);
+            var baseName = Path.GetFileNameWithoutExtension(filename);
+            foreach (var (extension, content) in result.GetOutputs())
+            {
+                var outputPath = Path.Combine(TestOutputDir, baseName + extension);
+                File.WriteAllText(outputPath, content);
+                Log($"✓ Wrote: {baseName + extension}", Green);
+            }
 
-            // Display and write template JSON
+            // Display template JSON for debugging
             if (!string.IsNullOrEmpty(result.TemplateJson))
             {
                 Log($"\n{new string('━', 80)}", Cyan);
@@ -128,17 +132,17 @@ class Program
                 Log(new string('=', 80), Cyan);
 
                 var jsonLines = result.TemplateJson.Split('\n');
-                for (int i = 0; i < jsonLines.Length; i++)
+                for (int i = 0; i < Math.Min(jsonLines.Length, 50); i++)
                 {
                     var lineNum = (i + 1).ToString().PadLeft(4);
                     Console.WriteLine($"{Yellow}{lineNum}{Reset} {jsonLines[i]}");
                 }
+                if (jsonLines.Length > 50)
+                {
+                    Log($"... ({jsonLines.Length - 50} more lines)", Yellow);
+                }
 
                 Log(new string('=', 80) + "\n", Cyan);
-
-                var jsonOutputPath = Path.Combine(TestOutputDir, Path.ChangeExtension(filename, ".templates.json"));
-                File.WriteAllText(jsonOutputPath, result.TemplateJson);
-                Log($"✓ Wrote templates JSON to: {jsonOutputPath}", Green);
 
                 // Count templates
                 var templateCount = result.Components.Sum(c => c.Templates.Count);
@@ -149,6 +153,31 @@ class Program
                 Log($"\n⚠ No templates JSON generated", Yellow);
             }
 
+            // Display hooks JSON if available
+            if (!string.IsNullOrEmpty(result.HooksJson))
+            {
+                Log($"\n{new string('━', 80)}", Cyan);
+                Log($"\nGenerated Hooks JSON:\n", Cyan);
+                Console.WriteLine(result.HooksJson);
+            }
+
+            // Display structural changes summary if available
+            if (!string.IsNullOrEmpty(result.StructuralChangesJson))
+            {
+                Log($"\n{new string('━', 80)}", Cyan);
+                Log($"\nGenerated Structural Changes JSON:\n", Cyan);
+                var changesLines = result.StructuralChangesJson.Split('\n');
+                Log($"✓ {changesLines.Length} lines of structural changes", Green);
+            }
+
+            // Display keys summary if available
+            if (!string.IsNullOrEmpty(result.KeysJson))
+            {
+                Log($"\n{new string('━', 80)}", Cyan);
+                Log($"\nGenerated Keys JSON:\n", Cyan);
+                Console.WriteLine(result.KeysJson);
+            }
+
             // Show component summary
             Log($"\n{new string('━', 80)}", Cyan);
             Log($"\nComponent Summary:\n", Cyan);
@@ -156,6 +185,8 @@ class Program
             {
                 Log($"  {component.Name}:", Green);
                 Log($"    - State fields: {component.StateFields.Count}");
+                Log($"    - Effect hooks: {component.EffectHooks.Count}");
+                Log($"    - Ref hooks: {component.RefHooks.Count}");
                 Log($"    - Event handlers: {component.EventHandlers.Count}");
                 Log($"    - Local variables: {component.LocalVariables.Count}");
                 Log($"    - Has render tree: {component.RenderTree != null}");

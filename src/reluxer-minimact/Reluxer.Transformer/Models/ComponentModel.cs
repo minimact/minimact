@@ -32,6 +32,27 @@ public class ComponentModel
     /// Key is the conditional node's HexPath.
     /// </summary>
     public Dictionary<string, ConditionalElementInfo> ConditionalElements { get; } = new();
+
+    /// <summary>
+    /// Effect hooks (useEffect) for hooks.json output.
+    /// </summary>
+    public List<EffectHook> EffectHooks { get; } = new();
+
+    /// <summary>
+    /// Ref hooks (useRef) for hooks.json output.
+    /// </summary>
+    public List<RefHook> RefHooks { get; } = new();
+
+    /// <summary>
+    /// Counter for assigning hook indices in order of appearance.
+    /// </summary>
+    public int NextHookIndex { get; set; } = 0;
+
+    /// <summary>
+    /// Element key mappings for .tsx.keys persistence.
+    /// Key: "tagName:line:column", Value: hex key
+    /// </summary>
+    public Dictionary<string, string> ElementKeys { get; } = new();
 }
 
 /// <summary>
@@ -92,6 +113,12 @@ public class StateField
     public string SetterName { get; set; } = "";
     public string Type { get; set; } = "object";
     public string? InitialValue { get; set; }
+
+    /// <summary>
+    /// Index of this hook in the component's hook order.
+    /// Used for hooks.json output.
+    /// </summary>
+    public int HookIndex { get; set; }
 }
 
 /// <summary>
@@ -103,6 +130,54 @@ public class MvcStateField
     public string ViewModelKey { get; set; } = "";       // e.g., "isAdminRole"
     public string Type { get; set; } = "object";         // e.g., "bool"
     public string SetterName { get; set; } = "";         // e.g., "setIsExpanded"
+
+    /// <summary>
+    /// Index of this hook in the component's hook order.
+    /// </summary>
+    public int HookIndex { get; set; }
+}
+
+/// <summary>
+/// Represents a useEffect hook.
+/// </summary>
+public class EffectHook
+{
+    /// <summary>
+    /// Index of this hook in the component's hook order.
+    /// </summary>
+    public int Index { get; set; }
+
+    /// <summary>
+    /// Dependency array variable names.
+    /// Empty list means "run every render", null would mean "run once".
+    /// </summary>
+    public List<string> Dependencies { get; } = new();
+
+    /// <summary>
+    /// Whether the effect has a cleanup function (returns a function).
+    /// </summary>
+    public bool HasCleanup { get; set; }
+}
+
+/// <summary>
+/// Represents a useRef hook.
+/// </summary>
+public class RefHook
+{
+    /// <summary>
+    /// Variable name for the ref.
+    /// </summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>
+    /// Index of this hook in the component's hook order.
+    /// </summary>
+    public int Index { get; set; }
+
+    /// <summary>
+    /// Initial value passed to useRef.
+    /// </summary>
+    public string? InitialValue { get; set; }
 }
 
 /// <summary>
