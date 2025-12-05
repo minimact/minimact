@@ -1,7 +1,7 @@
 {
   "componentName": "ShoppingCart",
-  "timestamp": "2025-12-05T18:58:53.262Z",
-  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedState_01_LoadingOverlay.tsx",
+  "timestamp": "2025-12-05T19:07:13.918Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\ComplexState.tsx",
   "changes": [
     {
       "type": "insert",
@@ -11,23 +11,23 @@
         "tag": "div",
         "path": "1",
         "attributes": {
-          "className": "shopping-cart"
+          "className": "cart"
         },
         "children": [
           {
             "type": "element",
             "path": "1.1",
-            "tag": "h3"
+            "tag": "h1"
           },
           {
             "type": "element",
             "path": "1.2",
-            "tag": "button"
+            "tag": "div"
           },
           {
-            "type": "expression",
+            "type": "element",
             "path": "1.3",
-            "value": "__DYNAMIC__"
+            "tag": "div"
           }
         ]
       }
@@ -37,7 +37,7 @@
       "path": "1.1",
       "vnode": {
         "type": "element",
-        "tag": "h3",
+        "tag": "h1",
         "path": "1.1",
         "attributes": {},
         "children": [
@@ -54,27 +54,117 @@
       "path": "1.2",
       "vnode": {
         "type": "element",
-        "tag": "button",
+        "tag": "div",
         "path": "1.2",
         "attributes": {
-          "id": "refresh-cart-btn",
-          "type": "button",
-          "onClick": "__DYNAMIC__"
+          "className": "items"
         },
         "children": [
           {
-            "type": "text",
+            "type": "expression",
             "path": "1.2.1",
-            "value": "Refresh Cart"
+            "value": "__DYNAMIC__"
           }
         ]
       }
     },
     {
-      "type": "hook-added",
-      "hookType": "useState",
-      "varName": "isLoading",
-      "index": 0
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.3",
+        "attributes": {
+          "className": "summary"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.1",
+            "tag": "p"
+          },
+          {
+            "type": "expression",
+            "path": "1.3.2",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.3.3",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.3.4",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.3.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1.1",
+            "value": "Subtotal: $"
+          },
+          {
+            "type": "expression",
+            "path": "1.3.1.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.3",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.3.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.3.1",
+            "value": "Total: $"
+          },
+          {
+            "type": "expression",
+            "path": "1.3.3.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.4",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.3.4",
+        "attributes": {
+          "onClick": "__DYNAMIC__",
+          "disabled": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.4.1",
+            "value": "Checkout"
+          }
+        ]
+      }
     }
   ]
 }

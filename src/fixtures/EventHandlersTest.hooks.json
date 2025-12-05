@@ -1,0 +1,16 @@
+{
+  "componentName": "EventHandlersTest",
+  "timestamp": "2025-12-05T19:10:08.832Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "message",
+      "index": 1
+    }
+  ]
+}

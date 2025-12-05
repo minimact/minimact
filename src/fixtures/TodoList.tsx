@@ -1,4 +1,4 @@
-function TodoList({ todos }) {
+function TodoList({ todos, deleteTodo, addTodo }) {
   return (
     <div className="todo-list">
       <h1>My Todos</h1>

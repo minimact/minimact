@@ -1,0 +1,15 @@
+function UserProfile({ user, loading }) {
+  return (
+    <div key='1' className="profile">
+      {loading ? (
+        <div key='1.1.1' className="spinner">Loading...</div>
+      ) : (
+        <div key='1.1.2' className="user-info">
+          <h1 key='1.1.2.1'>{user.name}</h1>
+          <p key='1.1.2.2'>{user.email}</p>
+          {user.isAdmin && <span key='1.1.2.3.1' className="badge">Admin</span>}
+        </div>
+      )}
+    </div>
+  );
+}

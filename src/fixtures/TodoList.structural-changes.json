@@ -1,0 +1,89 @@
+{
+  "componentName": "TodoList",
+  "timestamp": "2025-12-05T19:08:25.053Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\TodoList.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "todo-list"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h1"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "ul"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h1",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "My Todos"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.3",
+        "attributes": {
+          "onClick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1",
+            "value": "Add Todo"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+function Card({ title, children }) {
+  return (
+    <div key='1' className="card">
+      <div key='1.1' className="card-header">
+        <h2 key='1.1.1'>{title}</h2>
+      </div>
+      <div key='1.2' className="card-body">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Dashboard() {
+  return (
+    <div key='1' className="dashboard">
+      <Card key='1.1' title="Statistics">
+        <div key='1.1.1' className="stats">
+          <span key='1.1.1.1'>Views: 1000</span>
+          <span key='1.1.1.2'>Users: 50</span>
+        </div>
+      </Card>
+      <Card key='1.2' title="Activity">
+        <ul key='1.2.1'>
+          <li key='1.2.1.1'>User logged in</li>
+          <li key='1.2.1.2'>Data updated</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}

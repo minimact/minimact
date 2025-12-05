@@ -1,0 +1,73 @@
+{
+  "component": "MultiColumn",
+  "version": "1.0",
+  "generatedAt": 1764961661657,
+  "templates": {
+    "1.1.1": {
+      "template": "Column 1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1": {
+      "template": "Content 1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "2.1.1": {
+      "template": "Column 2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "2.2.1": {
+      "template": "Content 2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "3.1.1": {
+      "template": "Column 3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "3.2.1": {
+      "template": "Content 3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    }
+  }
+}

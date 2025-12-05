@@ -1,0 +1,29 @@
+/**
+ * Test: Conditional rendering (ternary and && operators)
+ * Expected: Proper C# ternary and null-conditional translation
+ */
+import { useState } from '@minimact/core';
+
+export function ConditionalRenderingTest() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [count, setCount] = useState(0);
+
+  return (
+    <div key='1'>
+      {isLoggedIn ? (
+        <div key='1.1.1'>
+          <h1 key='1.1.1.1'>Welcome back!</h1>
+          <button key='1.1.1.2' onClick={() => setIsLoggedIn(false)}>Logout</button>
+        </div>
+      ) : (
+        <div key='1.1.2'>
+          <h1 key='1.1.2.1'>Please log in</h1>
+          <button key='1.1.2.2' onClick={() => setIsLoggedIn(true)}>Login</button>
+        </div>
+      )}
+      {user && <p key='1.2.1'>User: {user.name}</p>}
+      {count > 0 && <p key='1.3.1'>Count is positive: {count}</p>}
+    </div>
+  );
+}

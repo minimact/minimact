@@ -1,36 +1,60 @@
 {
   "component": "UserProfile",
   "version": "1.0",
-  "generatedAt": 1764961133260,
+  "generatedAt": 1764961643582,
   "templates": {
-    "1.1.1": {
-      "template": "User Profile",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "1",
-        "1"
-      ],
-      "type": "static"
-    },
-    "1.2.1": {
-      "template": "Refresh Profile",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "2",
-        "1"
-      ],
-      "type": "static"
-    },
-    "1.3.1.1": {
+    "1.1.1.1": {
       "template": "Loading...",
       "bindings": [],
       "slots": [],
       "path": [
         "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.2.1.1": {
+      "template": "{0}",
+      "bindings": [
+        "user.name"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.1.2.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "user.email"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.1.2.3.1.1": {
+      "template": "Admin",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
         "3",
         "1",
         "1"
@@ -47,100 +71,123 @@
       "type": "attribute-static"
     },
     "1.@className": {
-      "template": "user-profile",
+      "template": "profile",
       "bindings": [],
       "slots": [],
       "path": [
         "1"
       ],
       "type": "attribute-static"
-    },
-    "1.1.@key": {
-      "template": "1.1",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "1"
-      ],
-      "type": "attribute-static"
-    },
-    "1.2.@key": {
-      "template": "1.2",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "2"
-      ],
-      "type": "attribute-static"
-    },
-    "1.2.@id": {
-      "template": "refresh-profile-btn",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "2"
-      ],
-      "type": "attribute-static"
-    },
-    "1.2.@type": {
-      "template": "button",
-      "bindings": [],
-      "slots": [],
-      "path": [
-        "1",
-        "2"
-      ],
-      "type": "attribute-static"
-    },
-    "1.2.@onClick": {
-      "template": "{0}",
-      "bindings": [
-        "handleRefresh"
-      ],
-      "slots": [
-        0
-      ],
-      "path": [
-        "1",
-        "2"
-      ],
-      "type": "attribute-dynamic"
     }
   },
   "conditionalElements": {
-    "1.3": {
+    "1.1": {
       "type": "conditional-element",
-      "conditionExpression": "isLoading",
+      "conditionExpression": "loading",
       "conditionBindings": [
-        "state_0"
+        "loading"
       ],
       "conditionMapping": {
-        "isLoading": "state_0"
+        "loading": "loading"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.1.1",
+          "attributes": {
+            "key": "1.1.1",
+            "className": "spinner"
+          },
+          "children": [
+            {
+              "type": "text",
+              "value": "Loading...",
+              "hexPath": "1.1.1.1"
+            }
+          ]
+        },
+        "false": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.1.2",
+          "attributes": {
+            "key": "1.1.2",
+            "className": "user-info"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h1",
+              "hexPath": "1.1.2.1",
+              "attributes": {
+                "key": "1.1.2.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "binding": "user.name",
+                  "hexPath": "1.1.2.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.1.2.2",
+              "attributes": {
+                "key": "1.1.2.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "binding": "user.email",
+                  "hexPath": "1.1.2.2.1"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "expression": "user.isAdmin && <span key=\"1.1.2.3.1\" className=\"badge\">Admin</span>",
+              "hexPath": "1.1.2.3"
+            }
+          ]
+        }
+      },
+      "operator": "?"
+    },
+    "1.1.2.3": {
+      "type": "conditional-element",
+      "conditionExpression": "user.isAdmin",
+      "conditionBindings": [
+        "user.isAdmin"
+      ],
+      "conditionMapping": {
+        "user.isAdmin": "user.isAdmin"
       },
       "evaluable": true,
       "branches": {
         "true": {
           "type": "element",
           "tag": "span",
-          "hexPath": "1.3.1",
+          "hexPath": "1.1.2.3.1",
           "attributes": {
-            "key": "1.3.1",
-            "className": "loading-indicator"
+            "key": "1.1.2.3.1",
+            "className": "badge"
           },
           "children": [
             {
               "type": "text",
-              "value": "Loading...",
-              "hexPath": "1.3.1.1"
+              "value": "Admin",
+              "hexPath": "1.1.2.3.1.1"
             }
           ]
         },
         "false": null
       },
-      "operator": "&&"
+      "operator": "&&",
+      "parentTemplate": "1.1"
     }
   }
 }

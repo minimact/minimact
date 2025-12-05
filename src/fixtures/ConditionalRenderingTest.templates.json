@@ -1,0 +1,270 @@
+{
+  "component": "ConditionalRenderingTest",
+  "version": "1.0",
+  "generatedAt": 1764961800596,
+  "templates": {
+    "1.1.1.1.1": {
+      "template": "Welcome back!",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.1.2.1": {
+      "template": "Logout",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.2.1.1": {
+      "template": "Please log in",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.2.2.1": {
+      "template": "Login",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1": {
+      "template": "User: {0}",
+      "bindings": [
+        "user.name"
+      ],
+      "slots": [
+        6
+      ],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.3.1.1": {
+      "template": "Count is positive: {0}",
+      "bindings": [
+        "count"
+      ],
+      "slots": [
+        19
+      ],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.1": {
+      "type": "conditional-element",
+      "conditionExpression": "isLoggedIn",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "isLoggedIn": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.1.1",
+          "attributes": {
+            "key": "1.1.1"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h1",
+              "hexPath": "1.1.1.1",
+              "attributes": {
+                "key": "1.1.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Welcome back!",
+                  "hexPath": "1.1.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "button",
+              "hexPath": "1.1.1.2",
+              "attributes": {
+                "key": "1.1.1.2",
+                "onClick": {
+                  "expression": "() => setIsLoggedIn(false)"
+                }
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Logout",
+                  "hexPath": "1.1.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.1.2",
+          "attributes": {
+            "key": "1.1.2"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h1",
+              "hexPath": "1.1.2.1",
+              "attributes": {
+                "key": "1.1.2.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Please log in",
+                  "hexPath": "1.1.2.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "button",
+              "hexPath": "1.1.2.2",
+              "attributes": {
+                "key": "1.1.2.2",
+                "onClick": {
+                  "expression": "() => setIsLoggedIn(true)"
+                }
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Login",
+                  "hexPath": "1.1.2.2.1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "operator": "?"
+    },
+    "1.2": {
+      "type": "conditional-element",
+      "conditionExpression": "user",
+      "conditionBindings": [
+        "state_1"
+      ],
+      "conditionMapping": {
+        "user": "state_1"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "p",
+          "hexPath": "1.2.1",
+          "attributes": {
+            "key": "1.2.1"
+          },
+          "children": [
+            {
+              "type": "text",
+              "value": "User:",
+              "hexPath": "1.2.1.1"
+            },
+            {
+              "type": "text",
+              "binding": "user.name",
+              "hexPath": "1.2.1.2"
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    },
+    "1.3": {
+      "type": "conditional-element",
+      "conditionExpression": "count > 0",
+      "conditionBindings": [
+        "state_2"
+      ],
+      "conditionMapping": {
+        "count": "state_2"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "p",
+          "hexPath": "1.3.1",
+          "attributes": {
+            "key": "1.3.1"
+          },
+          "children": [
+            {
+              "type": "text",
+              "value": "Count is positive:",
+              "hexPath": "1.3.1.1"
+            },
+            {
+              "type": "text",
+              "binding": "count",
+              "hexPath": "1.3.1.2"
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

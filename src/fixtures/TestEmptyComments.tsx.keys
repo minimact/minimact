@@ -1,0 +1,10 @@
+function TestEmptyComments() {
+  return (
+    <div key='1'>
+      <span key='1.1'>A</span>
+      {/* This is a comment */}
+      <span key='1.2'>B</span>
+      <span key='1.3'>C</span>
+    </div>
+  );
+}

@@ -394,6 +394,11 @@ function generateCSharpExpression(node, inInterpolation = false) {
   }
 
   if (t.isIdentifier(node)) {
+    // Special case: 'undefined' - convert to C# equivalent
+    if (node.name === 'undefined') {
+      return 'null'; // In C#, undefined is represented as null
+    }
+
     // Special case: 'state' identifier (state proxy)
     // Note: This should only happen as part of member expression (state.key or state["key"])
     // Standalone 'state' reference is unusual - warn but transpile to 'State'

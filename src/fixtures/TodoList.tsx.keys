@@ -1,0 +1,19 @@
+function TodoList({ todos, deleteTodo, addTodo }) {
+  return (
+    <div key='1' className="todo-list">
+      <h1 key='1.1'>My Todos</h1>
+      <ul key='1.2'>
+        {todos.map((todo) => (
+          <li key='1.2.1.1' key={todo.id}>
+            <input key='1.2.1.1.1' type="checkbox" checked={todo.completed} />
+            <span key='1.2.1.1.2' className={todo.completed ? 'completed' : ''}>
+              {todo.text}
+            </span>
+            <button key='1.2.1.1.3' onClick={() => deleteTodo(todo.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+      <button key='1.3' onClick={addTodo}>Add Todo</button>
+    </div>
+  );
+}

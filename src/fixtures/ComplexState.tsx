@@ -1,4 +1,4 @@
-function ShoppingCart({ items, total, discount }) {
+function ShoppingCart({ items, total, discount, removeItem, checkout }) {
   const finalPrice = total - (total * discount / 100);
 
   return (
