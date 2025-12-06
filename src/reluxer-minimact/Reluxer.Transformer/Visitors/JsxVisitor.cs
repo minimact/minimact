@@ -959,36 +959,28 @@ public class JsxVisitor : TokenVisitor
 
     private void ParseKeyValuePairs(Token[] tokens, Dictionary<string, string> target)
     {
-        Console.WriteLine($"[ParseKeyValuePairs] tokens: {tokens.Length}");
-        Console.WriteLine($"[ParseKeyValuePairs] all: {string.Join(" ", tokens.Select(t => $"[{t.Type}]{t.Value}"))}");
-
         // Use pattern matching for key: value pairs
         // Pattern: identifier ":" (value until comma or end)
         var kvMatcher = new PatternMatcher(@"(\i) "":"" (\Bc)", skipWhitespace: true);
 
         // Use MatchAll to find all key:value pairs declaratively
-        var matches = PatternMatcher.MatchAll(tokens, 0, (kvMatcher, TokenMatchType.Unknown, "kv")).ToList();
-        Console.WriteLine($"[ParseKeyValuePairs] matches: {matches.Count}");
+        var matches = PatternMatcher.MatchAll(tokens, 0, (kvMatcher, TokenMatchType.Unknown, "kv"));
 
         foreach (var match in matches)
         {
-            Console.WriteLine($"[ParseKeyValuePairs] match captures: {match.Match.Captures.Length}");
             if (match.Match.Captures.Length >= 2)
             {
                 var key = match.Match.Captures[0].AsIdentifier();
                 var valueTokens = match.Match.Captures[1].Tokens;
-                Console.WriteLine($"[ParseKeyValuePairs] key={key}, valueTokens={valueTokens.Length}");
 
                 // Get the value from the first non-whitespace token
                 var valueToken = valueTokens.FirstOrDefault(t => t.Type != TokenType.Whitespace);
                 if (key != null && valueToken != null)
                 {
-                    Console.WriteLine($"[ParseKeyValuePairs] adding {key}={valueToken.Value}");
                     target[key] = valueToken.Value;
                 }
             }
         }
-        Console.WriteLine($"[ParseKeyValuePairs] result: {target.Count} items");
     }
 
     #endregion
