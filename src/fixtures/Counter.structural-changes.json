@@ -1,6 +1,6 @@
 {
   "componentName": "Counter",
-  "timestamp": "2025-12-06T00:04:16.783Z",
+  "timestamp": "2025-12-06T00:36:08.503Z",
   "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\LiftedStateSimple.tsx",
   "changes": [
     {
@@ -93,6 +93,12 @@
           }
         ]
       }
+    },
+    {
+      "type": "hook-removed",
+      "hookType": "useState",
+      "varName": "message",
+      "index": 1
     }
   ]
 }

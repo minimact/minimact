@@ -158,20 +158,32 @@ public class JsxVisitor : TokenVisitor
 
     private void ParseComponentProps(Token[] tokens, VComponentWrapperModel wrapper)
     {
-        // Use pattern matching for name="value" attribute
-        var nameMatcher = new PatternMatcher(@"""name"" ""="" (\s)", skipWhitespace: true);
-        if (nameMatcher.TryMatch(tokens, 0, out var nameMatch) && nameMatch != null)
+        // Use MatchAll to find patterns anywhere in the token stream
+        // Pattern: name="value" attribute
+        var nameMatcher = new PatternMatcher(@"\ja""name"" ""="" (\jv)", skipWhitespace: true);
+        var nameMatches = PatternMatcher.MatchAll(tokens, 0, (nameMatcher, TokenMatchType.Unknown, "name"));
+        foreach (var item in nameMatches)
         {
-            var value = nameMatch.Captures[0].Tokens[0].Value.Trim('"', '\'');
-            wrapper.ComponentName = value;
-            wrapper.ComponentType = value;
+            if (item.Match.Captures.Length > 0)
+            {
+                var value = item.Match.Captures[0].Tokens[0].Value.Trim('"', '\'');
+                wrapper.ComponentName = value;
+                wrapper.ComponentType = value;
+                break;
+            }
         }
 
-        // Use pattern matching for state={{ ... }} attribute with balanced braces
-        var stateMatcher = new PatternMatcher(@"""state"" ""="" (\Bb)", skipWhitespace: true);
-        if (stateMatcher.TryMatch(tokens, 0, out var stateMatch) && stateMatch != null)
+        // Pattern: state={{ ... }} attribute
+        // Tokens: [JsxAttrName]state [Operator]= [JsxExprStart]{ [Punctuation]{ ... } [JsxExprEnd]}
+        var stateMatcher = new PatternMatcher(@"\ja""state"" ""="" ""{""  (\Bb)  ""}""", skipWhitespace: true);
+        var stateMatches = PatternMatcher.MatchAll(tokens, 0, (stateMatcher, TokenMatchType.Unknown, "state"));
+        foreach (var item in stateMatches)
         {
-            ParseComponentState(stateMatch.Captures[0].Tokens, wrapper);
+            if (item.Match.Captures.Length > 0)
+            {
+                ParseComponentState(item.Match.Captures[0].Tokens, wrapper);
+                break;
+            }
         }
     }
 
@@ -940,43 +952,43 @@ public class JsxVisitor : TokenVisitor
 
     private void ParseComponentState(Token[] tokens, VComponentWrapperModel wrapper)
     {
-        // state={{ key: value }} - tokens include outer {{ }}
-        // Use \Bb to extract the inner object literal, then parse key:value pairs
-
-        // First, extract the inner object from {{ ... }}
-        // The outer braces are JSX expression delimiters, inner is the object
-        var innerMatcher = new PatternMatcher(@"""{""  (\Bb)", skipWhitespace: true);
-        if (innerMatcher.TryMatch(tokens, 0, out var innerMatch) && innerMatch != null)
-        {
-            // innerMatch captures { count: 0 }, now extract content inside braces
-            var innerTokens = innerMatch.Captures[0].Tokens;
-            ParseKeyValuePairs(innerTokens, wrapper.InitialState);
-        }
+        // The tokens are already the inner object content (from \Bb capture)
+        // Just parse the key:value pairs directly
+        ParseKeyValuePairs(tokens, wrapper.InitialState);
     }
 
     private void ParseKeyValuePairs(Token[] tokens, Dictionary<string, string> target)
     {
+        Console.WriteLine($"[ParseKeyValuePairs] tokens: {tokens.Length}");
+        Console.WriteLine($"[ParseKeyValuePairs] all: {string.Join(" ", tokens.Select(t => $"[{t.Type}]{t.Value}"))}");
+
         // Use pattern matching for key: value pairs
         // Pattern: identifier ":" (value until comma or end)
         var kvMatcher = new PatternMatcher(@"(\i) "":"" (\Bc)", skipWhitespace: true);
 
         // Use MatchAll to find all key:value pairs declaratively
-        var matches = PatternMatcher.MatchAll(tokens, 0, (kvMatcher, TokenMatchType.Unknown, "kv"));
+        var matches = PatternMatcher.MatchAll(tokens, 0, (kvMatcher, TokenMatchType.Unknown, "kv")).ToList();
+        Console.WriteLine($"[ParseKeyValuePairs] matches: {matches.Count}");
+
         foreach (var match in matches)
         {
+            Console.WriteLine($"[ParseKeyValuePairs] match captures: {match.Match.Captures.Length}");
             if (match.Match.Captures.Length >= 2)
             {
                 var key = match.Match.Captures[0].AsIdentifier();
                 var valueTokens = match.Match.Captures[1].Tokens;
+                Console.WriteLine($"[ParseKeyValuePairs] key={key}, valueTokens={valueTokens.Length}");
 
                 // Get the value from the first non-whitespace token
                 var valueToken = valueTokens.FirstOrDefault(t => t.Type != TokenType.Whitespace);
                 if (key != null && valueToken != null)
                 {
+                    Console.WriteLine($"[ParseKeyValuePairs] adding {key}={valueToken.Value}");
                     target[key] = valueToken.Value;
                 }
             }
         }
+        Console.WriteLine($"[ParseKeyValuePairs] result: {target.Count} items");
     }
 
     #endregion
