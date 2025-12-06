@@ -36,6 +36,7 @@ public class StateVisitor : TokenVisitor
             // Traverse just the component body
             Traverse(_componentBody,
                 nameof(VisitUseState),
+                nameof(VisitUseStateGeneric),
                 nameof(VisitUseMvcStateImmutable),
                 nameof(VisitUseMvcStateMutable),
                 nameof(VisitUseMvcViewModel),
@@ -78,6 +79,179 @@ public class StateVisitor : TokenVisitor
 
         // Skip past the useState call
         SkipBalanced("(", ")");
+    }
+
+    // Match: const [name, setName] = useState<Type>(value) - TypeScript generic syntax
+    // Handles: useState<Todo[]>([...]), useState<string>(""), useState<number>(0)
+    [TokenPattern(@"\k""const"" ""["" (\i) "","" (\i) ""]"" ""="" \i""useState"" \go", Priority = 110, Name = "VisitUseStateGeneric")]
+    public void VisitUseStateGeneric(TokenMatch match, string stateName, string setterName)
+    {
+        // Skip if already added (prevent duplicates)
+        if (_component.StateFields.Any(sf => sf.Name == stateName))
+            return;
+
+        var stateField = new StateField
+        {
+            Name = stateName,
+            SetterName = setterName,
+            HookIndex = _component.NextHookIndex++
+        };
+
+        // Skip past the generic type parameters (between < and >)
+        SkipBalanced("<", ">");
+
+        // Now extract initial value from parentheses
+        var initValueTokens = ExtractParenthesized(0);
+        if (initValueTokens.Length > 0)
+        {
+            var initValue = TokensToString(initValueTokens);
+            stateField.InitialValue = initValue;
+
+            // Check if it's an array initializer with objects
+            if (initValue.TrimStart().StartsWith("["))
+            {
+                stateField.Type = "List<dynamic>";
+                stateField.InitialValue = ConvertArrayInitializer(initValue);
+            }
+            else
+            {
+                stateField.Type = InferType(initValueTokens);
+            }
+        }
+        else
+        {
+            stateField.InitialValue = "null";
+            stateField.Type = "object";
+        }
+
+        _component.StateFields.Add(stateField);
+
+        // Skip past the useState call
+        SkipBalanced("(", ")");
+    }
+
+    /// <summary>
+    /// Converts a JS array initializer with object literals to C# List initializer.
+    /// e.g., [{ id: 1, text: 'hello' }, { id: 2, text: 'world' }]
+    /// -> new List<object> { new { id = 1, text = "hello" }, new { id = 2, text = "world" } }
+    /// </summary>
+    private string ConvertArrayInitializer(string jsArray)
+    {
+        var trimmed = jsArray.Trim();
+        if (!trimmed.StartsWith("[") || !trimmed.EndsWith("]"))
+            return $"new List<object> {{ {trimmed} }}";
+
+        var inner = trimmed[1..^1].Trim();
+        if (string.IsNullOrWhiteSpace(inner))
+            return "new List<object>()";
+
+        // Parse individual object literals
+        var objects = new List<string>();
+        int depth = 0;
+        int start = 0;
+
+        for (int i = 0; i < inner.Length; i++)
+        {
+            var c = inner[i];
+            if (c == '{' || c == '[' || c == '(') depth++;
+            else if (c == '}' || c == ']' || c == ')') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                var obj = inner[start..i].Trim();
+                if (!string.IsNullOrWhiteSpace(obj))
+                    objects.Add(ConvertObjectLiteral(obj));
+                start = i + 1;
+            }
+        }
+
+        // Don't forget the last item
+        var lastObj = inner[start..].Trim();
+        if (!string.IsNullOrWhiteSpace(lastObj))
+            objects.Add(ConvertObjectLiteral(lastObj));
+
+        return $"new List<object> {{ {string.Join(", ", objects)} }}";
+    }
+
+    /// <summary>
+    /// Converts a JS object literal to C# anonymous type.
+    /// e.g., { id: 1, text: 'hello', done: false }
+    /// -> new { id = 1, text = "hello", done = false }
+    /// </summary>
+    private string ConvertObjectLiteral(string jsObject)
+    {
+        var trimmed = jsObject.Trim();
+        if (!trimmed.StartsWith("{") || !trimmed.EndsWith("}"))
+            return trimmed; // Not an object literal
+
+        var inner = trimmed[1..^1].Trim();
+        if (string.IsNullOrWhiteSpace(inner))
+            return "new { }";
+
+        // Parse key: value pairs
+        var props = new List<string>();
+        int depth = 0;
+        int start = 0;
+
+        for (int i = 0; i < inner.Length; i++)
+        {
+            var c = inner[i];
+            if (c == '{' || c == '[' || c == '(') depth++;
+            else if (c == '}' || c == ']' || c == ')') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                var prop = inner[start..i].Trim();
+                if (!string.IsNullOrWhiteSpace(prop))
+                    props.Add(ConvertProperty(prop));
+                start = i + 1;
+            }
+        }
+
+        // Don't forget the last property
+        var lastProp = inner[start..].Trim();
+        if (!string.IsNullOrWhiteSpace(lastProp))
+            props.Add(ConvertProperty(lastProp));
+
+        return $"new {{ {string.Join(", ", props)} }}";
+    }
+
+    /// <summary>
+    /// Converts a single JS property to C# property.
+    /// e.g., "id: 1" -> "id = 1"
+    ///       "text: 'hello'" -> "text = \"hello\""
+    /// </summary>
+    private string ConvertProperty(string prop)
+    {
+        var colonIdx = prop.IndexOf(':');
+        if (colonIdx < 0)
+            return prop; // Shorthand property like { foo } - keep as is
+
+        var key = prop[..colonIdx].Trim();
+        var value = prop[(colonIdx + 1)..].Trim();
+
+        // Convert value: single quotes to double quotes
+        value = ConvertJsValue(value);
+
+        return $"{key} = {value}";
+    }
+
+    /// <summary>
+    /// Converts JS values to C# values.
+    /// </summary>
+    private string ConvertJsValue(string value)
+    {
+        // Single quoted string -> double quoted
+        if (value.StartsWith("'") && value.EndsWith("'"))
+            return "\"" + value[1..^1] + "\"";
+
+        // Handle nested object literals
+        if (value.TrimStart().StartsWith("{"))
+            return ConvertObjectLiteral(value);
+
+        // Handle nested arrays
+        if (value.TrimStart().StartsWith("["))
+            return ConvertArrayInitializer(value);
+
+        return value;
     }
 
     // Match: const [name] = useMvcState<Type>('key') - immutable

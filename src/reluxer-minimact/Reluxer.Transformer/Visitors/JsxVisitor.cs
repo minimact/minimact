@@ -577,10 +577,11 @@ public class JsxVisitor : TokenVisitor
 
     /// <summary>
     /// Tries to parse a .map() expression: array.map((item) => element)
+    /// Also handles chained methods: array.filter(...).map(...), array.sort(...).map(...), etc.
     /// </summary>
     private VNodeModel? TryParseMapCall(Token[] tokens, string path)
     {
-        // Use pattern to match: identifier.map(callback)
+        // Use pattern to match: anything.map(callback) - captures everything before .map
         var matcher = new PatternMatcher(@"(.*?) ""."" \i""map"" (\Bp)");
         if (!matcher.TryMatch(tokens, 0, out var match) || match == null)
             return null;
@@ -591,11 +592,198 @@ public class JsxVisitor : TokenVisitor
         var arrayExpr = match.Captures[0].Tokens;
         var callbackTokens = match.Captures[1].Tokens;
 
+        // Check if arrayExpr contains chained methods (filter, sort, slice, etc.)
+        // These need to be converted to LINQ equivalents
+        var chainedExpr = TryParseChainedMethods(arrayExpr);
+
         // Parse callback: (item) => ... or (item, index) => ...
-        return ParseMapCallback(arrayExpr, callbackTokens, path);
+        return ParseMapCallback(arrayExpr, callbackTokens, path, chainedExpr);
     }
 
-    private VNodeModel? ParseMapCallback(Token[] arrayExpr, Token[] callbackTokens, string path)
+    /// <summary>
+    /// Parses chained array methods like .filter().sort().slice() and converts to LINQ.
+    /// Returns the C# LINQ expression string, or null if no chaining detected.
+    /// </summary>
+    private string? TryParseChainedMethods(Token[] tokens)
+    {
+        var expr = TokensToString(tokens).Trim();
+
+        // Check if expression contains chained method calls
+        // Pattern: identifier followed by .method(...) chains
+        if (!expr.Contains(".filter(") && !expr.Contains(".sort(") &&
+            !expr.Contains(".slice(") && !expr.Contains(".reverse(") &&
+            !expr.Contains(".concat(") && !expr.Contains(".flat("))
+            return null;
+
+        // Extract the base array name (first identifier)
+        var baseArrayMatch = System.Text.RegularExpressions.Regex.Match(expr, @"^(\w+)");
+        if (!baseArrayMatch.Success)
+            return null;
+
+        var baseArray = baseArrayMatch.Groups[1].Value;
+        var result = $"((IEnumerable<dynamic>){baseArray})";
+
+        // Parse chain operations in order using regex
+        var remaining = expr.Substring(baseArray.Length);
+
+        // Process each chained method call
+        while (!string.IsNullOrEmpty(remaining))
+        {
+            remaining = remaining.TrimStart();
+            if (!remaining.StartsWith("."))
+                break;
+
+            remaining = remaining.Substring(1); // Skip the dot
+
+            // Match method name and arguments
+            var methodMatch = System.Text.RegularExpressions.Regex.Match(remaining, @"^(\w+)\(");
+            if (!methodMatch.Success)
+                break;
+
+            var methodName = methodMatch.Groups[1].Value;
+            var argsStart = methodMatch.Length;
+
+            // Find the balanced closing parenthesis
+            var argsEnd = FindBalancedParen(remaining, argsStart - 1);
+            if (argsEnd < 0)
+                break;
+
+            var args = remaining.Substring(argsStart, argsEnd - argsStart);
+            remaining = remaining.Substring(argsEnd + 1);
+
+            // Convert method to LINQ equivalent
+            result = ConvertArrayMethodToLinq(result, methodName, args);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Finds the index of the closing parenthesis that matches the opening one at startIdx.
+    /// </summary>
+    private int FindBalancedParen(string s, int startIdx)
+    {
+        if (startIdx < 0 || startIdx >= s.Length || s[startIdx] != '(')
+            return -1;
+
+        int depth = 1;
+        for (int i = startIdx + 1; i < s.Length; i++)
+        {
+            if (s[i] == '(') depth++;
+            else if (s[i] == ')')
+            {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Converts a JS array method call to its LINQ equivalent.
+    /// </summary>
+    private string ConvertArrayMethodToLinq(string expr, string method, string args)
+    {
+        return method switch
+        {
+            "filter" => $"{expr}.Where({ConvertArrowFunction(args)})",
+            "sort" => ConvertSortToLinq(expr, args),
+            "slice" => ConvertSliceToLinq(expr, args),
+            "reverse" => $"{expr}.Reverse()",
+            "concat" => $"{expr}.Concat({args})",
+            "flat" => $"{expr}.SelectMany(x => x)",
+            "flatMap" => $"{expr}.SelectMany({ConvertArrowFunction(args)})",
+            "find" => $"{expr}.FirstOrDefault({ConvertArrowFunction(args)})",
+            "findIndex" => $"{expr}.ToList().FindIndex(x => {ConvertArrowFunction(args)}(x))",
+            "some" => $"{expr}.Any({ConvertArrowFunction(args)})",
+            "every" => $"{expr}.All({ConvertArrowFunction(args)})",
+            "includes" => $"{expr}.Contains({args})",
+            _ => $"{expr}.{method}({args})" // Fallback
+        };
+    }
+
+    /// <summary>
+    /// Converts JS arrow function syntax to C# lambda.
+    /// e.g., "todo => !todo.done" stays as is (valid in both)
+    ///       "(a, b) => a - b" stays as is
+    /// </summary>
+    private string ConvertArrowFunction(string arrow)
+    {
+        // Most JS arrow functions are valid C# lambdas
+        // Just trim and return
+        return arrow.Trim();
+    }
+
+    /// <summary>
+    /// Converts JS .sort() to LINQ OrderBy/OrderByDescending.
+    /// </summary>
+    private string ConvertSortToLinq(string expr, string args)
+    {
+        if (string.IsNullOrWhiteSpace(args))
+        {
+            // No comparator - simple ascending sort
+            return $"{expr}.OrderBy(x => x)";
+        }
+
+        // Try to parse comparator: (a, b) => a.prop - b.prop or (a, b) => a - b
+        var comparatorMatch = System.Text.RegularExpressions.Regex.Match(
+            args.Trim(),
+            @"\((\w+),\s*(\w+)\)\s*=>\s*(\w+)\.?(\w*)?\s*-\s*(\w+)\.?(\w*)?");
+
+        if (comparatorMatch.Success)
+        {
+            var a = comparatorMatch.Groups[1].Value;
+            var b = comparatorMatch.Groups[2].Value;
+            var firstVar = comparatorMatch.Groups[3].Value;
+            var firstProp = comparatorMatch.Groups[4].Value;
+            var secondVar = comparatorMatch.Groups[5].Value;
+
+            var selector = string.IsNullOrEmpty(firstProp) ? "x" : $"x.{firstProp}";
+            var isDescending = firstVar == b;
+
+            return isDescending
+                ? $"{expr}.OrderByDescending(x => {selector})"
+                : $"{expr}.OrderBy(x => {selector})";
+        }
+
+        // Complex comparator - just use OrderBy with a basic selector
+        return $"{expr}.OrderBy(x => x)";
+    }
+
+    /// <summary>
+    /// Converts JS .slice() to LINQ Skip/Take.
+    /// </summary>
+    private string ConvertSliceToLinq(string expr, string args)
+    {
+        var parts = args.Split(',').Select(p => p.Trim()).ToArray();
+
+        if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
+            return expr;
+
+        if (parts.Length == 1)
+        {
+            // .slice(start) - skip first N elements
+            return $"{expr}.Skip({parts[0]})";
+        }
+
+        // .slice(start, end) - skip first 'start', take 'end - start'
+        var start = parts[0];
+        var end = parts[1];
+
+        // If both are numeric, we can compute the count
+        if (int.TryParse(start, out var startNum) && int.TryParse(end, out var endNum))
+        {
+            var count = endNum - startNum;
+            if (startNum == 0)
+                return $"{expr}.Take({count})";
+            return $"{expr}.Skip({startNum}).Take({count})";
+        }
+
+        // Dynamic - use expression
+        return $"{expr}.Skip({start}).Take({end} - {start})";
+    }
+
+    private VNodeModel? ParseMapCallback(Token[] arrayExpr, Token[] callbackTokens, string path, string? chainedLinqExpr = null)
     {
         // Find => in callback using \fa (function arrow) macro
         var arrowMatcher = new PatternMatcher(@"(\Bp) \fa (.*)");
@@ -631,6 +819,10 @@ public class JsxVisitor : TokenVisitor
         // This prevents capturing too much context like "return(<div...><ul>{todos" -> just "todos"
         var arrayBinding = ExtractArrayBindingFromTokens(arrayExpr);
 
+        // If we have a chained LINQ expression, use that instead of simple array binding
+        // This handles .filter().map(), .sort().map(), etc.
+        var effectiveArrayExpr = chainedLinqExpr ?? arrayBinding;
+
         // Extract key binding from the template if it's an element with a key attribute
         string? keyBinding = null;
         if (template is VElementModel elem && elem.Attributes.TryGetValue("key", out var keyAttr))
@@ -642,13 +834,14 @@ public class JsxVisitor : TokenVisitor
         var listModel = new VListModel
         {
             HexPath = path,
-            ArrayExpression = arrayBinding,
+            ArrayExpression = effectiveArrayExpr,
             ItemName = itemName,
             IndexName = indexName,
             ItemTemplate = template
         };
 
         // Check if we've already added a loop template for this array binding (prevent duplicates)
+        // Use base array name for deduplication, not full LINQ expression
         if (!_component.LoopTemplates.Any(lt => lt.StateKey == arrayBinding))
         {
             // Also populate LoopTemplates for [LoopTemplate] attribute generation
