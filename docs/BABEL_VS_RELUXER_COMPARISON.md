@@ -17,11 +17,12 @@ This document compares the feature parity between `babel-plugin-minimact` (JavaS
 |---------|-------|---------|-------|
 | `useState` → `[State]` field | ✅ | ✅ | Both extract name, setter, initial value, type |
 | `useState<T>` generic type | ✅ | ⚠️ | Reluxer infers from value, not generic |
-| `useClientState` | ✅ | ❌ | Client-only state |
 | `useProtectedState` | ✅ | ❌ | Lifted state protection |
 | `useEffect` → `[OnStateChanged]` | ✅ | ✅ | EffectVisitor exists |
 | `useRef` → `[Ref]` | ✅ | ✅ | RefVisitor exists |
 | `useStateX` | ✅ | ❌ | Declarative state projections |
+
+> **Note**: `useClientState` was removed - no client-side reconciliation in dehydrationist architecture.
 
 ### Special-Purpose Hooks
 
