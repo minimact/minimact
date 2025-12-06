@@ -261,7 +261,7 @@ public class StateVisitor : TokenVisitor
         var numberMatcher = new PatternMatcher(@"(\n)", skipWhitespace: true);
         if (numberMatcher.TryMatch(tokens, 0, out var numMatch) && numMatch != null)
         {
-            var numToken = numMatch.GetFirstToken(0);
+            var numToken = numMatch.GetCapturedToken(0);
             return numToken?.Value.Contains('.') == true ? "double" : "int";
         }
 

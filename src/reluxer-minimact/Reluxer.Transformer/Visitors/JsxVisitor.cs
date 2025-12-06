@@ -670,51 +670,38 @@ public class JsxVisitor : TokenVisitor
     /// </summary>
     private string ExtractArrayBindingFromTokens(Token[] tokens)
     {
-        // Work backwards from the end to find the array expression
-        // The array expression is typically just an identifier or member chain like "todos" or "items.filtered"
-        var reversed = tokens.Reverse().ToList();
+        // Pattern: identifier followed by optional .identifier chain
+        // \i matches identifier, (\.\i)* matches zero or more .identifier sequences
+        var memberChainMatcher = new PatternMatcher(@"(\i) (""."" (\i))*", skipWhitespace: true);
 
-        // Skip whitespace from the end
-        int i = 0;
-        while (i < reversed.Count && reversed[i].Type == TokenType.Whitespace) i++;
+        // Find member chain patterns in the tokens
+        var matches = PatternMatcher.MatchAll(tokens, 0, (memberChainMatcher, TokenMatchType.Unknown, "chain"));
 
-        // Check if this is a simple identifier at the end
-        if (i < reversed.Count && reversed[i].Type == TokenType.Identifier)
+        // Get the last match (the array expression is typically at the end)
+        var lastMatch = matches.LastOrDefault();
+        if (lastMatch != null && lastMatch.Match.Captures.Length > 0)
         {
+            // Build the member chain from captures
             var parts = new List<string>();
-            parts.Add(reversed[i].Value);
-            i++;
 
-            // Check for member access chain: .prop.prop
-            while (i + 1 < reversed.Count)
+            // First capture is the base identifier
+            var baseId = lastMatch.Match.Captures[0].AsIdentifier();
+            if (baseId != null)
             {
-                // Skip whitespace
-                while (i < reversed.Count && reversed[i].Type == TokenType.Whitespace) i++;
+                parts.Add(baseId);
 
-                if (i < reversed.Count && reversed[i].Value == ".")
+                // Subsequent captures are the .identifier pairs
+                for (int j = 1; j < lastMatch.Match.Captures.Length; j++)
                 {
-                    i++; // skip the dot
-
-                    // Skip whitespace
-                    while (i < reversed.Count && reversed[i].Type == TokenType.Whitespace) i++;
-
-                    if (i < reversed.Count && reversed[i].Type == TokenType.Identifier)
+                    var propId = lastMatch.Match.Captures[j].AsIdentifier();
+                    if (propId != null)
                     {
-                        parts.Insert(0, reversed[i].Value);
-                        i++;
-                    }
-                    else
-                    {
-                        break;
+                        parts.Add(propId);
                     }
                 }
-                else
-                {
-                    break;
-                }
+
+                return string.Join(".", parts);
             }
-
-            return string.Join(".", parts);
         }
 
         // Fallback: just use the whole thing as string (trimmed)
@@ -1108,71 +1095,44 @@ public class JsxVisitor : TokenVisitor
     /// </summary>
     private string TransformStyleObject(Token[] tokens)
     {
-        // Skip the outer braces { }
-        var content = tokens.SkipWhile(t => t.Value == "{" || t.Type == TokenType.Whitespace)
-                           .Reverse()
-                           .SkipWhile(t => t.Value == "}" || t.Type == TokenType.Whitespace)
-                           .Reverse()
-                           .ToArray();
+        // Use PatternMatcher to find identifier: value pairs
+        // Pattern: identifier ":" (string | number)
+        var stringPropMatcher = new PatternMatcher(@"(\i) "":"" (\s)", skipWhitespace: true);
+        var numberPropMatcher = new PatternMatcher(@"(\i) "":"" (\n)", skipWhitespace: true);
 
         var cssProperties = new List<string>();
-        int i = 0;
 
-        while (i < content.Length)
+        // Find all string property matches
+        var stringMatches = PatternMatcher.MatchAll(tokens, 0, (stringPropMatcher, TokenMatchType.Unknown, "str"));
+        foreach (var match in stringMatches)
         {
-            // Skip whitespace and commas
-            while (i < content.Length && (content[i].Type == TokenType.Whitespace || content[i].Value == ","))
-                i++;
-
-            if (i >= content.Length) break;
-
-            // Get property name (identifier)
-            if (content[i].Type != TokenType.Identifier)
+            if (match.Match.Captures.Length >= 2)
             {
-                i++;
-                continue;
+                var propName = match.Match.Captures[0].AsIdentifier();
+                var propValue = match.Match.Captures[1].Tokens.FirstOrDefault()?.Value.Trim('\'', '"');
+                if (propName != null && propValue != null)
+                {
+                    var cssProperty = CamelToKebab(propName);
+                    cssProperties.Add($"{cssProperty}: {propValue}");
+                }
             }
+        }
 
-            var propName = content[i].Value;
-            i++;
-
-            // Skip to colon
-            while (i < content.Length && content[i].Type == TokenType.Whitespace)
-                i++;
-
-            if (i >= content.Length || content[i].Value != ":" && content[i].Type != TokenType.Colon)
-                continue;
-
-            i++; // Skip colon
-
-            // Skip whitespace
-            while (i < content.Length && content[i].Type == TokenType.Whitespace)
-                i++;
-
-            if (i >= content.Length) break;
-
-            // Get property value (string or number)
-            string propValue;
-            if (content[i].Type == TokenType.String)
+        // Find all number property matches
+        var numberMatches = PatternMatcher.MatchAll(tokens, 0, (numberPropMatcher, TokenMatchType.Unknown, "num"));
+        foreach (var match in numberMatches)
+        {
+            if (match.Match.Captures.Length >= 2)
             {
-                propValue = content[i].Value.Trim('\'', '"');
-                i++;
+                var propName = match.Match.Captures[0].AsIdentifier();
+                var propValue = match.Match.Captures[1].Tokens.FirstOrDefault()?.Value;
+                if (propName != null && propValue != null)
+                {
+                    var cssProperty = CamelToKebab(propName);
+                    // Add "px" suffix for numeric values (common convention)
+                    cssProperties.Add($"{cssProperty}: {propValue}px");
+                }
             }
-            else if (content[i].Type == TokenType.Number)
-            {
-                propValue = content[i].Value;
-                i++;
-            }
-            else
-            {
-                // Skip unknown token
-                i++;
-                continue;
-            }
-
-            // Convert camelCase to kebab-case
-            var cssProperty = CamelToKebab(propName);
-            cssProperties.Add($"{cssProperty}: {propValue}");
         }
 
         return string.Join("; ", cssProperties);

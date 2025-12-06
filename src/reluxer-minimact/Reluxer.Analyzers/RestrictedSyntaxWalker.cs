@@ -29,14 +29,51 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
         // Skip if inside a lambda (LINQ operations)
         if (_nestedLambdaDepth == 0)
         {
-            _context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.LoopNotAllowed,
-                node.ForKeyword.GetLocation(),
-                "for"
-            ));
+            // Allow for loops that iterate over pattern match results (Captures, etc.)
+            var condition = node.Condition?.ToString() ?? "";
+            if (!IsDeclarativeForCondition(condition))
+            {
+                _context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.LoopNotAllowed,
+                    node.ForKeyword.GetLocation(),
+                    "for"
+                ));
+            }
         }
 
         base.VisitForStatement(node);
+    }
+
+    /// <summary>
+    /// Checks if a for loop condition is iterating over pattern match results or model collections.
+    /// </summary>
+    private static bool IsDeclarativeForCondition(string condition)
+    {
+        var allowedPatterns = new[]
+        {
+            // Pattern match result collections
+            ".Captures.Length",    // for (i < match.Captures.Length)
+            ".Captures.Count",     // for (i < match.Captures.Count)
+            "Captures.Length",     // for (i < Captures.Length)
+
+            // Model collections
+            ".Children.Count",     // for (i < element.Children.Count)
+            ".Props.Count",        // for (i < component.Props.Count)
+            ".StateFields.Count",  // for (i < component.StateFields.Count)
+            ".EffectHooks.Count",  // for (i < component.EffectHooks.Count)
+            ".EventHandlers.Count", // for (i < component.EventHandlers.Count)
+            ".Templates.Count",    // for (i < component.Templates.Count)
+        };
+
+        foreach (var pattern in allowedPatterns)
+        {
+            if (condition.IndexOf(pattern, StringComparison.Ordinal) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override void VisitForEachStatement(ForEachStatementSyntax node)
@@ -45,7 +82,15 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
         {
             // Allow foreach over declarative pattern match results
             var collectionExpr = node.Expression.ToString();
-            if (!IsDeclarativeCollection(collectionExpr))
+
+            // Allow foreach over non-token types (primitives, KeyValuePair, etc.)
+            var iterVarType = node.Type.ToString();
+            var isNonTokenIteration = iterVarType == "char" || iterVarType == "byte" ||
+                                      iterVarType == "int" || iterVarType == "string" ||
+                                      iterVarType == "var" && collectionExpr.Contains("stateValues") ||
+                                      iterVarType.StartsWith("KeyValuePair", StringComparison.Ordinal);
+
+            if (!isNonTokenIteration && !IsDeclarativeCollection(collectionExpr))
             {
                 _context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.LoopNotAllowed,
@@ -70,6 +115,9 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             "MatchAll",           // PatternMatcher.MatchAll()
             "MatchAllJsxChildren", // PatternMatcher.MatchAllJsxChildren()
             "matches",            // var matches = matcher.MatchAll()
+            "stringMatches",      // var stringMatches = PatternMatcher.MatchAll()
+            "numberMatches",      // var numberMatches = PatternMatcher.MatchAll()
+            "Matches",            // suffix pattern for match results
 
             // Model collections
             ".Children",          // element.Children (model collection)
@@ -82,6 +130,9 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             ".Templates",         // component.Templates
             ".Captures",          // match.Captures
             ".NamedCaptures",     // match.NamedCaptures
+            ".Attributes",        // element.Attributes (model collection)
+            ".PropsTemplates",    // loop item template props
+            ".ChildrenTemplates", // loop item template children
 
             // Processed local collections
             "rawChildren",        // local processed collection

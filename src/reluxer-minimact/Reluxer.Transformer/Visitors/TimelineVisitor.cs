@@ -209,14 +209,16 @@ public class TimelineVisitor : TokenVisitor
         // Use \Bb to find each balanced brace object in the array
         var objectMatcher = new PatternMatcher(@"(\Bb)", skipWhitespace: true);
         var matches = PatternMatcher.MatchAll(arrayTokens, 0, (objectMatcher, TokenMatchType.Unknown, "obj"));
-        var objects = matches.Select(m => m.Match.Captures[0].Tokens).ToList();
 
-        Console.WriteLine($"[TimelineVisitor] Found {objects.Count} keyframe objects");
+        Console.WriteLine($"[TimelineVisitor] Found keyframe objects");
 
-        // Parse each keyframe object
-        foreach (var objTokens in objects)
+        // Parse each keyframe object directly from matches
+        foreach (var match in matches)
         {
-            ParseKeyframeObject(objTokens);
+            if (match.Match.Captures.Length > 0)
+            {
+                ParseKeyframeObject(match.Match.Captures[0].Tokens);
+            }
         }
     }
 
@@ -233,7 +235,7 @@ public class TimelineVisitor : TokenVisitor
         var timeMatcher = new PatternMatcher(@"\i""time"" "":"" (\n)", skipWhitespace: true);
         if (timeMatcher.TryMatch(tokens, 0, out var timeMatch) && timeMatch != null)
         {
-            var timeToken = timeMatch.GetFirstToken(0);
+            var timeToken = timeMatch.GetCapturedToken(0);
             if (timeToken != null && int.TryParse(timeToken.Value, out var t))
                 time = t;
         }
@@ -242,7 +244,7 @@ public class TimelineVisitor : TokenVisitor
         var labelMatcher = new PatternMatcher(@"\i""label"" "":"" (\s)", skipWhitespace: true);
         if (labelMatcher.TryMatch(tokens, 0, out var labelMatch) && labelMatch != null)
         {
-            var labelToken = labelMatch.GetFirstToken(0);
+            var labelToken = labelMatch.GetCapturedToken(0);
             if (labelToken != null)
                 label = labelToken.Value.Trim('\'', '"');
         }
