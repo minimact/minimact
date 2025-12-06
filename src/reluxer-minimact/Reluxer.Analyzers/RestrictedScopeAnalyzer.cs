@@ -16,6 +16,10 @@ namespace Reluxer.Analyzers;
 /// - Prefer pattern matching over manual type checks
 /// - Use Context for cross-visitor state instead of mutable fields
 ///
+/// Additionally, if a class contains ANY [TokenPattern] methods, ALL private
+/// methods in that class are also analyzed (unless marked with [AllowImperative]).
+/// This prevents bypassing declarative enforcement via helper methods.
+///
 /// Use [AllowImperative] to opt-out during migration or for edge cases.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -60,12 +64,16 @@ public sealed class RestrictedScopeAnalyzer : DiagnosticAnalyzer
     {
         var method = (MethodDeclarationSyntax)context.Node;
 
-        // Check if method has [TokenPattern] attribute
-        if (!HasTokenPatternAttribute(method))
+        // Check for [AllowImperative] escape hatch first
+        if (HasAllowImperativeAttribute(method))
             return;
 
-        // Check for [AllowImperative] escape hatch
-        if (HasAllowImperativeAttribute(method))
+        // Determine if this method should be analyzed:
+        // 1. Method has [TokenPattern] attribute, OR
+        // 2. Method is private and its containing class has any [TokenPattern] methods
+        bool shouldAnalyze = HasTokenPatternAttribute(method) || IsPrivateMethodInTokenPatternClass(method);
+
+        if (!shouldAnalyze)
             return;
 
         // Get the method name for recursive call detection
@@ -84,6 +92,38 @@ public sealed class RestrictedScopeAnalyzer : DiagnosticAnalyzer
             var walker = new RestrictedSyntaxWalker(context, methodName);
             walker.Visit(method.ExpressionBody);
         }
+    }
+
+    /// <summary>
+    /// Checks if a method is private and its containing class has any [TokenPattern] methods.
+    /// This ensures helper methods in visitor classes are also analyzed.
+    /// </summary>
+    private static bool IsPrivateMethodInTokenPatternClass(MethodDeclarationSyntax method)
+    {
+        // Only analyze private methods
+        if (!method.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
+        {
+            // If no explicit access modifier, default is private for class members
+            // But only if there are no other access modifiers
+            bool hasAccessModifier = method.Modifiers.Any(m =>
+                m.IsKind(SyntaxKind.PublicKeyword) ||
+                m.IsKind(SyntaxKind.ProtectedKeyword) ||
+                m.IsKind(SyntaxKind.InternalKeyword) ||
+                m.IsKind(SyntaxKind.PrivateKeyword));
+
+            if (hasAccessModifier)
+                return false;
+        }
+
+        // Find the containing class
+        var containingClass = method.Parent as ClassDeclarationSyntax;
+        if (containingClass == null)
+            return false;
+
+        // Check if any method in the class has [TokenPattern]
+        return containingClass.Members
+            .OfType<MethodDeclarationSyntax>()
+            .Any(m => HasTokenPatternAttribute(m));
     }
 
     /// <summary>

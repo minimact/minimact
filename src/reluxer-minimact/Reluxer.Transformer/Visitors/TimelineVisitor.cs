@@ -168,33 +168,35 @@ public class TimelineVisitor : TokenVisitor
 
     private void ParseTimelineConfig(Token[] tokens, TimelineModel timeline)
     {
-        // Simple parsing of { duration: 5000, repeat: true, easing: 'ease-in-out' }
-        for (int i = 0; i < tokens.Length; i++)
+        // Use pattern matching for property: value pairs
+        // Pattern: identifier ":" followed by value (number, keyword, or string)
+        var propMatcher = new PatternMatcher(@"(\i) "":"" (\Bc)", skipWhitespace: true);
+        var matches = PatternMatcher.MatchAll(tokens, 0, (propMatcher, TokenMatchType.Unknown, "prop"));
+
+        foreach (var match in matches)
         {
-            var token = tokens[i];
-            if (token.Type != TokenType.Identifier) continue;
+            if (match.Match.Captures.Length < 2) continue;
 
-            // Look for property: value pattern
-            if (i + 2 < tokens.Length && tokens[i + 1].Value == ":")
+            var propName = match.Match.Captures[0].AsIdentifier();
+            var valueTokens = match.Match.Captures[1].Tokens;
+            var valueToken = valueTokens.FirstOrDefault(t => t.Type != TokenType.Whitespace);
+
+            if (propName == null || valueToken == null) continue;
+
+            switch (propName)
             {
-                var propName = token.Value;
-                var valueToken = tokens[i + 2];
+                case "duration":
+                    if (int.TryParse(valueToken.Value, out var duration))
+                        timeline.Duration = duration;
+                    break;
 
-                switch (propName)
-                {
-                    case "duration":
-                        if (int.TryParse(valueToken.Value, out var duration))
-                            timeline.Duration = duration;
-                        break;
+                case "repeat":
+                    timeline.Repeat = valueToken.Value == "true";
+                    break;
 
-                    case "repeat":
-                        timeline.Repeat = valueToken.Value == "true";
-                        break;
-
-                    case "easing":
-                        timeline.Easing = valueToken.Value.Trim('\'', '"');
-                        break;
-                }
+                case "easing":
+                    timeline.Easing = valueToken.Value.Trim('\'', '"');
+                    break;
             }
         }
     }
@@ -204,34 +206,10 @@ public class TimelineVisitor : TokenVisitor
         Console.WriteLine($"[TimelineVisitor] ParseKeyframesArray: parsing {arrayTokens.Length} tokens");
         Console.WriteLine($"[TimelineVisitor] First 10 tokens: {string.Join(" ", arrayTokens.Take(10).Select(t => $"[{t.Type}]{t.Value}"))}");
 
-        // Find each object in the array { time: ..., state: {...}, label: '...' }
-        var depth = 0;
-        var objectStart = -1;
-        var objects = new List<Token[]>();
-
-        for (int i = 0; i < arrayTokens.Length; i++)
-        {
-            var token = arrayTokens[i];
-
-            if (token.Value == "{")
-            {
-                if (depth == 0)
-                    objectStart = i;
-                depth++;
-            }
-            else if (token.Value == "}")
-            {
-                depth--;
-                if (depth == 0 && objectStart >= 0)
-                {
-                    // Extract object tokens (including braces)
-                    var objLength = i - objectStart + 1;
-                    var objTokens = arrayTokens.Skip(objectStart).Take(objLength).ToArray();
-                    objects.Add(objTokens);
-                    objectStart = -1;
-                }
-            }
-        }
+        // Use \Bb to find each balanced brace object in the array
+        var objectMatcher = new PatternMatcher(@"(\Bb)", skipWhitespace: true);
+        var matches = PatternMatcher.MatchAll(arrayTokens, 0, (objectMatcher, TokenMatchType.Unknown, "obj"));
+        var objects = matches.Select(m => m.Match.Captures[0].Tokens).ToList();
 
         Console.WriteLine($"[TimelineVisitor] Found {objects.Count} keyframe objects");
 
@@ -251,75 +229,47 @@ public class TimelineVisitor : TokenVisitor
         string? label = null;
         var stateValues = new Dictionary<string, string>();
 
-        var inState = false;
-        var stateDepth = 0;
-
-        for (int i = 0; i < tokens.Length; i++)
+        // Pattern for time: number
+        var timeMatcher = new PatternMatcher(@"\i""time"" "":"" (\n)", skipWhitespace: true);
+        if (timeMatcher.TryMatch(tokens, 0, out var timeMatch) && timeMatch != null)
         {
-            var token = tokens[i];
+            var timeToken = timeMatch.GetFirstToken(0);
+            if (timeToken != null && int.TryParse(timeToken.Value, out var t))
+                time = t;
+        }
 
-            // Track state object nesting
-            if (inState)
+        // Pattern for label: string
+        var labelMatcher = new PatternMatcher(@"\i""label"" "":"" (\s)", skipWhitespace: true);
+        if (labelMatcher.TryMatch(tokens, 0, out var labelMatch) && labelMatch != null)
+        {
+            var labelToken = labelMatch.GetFirstToken(0);
+            if (labelToken != null)
+                label = labelToken.Value.Trim('\'', '"');
+        }
+
+        // Pattern for state: { ... } - use balanced braces
+        var stateMatcher = new PatternMatcher(@"\i""state"" "":"" (\Bb)", skipWhitespace: true);
+        if (stateMatcher.TryMatch(tokens, 0, out var stateMatch) && stateMatch != null)
+        {
+            var stateTokens = stateMatch.Captures[0].Tokens;
+
+            // Parse key: value pairs inside state object
+            var kvMatcher = new PatternMatcher(@"(\i) "":"" (\Bc)", skipWhitespace: true);
+            var kvMatches = PatternMatcher.MatchAll(stateTokens, 0, (kvMatcher, TokenMatchType.Unknown, "kv"));
+
+            foreach (var kvMatch in kvMatches)
             {
-                if (token.Value == "{") stateDepth++;
-                else if (token.Value == "}") stateDepth--;
-
-                if (stateDepth == 0)
+                if (kvMatch.Match.Captures.Length >= 2)
                 {
-                    inState = false;
-                    continue;
-                }
+                    var propName = kvMatch.Match.Captures[0].AsIdentifier();
+                    var valueTokens = kvMatch.Match.Captures[1].Tokens;
+                    var valueToken = valueTokens.FirstOrDefault(t => t.Type != TokenType.Whitespace);
 
-                // Inside state object, look for property: value
-                var isStateColon = i + 1 < tokens.Length &&
-                    (tokens[i + 1].Type == TokenType.Colon || tokens[i + 1].Value == ":");
-
-                if (token.Type == TokenType.Identifier && i + 2 < tokens.Length && isStateColon)
-                {
-                    var propName = token.Value;
-                    var valueToken = tokens[i + 2];
-                    stateValues[propName] = valueToken.Value.Trim('\'', '"');
-                    Console.WriteLine($"[TimelineVisitor] Found state value: {propName}={valueToken.Value}");
-                    i += 2; // Skip past colon and value
-                }
-                continue;
-            }
-
-            // Look for top-level properties
-            // Check for colon by type OR value since lexer may tokenize differently
-            var isColon = i + 1 < tokens.Length &&
-                (tokens[i + 1].Type == TokenType.Colon || tokens[i + 1].Value == ":");
-
-            if (token.Type == TokenType.Identifier && i + 2 < tokens.Length && isColon)
-            {
-                var propName = token.Value;
-
-                switch (propName)
-                {
-                    case "time":
-                        if (int.TryParse(tokens[i + 2].Value, out var t))
-                            time = t;
-                        break;
-
-                    case "state":
-                        // Start parsing state object - look ahead for the {
-                        inState = true;
-                        stateDepth = 0;
-                        // Skip to the opening brace
-                        for (int j = i + 2; j < tokens.Length; j++)
-                        {
-                            if (tokens[j].Value == "{")
-                            {
-                                stateDepth = 1;
-                                i = j; // Move i to the {
-                                break;
-                            }
-                        }
-                        break;
-
-                    case "label":
-                        label = tokens[i + 2].Value.Trim('\'', '"');
-                        break;
+                    if (propName != null && valueToken != null)
+                    {
+                        stateValues[propName] = valueToken.Value.Trim('\'', '"');
+                        Console.WriteLine($"[TimelineVisitor] Found state value: {propName}={valueToken.Value}");
+                    }
                 }
             }
         }

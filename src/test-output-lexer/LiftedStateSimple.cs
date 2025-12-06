@@ -79,15 +79,15 @@ public partial class App : MinimactComponent
                 new VElement("button", "1.3.1", new Dictionary<string, string> { ["id"] = "parent-reset-btn", ["type"] = "button", ["onclick"] = "handleParentReset" }, "Parent: Reset to 0"),
                 new VElement("button", "1.3.2", new Dictionary<string, string> { ["id"] = "parent-set10-btn", ["type"] = "button", ["onclick"] = "handleParentSetTo10" }, "Parent: Set to 10")
             }),
-            new VComponentWrapper
-{
-    ComponentName = "Counter",
-    ComponentType = "Counter",
-    HexPath = "1.4",
-    InitialState = new Dictionary<string, object> { ["count"] = 0 },
+                        new VComponentWrapper
+                        {
+                                ComponentName = "Counter",
+                                ComponentType = "Counter",
+                                HexPath = "1.4",
+                InitialState = new Dictionary<string, object> { ["count"] = 0 },
 
-    ParentComponent = this
-},
+                ParentComponent = this
+            },
             new VElement("div", "1.5", new Dictionary<string, string> { ["id"] = "status", ["class"] = "status" }, new VNode[]
             {
                 new VElement("p", "1.5.1", new Dictionary<string, string>(), new VNode[]

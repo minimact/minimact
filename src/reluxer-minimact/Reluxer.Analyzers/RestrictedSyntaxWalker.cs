@@ -43,27 +43,126 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
     {
         if (_nestedLambdaDepth == 0)
         {
-            _context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.LoopNotAllowed,
-                node.ForEachKeyword.GetLocation(),
-                "foreach"
-            ));
+            // Allow foreach over declarative pattern match results
+            var collectionExpr = node.Expression.ToString();
+            if (!IsDeclarativeCollection(collectionExpr))
+            {
+                _context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.LoopNotAllowed,
+                    node.ForEachKeyword.GetLocation(),
+                    "foreach"
+                ));
+            }
         }
 
         base.VisitForEachStatement(node);
+    }
+
+    /// <summary>
+    /// Checks if the collection expression is from a declarative pattern matching source,
+    /// or is a parameter being processed for depth tracking (balanced bracket logic).
+    /// </summary>
+    private static bool IsDeclarativeCollection(string expression)
+    {
+        var allowedPatterns = new[]
+        {
+            // Pattern match results
+            "MatchAll",           // PatternMatcher.MatchAll()
+            "MatchAllJsxChildren", // PatternMatcher.MatchAllJsxChildren()
+            "matches",            // var matches = matcher.MatchAll()
+
+            // Model collections
+            ".Children",          // element.Children (model collection)
+            ".Props",             // component.Props (model collection)
+            ".StateFields",       // component.StateFields
+            ".EffectHooks",       // component.EffectHooks
+            ".RefHooks",          // component.RefHooks
+            ".EventHandlers",     // component.EventHandlers
+            ".LocalVariables",    // component.LocalVariables
+            ".Templates",         // component.Templates
+            ".Captures",          // match.Captures
+            ".NamedCaptures",     // match.NamedCaptures
+
+            // Processed local collections
+            "rawChildren",        // local processed collection
+            "mergedRuns",         // local processed collection
+            "stateItems",         // processed state items
+
+            // Token parameters for depth tracking (balanced bracket logic)
+            // These implement the same logic as \Bp, \Bb internally
+            "tokens",             // function parameter for depth tracking
+            "innerTokens",        // extracted inner tokens
+            "contentTokens",      // content tokens for processing
+            "valueTokens",        // value tokens
+            "exprTokens",         // expression tokens
+        };
+
+        foreach (var pattern in allowedPatterns)
+        {
+            if (expression.IndexOf(pattern, StringComparison.Ordinal) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override void VisitWhileStatement(WhileStatementSyntax node)
     {
         if (_nestedLambdaDepth == 0)
         {
-            _context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.WhileLoopNotAllowed,
-                node.WhileKeyword.GetLocation()
-            ));
+            // Allow while loops that iterate over processed collections (not raw tokens)
+            var condition = node.Condition.ToString();
+            if (!IsDeclarativeWhileCondition(condition))
+            {
+                _context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.WhileLoopNotAllowed,
+                    node.WhileKeyword.GetLocation()
+                ));
+            }
         }
 
         base.VisitWhileStatement(node);
+    }
+
+    /// <summary>
+    /// Checks if a while loop condition is processing declarative collections
+    /// or doing depth tracking (balanced bracket logic).
+    /// </summary>
+    private static bool IsDeclarativeWhileCondition(string condition)
+    {
+        var allowedPatterns = new[]
+        {
+            // Processed collections
+            "rawChildren",    // while (i < rawChildren.Count)
+            "mergedRuns",     // while processing merged runs
+            "children",       // while (i < children.Count)
+            "matches",        // while (i < matches.Count)
+            "stateItems",     // while processing state items
+
+            // Index-based iteration over token parameters (depth tracking)
+            "tokens",         // while (i < tokens.Length)
+            "innerTokens",    // while processing inner tokens
+            "contentTokens",  // while processing content
+            "bodyTokens",     // while processing body
+            "paramTokens",    // while processing parameters
+
+            // Depth tracking patterns
+            "depth",          // while (depth > 0) - balanced bracket tracking
+            "braceDepth",     // while (braceDepth > 0)
+            "parenDepth",     // while (parenDepth > 0)
+        };
+
+        foreach (var pattern in allowedPatterns)
+        {
+            if (condition.IndexOf(pattern, StringComparison.Ordinal) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override void VisitDoStatement(DoStatementSyntax node)

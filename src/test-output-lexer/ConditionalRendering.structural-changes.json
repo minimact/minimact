@@ -1,25 +1,32 @@
 {
   "componentName": "UserProfile",
-  "timestamp": "2025-12-05T23:33:21.691Z",
-  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\ConditionalRendering.tsx",
+  "timestamp": "2025-12-05T23:33:23.6097132Z",
   "changes": [
     {
       "type": "insert",
       "path": "1",
-      "vnode": {
+      "vNode": {
         "type": "element",
-        "tag": "div",
         "path": "1",
+        "tag": "div",
         "attributes": {
           "className": "profile"
         },
         "children": [
           {
             "type": "expression",
-            "path": "1.1",
-            "value": "__DYNAMIC__"
+            "path": "1.1"
           }
         ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.1",
+        "value": "__DYNAMIC__"
       }
     }
   ]

@@ -117,30 +117,22 @@ public class EffectVisitor : TokenVisitor
     /// </summary>
     private bool HasReturnStatement(Token[] tokens)
     {
-        // Simple check - look for return keyword followed by function/arrow
-        for (int i = 0; i < tokens.Length; i++)
-        {
-            if (tokens[i].Type == TokenType.Keyword && tokens[i].Value == "return")
-            {
-                // Check if next non-whitespace is a function or arrow
-                for (int j = i + 1; j < tokens.Length && j < i + 5; j++)
-                {
-                    if (tokens[j].Type == TokenType.Whitespace) continue;
+        // Pattern: return followed by function keyword, arrow, or opening paren
+        // Use MatchAll to find the pattern anywhere in the token stream
+        var returnFunctionMatcher = new PatternMatcher(@"\k""return"" \k""function""", skipWhitespace: true);
+        var returnArrowMatcher = new PatternMatcher(@"\k""return"" \fa", skipWhitespace: true);
+        var returnParenMatcher = new PatternMatcher(@"\k""return"" ""(""", skipWhitespace: true);
 
-                    // Return followed by function, arrow, or opening paren indicates cleanup
-                    if (tokens[j].Type == TokenType.Keyword && tokens[j].Value == "function")
-                        return true;
-                    if (tokens[j].Type == TokenType.Arrow)
-                        return true;
-                    if (tokens[j].Type == TokenType.Punctuation && tokens[j].Value == "(")
-                        return true;
+        // MatchAll finds patterns anywhere in the stream
+        var matches = PatternMatcher.MatchAll(
+            tokens, 0,
+            (returnFunctionMatcher, TokenMatchType.Unknown, "func"),
+            (returnArrowMatcher, TokenMatchType.Unknown, "arrow"),
+            (returnParenMatcher, TokenMatchType.Unknown, "paren")
+        );
 
-                    break;
-                }
-            }
-        }
-
-        return false;
+        // If any pattern matched, we have a return statement
+        return matches.Any();
     }
 
     /// <summary>

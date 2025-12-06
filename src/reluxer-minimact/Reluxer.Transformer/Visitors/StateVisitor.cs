@@ -165,13 +165,16 @@ public class StateVisitor : TokenVisitor
             Body = TokensToString(bodyTokens)
         };
 
-        // Extract parameter names
-        var paramIdentifiers = paramsTokens.Where(t => t.Type == TokenType.Identifier).ToList();
-        foreach (var param in paramIdentifiers)
+        // Extract parameter names using pattern matching
+        // \i matches identifiers; we filter out type annotations
+        var typeAnnotations = new HashSet<string> { "number", "string", "boolean" };
+        var identMatcher = new PatternMatcher(@"(\i)", skipWhitespace: true);
+        var matches = PatternMatcher.MatchAll(paramsTokens, 0, (identMatcher, TokenMatchType.Unknown, "ident"));
+        foreach (var match in matches)
         {
-            // Skip type annotations
-            if (param.Value != "number" && param.Value != "string" && param.Value != "boolean")
-                helper.Parameters.Add(param.Value);
+            var paramName = match.Match.Captures[0].AsIdentifier();
+            if (paramName != null && !typeAnnotations.Contains(paramName))
+                helper.Parameters.Add(paramName);
         }
 
         _component.HelperFunctions.Add(helper);
@@ -253,37 +256,40 @@ public class StateVisitor : TokenVisitor
     {
         if (tokens.Length == 0) return "object";
 
-        var first = tokens[0];
-
-        // Check for literals
-        if (first.Type == TokenType.Number)
+        // Use pattern matching for type inference
+        // \n matches number literals
+        var numberMatcher = new PatternMatcher(@"(\n)", skipWhitespace: true);
+        if (numberMatcher.TryMatch(tokens, 0, out var numMatch) && numMatch != null)
         {
-            return first.Value.Contains('.') ? "double" : "int";
+            var numToken = numMatch.GetFirstToken(0);
+            return numToken?.Value.Contains('.') == true ? "double" : "int";
         }
 
-        if (first.Type == TokenType.String)
+        // \s matches string literals
+        var stringMatcher = new PatternMatcher(@"(\s)", skipWhitespace: true);
+        if (stringMatcher.TryMatch(tokens, 0, out _))
         {
             return "string";
         }
 
-        if (first.Type == TokenType.Keyword)
+        // \k"true" and \k"false" for booleans
+        var trueMatcher = new PatternMatcher(@"\k""true""", skipWhitespace: true);
+        var falseMatcher = new PatternMatcher(@"\k""false""", skipWhitespace: true);
+        if (trueMatcher.TryMatch(tokens, 0, out _) || falseMatcher.TryMatch(tokens, 0, out _))
         {
-            return first.Value switch
-            {
-                "true" or "false" => "bool",
-                "null" => "object",
-                _ => "object"
-            };
+            return "bool";
         }
 
-        // Array literal
-        if (first.Value == "[")
+        // "[" for array literal
+        var arrayMatcher = new PatternMatcher(@"""[""", skipWhitespace: true);
+        if (arrayMatcher.TryMatch(tokens, 0, out _))
         {
             return "List<object>";
         }
 
-        // Object literal
-        if (first.Value == "{")
+        // "{" for object literal
+        var objectMatcher = new PatternMatcher(@"""{""", skipWhitespace: true);
+        if (objectMatcher.TryMatch(tokens, 0, out _))
         {
             return "Dictionary<string, object>";
         }

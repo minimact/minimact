@@ -42,6 +42,17 @@ async function transpileComponent(jsxPath) {
         }
       };
 
+      // Delete any stale templates files before running Babel
+      // The plugin writes to ComponentName.templates.json in the INPUT file's directory
+      const inputDir = path.dirname(filename);
+      const basename = path.basename(filename, path.extname(filename));
+      const possibleTemplatesFiles = [
+        path.join(inputDir, basename + '.templates.json')
+      ];
+      for (const f of possibleTemplatesFiles) {
+        try { fs.unlinkSync(f); } catch (e) { /* ignore */ }
+      }
+
       const result = babel.transformSync(code, {
         presets: ['@babel/preset-typescript'], // NO React preset - we handle JSX ourselves!
         plugins: ['./index-full.cjs'],
@@ -55,14 +66,15 @@ async function transpileComponent(jsxPath) {
       const csharpCode = result.metadata?.minimactCSharp || result.code;
 
       // Templates are written to file - read them
-      // The babel plugin uses the component NAME (not filename) for templates
+      // The babel plugin writes to the INPUT FILE's directory (not babel-plugin-minimact dir)
       // Extract component name from C# code: "public partial class ComponentName"
       let templatesJson = null;
       const componentNameMatch = csharpCode.match(/(?:public )?(?:partial )?class (\\w+)/);
 
       if (componentNameMatch) {
         const componentName = componentNameMatch[1];
-        const templatesPath = path.join(__dirname, componentName + '.templates.json');
+        const inputDir = path.dirname(filename);
+        const templatesPath = path.join(inputDir, componentName + '.templates.json');
 
         try {
           if (fs.existsSync(templatesPath)) {

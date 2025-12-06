@@ -53,6 +53,12 @@ public class ComponentModel
     /// Key: "tagName:line:column", Value: hex key
     /// </summary>
     public Dictionary<string, string> ElementKeys { get; } = new();
+
+    /// <summary>
+    /// Loop templates extracted from .map() expressions.
+    /// Used for [LoopTemplate] C# attribute generation.
+    /// </summary>
+    public List<LoopTemplateInfo> LoopTemplates { get; } = new();
 }
 
 /// <summary>
@@ -370,6 +376,76 @@ public class AttributeValue
     public bool IsEventHandler { get; set; }
     public string? EventHandlerRef { get; set; }
 }
+
+#region Loop Template Models
+
+/// <summary>
+/// Represents a loop template extracted from .map() expressions.
+/// Used for [LoopTemplate] C# attribute generation.
+/// </summary>
+public class LoopTemplateInfo
+{
+    /// <summary>
+    /// State key that triggers this template (usually the array name).
+    /// </summary>
+    public string StateKey { get; set; } = "";
+
+    /// <summary>
+    /// The array expression being mapped over.
+    /// </summary>
+    public string ArrayBinding { get; set; } = "";
+
+    /// <summary>
+    /// The item variable name in the .map() callback.
+    /// </summary>
+    public string ItemVar { get; set; } = "";
+
+    /// <summary>
+    /// The index variable name in the .map() callback (optional).
+    /// </summary>
+    public string? IndexVar { get; set; }
+
+    /// <summary>
+    /// The key binding expression for React keys.
+    /// </summary>
+    public string? KeyBinding { get; set; }
+
+    /// <summary>
+    /// The item template (the JSX element inside .map()).
+    /// </summary>
+    public LoopItemTemplate? ItemTemplate { get; set; }
+}
+
+/// <summary>
+/// Represents an item template within a loop.
+/// </summary>
+public class LoopItemTemplate
+{
+    public string Type { get; set; } = "Element";
+    public string Tag { get; set; } = "";
+    public Dictionary<string, LoopPropTemplate>? PropsTemplates { get; set; }
+    public List<LoopItemTemplate>? ChildrenTemplates { get; set; }
+
+    // For text nodes
+    public string? Template { get; set; }
+    public List<string>? Bindings { get; set; }
+    public List<int>? Slots { get; set; }
+}
+
+/// <summary>
+/// Represents a prop template within a loop item.
+/// </summary>
+public class LoopPropTemplate
+{
+    public string Template { get; set; } = "";
+    public List<string> Bindings { get; } = new();
+    public List<int> Slots { get; } = new();
+    public string Type { get; set; } = "static";
+    public Dictionary<string, string>? ConditionalTemplates { get; set; }
+    public int? ConditionalBindingIndex { get; set; }
+}
+
+#endregion
 
 #region Template Models
 

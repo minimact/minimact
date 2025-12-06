@@ -1,0 +1,53 @@
+{
+  "componentName": "ProductDetailsPage",
+  "timestamp": "2025-12-05T23:33:19.9237222Z",
+  "hooks": [
+    {
+      "type": "useMvcState",
+      "varName": "productName",
+      "index": 0,
+      "viewModelKey": "productName",
+      "mutable": false
+    },
+    {
+      "type": "useMvcState",
+      "varName": "price",
+      "index": 1,
+      "viewModelKey": "price",
+      "mutable": false
+    },
+    {
+      "type": "useMvcState",
+      "varName": "isAdmin",
+      "index": 2,
+      "viewModelKey": "isAdminRole",
+      "mutable": false
+    },
+    {
+      "type": "useMvcState",
+      "varName": "quantity",
+      "index": 3,
+      "viewModelKey": "initialQuantity",
+      "mutable": true
+    },
+    {
+      "type": "useMvcState",
+      "varName": "color",
+      "index": 4,
+      "viewModelKey": "initialSelectedColor",
+      "mutable": true
+    },
+    {
+      "type": "useMvcState",
+      "varName": "isExpanded",
+      "index": 5,
+      "viewModelKey": "initialIsExpanded",
+      "mutable": true
+    },
+    {
+      "type": "useState",
+      "varName": "cartTotal",
+      "index": 6
+    }
+  ]
+}

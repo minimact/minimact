@@ -106,10 +106,12 @@ public class JsxVisitor : TokenVisitor
     /// </summary>
     private VNodeModel? ParseJsxElement(Token[] tokens, string path)
     {
-        if (tokens.Length == 0 || tokens[0].Type != TokenType.JsxTagOpen)
+        // Use pattern matcher to extract JSX tag open
+        var tagMatcher = new PatternMatcher(@"(\jo)", skipWhitespace: true);
+        if (!tagMatcher.TryMatch(tokens, 0, out var tagMatch) || tagMatch == null)
             return null;
 
-        var tagName = tokens[0].Value.TrimStart('<').TrimEnd('>');
+        var tagName = tagMatch.Captures[0].Tokens[0].Value.TrimStart('<').TrimEnd('>');
 
         // Component reference (PascalCase)
         if (char.IsUpper(tagName[0]))
@@ -145,12 +147,32 @@ public class JsxVisitor : TokenVisitor
             HexPath = path
         };
 
-        // Parse props using patterns
-        _currentResult = wrapper;
-        _currentPath = path;
-        Traverse(tokens, nameof(VisitComponentProp));
+        // Extract opening tag tokens
+        var openingTag = ExtractOpeningTag(tokens);
+
+        // Manually parse props from opening tag
+        ParseComponentProps(openingTag, wrapper);
 
         return wrapper;
+    }
+
+    private void ParseComponentProps(Token[] tokens, VComponentWrapperModel wrapper)
+    {
+        // Use pattern matching for name="value" attribute
+        var nameMatcher = new PatternMatcher(@"""name"" ""="" (\s)", skipWhitespace: true);
+        if (nameMatcher.TryMatch(tokens, 0, out var nameMatch) && nameMatch != null)
+        {
+            var value = nameMatch.Captures[0].Tokens[0].Value.Trim('"', '\'');
+            wrapper.ComponentName = value;
+            wrapper.ComponentType = value;
+        }
+
+        // Use pattern matching for state={{ ... }} attribute with balanced braces
+        var stateMatcher = new PatternMatcher(@"""state"" ""="" (\Bb)", skipWhitespace: true);
+        if (stateMatcher.TryMatch(tokens, 0, out var stateMatch) && stateMatch != null)
+        {
+            ParseComponentState(stateMatch.Captures[0].Tokens, wrapper);
+        }
     }
 
     private void ParseElementChildren(Token[] tokens, VElementModel element, string path)
@@ -171,43 +193,99 @@ public class JsxVisitor : TokenVisitor
     private void ParseChildren(Token[] tokens, VElementModel parent, string parentPath)
     {
         // Declarative child parsing using MatchAll
-        int childIndex = 1;
+        // Collect all children first, then merge adjacent text/expressions
+        var rawChildren = new List<(TokenMatchType Type, string? Text, string? Binding, int StartIndex)>();
 
         foreach (var item in PatternMatcher.MatchAllJsxChildren(tokens))
         {
-            string childPath = $"{parentPath}.{childIndex}";
-            VNodeModel? child = null;
-
             switch (item.Type)
             {
                 case TokenMatchType.Element:
-                    // Use \Je pattern to get full element tokens
-                    var jeMatcher = new PatternMatcher(@"(\Je)");
-                    if (jeMatcher.TryMatch(tokens, item.Match.StartIndex, out var jeMatch) && jeMatch != null)
-                    {
-                        child = ParseJsxTree(jeMatch.MatchedTokens, childPath);
-                    }
+                    // Elements break text runs - flush any pending text first
+                    rawChildren.Add((TokenMatchType.Element, null, null, item.Match.StartIndex));
                     break;
 
                 case TokenMatchType.Expression:
                     var exprContent = item.Captures.Length > 0 ? item.Captures[0].Tokens : Array.Empty<Token>();
-                    child = ParseExpression(exprContent, childPath);
+                    var binding = TokensToString(exprContent).Trim();
+                    // Skip JSX comments: {/* ... */}
+                    if (binding.StartsWith("/*") && binding.EndsWith("*/"))
+                        break;
+                    // Skip empty bindings
+                    if (string.IsNullOrWhiteSpace(binding))
+                        break;
+                    rawChildren.Add((TokenMatchType.Expression, null, binding, item.Match.StartIndex));
                     break;
 
                 case TokenMatchType.Text:
-                    var text = item.Tokens[0].Value.Trim();
-                    if (!string.IsNullOrWhiteSpace(text))
-                    {
-                        child = new VTextModel { HexPath = childPath, Text = text, IsDynamic = false };
-                    }
+                    var text = item.Tokens[0].Value;
+                    // Keep whitespace-only text for merging context, filter later
+                    rawChildren.Add((TokenMatchType.Text, text, null, item.Match.StartIndex));
                     break;
             }
+        }
 
-            if (child != null)
+        // Now merge adjacent text/expression runs into single interpolated strings
+        int childIndex = 1;
+        int i = 0;
+        while (i < rawChildren.Count)
+        {
+            var current = rawChildren[i];
+
+            if (current.Type == TokenMatchType.Element)
             {
-                child.Parent = parent;
-                parent.Children.Add(child);
-                childIndex++;
+                // Use \Je pattern to get full element tokens
+                var jeMatcher = new PatternMatcher(@"(\Je)");
+                if (jeMatcher.TryMatch(tokens, current.StartIndex, out var jeMatch) && jeMatch != null)
+                {
+                    var child = ParseJsxTree(jeMatch.MatchedTokens, $"{parentPath}.{childIndex}");
+                    if (child != null)
+                    {
+                        child.Parent = parent;
+                        parent.Children.Add(child);
+                        childIndex++;
+                    }
+                }
+                i++;
+            }
+            else
+            {
+                // Collect consecutive text/expression items
+                var textParts = new List<string>();
+                var bindings = new List<string>();
+                bool hasExpression = false;
+
+                while (i < rawChildren.Count && rawChildren[i].Type != TokenMatchType.Element)
+                {
+                    var item = rawChildren[i];
+                    if (item.Type == TokenMatchType.Text)
+                    {
+                        textParts.Add(item.Text ?? "");
+                    }
+                    else if (item.Type == TokenMatchType.Expression)
+                    {
+                        hasExpression = true;
+                        textParts.Add($"{{({item.Binding})}}");
+                        bindings.Add(item.Binding ?? "");
+                    }
+                    i++;
+                }
+
+                // Build merged text
+                var mergedText = string.Join("", textParts).Trim();
+                if (!string.IsNullOrWhiteSpace(mergedText))
+                {
+                    var child = new VTextModel
+                    {
+                        HexPath = $"{parentPath}.{childIndex}",
+                        Text = hasExpression ? "{0}" : mergedText,  // Placeholder for dynamic
+                        IsDynamic = hasExpression,
+                        Binding = hasExpression ? mergedText : null  // Contains "Count: {(count)}" format
+                    };
+                    child.Parent = parent;
+                    parent.Children.Add(child);
+                    childIndex++;
+                }
             }
         }
     }
@@ -232,9 +310,15 @@ public class JsxVisitor : TokenVisitor
         if (tokens.Length == 0) return null;
 
         // Filter whitespace and comments
-        var significant = tokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+        var significant = tokens.Where(t =>
+            t.Type != TokenType.Whitespace &&
+            t.Type != TokenType.Comment).ToArray();
         if (significant.Length == 0) return null;
-        if (significant.All(t => t.Type == TokenType.Comment)) return null;
+
+        // Skip JSX comments: {/* ... */}
+        var fullText = TokensToString(tokens).Trim();
+        if (fullText.StartsWith("/*") && fullText.EndsWith("*/"))
+            return null;
 
         // Try each expression pattern in priority order
         VNodeModel? result = null;
@@ -521,7 +605,8 @@ public class JsxVisitor : TokenVisitor
             Context.Set("LoopIndexName", indexName);
 
         // Parse template from body (nested handlers will read Context)
-        var template = ParseBranch(bodyTokens, $"{path}.item");
+        // Use numeric "1" placeholder for loop item path (matches Babel output)
+        var template = ParseBranch(bodyTokens, $"{path}.1");
 
         // Restore previous loop context (supports nested loops)
         if (previousLoopItem != null)
@@ -530,14 +615,214 @@ public class JsxVisitor : TokenVisitor
             Context.Remove("LoopItemName");
         Context.Remove("LoopIndexName");
 
-        return new VListModel
+        // Extract just the array binding (the last identifier or member expression before .map())
+        // This prevents capturing too much context like "return(<div...><ul>{todos" -> just "todos"
+        var arrayBinding = ExtractArrayBindingFromTokens(arrayExpr);
+
+        // Extract key binding from the template if it's an element with a key attribute
+        string? keyBinding = null;
+        if (template is VElementModel elem && elem.Attributes.TryGetValue("key", out var keyAttr))
+        {
+            keyBinding = keyAttr.IsDynamic ? ConvertToItemBinding(keyAttr.Binding, itemName) : null;
+        }
+
+        // Create the VListModel for the render tree
+        var listModel = new VListModel
         {
             HexPath = path,
-            ArrayExpression = TokensToString(arrayExpr),
+            ArrayExpression = arrayBinding,
             ItemName = itemName,
             IndexName = indexName,
             ItemTemplate = template
         };
+
+        // Check if we've already added a loop template for this array binding (prevent duplicates)
+        if (!_component.LoopTemplates.Any(lt => lt.StateKey == arrayBinding))
+        {
+            // Also populate LoopTemplates for [LoopTemplate] attribute generation
+            var loopTemplate = new LoopTemplateInfo
+            {
+                StateKey = arrayBinding,
+                ArrayBinding = arrayBinding,
+                ItemVar = itemName,
+                IndexVar = indexName,
+                KeyBinding = keyBinding,
+                ItemTemplate = ExtractLoopItemTemplate(template, itemName, indexName)
+            };
+            _component.LoopTemplates.Add(loopTemplate);
+        }
+
+        // Mark the array prop as List<dynamic> if it's a prop being mapped over
+        var matchingProp = _component.Props.FirstOrDefault(p => p.Name == arrayBinding);
+        if (matchingProp != null)
+        {
+            matchingProp.Type = "List<dynamic>";
+        }
+
+        return listModel;
+    }
+
+    /// <summary>
+    /// Extracts the array binding from a token array.
+    /// Takes the last identifier or member expression chain before .map().
+    /// e.g., "return(<div...><ul>{todos" -> "todos"
+    ///       "items.filter(x => x.active)" -> "items.filter(x => x.active)"
+    /// </summary>
+    private string ExtractArrayBindingFromTokens(Token[] tokens)
+    {
+        // Work backwards from the end to find the array expression
+        // The array expression is typically just an identifier or member chain like "todos" or "items.filtered"
+        var reversed = tokens.Reverse().ToList();
+
+        // Skip whitespace from the end
+        int i = 0;
+        while (i < reversed.Count && reversed[i].Type == TokenType.Whitespace) i++;
+
+        // Check if this is a simple identifier at the end
+        if (i < reversed.Count && reversed[i].Type == TokenType.Identifier)
+        {
+            var parts = new List<string>();
+            parts.Add(reversed[i].Value);
+            i++;
+
+            // Check for member access chain: .prop.prop
+            while (i + 1 < reversed.Count)
+            {
+                // Skip whitespace
+                while (i < reversed.Count && reversed[i].Type == TokenType.Whitespace) i++;
+
+                if (i < reversed.Count && reversed[i].Value == ".")
+                {
+                    i++; // skip the dot
+
+                    // Skip whitespace
+                    while (i < reversed.Count && reversed[i].Type == TokenType.Whitespace) i++;
+
+                    if (i < reversed.Count && reversed[i].Type == TokenType.Identifier)
+                    {
+                        parts.Insert(0, reversed[i].Value);
+                        i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return string.Join(".", parts);
+        }
+
+        // Fallback: just use the whole thing as string (trimmed)
+        return TokensToString(tokens).Trim();
+    }
+
+    /// <summary>
+    /// Converts a binding expression to use "item." prefix instead of the actual item variable name.
+    /// e.g., "todo.id" -> "item.id"
+    /// </summary>
+    private string? ConvertToItemBinding(string? binding, string itemName)
+    {
+        if (string.IsNullOrEmpty(binding)) return null;
+        if (binding.StartsWith(itemName + "."))
+            return "item" + binding.Substring(itemName.Length);
+        if (binding == itemName)
+            return "item";
+        return binding;
+    }
+
+    /// <summary>
+    /// Extracts a LoopItemTemplate from a VNodeModel for [LoopTemplate] attribute.
+    /// </summary>
+    private LoopItemTemplate? ExtractLoopItemTemplate(VNodeModel? node, string itemName, string? indexName)
+    {
+        if (node == null) return null;
+
+        if (node is VElementModel elem)
+        {
+            var template = new LoopItemTemplate
+            {
+                Type = "Element",
+                Tag = elem.TagName
+            };
+
+            // Extract prop templates (skip "key" attribute)
+            if (elem.Attributes.Count > 0)
+            {
+                template.PropsTemplates = new Dictionary<string, LoopPropTemplate>();
+                foreach (var attr in elem.Attributes.Where(a => a.Key != "key"))
+                {
+                    template.PropsTemplates[attr.Key] = ExtractLoopPropTemplate(attr.Value, itemName, indexName);
+                }
+                if (template.PropsTemplates.Count == 0)
+                    template.PropsTemplates = null;
+            }
+
+            // Extract children templates
+            if (elem.Children.Count > 0)
+            {
+                template.ChildrenTemplates = elem.Children
+                    .Select(c => ExtractLoopItemTemplate(c, itemName, indexName))
+                    .Where(t => t != null)
+                    .Cast<LoopItemTemplate>()
+                    .ToList();
+                if (template.ChildrenTemplates.Count == 0)
+                    template.ChildrenTemplates = null;
+            }
+
+            return template;
+        }
+
+        if (node is VTextModel text)
+        {
+            var template = new LoopItemTemplate { Type = "Text" };
+
+            if (text.IsDynamic)
+            {
+                template.Template = "{0}";
+                template.Bindings = new List<string> { ConvertToItemBinding(text.Binding, itemName) ?? text.Binding ?? "" };
+                template.Slots = new List<int> { 0 };
+            }
+            else
+            {
+                template.Template = text.Text;
+                template.Bindings = new List<string>();
+                template.Slots = new List<int>();
+            }
+
+            return template;
+        }
+
+        // For other node types (conditional, etc.), return null for now
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts a LoopPropTemplate from an attribute value.
+    /// </summary>
+    private LoopPropTemplate ExtractLoopPropTemplate(AttributeValue attr, string itemName, string? indexName)
+    {
+        var template = new LoopPropTemplate();
+
+        if (attr.IsDynamic)
+        {
+            var binding = ConvertToItemBinding(attr.Binding, itemName) ?? attr.Binding ?? "";
+            template.Template = "{0}";
+            template.Bindings.Add(binding);
+            template.Slots.Add(0);
+            template.Type = "binding";
+        }
+        else
+        {
+            template.Template = attr.RawValue;
+            template.Type = "static";
+        }
+
+        return template;
     }
 
     #endregion
@@ -620,7 +905,7 @@ public class JsxVisitor : TokenVisitor
         // Mark that we need to parse children
     }
 
-    // Pattern: Component prop - same as expression attribute but for components
+    // Pattern: Component prop with expression value - state={{ ... }}
     [TokenPattern(@"(\ja) ""="" (\Bb)", Priority = 70)]
     public void VisitComponentProp(TokenMatch match, Token propNameToken, Token[] propValue)
     {
@@ -633,55 +918,76 @@ public class JsxVisitor : TokenVisitor
         }
     }
 
+    // Pattern: Component prop with string value - name="Counter"
+    // Try multiple patterns: \jv for JSX attr value, \s for string literal
+    [TokenPattern(@"(\ja) ""="" (\jv)", Priority = 71)]
+    public void VisitComponentStringProp(TokenMatch match, Token propNameToken, Token propValueToken)
+    {
+        if (_currentResult is VComponentWrapperModel wrapper)
+        {
+            if (propNameToken.Value == "name")
+            {
+                // Extract string value, removing quotes
+                var value = propValueToken.Value.Trim('"', '\'');
+                wrapper.ComponentName = value;
+                wrapper.ComponentType = value;
+            }
+        }
+    }
+
+    // Alternative pattern for string literals in JSX attributes
+    [TokenPattern(@"(\ja) ""="" (\s)", Priority = 72)]
+    public void VisitComponentStringPropAlt(TokenMatch match, Token propNameToken, Token propValueToken)
+    {
+        if (_currentResult is VComponentWrapperModel wrapper)
+        {
+            if (propNameToken.Value == "name")
+            {
+                // Extract string value, removing quotes
+                var value = propValueToken.Value.Trim('"', '\'');
+                wrapper.ComponentName = value;
+                wrapper.ComponentType = value;
+            }
+        }
+    }
+
     private void ParseComponentState(Token[] tokens, VComponentWrapperModel wrapper)
     {
-        // Pattern-based state object parsing using \Bb for balanced braces
-        var objectMatcher = new PatternMatcher(@"(\Bb)");
-        if (objectMatcher.TryMatch(tokens, 0, out var match) && match != null)
+        // state={{ key: value }} - tokens include outer {{ }}
+        // Use \Bb to extract the inner object literal, then parse key:value pairs
+
+        // First, extract the inner object from {{ ... }}
+        // The outer braces are JSX expression delimiters, inner is the object
+        var innerMatcher = new PatternMatcher(@"""{""  (\Bb)", skipWhitespace: true);
+        if (innerMatcher.TryMatch(tokens, 0, out var innerMatch) && innerMatch != null)
         {
-            // Parse key: value pairs - skip outer braces
-            var content = match.Captures[0].Tokens.Skip(1).SkipLast(1).ToArray();
-            ParseKeyValuePairs(content, wrapper.InitialState);
+            // innerMatch captures { count: 0 }, now extract content inside braces
+            var innerTokens = innerMatch.Captures[0].Tokens;
+            ParseKeyValuePairs(innerTokens, wrapper.InitialState);
         }
     }
 
     private void ParseKeyValuePairs(Token[] tokens, Dictionary<string, string> target)
     {
-        // Pattern-based key:value parsing using named captures, \Bc, and skipWhitespace
-        // (?<key>\i) captures the identifier as "key"
-        // (\Bc) captures the value content until comma at depth 0
-        // skipWhitespace: true automatically skips whitespace between tokens
-        var keyValueMatcher = new PatternMatcher(@"(?<key>\i) \co (?<value>\Bc)", skipWhitespace: true);
+        // Use pattern matching for key: value pairs
+        // Pattern: identifier ":" (value until comma or end)
+        var kvMatcher = new PatternMatcher(@"(\i) "":"" (\Bc)", skipWhitespace: true);
 
-        int i = 0;
-        while (i < tokens.Length)
+        // Use MatchAll to find all key:value pairs declaratively
+        var matches = PatternMatcher.MatchAll(tokens, 0, (kvMatcher, TokenMatchType.Unknown, "kv"));
+        foreach (var match in matches)
         {
-            // Skip commas (whitespace is handled by the matcher)
-            while (i < tokens.Length && (tokens[i].Type == TokenType.Whitespace || tokens[i].Value == ","))
-                i++;
-
-            if (i >= tokens.Length) break;
-
-            // Try to match identifier : value using named captures
-            if (keyValueMatcher.TryMatch(tokens, i, out var match) && match != null)
+            if (match.Match.Captures.Length >= 2)
             {
-                // Use type coercion: AsIdentifier() extracts the identifier value directly
-                var key = match.NamedCaptures.TryGetValue("key", out var keyCapture)
-                    ? keyCapture.AsIdentifier()
-                    : null;
-                var value = match.NamedCaptures.TryGetValue("value", out var valueCapture)
-                    ? valueCapture.AsString().Trim()
-                    : null;
+                var key = match.Match.Captures[0].AsIdentifier();
+                var valueTokens = match.Match.Captures[1].Tokens;
 
-                if (key != null && value != null)
+                // Get the value from the first non-whitespace token
+                var valueToken = valueTokens.FirstOrDefault(t => t.Type != TokenType.Whitespace);
+                if (key != null && valueToken != null)
                 {
-                    target[key] = value;
+                    target[key] = valueToken.Value;
                 }
-                i = match.EndIndex;
-            }
-            else
-            {
-                i++;
             }
         }
     }

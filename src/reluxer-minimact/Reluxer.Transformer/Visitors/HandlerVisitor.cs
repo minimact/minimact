@@ -50,19 +50,37 @@ public class HandlerVisitor : TokenVisitor
             return;
         }
 
-        var handler = new Models.EventHandler
+        // Skip if already added as lifted state (prevent duplicates)
+        if (_component.LiftedStateReads.Any(l => l.LocalName == name))
         {
-            GeneratedName = name,
-            IsArrowFunction = true
-        };
+            SkipFunctionBody();
+            return;
+        }
 
         // Extract the handler body
         var bodyTokens = ExtractFunctionBody(0);
-        if (bodyTokens.Length > 0)
+        var body = bodyTokens.Length > 0 ? TokensToString(bodyTokens) : "";
+
+        // Check if this handler calls setState("X.Y", ...) - lifted state operation
+        // These should become [ClientComputed] properties, not methods
+        if (body.Contains("setState("))
         {
-            handler.Body = TokensToString(bodyTokens);
-            handler.OriginalExpression = $"() => {{ {handler.Body} }}";
+            _component.LiftedStateReads.Add(new LiftedStateRead
+            {
+                LocalName = name,
+                StateKey = name  // The key is the function name itself
+            });
+            SkipFunctionBody();
+            return;
         }
+
+        var handler = new Models.EventHandler
+        {
+            GeneratedName = name,
+            IsArrowFunction = true,
+            Body = body,
+            OriginalExpression = $"() => {{ {body} }}"
+        };
 
         _component.EventHandlers.Add(handler);
         SkipFunctionBody();
@@ -160,59 +178,48 @@ public class HandlerVisitor : TokenVisitor
 
     private string ExtractArrowBody(Token[] tokens)
     {
-        // Find => and extract what's after it
-        var arrowIndex = -1;
-        for (int i = 0; i < tokens.Length; i++)
+        // Pattern: => followed by either { body } or single expression
+        // \fa matches the fat arrow (=>)
+        // \Bb captures balanced braces for block body
+        var arrowBlockMatcher = new PatternMatcher(@"\fa (\Bb)", skipWhitespace: true);
+
+        if (arrowBlockMatcher.TryMatch(tokens, 0, out var blockMatch) && blockMatch != null)
         {
-            if (tokens[i].Value == "=>")
+            // Block body - return content inside braces
+            if (blockMatch.Captures.Length > 0)
             {
-                arrowIndex = i;
-                break;
+                return string.Join("", blockMatch.Captures[0].Tokens.Select(t => t.Value));
             }
         }
 
-        if (arrowIndex < 0 || arrowIndex >= tokens.Length - 1)
-            return "";
-
-        // Get everything after =>
-        var bodyTokens = tokens.Skip(arrowIndex + 1).ToArray();
-
-        // If it starts with {, extract balanced
-        if (bodyTokens.Length > 0 && bodyTokens[0].Value == "{")
+        // Try single expression - everything after =>
+        var arrowExprMatcher = new PatternMatcher(@"\fa", skipWhitespace: true);
+        if (arrowExprMatcher.TryMatch(tokens, 0, out var exprMatch) && exprMatch != null)
         {
-            return ExtractBalancedFromTokens(bodyTokens, "{", "}");
+            // Get everything after the arrow
+            var afterArrow = tokens.Skip(exprMatch.EndIndex).ToArray();
+            return string.Join("", afterArrow.Select(t => t.Value));
         }
 
-        // Otherwise it's a single expression
-        return string.Join("", bodyTokens.Select(t => t.Value));
+        return "";
     }
 
     private string ExtractBalancedFromTokens(Token[] tokens, string open, string close)
     {
-        var sb = new System.Text.StringBuilder();
-        int depth = 0;
-        bool started = false;
-
-        foreach (var token in tokens)
+        // Use PatternMatcher with balanced matchers
+        PatternMatcher matcher = open switch
         {
-            if (token.Value == open)
-            {
-                if (started) sb.Append(token.Value);
-                depth++;
-                started = true;
-            }
-            else if (token.Value == close)
-            {
-                depth--;
-                if (depth == 0) break;
-                sb.Append(token.Value);
-            }
-            else if (started)
-            {
-                sb.Append(token.Value);
-            }
+            "{" => new PatternMatcher(@"(\Bb)", skipWhitespace: false),
+            "(" => new PatternMatcher(@"(\Bp)", skipWhitespace: false),
+            "[" => new PatternMatcher(@"(\Bk)", skipWhitespace: false),
+            _ => throw new ArgumentException($"Unsupported delimiter: {open}")
+        };
+
+        if (matcher.TryMatch(tokens, 0, out var match) && match != null && match.Captures.Length > 0)
+        {
+            return string.Join("", match.Captures[0].Tokens.Select(t => t.Value));
         }
 
-        return sb.ToString();
+        return "";
     }
 }

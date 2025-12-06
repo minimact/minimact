@@ -11,6 +11,7 @@ public class CSharpGenerator
     private readonly TransformOptions _options;
     private readonly StringBuilder _sb = new();
     private int _indentLevel;
+    private ComponentModel? _component;
 
     public CSharpGenerator(TransformOptions options)
     {
@@ -55,11 +56,19 @@ public class CSharpGenerator
 
     private void GenerateComponent(ComponentModel component)
     {
+        _component = component;
+
         // Hook classes get special treatment
         if (component.IsHook)
         {
             GenerateHookClass(component);
             return;
+        }
+
+        // Loop template attributes (before [Component])
+        if (component.LoopTemplates.Count > 0)
+        {
+            WriteLoopTemplateAttributes(component.LoopTemplates);
         }
 
         // Timeline attributes (before [Component])
@@ -78,8 +87,8 @@ public class CSharpGenerator
         foreach (var prop in component.Props)
         {
             WriteLine("[Prop]");
-            // Use dynamic for JS props (they could be functions, arrays, objects, etc.)
-            var csharpType = "dynamic";
+            // Use the inferred type if available, otherwise default to dynamic
+            var csharpType = prop.Type ?? "dynamic";
             if (prop.DefaultValue != null)
             {
                 var defaultVal = ConvertInitialValue(prop.DefaultValue, prop.Type);
@@ -110,6 +119,18 @@ public class CSharpGenerator
             WriteLine();
         }
 
+        // Client-computed properties (lifted state reads, external libraries)
+        if (component.LiftedStateReads.Count > 0)
+        {
+            WriteLine("// Client-computed properties (external libraries)");
+            foreach (var liftedState in component.LiftedStateReads)
+            {
+                WriteLine($"[ClientComputed(\"{liftedState.LocalName}\")]");
+                WriteLine($"private dynamic {liftedState.LocalName} => GetClientState<dynamic>(\"{liftedState.LocalName}\", default);");
+                WriteLine();
+            }
+        }
+
         // viewModel field (useMvcViewModel)
         if (component.HasMvcViewModel)
         {
@@ -133,16 +154,6 @@ public class CSharpGenerator
             foreach (var mvcState in component.MvcStateFields)
             {
                 WriteLine($"var {mvcState.LocalName} = GetState<{mvcState.Type}>(\"{mvcState.ViewModelKey}\");");
-            }
-            WriteLine();
-        }
-
-        // Lifted state reads (from child components)
-        if (component.LiftedStateReads.Count > 0)
-        {
-            foreach (var liftedState in component.LiftedStateReads)
-            {
-                WriteLine($"var {liftedState.LocalName} = GetState<dynamic>(\"{liftedState.StateKey}\");");
             }
             WriteLine();
         }
@@ -582,17 +593,52 @@ public class CSharpGenerator
             // Self-closing or empty element
             Write($"new VElement(\"{tag}\", \"{path}\", {attrs})");
         }
-        else if (element.Children.Count == 1 && element.Children[0] is VTextModel textChild && !textChild.IsDynamic)
+        else if (element.Children.Count == 1 && element.Children[0] is VTextModel textChild)
         {
-            // Single static text child - inline it
-            var escapedText = EscapeString(textChild.Text);
-            Write($"new VElement(\"{tag}\", \"{path}\", {attrs}, \"{escapedText}\")");
+            // Single text child - inline if static OR if mixed text+expression
+            if (textChild.IsDynamic)
+            {
+                var binding = textChild.Binding ?? "";
+                // Only inline if it's merged text+expression (contains both static text AND interpolation)
+                // e.g., "Count: {(count)}" should be inlined
+                // but "{(count)}" alone should become VText child
+                bool isMixedContent = binding.Contains("{(") && binding.Contains(")}") &&
+                    !binding.StartsWith("{("); // Has text before the expression
+
+                if (isMixedContent)
+                {
+                    Write($"new VElement(\"{tag}\", \"{path}\", {attrs}, $\"{binding}\")");
+                }
+                else
+                {
+                    // Pure expression - generate VNode array with VText child
+                    Write($"new VElement(\"{tag}\", \"{path}\", {attrs}, new VNode[]");
+                    _sb.AppendLine();
+                    WriteIndent();
+                    _sb.AppendLine("{");
+                    _indentLevel++;
+                    WriteIndent();
+                    GenerateVText(textChild);
+                    _sb.AppendLine();
+                    _indentLevel--;
+                    WriteIndent();
+                    Write("})");
+                }
+            }
+            else
+            {
+                // Static text - always inline
+                var escapedText = EscapeString(textChild.Text);
+                Write($"new VElement(\"{tag}\", \"{path}\", {attrs}, \"{escapedText}\")");
+            }
         }
         else if (hasListChild)
         {
             // Use MinimactHelpers.createElement for elements containing list children
             // (Select().ToArray() results need varargs handling)
-            Write($"MinimactHelpers.createElement(\"{tag}\", {attrs}, ");
+            // For createElement, use null for empty attributes (Babel convention)
+            var createElementAttrs = element.Attributes.Count == 0 ? "null" : attrs;
+            Write($"MinimactHelpers.createElement(\"{tag}\", {createElementAttrs}, ");
 
             for (int i = 0; i < element.Children.Count; i++)
             {
@@ -632,8 +678,21 @@ public class CSharpGenerator
     {
         if (text.IsDynamic)
         {
-            var binding = ConvertExpression(text.Binding ?? "");
-            Write($"new VText($\"{{({binding})}}\", \"{text.HexPath}\")");
+            var binding = text.Binding ?? "";
+
+            // Check if binding already contains interpolation format (merged text + expressions)
+            // e.g., "Count: {(count)}" from merged children
+            if (binding.Contains("{(") && binding.Contains(")}"))
+            {
+                // Already in interpolated format, just wrap in $"..."
+                Write($"new VText($\"{binding}\", \"{text.HexPath}\")");
+            }
+            else
+            {
+                // Simple binding, convert and wrap
+                var convertedBinding = ConvertExpression(binding);
+                Write($"new VText($\"{{({convertedBinding})}}\", \"{text.HexPath}\")");
+            }
         }
         else
         {
@@ -691,11 +750,18 @@ public class CSharpGenerator
         for (int i = 0; i < stateItems.Count; i++)
         {
             var kv = stateItems[i];
-            Write($"[\"{kv.Key}\"] = {ConvertInitialValue(kv.Value, "object")}");
+            var convertedValue = ConvertInitialValue(kv.Value, "object");
+            Write($"[\"{kv.Key}\"] = {convertedValue}");
             if (i < stateItems.Count - 1) Write(", ");
         }
 
-        WriteLine(" }");
+        // Use Write + manual newline to avoid WriteIndent() being called by WriteLine()
+        _sb.AppendLine(" },");
+
+        // Add blank line before ParentComponent
+        _sb.AppendLine();
+        WriteIndent();
+        _sb.AppendLine("ParentComponent = this");
         _indentLevel--;
         WriteIndent();
         Write("}");
@@ -705,9 +771,20 @@ public class CSharpGenerator
     {
         var arrayExpr = ConvertExpression(list.ArrayExpression);
 
-        // Generate: ((IEnumerable<dynamic>)arrayExpr).Select(item => ...).ToArray()
-        // Cast to IEnumerable<dynamic> to avoid dynamic dispatch issues with lambda
-        Write($"((IEnumerable<dynamic>){arrayExpr}).Select({list.ItemName} => ");
+        // Check if the array expression is a List<dynamic> prop (no cast needed)
+        var matchingProp = _component?.Props.FirstOrDefault(p => p.Name == list.ArrayExpression);
+        var needsCast = matchingProp?.Type != "List<dynamic>";
+
+        // Generate: arrayExpr.Select(item => ...).ToArray()
+        // Only cast to IEnumerable<dynamic> if needed to avoid dynamic dispatch issues
+        if (needsCast)
+        {
+            Write($"((IEnumerable<dynamic>){arrayExpr}).Select({list.ItemName} => ");
+        }
+        else
+        {
+            Write($"{arrayExpr}.Select({list.ItemName} => ");
+        }
 
         if (list.ItemTemplate != null)
         {
@@ -1044,6 +1121,26 @@ public class CSharpGenerator
     }
 
     /// <summary>
+    /// Generates an interpolated string for dynamic text content.
+    /// Example: VTextModel with Binding="Count: {(count)}" -> $"Count:{(count)}"
+    /// </summary>
+    private string GenerateInterpolatedString(VTextModel text)
+    {
+        if (!text.IsDynamic || string.IsNullOrEmpty(text.Binding))
+        {
+            return $"\"{EscapeString(text.Text)}\"";
+        }
+
+        // The binding already contains the interpolated format like "Count: {(count)}"
+        // We just need to wrap it in $"..."
+        var content = text.Binding;
+
+        // Escape any quotes that aren't part of interpolation braces
+        // But preserve {(...)} patterns
+        return $"$\"{content}\"";
+    }
+
+    /// <summary>
     /// C# reserved keywords that need to be escaped with @ prefix.
     /// </summary>
     private static readonly HashSet<string> CSharpKeywords = new()
@@ -1065,6 +1162,157 @@ public class CSharpGenerator
     private string EscapeCSharpKeyword(string name)
     {
         return CSharpKeywords.Contains(name) ? $"@{name}" : name;
+    }
+
+    #endregion
+
+    #region Loop Template Attributes
+
+    /// <summary>
+    /// Writes [LoopTemplate] attributes for .map() patterns.
+    /// Format: [LoopTemplate("stateKey", @"{ json }")]
+    /// </summary>
+    private void WriteLoopTemplateAttributes(List<LoopTemplateInfo> loopTemplates)
+    {
+        foreach (var loop in loopTemplates)
+        {
+            var templateJson = SerializeLoopTemplate(loop);
+            // Escape quotes for C# verbatim string
+            var escapedJson = templateJson.Replace("\"", "\"\"");
+            WriteLine($"[LoopTemplate(\"{loop.StateKey}\", @\"{escapedJson}\")]");
+        }
+    }
+
+    /// <summary>
+    /// Serializes a loop template to JSON format matching Babel output.
+    /// </summary>
+    private string SerializeLoopTemplate(LoopTemplateInfo loop)
+    {
+        var sb = new StringBuilder();
+        sb.Append("{");
+        sb.Append($"\"stateKey\":\"{loop.StateKey}\",");
+        sb.Append($"\"arrayBinding\":\"{loop.ArrayBinding}\",");
+        sb.Append($"\"itemVar\":\"{loop.ItemVar}\",");
+        sb.Append($"\"indexVar\":{(loop.IndexVar != null ? $"\"{loop.IndexVar}\"" : "null")},");
+        sb.Append($"\"keyBinding\":{(loop.KeyBinding != null ? $"\"{loop.KeyBinding}\"" : "null")},");
+        sb.Append("\"itemTemplate\":");
+        SerializeLoopItemTemplate(sb, loop.ItemTemplate);
+        sb.Append("}");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Serializes a loop item template recursively.
+    /// </summary>
+    private void SerializeLoopItemTemplate(StringBuilder sb, LoopItemTemplate? template)
+    {
+        if (template == null)
+        {
+            sb.Append("null");
+            return;
+        }
+
+        sb.Append("{");
+        sb.Append($"\"type\":\"{template.Type}\",");
+
+        if (template.Type == "Text")
+        {
+            sb.Append($"\"template\":\"{EscapeJsonString(template.Template ?? "")}\",");
+            sb.Append("\"bindings\":[");
+            if (template.Bindings != null)
+            {
+                sb.Append(string.Join(",", template.Bindings.Select(b => $"\"{b}\"")));
+            }
+            sb.Append("],");
+            sb.Append("\"slots\":[");
+            if (template.Slots != null)
+            {
+                sb.Append(string.Join(",", template.Slots));
+            }
+            sb.Append("]");
+        }
+        else // Element
+        {
+            sb.Append($"\"tag\":\"{template.Tag}\",");
+
+            // Props templates
+            sb.Append("\"propsTemplates\":");
+            if (template.PropsTemplates != null && template.PropsTemplates.Count > 0)
+            {
+                sb.Append("{");
+                var first = true;
+                foreach (var prop in template.PropsTemplates)
+                {
+                    if (!first) sb.Append(",");
+                    first = false;
+                    sb.Append($"\"{prop.Key}\":");
+                    SerializeLoopPropTemplate(sb, prop.Value);
+                }
+                sb.Append("}");
+            }
+            else
+            {
+                sb.Append("null");
+            }
+
+            // Children templates
+            sb.Append(",\"childrenTemplates\":");
+            if (template.ChildrenTemplates != null && template.ChildrenTemplates.Count > 0)
+            {
+                sb.Append("[");
+                for (int i = 0; i < template.ChildrenTemplates.Count; i++)
+                {
+                    if (i > 0) sb.Append(",");
+                    SerializeLoopItemTemplate(sb, template.ChildrenTemplates[i]);
+                }
+                sb.Append("]");
+            }
+            else
+            {
+                sb.Append("null");
+            }
+        }
+
+        sb.Append("}");
+    }
+
+    /// <summary>
+    /// Serializes a loop prop template.
+    /// </summary>
+    private void SerializeLoopPropTemplate(StringBuilder sb, LoopPropTemplate prop)
+    {
+        sb.Append("{");
+        sb.Append($"\"template\":\"{EscapeJsonString(prop.Template)}\",");
+        sb.Append("\"bindings\":[");
+        sb.Append(string.Join(",", prop.Bindings.Select(b => $"\"{b}\"")));
+        sb.Append("],");
+        sb.Append("\"slots\":[");
+        sb.Append(string.Join(",", prop.Slots));
+        sb.Append("],");
+        sb.Append($"\"type\":\"{prop.Type}\"");
+
+        if (prop.ConditionalTemplates != null)
+        {
+            sb.Append(",\"conditionalTemplates\":{");
+            sb.Append($"\"true\":\"{EscapeJsonString(prop.ConditionalTemplates.GetValueOrDefault("true", ""))}\",");
+            sb.Append($"\"false\":\"{EscapeJsonString(prop.ConditionalTemplates.GetValueOrDefault("false", ""))}\"");
+            sb.Append("}");
+            sb.Append($",\"conditionalBindingIndex\":{prop.ConditionalBindingIndex ?? 0}");
+        }
+
+        sb.Append("}");
+    }
+
+    /// <summary>
+    /// Escapes a string for JSON output.
+    /// </summary>
+    private string EscapeJsonString(string s)
+    {
+        return s.Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r")
+                .Replace("\t", "\\t");
     }
 
     #endregion

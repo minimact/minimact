@@ -1,0 +1,210 @@
+{
+  "component": "TodoList",
+  "version": "1.0",
+  "generatedAt": 1764977547613,
+  "templates": {
+    "1.@class": {
+      "template": "todo-list",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.1": {
+      "template": "My Todos",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1.@key": {
+      "template": "{0}",
+      "bindings": [
+        "todo.id"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.1.1.1.@type": {
+      "template": "checkbox",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1.1.@checked": {
+      "template": "{0}",
+      "bindings": [
+        "todo.completed"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.1.1.1.@key": {
+      "template": "1.2.1.1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1.2.@class": {
+      "template": "{0}",
+      "bindings": [
+        "todo.completed?'completed':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.1.1.2.@key": {
+      "template": "1.2.1.1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "todo.text"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.2.1.1.3.@key": {
+      "template": "1.2.1.1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1.3.1": {
+      "template": "Delete",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1": {
+      "template": "Add Todo",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    }
+  }
+}

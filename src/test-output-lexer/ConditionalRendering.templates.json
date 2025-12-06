@@ -1,0 +1,38 @@
+{
+  "component": "UserProfile",
+  "version": "1.0",
+  "generatedAt": 1764977603587,
+  "templates": {
+    "1.@class": {
+      "template": "profile",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1": {
+      "template": "{0}",
+      "bindings": [
+        "loading?(<divclassName=\"spinner\">Loading...</div>):(<divclassName=\"user-info\"><h1>{user.name}</h1><p>{user.email}</p>{user.isAdmin&&<spanclassName=\"badge\">Admin</span>}</div>)"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1"
+      ],
+      "type": "dynamic"
+    }
+  }
+}
