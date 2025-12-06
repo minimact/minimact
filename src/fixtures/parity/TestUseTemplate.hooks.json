@@ -1,0 +1,16 @@
+{
+  "componentName": "TestUseTemplate",
+  "timestamp": "2025-12-06T14:44:53.450Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "pageTitle",
+      "index": 0
+    },
+    {
+      "type": "useTemplate",
+      "templateName": "MainLayout",
+      "index": 1
+    }
+  ]
+}

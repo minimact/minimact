@@ -1,0 +1,385 @@
+{
+  "component": "AdminPage",
+  "version": "1.0",
+  "generatedAt": 1765032293451,
+  "templates": {
+    "1.1.1.1": {
+      "template": "Users",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.2.1": {
+      "template": "Content",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.3.1": {
+      "template": "Settings",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1.1.1": {
+      "template": "User Management",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1.2.1": {
+      "template": "Manage users here",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1.1.1": {
+      "template": "Content Management",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1.2.1": {
+      "template": "Manage content here",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.3.1.1.1": {
+      "template": "System Settings",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.3.1.2.1": {
+      "template": "Configure system here",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "admin-page",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@className": {
+      "template": "admin-nav",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.1.@key": {
+      "template": "1.1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.2.@key": {
+      "template": "1.1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.3.@key": {
+      "template": "1.1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "admin-content",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.2.1": {
+      "type": "conditional-element",
+      "conditionExpression": "section === 'users'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "section": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.2.1.1",
+          "attributes": {
+            "key": "1.2.1.1"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h2",
+              "hexPath": "1.2.1.1.1",
+              "attributes": {
+                "key": "1.2.1.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "User Management",
+                  "hexPath": "1.2.1.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.2.1.1.2",
+              "attributes": {
+                "key": "1.2.1.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Manage users here",
+                  "hexPath": "1.2.1.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    },
+    "1.2.2": {
+      "type": "conditional-element",
+      "conditionExpression": "section === 'content'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "section": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.2.2.1",
+          "attributes": {
+            "key": "1.2.2.1"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h2",
+              "hexPath": "1.2.2.1.1",
+              "attributes": {
+                "key": "1.2.2.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Content Management",
+                  "hexPath": "1.2.2.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.2.2.1.2",
+              "attributes": {
+                "key": "1.2.2.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Manage content here",
+                  "hexPath": "1.2.2.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    },
+    "1.2.3": {
+      "type": "conditional-element",
+      "conditionExpression": "section === 'settings'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "section": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.2.3.1",
+          "attributes": {
+            "key": "1.2.3.1"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h2",
+              "hexPath": "1.2.3.1.1",
+              "attributes": {
+                "key": "1.2.3.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "System Settings",
+                  "hexPath": "1.2.3.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.2.3.1.2",
+              "attributes": {
+                "key": "1.2.3.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Configure system here",
+                  "hexPath": "1.2.3.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

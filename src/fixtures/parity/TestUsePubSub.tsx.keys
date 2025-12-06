@@ -1,0 +1,157 @@
+/**
+ * Test fixture for usePub and useSub hooks
+ * usePub creates a publisher channel for broadcasting events
+ * useSub subscribes to a channel and receives events
+ */
+
+import { usePub, useSub, useState } from '@minimact/core';
+
+interface ChatMessage {
+  id: string;
+  user: string;
+  text: string;
+  timestamp: number;
+}
+
+interface NotificationEvent {
+  type: 'info' | 'warning' | 'error';
+  message: string;
+}
+
+interface UserStatusEvent {
+  userId: string;
+  status: 'online' | 'offline' | 'away';
+}
+
+export function TestUsePubSub() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Map<string, string>>(new Map());
+  const [inputText, setInputText] = useState('');
+
+  // Publishers - create channels to broadcast events
+  const publishMessage = usePub<ChatMessage>('chat:messages');
+  const publishNotification = usePub<NotificationEvent>('app:notifications');
+  const publishUserStatus = usePub<UserStatusEvent>('users:status');
+
+  // Subscribers - listen to channels
+  useSub<ChatMessage>('chat:messages', (message) => {
+    setMessages(prev => [...prev, message]);
+  });
+
+  useSub<NotificationEvent>('app:notifications', (notification) => {
+    setNotifications(prev => [...prev, notification]);
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.slice(1));
+    }, 5000);
+  });
+
+  useSub<UserStatusEvent>('users:status', (event) => {
+    setOnlineUsers(prev => {
+      const updated = new Map(prev);
+      if (event.status === 'offline') {
+        updated.delete(event.userId);
+      } else {
+        updated.set(event.userId, event.status);
+      }
+      return updated;
+    });
+  });
+
+  // Cross-component subscription (e.g., from a sidebar)
+  useSub<{ theme: 'light' | 'dark' }>('settings:theme', (event) => {
+    document.body.classList.toggle('dark', event.theme === 'dark');
+  });
+
+  const handleSendMessage = () => {
+    if (!inputText.trim()) return;
+
+    const message: ChatMessage = {
+      id: Date.now().toString(),
+      user: 'CurrentUser',
+      text: inputText,
+      timestamp: Date.now()
+    };
+
+    publishMessage(message);
+    setInputText('');
+  };
+
+  const handleNotify = (type: NotificationEvent['type']) => {
+    publishNotification({
+      type,
+      message: `This is a ${type} notification at ${new Date().toLocaleTimeString()}`
+    });
+  };
+
+  const handleStatusChange = (status: UserStatusEvent['status']) => {
+    publishUserStatus({
+      userId: 'currentUser',
+      status
+    });
+  };
+
+  return (
+    <div key='1' className="pubsub-test">
+      <h2 key='1.1'>Pub/Sub Test</h2>
+      <section key='1.2' className="notifications-section">
+        <h3 key='1.2.1'>Notifications</h3>
+        <div key='1.2.2' className="notification-buttons">
+          <button key='1.2.2.1' onClick={() => handleNotify('info')}>Info</button>
+          <button key='1.2.2.2' onClick={() => handleNotify('warning')}>Warning</button>
+          <button key='1.2.2.3' onClick={() => handleNotify('error')}>Error</button>
+        </div>
+        <div key='1.2.3' className="notification-list">
+          {notifications.map((notif, index) => (
+            <div key='1.2.3.1.1' key={index} className={`notification ${notif.type}`}>
+              {notif.message}
+            </div>
+          ))}
+        </div>
+      </section>
+      <section key='1.3' className="status-section">
+        <h3 key='1.3.1'>User Status</h3>
+        <div key='1.3.2' className="status-buttons">
+          <button key='1.3.2.1' onClick={() => handleStatusChange('online')}>Go Online</button>
+          <button key='1.3.2.2' onClick={() => handleStatusChange('away')}>Go Away</button>
+          <button key='1.3.2.3' onClick={() => handleStatusChange('offline')}>Go Offline</button>
+        </div>
+        <div key='1.3.3' className="online-users">
+          <h4 key='1.3.3.1'>Online Users ({onlineUsers.size})</h4>
+          <ul key='1.3.3.2'>
+            {Array.from(onlineUsers.entries()).map(([userId, status]) => (
+              <li key='1.3.3.2.1.1' key={userId}>
+                {userId}: <span key='1.3.3.2.1.1.3' className={`status-${status}`}>{status}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <section key='1.4' className="chat-section">
+        <h3 key='1.4.1'>Chat Messages</h3>
+        <div key='1.4.2' className="message-list">
+          {messages.map((msg) => (
+            <div key='1.4.2.1.1' key={msg.id} className="message">
+              <span key='1.4.2.1.1.1' className="user">{msg.user}</span>
+              <span key='1.4.2.1.1.2' className="text">{msg.text}</span>
+              <span key='1.4.2.1.1.3' className="time">
+                {new Date(msg.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div key='1.4.3' className="message-input">
+          <input
+            key='1.4.3.1'
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Type a message..." />
+          <button key='1.4.3.2' onClick={handleSendMessage}>Send</button>
+        </div>
+      </section>
+    </div>
+  );
+}

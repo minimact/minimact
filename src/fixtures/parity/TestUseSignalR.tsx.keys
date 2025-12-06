@@ -1,0 +1,206 @@
+/**
+ * Test fixture for useSignalR hook
+ * useSignalR creates a SignalR hub connection for real-time communication
+ */
+
+import { useSignalR, useState } from '@minimact/core';
+
+interface Message {
+  user: string;
+  text: string;
+  timestamp: string;
+}
+
+interface StockPrice {
+  symbol: string;
+  price: number;
+  change: number;
+}
+
+export function TestUseSignalR() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [stockPrices, setStockPrices] = useState<Map<string, StockPrice>>(new Map());
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [inputMessage, setInputMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState('User1');
+
+  // Chat hub connection
+  const chatHub = useSignalR('/hubs/chat', {
+    onConnected: () => {
+      setConnectionStatus('connected');
+    },
+    onDisconnected: () => {
+      setConnectionStatus('disconnected');
+    },
+    onReconnecting: () => {
+      setConnectionStatus('reconnecting');
+    },
+    handlers: {
+      // Handle incoming chat messages
+      'ReceiveMessage': (user: string, text: string, timestamp: string) => {
+        setMessages(prev => [...prev, { user, text, timestamp }]);
+      },
+      // Handle user join/leave notifications
+      'UserJoined': (user: string) => {
+        setMessages(prev => [...prev, {
+          user: 'System',
+          text: `${user} joined the chat`,
+          timestamp: new Date().toISOString()
+        }]);
+      },
+      'UserLeft': (user: string) => {
+        setMessages(prev => [...prev, {
+          user: 'System',
+          text: `${user} left the chat`,
+          timestamp: new Date().toISOString()
+        }]);
+      }
+    }
+  });
+
+  // Stock ticker hub connection (separate hub)
+  const stockHub = useSignalR('/hubs/stocks', {
+    handlers: {
+      'PriceUpdate': (symbol: string, price: number, change: number) => {
+        setStockPrices(prev => {
+          const updated = new Map(prev);
+          updated.set(symbol, { symbol, price, change });
+          return updated;
+        });
+      },
+      'MarketClosed': () => {
+        console.log('Market is closed');
+      }
+    },
+    // Auto-reconnect configuration
+    reconnectPolicy: {
+      maxRetries: 5,
+      delayMs: 2000
+    }
+  });
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    try {
+      // Invoke server method
+      await chatHub.invoke('SendMessage', currentUser, inputMessage);
+      setInputMessage('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
+
+  const handleJoinChat = async () => {
+    try {
+      await chatHub.invoke('JoinChat', currentUser);
+    } catch (error) {
+      console.error('Failed to join chat:', error);
+    }
+  };
+
+  const handleLeaveChat = async () => {
+    try {
+      await chatHub.invoke('LeaveChat', currentUser);
+    } catch (error) {
+      console.error('Failed to leave chat:', error);
+    }
+  };
+
+  const handleSubscribeStock = async (symbol: string) => {
+    try {
+      await stockHub.invoke('SubscribeToStock', symbol);
+    } catch (error) {
+      console.error('Failed to subscribe:', error);
+    }
+  };
+
+  const handleUnsubscribeStock = async (symbol: string) => {
+    try {
+      await stockHub.invoke('UnsubscribeFromStock', symbol);
+      setStockPrices(prev => {
+        const updated = new Map(prev);
+        updated.delete(symbol);
+        return updated;
+      });
+    } catch (error) {
+      console.error('Failed to unsubscribe:', error);
+    }
+  };
+
+  return (
+    <div key='1' className="signalr-test">
+      <h2 key='1.1'>SignalR Test</h2>
+      <div key='1.2' className={`connection-status ${connectionStatus}`}>
+        Status: {connectionStatus}
+      </div>
+      <section key='1.3' className="chat-section">
+        <h3 key='1.3.1'>Chat Hub</h3>
+
+        <div key='1.3.2' className="user-controls">
+          <input
+            key='1.3.2.1'
+            type="text"
+            value={currentUser}
+            onChange={(e) => setCurrentUser(e.target.value)}
+            placeholder="Your name" />
+          <button key='1.3.2.2' onClick={handleJoinChat}>Join</button>
+          <button key='1.3.2.3' onClick={handleLeaveChat}>Leave</button>
+        </div>
+
+        <div key='1.3.3' className="message-list">
+          {messages.map((msg, index) => (
+            <div
+              key='1.3.3.1.1'
+              key={index}
+              className={`message ${msg.user === 'System' ? 'system' : ''}`}>
+              <span key='1.3.3.1.1.1' className="user">{msg.user}</span>
+              <span key='1.3.3.1.1.2' className="text">{msg.text}</span>
+              <span key='1.3.3.1.1.3' className="time">
+                {new Date(msg.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div key='1.3.4' className="message-input">
+          <input
+            key='1.3.4.1'
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Type a message..." />
+          <button key='1.3.4.2' onClick={handleSendMessage}>Send</button>
+        </div>
+      </section>
+      <section key='1.4' className="stocks-section">
+        <h3 key='1.4.1'>Stock Ticker Hub</h3>
+
+        <div key='1.4.2' className="subscribe-controls">
+          <button key='1.4.2.1' onClick={() => handleSubscribeStock('AAPL')}>+ AAPL</button>
+          <button key='1.4.2.2' onClick={() => handleSubscribeStock('GOOGL')}>+ GOOGL</button>
+          <button key='1.4.2.3' onClick={() => handleSubscribeStock('MSFT')}>+ MSFT</button>
+          <button key='1.4.2.4' onClick={() => handleSubscribeStock('AMZN')}>+ AMZN</button>
+        </div>
+
+        <div key='1.4.3' className="stock-list">
+          {Array.from(stockPrices.values()).map((stock) => (
+            <div key='1.4.3.1.1' key={stock.symbol} className="stock-item">
+              <span key='1.4.3.1.1.1' className="symbol">{stock.symbol}</span>
+              <span key='1.4.3.1.1.2' className="price">${stock.price.toFixed(2)}</span>
+              <span
+                key='1.4.3.1.1.3'
+                className={`change ${stock.change >= 0 ? 'up' : 'down'}`}>
+                {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}%
+              </span>
+              <button key='1.4.3.1.1.4' onClick={() => handleUnsubscribeStock(stock.symbol)}>
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

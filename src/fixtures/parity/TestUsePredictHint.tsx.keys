@@ -1,0 +1,147 @@
+/**
+ * Test fixture for usePredictHint hook
+ * usePredictHint allows manual registration of predictive rendering hints
+ * Used when automatic prediction isn't sufficient
+ */
+
+import { usePredictHint, useState } from '@minimact/core';
+
+export function TestUsePredictHint() {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Register prediction hints for tab switching
+  // The server will pre-compute patches for these state transitions
+  usePredictHint('tab-overview', { activeTab: 'overview' });
+  usePredictHint('tab-details', { activeTab: 'details' });
+  usePredictHint('tab-reviews', { activeTab: 'reviews' });
+  usePredictHint('tab-related', { activeTab: 'related' });
+
+  // Register hints for expand/collapse
+  usePredictHint('expanded', { isExpanded: true });
+  usePredictHint('collapsed', { isExpanded: false });
+
+  // Register hints for view mode toggle
+  usePredictHint('view-grid', { viewMode: 'grid' });
+  usePredictHint('view-list', { viewMode: 'list' });
+
+  // Register compound hints (multiple state changes)
+  usePredictHint('reset-view', {
+    activeTab: 'overview',
+    isExpanded: false,
+    viewMode: 'grid',
+    selectedItems: []
+  });
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  const handleToggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+  };
+
+  const handleSelectItem = (id: number) => {
+    setSelectedItems(prev =>
+      prev.includes(id)
+        ? prev.filter(i => i !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleReset = () => {
+    setActiveTab('overview');
+    setIsExpanded(false);
+    setViewMode('grid');
+    setSelectedItems([]);
+  };
+
+  return (
+    <div key='1' className="predict-hint-test">
+      <h2 key='1.1'>Predictive Hint Test</h2>
+      <div key='1.2' className="controls">
+        <button key='1.2.1' onClick={handleReset}>Reset View</button>
+        <button key='1.2.2' onClick={handleToggleExpand}>
+          {isExpanded ? 'Collapse' : 'Expand'}
+        </button>
+        <div key='1.2.3' className="view-toggle">
+          <button
+            key='1.2.3.1'
+            onClick={() => handleViewModeChange('grid')}
+            className={viewMode === 'grid' ? 'active' : ''}>
+            Grid
+          </button>
+          <button
+            key='1.2.3.2'
+            onClick={() => handleViewModeChange('list')}
+            className={viewMode === 'list' ? 'active' : ''}>
+            List
+          </button>
+        </div>
+      </div>
+      <div key='1.3' className="tabs">
+        <button
+          key='1.3.1'
+          onClick={() => handleTabChange('overview')}
+          className={activeTab === 'overview' ? 'active' : ''}>
+          Overview
+        </button>
+        <button
+          key='1.3.2'
+          onClick={() => handleTabChange('details')}
+          className={activeTab === 'details' ? 'active' : ''}>
+          Details
+        </button>
+        <button
+          key='1.3.3'
+          onClick={() => handleTabChange('reviews')}
+          className={activeTab === 'reviews' ? 'active' : ''}>
+          Reviews
+        </button>
+        <button
+          key='1.3.4'
+          onClick={() => handleTabChange('related')}
+          className={activeTab === 'related' ? 'active' : ''}>
+          Related
+        </button>
+      </div>
+      <div
+        key='1.4'
+        className={`content ${isExpanded ? 'expanded' : ''} ${viewMode}`}>
+        {activeTab === 'overview' && (
+          <div key='1.4.1.1' className="tab-content overview">
+            <h3 key='1.4.1.1.1'>Product Overview</h3>
+            <p key='1.4.1.1.2'>This is the overview content.</p>
+          </div>
+        )}
+        {activeTab === 'details' && (
+          <div key='1.4.2.1' className="tab-content details">
+            <h3 key='1.4.2.1.1'>Product Details</h3>
+            <p key='1.4.2.1.2'>This is the details content.</p>
+          </div>
+        )}
+        {activeTab === 'reviews' && (
+          <div key='1.4.3.1' className="tab-content reviews">
+            <h3 key='1.4.3.1.1'>Customer Reviews</h3>
+            <p key='1.4.3.1.2'>This is the reviews content.</p>
+          </div>
+        )}
+        {activeTab === 'related' && (
+          <div key='1.4.4.1' className="tab-content related">
+            <h3 key='1.4.4.1.1'>Related Products</h3>
+            <p key='1.4.4.1.2'>This is the related products content.</p>
+          </div>
+        )}
+      </div>
+      <div key='1.5' className="selection-info">
+        Selected items: {selectedItems.length}
+      </div>
+    </div>
+  );
+}

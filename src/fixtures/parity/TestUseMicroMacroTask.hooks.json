@@ -1,0 +1,44 @@
+{
+  "componentName": "TestUseMicroMacroTask",
+  "timestamp": "2025-12-06T14:45:05.856Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "log",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "counter",
+      "index": 1
+    },
+    {
+      "type": "useMicroTask",
+      "index": 2
+    },
+    {
+      "type": "useMicroTask",
+      "index": 3
+    },
+    {
+      "type": "useMacroTask",
+      "delay": 0,
+      "index": 4
+    },
+    {
+      "type": "useMacroTask",
+      "delay": 500,
+      "index": 5
+    },
+    {
+      "type": "useMacroTask",
+      "delay": 1000,
+      "index": 6
+    },
+    {
+      "type": "useMacroTask",
+      "delay": 2000,
+      "index": 7
+    }
+  ]
+}

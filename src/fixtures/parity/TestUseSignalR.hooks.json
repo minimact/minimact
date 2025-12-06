@@ -1,0 +1,43 @@
+{
+  "componentName": "TestUseSignalR",
+  "timestamp": "2025-12-06T14:44:20.377Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "messages",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "stockPrices",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "connectionStatus",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "inputMessage",
+      "index": 3
+    },
+    {
+      "type": "useState",
+      "varName": "currentUser",
+      "index": 4
+    },
+    {
+      "type": "useSignalR",
+      "varName": "chatHub",
+      "hubUrl": "/hubs/chat",
+      "index": 5
+    },
+    {
+      "type": "useSignalR",
+      "varName": "stockHub",
+      "hubUrl": "/hubs/stocks",
+      "index": 6
+    }
+  ]
+}

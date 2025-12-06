@@ -1,0 +1,31 @@
+{
+  "componentName": "TestChainedArrayMethods",
+  "timestamp": "2025-12-06T14:39:17.444Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "todos",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "products",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "showCompleted",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "categoryFilter",
+      "index": 3
+    },
+    {
+      "type": "useState",
+      "varName": "maxItems",
+      "index": 4
+    }
+  ]
+}

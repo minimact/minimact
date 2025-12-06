@@ -1,0 +1,720 @@
+{
+  "component": "TestChainedArrayMethods",
+  "version": "1.0",
+  "generatedAt": 1765031957443,
+  "templates": {
+    "1.1.1": {
+      "template": "Chained Array Methods Test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1": {
+      "template": "Filter + Map (incomplete todos)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.1.1": {
+      "template": "Conditional Filter + Map",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.2": {
+      "template": "Show completed",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "2"
+      ],
+      "type": "static"
+    },
+    "1.4.1.1": {
+      "template": "Sort + Map (by priority)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.5.1.1": {
+      "template": "Slice + Map (first 3)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.6.1.1": {
+      "template": "Filter + Sort + Map (incomplete, by date)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.7.1.1": {
+      "template": "Filter + Slice + Map (in stock, first 3)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.7.2.1.1": {
+      "template": "All",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.7.2.2.1": {
+      "template": "Electronics",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.7.2.3.1": {
+      "template": "Clothing",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.8.1.1": {
+      "template": "Full Chain: Filter + Sort + Slice + Map",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.9.1.1": {
+      "template": "Nested Maps with Filter",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "9",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.a.1.1": {
+      "template": "Filter for Count",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "a",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.a.2.1": {
+      "template": "Incomplete high priority: {0}",
+      "bindings": [
+        "length"
+      ],
+      "slots": [
+        26
+      ],
+      "path": [
+        "1",
+        "a",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.a.3.1": {
+      "template": "In-stock electronics: {0}",
+      "bindings": [
+        "length"
+      ],
+      "slots": [
+        22
+      ],
+      "path": [
+        "1",
+        "a",
+        "3"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "chained-methods-test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1.@key": {
+      "template": "1.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@key": {
+      "template": "1.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.1.@key": {
+      "template": "1.3.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.1.@type": {
+      "template": "checkbox",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.1.@checked": {
+      "template": "{0}",
+      "bindings": [
+        "showCompleted"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.3.@key": {
+      "template": "1.3.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.1.@key": {
+      "template": "1.4.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.2.@key": {
+      "template": "1.4.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.@key": {
+      "template": "1.5",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.1.@key": {
+      "template": "1.5.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.2.@key": {
+      "template": "1.5.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.@key": {
+      "template": "1.6",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.1.@key": {
+      "template": "1.6.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.2.@key": {
+      "template": "1.6.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.@key": {
+      "template": "1.7",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.1.@key": {
+      "template": "1.7.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.@key": {
+      "template": "1.7.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.@value": {
+      "template": "{0}",
+      "bindings": [
+        "categoryFilter"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "7",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.7.2.1.@key": {
+      "template": "1.7.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.1.@value": {
+      "template": "",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.2.@key": {
+      "template": "1.7.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.2.@value": {
+      "template": "Electronics",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.3.@key": {
+      "template": "1.7.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.2.3.@value": {
+      "template": "Clothing",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.3.@key": {
+      "template": "1.7.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.@key": {
+      "template": "1.8",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.1.@key": {
+      "template": "1.8.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.2.@key": {
+      "template": "1.8.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.2.@type": {
+      "template": "number",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.2.@value": {
+      "template": "{0}",
+      "bindings": [
+        "maxItems"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "8",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.8.3.@key": {
+      "template": "1.8.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.3.@className": {
+      "template": "product-grid",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.9.@key": {
+      "template": "1.9",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "9"
+      ],
+      "type": "attribute-static"
+    },
+    "1.9.1.@key": {
+      "template": "1.9.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "9",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.a.@key": {
+      "template": "1.a",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "a"
+      ],
+      "type": "attribute-static"
+    },
+    "1.a.1.@key": {
+      "template": "1.a.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "a",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.a.2.@key": {
+      "template": "1.a.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "a",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.a.3.@key": {
+      "template": "1.a.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "a",
+        "3"
+      ],
+      "type": "attribute-static"
+    }
+  }
+}

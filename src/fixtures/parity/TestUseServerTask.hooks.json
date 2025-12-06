@@ -1,0 +1,54 @@
+{
+  "componentName": "TestUseServerTask",
+  "timestamp": "2025-12-06T14:42:51.602Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "query",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "results",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "streamedContent",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "isLoading",
+      "index": 3
+    },
+    {
+      "type": "useServerTask",
+      "varName": "searchProducts",
+      "runtime": "csharp",
+      "isStreaming": false,
+      "index": 4
+    },
+    {
+      "type": "useServerTask",
+      "varName": "fetchUser",
+      "runtime": "csharp",
+      "isStreaming": false,
+      "index": 5
+    },
+    {
+      "type": "useServerTask",
+      "varName": "streamAIResponse",
+      "runtime": "csharp",
+      "isStreaming": true,
+      "index": 6
+    },
+    {
+      "type": "useServerTask",
+      "varName": "computeHeavyTask",
+      "runtime": "rust",
+      "isStreaming": false,
+      "index": 7
+    }
+  ]
+}

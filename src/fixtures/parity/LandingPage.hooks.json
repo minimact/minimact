@@ -1,0 +1,11 @@
+{
+  "componentName": "LandingPage",
+  "timestamp": "2025-12-06T14:44:53.451Z",
+  "hooks": [
+    {
+      "type": "useTemplate",
+      "templateName": "MarketingLayout",
+      "index": 0
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "componentName": "AdminPage",
+  "timestamp": "2025-12-06T14:44:53.452Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "section",
+      "index": 0
+    },
+    {
+      "type": "useTemplate",
+      "templateName": "AdminLayout",
+      "index": 1
+    }
+  ]
+}

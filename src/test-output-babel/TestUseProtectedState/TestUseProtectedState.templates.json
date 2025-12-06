@@ -1,0 +1,324 @@
+{
+  "component": "TestUseProtectedState",
+  "version": "1.0",
+  "generatedAt": 1765032143236,
+  "templates": {
+    "1.1.1": {
+      "template": "Protected State Test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1": {
+      "template": "Protected (Internal Only)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1": {
+      "template": "Internal Counter: {0}",
+      "bindings": [
+        "internalCounter"
+      ],
+      "slots": [
+        18
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.2.3.1": {
+      "template": "Secret: {0}",
+      "bindings": [
+        "secretValue"
+      ],
+      "slots": [
+        8
+      ],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "dynamic"
+    },
+    "1.2.4.1": {
+      "template": "Increment Internal",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "4",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.5.1": {
+      "template": "Reveal Secret",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "5",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.1.1": {
+      "template": "Public (Can Be Lifted)",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.1": {
+      "template": "Public Counter: {0}",
+      "bindings": [
+        "publicCounter"
+      ],
+      "slots": [
+        16
+      ],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.3.3.1": {
+      "template": "Increment Public",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "protected-state-test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "protected-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@key": {
+      "template": "1.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.4.@key": {
+      "template": "1.2.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.4.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleIncrementInternal"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "4"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.5.@key": {
+      "template": "1.2.5",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "5"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.5.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleReveal"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "5"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@className": {
+      "template": "public-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1.@key": {
+      "template": "1.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@key": {
+      "template": "1.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.@key": {
+      "template": "1.3.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleIncrementPublic"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-dynamic"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "componentName": "TestUseMarkdown",
+  "timestamp": "2025-12-06T14:44:08.037Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "selectedDoc",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "externalMd",
+      "index": 1
+    }
+  ]
+}

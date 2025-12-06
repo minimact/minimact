@@ -1,0 +1,44 @@
+{
+  "componentName": "TestUsePubSub",
+  "timestamp": "2025-12-06T14:43:56.422Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "messages",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "notifications",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "onlineUsers",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "inputText",
+      "index": 3
+    },
+    {
+      "type": "usePub",
+      "varName": "publishMessage",
+      "channel": "chat:messages",
+      "index": 4
+    },
+    {
+      "type": "usePub",
+      "varName": "publishNotification",
+      "channel": "app:notifications",
+      "index": 5
+    },
+    {
+      "type": "usePub",
+      "varName": "publishUserStatus",
+      "channel": "users:status",
+      "index": 6
+    }
+  ]
+}

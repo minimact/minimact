@@ -1,0 +1,731 @@
+{
+  "component": "TestUsePredictHint",
+  "version": "1.0",
+  "generatedAt": 1765032212695,
+  "templates": {
+    "1.1.1": {
+      "template": "Predictive Hint Test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1": {
+      "template": "Reset View",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "isExpanded"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "conditional",
+      "conditionalTemplates": {
+        "true": "Collapse",
+        "false": "Expand"
+      }
+    },
+    "1.2.3.1.1": {
+      "template": "Grid",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.3.2.1": {
+      "template": "List",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.1.1": {
+      "template": "Overview",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.1": {
+      "template": "Details",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.3.1": {
+      "template": "Reviews",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.4.1": {
+      "template": "Related",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "4",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.1.1.1.1": {
+      "template": "Product Overview",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.1.1.2.1": {
+      "template": "This is the overview content.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.2.1.1.1": {
+      "template": "Product Details",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.2.1.2.1": {
+      "template": "This is the details content.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.3.1.1.1": {
+      "template": "Customer Reviews",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.3.1.2.1": {
+      "template": "This is the reviews content.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.4.1.1.1": {
+      "template": "Related Products",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "4",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.4.1.2.1": {
+      "template": "This is the related products content.",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "4",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.5.1": {
+      "template": "Selected items: {0}",
+      "bindings": [
+        "selectedItems.length"
+      ],
+      "slots": [
+        25
+      ],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "predict-hint-test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "controls",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleReset"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleToggleExpand"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.3.@key": {
+      "template": "1.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@className": {
+      "template": "view-toggle",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.1.@key": {
+      "template": "1.2.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.2.@key": {
+      "template": "1.2.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@className": {
+      "template": "tabs",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1.@key": {
+      "template": "1.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@key": {
+      "template": "1.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.@key": {
+      "template": "1.3.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.4.@key": {
+      "template": "1.3.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@className": {
+      "template": "content {0} {1}",
+      "bindings": [
+        "__complex__",
+        "viewMode"
+      ],
+      "slots": [
+        8,
+        12
+      ],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.5.@key": {
+      "template": "1.5",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.@className": {
+      "template": "selection-info",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "attribute-static"
+    }
+  },
+  "conditionalElements": {
+    "1.4.1": {
+      "type": "conditional-element",
+      "conditionExpression": "activeTab === 'overview'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "activeTab": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.4.1.1",
+          "attributes": {
+            "key": "1.4.1.1",
+            "className": "tab-content overview"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h3",
+              "hexPath": "1.4.1.1.1",
+              "attributes": {
+                "key": "1.4.1.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Product Overview",
+                  "hexPath": "1.4.1.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.4.1.1.2",
+              "attributes": {
+                "key": "1.4.1.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "This is the overview content.",
+                  "hexPath": "1.4.1.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    },
+    "1.4.2": {
+      "type": "conditional-element",
+      "conditionExpression": "activeTab === 'details'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "activeTab": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.4.2.1",
+          "attributes": {
+            "key": "1.4.2.1",
+            "className": "tab-content details"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h3",
+              "hexPath": "1.4.2.1.1",
+              "attributes": {
+                "key": "1.4.2.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Product Details",
+                  "hexPath": "1.4.2.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.4.2.1.2",
+              "attributes": {
+                "key": "1.4.2.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "This is the details content.",
+                  "hexPath": "1.4.2.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    },
+    "1.4.3": {
+      "type": "conditional-element",
+      "conditionExpression": "activeTab === 'reviews'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "activeTab": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.4.3.1",
+          "attributes": {
+            "key": "1.4.3.1",
+            "className": "tab-content reviews"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h3",
+              "hexPath": "1.4.3.1.1",
+              "attributes": {
+                "key": "1.4.3.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Customer Reviews",
+                  "hexPath": "1.4.3.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.4.3.1.2",
+              "attributes": {
+                "key": "1.4.3.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "This is the reviews content.",
+                  "hexPath": "1.4.3.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    },
+    "1.4.4": {
+      "type": "conditional-element",
+      "conditionExpression": "activeTab === 'related'",
+      "conditionBindings": [
+        "state_0"
+      ],
+      "conditionMapping": {
+        "activeTab": "state_0"
+      },
+      "evaluable": true,
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.4.4.1",
+          "attributes": {
+            "key": "1.4.4.1",
+            "className": "tab-content related"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h3",
+              "hexPath": "1.4.4.1.1",
+              "attributes": {
+                "key": "1.4.4.1.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Related Products",
+                  "hexPath": "1.4.4.1.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.4.4.1.2",
+              "attributes": {
+                "key": "1.4.4.1.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "value": "This is the related products content.",
+                  "hexPath": "1.4.4.1.2.1"
+                }
+              ]
+            }
+          ]
+        },
+        "false": null
+      },
+      "operator": "&&"
+    }
+  }
+}

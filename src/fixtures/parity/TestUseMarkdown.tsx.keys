@@ -1,0 +1,144 @@
+/**
+ * Test fixture for useMarkdown and useRazorMarkdown hooks
+ * useMarkdown parses markdown content on the server
+ * useRazorMarkdown supports Razor syntax within markdown
+ */
+
+import { useMarkdown, useRazorMarkdown, useState } from '@minimact/core';
+
+export function TestUseMarkdown() {
+  const [selectedDoc, setSelectedDoc] = useState('intro');
+
+  // Basic markdown - parsed on server, rendered as HTML
+  const introContent = useMarkdown(`
+# Welcome to Our App
+
+This is a **bold** statement and this is *italic*.
+
+## Features
+
+- Fast server-side rendering
+- Predictive updates
+- Real-time sync
+
+### Code Example
+
+\`\`\`typescript
+const [count, setCount] = useState(0);
+\`\`\`
+
+> This is a blockquote with some important information.
+
+[Learn more](https://example.com/docs)
+  `);
+
+  // Markdown with dynamic content via template literals
+  const dynamicContent = useMarkdown(`
+# Documentation for ${selectedDoc}
+
+Last updated: ${new Date().toLocaleDateString()}
+
+---
+
+${selectedDoc === 'intro' ? '## Introduction\nStart here!' : ''}
+${selectedDoc === 'api' ? '## API Reference\nAll the APIs.' : ''}
+${selectedDoc === 'examples' ? '## Examples\nCode samples.' : ''}
+  `);
+
+  // Razor markdown - supports @variable, @foreach, @if
+  const razorContent = useRazorMarkdown(`
+# Product Catalog
+
+@foreach(var product in Model.Products)
+{
+## @product.Name
+
+Price: **$@product.Price**
+
+@if(product.InStock)
+{
+*Available now!*
+}
+else
+{
+~~Out of stock~~
+}
+
+---
+}
+
+## Summary
+
+Total products: @Model.Products.Count
+  `);
+
+  // Markdown from external source (fetched)
+  const [externalMd, setExternalMd] = useState('');
+  const externalContent = useMarkdown(externalMd, {
+    sanitize: true,
+    allowedTags: ['h1', 'h2', 'h3', 'p', 'strong', 'em', 'code', 'pre', 'ul', 'li']
+  });
+
+  const handleLoadExternal = async () => {
+    const response = await fetch('/docs/readme.md');
+    const text = await response.text();
+    setExternalMd(text);
+  };
+
+  return (
+    <div key='1' className="markdown-test">
+      <h2 key='1.1'>Markdown Test</h2>
+      <section key='1.2' className="doc-selector">
+        <button
+          key='1.2.1'
+          onClick={() => setSelectedDoc('intro')}
+          className={selectedDoc === 'intro' ? 'active' : ''}>
+          Introduction
+        </button>
+        <button
+          key='1.2.2'
+          onClick={() => setSelectedDoc('api')}
+          className={selectedDoc === 'api' ? 'active' : ''}>
+          API
+        </button>
+        <button
+          key='1.2.3'
+          onClick={() => setSelectedDoc('examples')}
+          className={selectedDoc === 'examples' ? 'active' : ''}>
+          Examples
+        </button>
+      </section>
+      <section key='1.3' className="static-markdown">
+        <h3 key='1.3.1'>Static Markdown</h3>
+        <div
+          key='1.3.2'
+          className="markdown-content"
+          dangerouslySetInnerHTML={{ __html: introContent }} />
+      </section>
+      <section key='1.4' className="dynamic-markdown">
+        <h3 key='1.4.1'>Dynamic Markdown (selected: {selectedDoc})</h3>
+        <div
+          key='1.4.2'
+          className="markdown-content"
+          dangerouslySetInnerHTML={{ __html: dynamicContent }} />
+      </section>
+      <section key='1.5' className="razor-markdown">
+        <h3 key='1.5.1'>Razor Markdown</h3>
+        <div
+          key='1.5.2'
+          className="markdown-content"
+          dangerouslySetInnerHTML={{ __html: razorContent }} />
+      </section>
+      <section key='1.6' className="external-markdown">
+        <h3 key='1.6.1'>External Markdown</h3>
+        <button key='1.6.2' onClick={handleLoadExternal}>Load External Docs</button>
+        {externalMd && (
+          <div
+            key='1.6.3.1'
+            className="markdown-content"
+            dangerouslySetInnerHTML={{ __html: externalContent }} />
+        )}
+      </section>
+    </div>
+  );
+}

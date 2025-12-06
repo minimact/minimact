@@ -1,0 +1,122 @@
+/**
+ * Test fixture for useMicroTask and useMacroTask hooks
+ * useMicroTask schedules a callback as a microtask (after current task, before rendering)
+ * useMacroTask schedules a callback as a macrotask with optional delay
+ */
+
+import { useMicroTask, useMacroTask, useState } from '@minimact/core';
+
+export function TestUseMicroMacroTask() {
+  const [log, setLog] = useState<string[]>([]);
+  const [counter, setCounter] = useState(0);
+
+  // Microtask - runs after current synchronous code, before next render
+  // Useful for batching state updates or deferring computations
+  const scheduleMicro = useMicroTask(() => {
+    setLog(prev => [...prev, `Microtask executed at ${Date.now()}`]);
+  });
+
+  // Another microtask with data processing
+  const processBatch = useMicroTask(() => {
+    // This runs after the click handler completes but before paint
+    const processed = counter * 2;
+    setLog(prev => [...prev, `Processed value: ${processed}`]);
+  });
+
+  // Macrotask - runs in a future event loop iteration
+  // Similar to setTimeout but managed by Minimact
+  const scheduleMacro = useMacroTask(() => {
+    setLog(prev => [...prev, `Macrotask (immediate) at ${Date.now()}`]);
+  });
+
+  // Macrotask with delay (like setTimeout)
+  const scheduleDelayed = useMacroTask(() => {
+    setLog(prev => [...prev, `Delayed macrotask (500ms) at ${Date.now()}`]);
+  }, 500);
+
+  // Macrotask for debounced operations
+  const debouncedSave = useMacroTask(() => {
+    setLog(prev => [...prev, `Debounced save triggered`]);
+    // Save to server...
+  }, 1000);
+
+  // Macrotask for polling
+  const pollStatus = useMacroTask(() => {
+    setLog(prev => [...prev, `Polling status...`]);
+    // Check status and maybe schedule again
+  }, 2000);
+
+  const handleClick = () => {
+    setLog(prev => [...prev, `Click handler start`]);
+
+    // This will run after the click handler but before render
+    scheduleMicro();
+
+    setCounter(c => c + 1);
+    processBatch();
+
+    // This will run in the next event loop iteration
+    scheduleMacro();
+
+    // This will run after 500ms
+    scheduleDelayed();
+
+    setLog(prev => [...prev, `Click handler end`]);
+  };
+
+  const handleDebounceTest = () => {
+    setLog(prev => [...prev, `Triggering debounced save...`]);
+    debouncedSave();
+  };
+
+  const handlePollTest = () => {
+    setLog(prev => [...prev, `Starting poll...`]);
+    pollStatus();
+  };
+
+  const clearLog = () => {
+    setLog([]);
+  };
+
+  return (
+    <div key='1' className="task-scheduling-test">
+      <h2 key='1.1'>Micro/Macro Task Test</h2>
+      <div key='1.2' className="controls">
+        <button key='1.2.1' onClick={handleClick}>
+          Test Micro + Macro Tasks
+        </button>
+        <button key='1.2.2' onClick={handleDebounceTest}>
+          Test Debounce (1s)
+        </button>
+        <button key='1.2.3' onClick={handlePollTest}>
+          Test Poll (2s)
+        </button>
+        <button key='1.2.4' onClick={clearLog}>
+          Clear Log
+        </button>
+      </div>
+      <div key='1.3' className="counter">
+        Counter: {counter}
+      </div>
+      <div key='1.4' className="log">
+        <h3 key='1.4.1'>Execution Log</h3>
+        <ul key='1.4.2'>
+          {log.map((entry, i) => (
+            <li key='1.4.2.1.1' key={i}>{entry}</li>
+          ))}
+        </ul>
+      </div>
+      <div key='1.5' className="explanation">
+        <h3 key='1.5.1'>Expected Order:</h3>
+        <ol key='1.5.2'>
+          <li key='1.5.2.1'>Click handler start</li>
+          <li key='1.5.2.2'>Click handler end</li>
+          <li key='1.5.2.3'>Microtask executed (before render)</li>
+          <li key='1.5.2.4'>Processed value (microtask)</li>
+          <li key='1.5.2.5'>Macrotask immediate (next event loop)</li>
+          <li key='1.5.2.6'>Delayed macrotask (after 500ms)</li>
+        </ol>
+      </div>
+    </div>
+  );
+}

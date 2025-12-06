@@ -1,0 +1,590 @@
+{
+  "component": "TestUsePubSub",
+  "version": "1.0",
+  "generatedAt": 1765032236421,
+  "templates": {
+    "1.1.1": {
+      "template": "Pub/Sub Test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1": {
+      "template": "Notifications",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1.1": {
+      "template": "Info",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.2.1": {
+      "template": "Warning",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.3.1": {
+      "template": "Error",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.1.1": {
+      "template": "User Status",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.1.1": {
+      "template": "Go Online",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.2.1": {
+      "template": "Go Away",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.3.1": {
+      "template": "Go Offline",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.3.1.1": {
+      "template": "Online Users ({0})",
+      "bindings": [
+        "onlineUsers.size"
+      ],
+      "slots": [
+        14
+      ],
+      "path": [
+        "1",
+        "3",
+        "3",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.4.1.1": {
+      "template": "Chat Messages",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.3.2.1": {
+      "template": "Send",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "pubsub-test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "notifications-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@className": {
+      "template": "notification-buttons",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.1.@key": {
+      "template": "1.2.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.2.@key": {
+      "template": "1.2.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.3.@key": {
+      "template": "1.2.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@key": {
+      "template": "1.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@className": {
+      "template": "notification-list",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@className": {
+      "template": "status-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1.@key": {
+      "template": "1.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@key": {
+      "template": "1.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.@className": {
+      "template": "status-buttons",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.1.@key": {
+      "template": "1.3.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.2.@key": {
+      "template": "1.3.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.3.@key": {
+      "template": "1.3.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.@key": {
+      "template": "1.3.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.@className": {
+      "template": "online-users",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.1.@key": {
+      "template": "1.3.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.2.@key": {
+      "template": "1.3.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@className": {
+      "template": "chat-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.1.@key": {
+      "template": "1.4.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.2.@key": {
+      "template": "1.4.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.2.@className": {
+      "template": "message-list",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.@key": {
+      "template": "1.4.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.@className": {
+      "template": "message-input",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.1.@key": {
+      "template": "1.4.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.1.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.1.@value": {
+      "template": "{0}",
+      "bindings": [
+        "inputText"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.4.3.1.@placeholder": {
+      "template": "Type a message...",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.2.@key": {
+      "template": "1.4.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.2.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleSendMessage"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4",
+        "3",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    }
+  }
+}

@@ -1,0 +1,327 @@
+{
+  "component": "LandingPage",
+  "version": "1.0",
+  "generatedAt": 1765032293451,
+  "templates": {
+    "1.1.1.1": {
+      "template": "Welcome to Our Platform",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.2.1": {
+      "template": "The best solution for your needs",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.1.1": {
+      "template": "Fast",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.1.2.1": {
+      "template": "Lightning quick performance",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1.1": {
+      "template": "Secure",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.2.1": {
+      "template": "Enterprise-grade security",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.3.1.1": {
+      "template": "Scalable",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.3.2.1": {
+      "template": "Grows with your business",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "landing-page",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@className": {
+      "template": "hero",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.1.@key": {
+      "template": "1.1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.2.@key": {
+      "template": "1.1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "features",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@className": {
+      "template": "feature",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1.@key": {
+      "template": "1.2.1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.2.@key": {
+      "template": "1.2.1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@className": {
+      "template": "feature",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.1.@key": {
+      "template": "1.2.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.2.@key": {
+      "template": "1.2.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@key": {
+      "template": "1.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@className": {
+      "template": "feature",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.1.@key": {
+      "template": "1.2.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.2.@key": {
+      "template": "1.2.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "componentName": "TestUsePredictHint",
+  "timestamp": "2025-12-06T14:43:32.696Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "activeTab",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "isExpanded",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "selectedItems",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "viewMode",
+      "index": 3
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "tab-overview",
+      "index": 4
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "tab-details",
+      "index": 5
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "tab-reviews",
+      "index": 6
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "tab-related",
+      "index": 7
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "expanded",
+      "index": 8
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "collapsed",
+      "index": 9
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "view-grid",
+      "index": 10
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "view-list",
+      "index": 11
+    },
+    {
+      "type": "usePredictHint",
+      "hintId": "reset-view",
+      "index": 12
+    }
+  ]
+}

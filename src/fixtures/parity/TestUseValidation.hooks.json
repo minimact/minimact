@@ -1,0 +1,72 @@
+{
+  "componentName": "TestUseValidation",
+  "timestamp": "2025-12-06T14:43:03.156Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "email",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "password",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "confirmPassword",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "age",
+      "index": 3
+    },
+    {
+      "type": "useState",
+      "varName": "username",
+      "index": 4
+    },
+    {
+      "type": "useState",
+      "varName": "website",
+      "index": 5
+    },
+    {
+      "type": "useValidation",
+      "varName": "emailValidation",
+      "fieldKey": "emailValidation",
+      "index": 6
+    },
+    {
+      "type": "useValidation",
+      "varName": "passwordValidation",
+      "fieldKey": "passwordValidation",
+      "index": 7
+    },
+    {
+      "type": "useValidation",
+      "varName": "confirmPasswordValidation",
+      "fieldKey": "confirmPasswordValidation",
+      "index": 8
+    },
+    {
+      "type": "useValidation",
+      "varName": "ageValidation",
+      "fieldKey": "ageValidation",
+      "index": 9
+    },
+    {
+      "type": "useValidation",
+      "varName": "usernameValidation",
+      "fieldKey": "usernameValidation",
+      "index": 10
+    },
+    {
+      "type": "useValidation",
+      "varName": "websiteValidation",
+      "fieldKey": "websiteValidation",
+      "index": 11
+    }
+  ]
+}

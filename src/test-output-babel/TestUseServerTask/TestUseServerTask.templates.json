@@ -1,0 +1,312 @@
+{
+  "component": "TestUseServerTask",
+  "version": "1.0",
+  "generatedAt": 1765032171601,
+  "templates": {
+    "1.1.1": {
+      "template": "Server Task Test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "isLoading"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "conditional",
+      "conditionalTemplates": {
+        "true": "Searching...",
+        "false": "Search"
+      }
+    },
+    "1.4.1.1": {
+      "template": "AI Streaming",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.2.1": {
+      "template": "Start Stream",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.3.1": {
+      "template": "{0}",
+      "bindings": [
+        "streamedContent"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4",
+        "3"
+      ],
+      "type": "dynamic"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@className": {
+      "template": "server-task-test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@className": {
+      "template": "search-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@type": {
+      "template": "text",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@value": {
+      "template": "{0}",
+      "bindings": [
+        "query"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.1.@placeholder": {
+      "template": "Search products...",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleSearch"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.2.@disabled": {
+      "template": "{0}",
+      "bindings": [
+        "isLoading"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@className": {
+      "template": "results",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.@className": {
+      "template": "streaming-section",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.1.@key": {
+      "template": "1.4.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.2.@key": {
+      "template": "1.4.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.2.@onClick": {
+      "template": "{0}",
+      "bindings": [
+        "handleStream"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.4.3.@key": {
+      "template": "1.4.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.3.@className": {
+      "template": "streamed-content",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4",
+        "3"
+      ],
+      "type": "attribute-static"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+/**
+ * Test fixture for useProtectedState hook
+ * useProtectedState creates lifted state that parent components cannot access
+ * Used for encapsulating internal component state
+ */
+
+import { useProtectedState, useState } from '@minimact/core';
+
+export function TestUseProtectedState() {
+  // Protected state - parent cannot access via state lifting
+  const [internalCounter, setInternalCounter] = useProtectedState(0);
+  const [secretValue, setSecretValue] = useProtectedState('hidden');
+
+  // Regular state - can be lifted to parent
+  const [publicCounter, setPublicCounter] = useState(0);
+
+  const handleIncrementInternal = () => {
+    setInternalCounter(internalCounter + 1);
+  };
+
+  const handleIncrementPublic = () => {
+    setPublicCounter(publicCounter + 1);
+  };
+
+  const handleReveal = () => {
+    setSecretValue('revealed!');
+  };
+
+  return (
+    <div key='1' className="protected-state-test">
+      <h2 key='1.1'>Protected State Test</h2>
+      <div key='1.2' className="protected-section">
+        <h3 key='1.2.1'>Protected (Internal Only)</h3>
+        <p key='1.2.2'>Internal Counter: {internalCounter}</p>
+        <p key='1.2.3'>Secret: {secretValue}</p>
+        <button key='1.2.4' onClick={handleIncrementInternal}>Increment Internal</button>
+        <button key='1.2.5' onClick={handleReveal}>Reveal Secret</button>
+      </div>
+      <div key='1.3' className="public-section">
+        <h3 key='1.3.1'>Public (Can Be Lifted)</h3>
+        <p key='1.3.2'>Public Counter: {publicCounter}</p>
+        <button key='1.3.3' onClick={handleIncrementPublic}>Increment Public</button>
+      </div>
+    </div>
+  );
+}
