@@ -77,9 +77,66 @@ public class CSharpGenerator
             WriteTimelineAttributes(component.TimelineConfig);
         }
 
+        // Server task attributes (before [Component])
+        foreach (var serverTask in component.ServerTasks)
+        {
+            WriteServerTaskAttribute(serverTask);
+        }
+
+        // Validation attributes (before [Component])
+        foreach (var validation in component.Validations)
+        {
+            WriteValidationAttribute(validation);
+        }
+
+        // Predict hint attributes (before [Component])
+        foreach (var hint in component.PredictHints)
+        {
+            WriteLine($"[PredictHint(\"{hint.HintId}\")]");
+        }
+
+        // Pub/Sub channel attributes (before [Component])
+        foreach (var pub in component.Publishers)
+        {
+            WriteLine($"[Publisher(\"{pub.Channel}\")]");
+        }
+        foreach (var sub in component.Subscribers)
+        {
+            WriteLine($"[Subscriber(\"{sub.Channel}\", nameof({sub.Handler}))]");
+        }
+
+        // SignalR hub attributes (before [Component])
+        foreach (var hub in component.SignalRHubs)
+        {
+            WriteLine($"[SignalRHub(\"{hub.HubUrl}\")]");
+        }
+
+        // Micro/Macro task attributes (before [Component])
+        foreach (var micro in component.MicroTasks)
+        {
+            WriteLine($"[MicroTask(nameof({micro.Callback}))]");
+        }
+        foreach (var macro in component.MacroTasks)
+        {
+            WriteLine($"[MacroTask(nameof({macro.Callback}), {macro.DelayMs})]");
+        }
+
+        // Protected state attributes
+        foreach (var ps in component.ProtectedStates)
+        {
+            WriteLine($"[ProtectedState(\"{ps.Name}\")]");
+        }
+
+        // Markdown attributes
+        foreach (var md in component.MarkdownFields)
+        {
+            var sanitize = md.Sanitize ? "true" : "false";
+            WriteLine($"[Markdown(\"{md.Name}\", Sanitize = {sanitize})]");
+        }
+
         WriteLine("[Component]");
         var partial = _options.GeneratePartialClasses ? "partial " : "";
-        WriteLine($"public {partial}class {component.Name} : MinimactComponent");
+        WriteLine($"public {partial}class {component.Name} : {component.BaseClass}");
         WriteLine("{");
         _indentLevel++;
 
@@ -139,8 +196,8 @@ public class CSharpGenerator
             WriteLine();
         }
 
-        // Render method
-        WriteLine("protected override VNode Render()");
+        // Render method (may be RenderContent() for templated components)
+        WriteLine($"protected override VNode {component.RenderMethodName}()");
         WriteLine("{");
         _indentLevel++;
 
@@ -800,8 +857,22 @@ public class CSharpGenerator
 
     private void GenerateEventHandler(Models.EventHandler handler)
     {
+        // Build parameter list
+        var parameters = new List<string>();
+
+        // Add event parameter if handler uses e.target.value, e.preventDefault(), etc.
+        if (handler.NeedsEventParameter)
+        {
+            parameters.Add("dynamic e");
+        }
+
         // Add loop item parameter if handler is inside a loop
-        var paramList = handler.LoopItemName != null ? $"dynamic {handler.LoopItemName}" : "";
+        if (handler.LoopItemName != null)
+        {
+            parameters.Add($"dynamic {handler.LoopItemName}");
+        }
+
+        var paramList = string.Join(", ", parameters);
         WriteLine($"public void {handler.GeneratedName}({paramList})");
         WriteLine("{");
         _indentLevel++;
@@ -890,8 +961,142 @@ public class CSharpGenerator
 
     private string ConvertObjectLiteral(string obj)
     {
-        // Simple conversion - in real implementation, parse properly
-        return $"new Dictionary<string, object> {{ /* {obj} */ }}";
+        var trimmed = obj.Trim();
+        if (!trimmed.StartsWith("{") || !trimmed.EndsWith("}"))
+            return obj; // Not an object literal
+
+        var inner = trimmed[1..^1].Trim();
+        if (string.IsNullOrWhiteSpace(inner))
+            return "new Dictionary<string, object>()";
+
+        // Parse key: value pairs
+        var props = new List<(string key, string value)>();
+        int depth = 0;
+        int start = 0;
+
+        for (int i = 0; i < inner.Length; i++)
+        {
+            var c = inner[i];
+            if (c == '{' || c == '[' || c == '(') depth++;
+            else if (c == '}' || c == ']' || c == ')') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                var prop = inner[start..i].Trim();
+                if (!string.IsNullOrWhiteSpace(prop))
+                {
+                    var (key, value) = ParseObjectProperty(prop);
+                    if (key != null)
+                        props.Add((key, value));
+                }
+                start = i + 1;
+            }
+        }
+
+        // Don't forget the last property
+        var lastProp = inner[start..].Trim();
+        if (!string.IsNullOrWhiteSpace(lastProp))
+        {
+            var (key, value) = ParseObjectProperty(lastProp);
+            if (key != null)
+                props.Add((key, value));
+        }
+
+        if (props.Count == 0)
+            return "new Dictionary<string, object>()";
+
+        // Determine if all keys are valid C# identifiers (use anonymous type)
+        // or if we need dictionary syntax
+        var allValidIdentifiers = props.All(p => System.Text.RegularExpressions.Regex.IsMatch(p.key, @"^[a-zA-Z_][a-zA-Z0-9_]*$"));
+
+        if (allValidIdentifiers)
+        {
+            // Use anonymous type: new { key1 = value1, key2 = value2 }
+            var propStrings = props.Select(p => $"{p.key} = {ConvertJsValueToCSharp(p.value)}");
+            return $"new {{ {string.Join(", ", propStrings)} }}";
+        }
+        else
+        {
+            // Use dictionary: new Dictionary<string, object> { ["key1"] = value1 }
+            var propStrings = props.Select(p => $"[\"{p.key}\"] = {ConvertJsValueToCSharp(p.value)}");
+            return $"new Dictionary<string, object> {{ {string.Join(", ", propStrings)} }}";
+        }
+    }
+
+    private (string? key, string value) ParseObjectProperty(string prop)
+    {
+        var colonIdx = prop.IndexOf(':');
+        if (colonIdx < 0)
+        {
+            // Shorthand property: { foo } means { foo: foo }
+            var identifier = prop.Trim();
+            return (identifier, identifier);
+        }
+
+        var key = prop[..colonIdx].Trim();
+        var value = prop[(colonIdx + 1)..].Trim();
+
+        // Remove quotes from key if present (e.g., "key": value or 'key': value)
+        if ((key.StartsWith("\"") && key.EndsWith("\"")) || (key.StartsWith("'") && key.EndsWith("'")))
+            key = key[1..^1];
+
+        return (key, value);
+    }
+
+    private string ConvertJsValueToCSharp(string value)
+    {
+        var trimmed = value.Trim();
+
+        // Single quoted string -> double quoted
+        if (trimmed.StartsWith("'") && trimmed.EndsWith("'"))
+            return "\"" + trimmed[1..^1] + "\"";
+
+        // Nested object literal
+        if (trimmed.StartsWith("{") && trimmed.EndsWith("}"))
+            return ConvertObjectLiteral(trimmed);
+
+        // Array literal
+        if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+            return ConvertArrayLiteral(trimmed);
+
+        // Boolean, number, null - pass through
+        return trimmed;
+    }
+
+    private string ConvertArrayLiteral(string arr)
+    {
+        var trimmed = arr.Trim();
+        if (!trimmed.StartsWith("[") || !trimmed.EndsWith("]"))
+            return arr;
+
+        var inner = trimmed[1..^1].Trim();
+        if (string.IsNullOrWhiteSpace(inner))
+            return "new List<object>()";
+
+        // Parse array elements
+        var elements = new List<string>();
+        int depth = 0;
+        int start = 0;
+
+        for (int i = 0; i < inner.Length; i++)
+        {
+            var c = inner[i];
+            if (c == '{' || c == '[' || c == '(') depth++;
+            else if (c == '}' || c == ']' || c == ')') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                var elem = inner[start..i].Trim();
+                if (!string.IsNullOrWhiteSpace(elem))
+                    elements.Add(ConvertJsValueToCSharp(elem));
+                start = i + 1;
+            }
+        }
+
+        // Don't forget the last element
+        var lastElem = inner[start..].Trim();
+        if (!string.IsNullOrWhiteSpace(lastElem))
+            elements.Add(ConvertJsValueToCSharp(lastElem));
+
+        return $"new List<object> {{ {string.Join(", ", elements)} }}";
     }
 
     private string ConvertExpression(string expr)
@@ -944,10 +1149,382 @@ public class CSharpGenerator
         // console.log -> Console.WriteLine
         expr = expr.Replace("console.log", "Console.WriteLine");
 
+        // Convert JS array/string methods to C# LINQ equivalents
+        expr = ConvertJsArrayMethodsToCSharp(expr);
+
         // Convert JS single-quoted strings to C# double-quoted strings
         // 'text' -> "text"
         // But be careful not to convert char literals or strings inside template literals
         expr = ConvertSingleQuotedStrings(expr);
+
+        return expr;
+    }
+
+    /// <summary>
+    /// Converts JS array/string methods to their C# LINQ equivalents.
+    /// </summary>
+    private string ConvertJsArrayMethodsToCSharp(string expr)
+    {
+        // parseInt(x) -> int.Parse(x.ToString())
+        // Handle nested parentheses in the argument
+        expr = ConvertParseInt(expr);
+
+        // parseFloat(x) -> double.Parse(x.ToString())
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"parseFloat\(([^)]+)\)",
+            "double.Parse($1.ToString())");
+
+        // String(x) -> x.ToString()
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"String\(([^)]+)\)",
+            "$1.ToString()");
+
+        // Number(x) -> Convert.ToDouble(x)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"Number\(([^)]+)\)",
+            "Convert.ToDouble($1)");
+
+        // Boolean(x) -> Convert.ToBoolean(x)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"Boolean\(([^)]+)\)",
+            "Convert.ToBoolean($1)");
+
+        // .length -> .Count (for arrays/lists)
+        // But be careful not to replace string.Length (which is valid in C#)
+        // We'll replace .length when followed by non-identifier chars
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.length\b(?!\()",
+            ".Count");
+
+        // .push(x) -> .Add(x)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.push\(([^)]*)\)",
+            ".Add($1)");
+
+        // .pop() -> .RemoveAt(list.Count - 1) - simplified, won't return value
+        expr = expr.Replace(".pop()", ".RemoveAt(Count - 1)");
+
+        // .shift() - not directly translatable, comment for now
+        // .unshift(x) - not directly translatable
+
+        // .indexOf(x) -> .IndexOf(x)
+        expr = expr.Replace(".indexOf(", ".IndexOf(");
+
+        // .includes(x) -> .Contains(x)
+        expr = expr.Replace(".includes(", ".Contains(");
+
+        // .join(sep) -> string.Join(sep, array)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"(\w+)\.join\(([^)]*)\)",
+            "string.Join($2, $1)");
+
+        // .split(sep) -> .Split(sep) (mostly compatible)
+        // JS: "a,b".split(",") -> ["a", "b"]
+        // C#: "a,b".Split(',') -> ["a", "b"] (needs char, but string works with newer C#)
+
+        // .trim() -> .Trim()
+        expr = expr.Replace(".trim()", ".Trim()");
+
+        // .trimStart() / .trimLeft() -> .TrimStart()
+        expr = expr.Replace(".trimStart()", ".TrimStart()");
+        expr = expr.Replace(".trimLeft()", ".TrimStart()");
+
+        // .trimEnd() / .trimRight() -> .TrimEnd()
+        expr = expr.Replace(".trimEnd()", ".TrimEnd()");
+        expr = expr.Replace(".trimRight()", ".TrimEnd()");
+
+        // .toLowerCase() -> .ToLower()
+        expr = expr.Replace(".toLowerCase()", ".ToLower()");
+
+        // .toUpperCase() -> .ToUpper()
+        expr = expr.Replace(".toUpperCase()", ".ToUpper()");
+
+        // .charAt(i) -> [i] (simplified)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.charAt\((\d+)\)",
+            "[$1]");
+
+        // .substring(start, end) -> .Substring(start, end - start)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.substring\((\d+),\s*(\d+)\)",
+            match =>
+            {
+                var start = int.Parse(match.Groups[1].Value);
+                var end = int.Parse(match.Groups[2].Value);
+                return $".Substring({start}, {end - start})";
+            });
+
+        // .substr(start, length) -> .Substring(start, length)
+        expr = expr.Replace(".substr(", ".Substring(");
+
+        // .startsWith(x) -> .StartsWith(x)
+        expr = expr.Replace(".startsWith(", ".StartsWith(");
+
+        // .endsWith(x) -> .EndsWith(x)
+        expr = expr.Replace(".endsWith(", ".EndsWith(");
+
+        // .replace(pattern, replacement) -> .Replace(pattern, replacement)
+        // Note: JS replace only replaces first occurrence; C# replaces all
+        // But in most cases this is acceptable
+        expr = expr.Replace(".replace(", ".Replace(");
+
+        // .replaceAll(pattern, replacement) -> .Replace(pattern, replacement)
+        expr = expr.Replace(".replaceAll(", ".Replace(");
+
+        // .padStart(len, char) -> .PadLeft(len, char)
+        expr = expr.Replace(".padStart(", ".PadLeft(");
+
+        // .padEnd(len, char) -> .PadRight(len, char)
+        expr = expr.Replace(".padEnd(", ".PadRight(");
+
+        // .repeat(n) -> string.Concat(Enumerable.Repeat(str, n)) - too complex, skip for now
+
+        // .filter(x => expr) -> .Where(x => expr)
+        expr = expr.Replace(".filter(", ".Where(");
+
+        // Convert === to == and !== to != (must come before == replacement if any)
+        expr = expr.Replace("===", "==");
+        expr = expr.Replace("!==", "!=");
+
+        // Convert || to logical OR when not null-coalescing
+        // Note: We keep || as is since C# supports it for boolean expressions
+        // The issue is when || is used for default values - but we'll handle that separately
+
+        // Convert JS object literals { key: value } to C# dictionary
+        // Simple pattern: { identifier: value, ... }
+        expr = ConvertObjectLiterals(expr);
+
+        // Convert .slice() when not already handled by JsxVisitor
+        // .slice(start) -> .Skip(start).ToList()
+        // .slice(start, end) -> .Skip(start).Take(end - start).ToList()
+        expr = ConvertSliceMethod(expr);
+
+        // Convert .sort() when not already handled by JsxVisitor
+        expr = ConvertSortMethod(expr);
+
+        return expr;
+    }
+
+    /// <summary>
+    /// Converts parseInt calls to int.Parse, handling nested parentheses.
+    /// parseInt(x) -> int.Parse(x.ToString())
+    /// parseInt(x, radix) -> Convert.ToInt32(x.ToString(), radix)
+    /// parseInt(x) || default -> (int.TryParse(x?.ToString(), out var _v) ? _v : default)
+    /// </summary>
+    private string ConvertParseInt(string expr)
+    {
+        var result = new System.Text.StringBuilder();
+        int i = 0;
+        int tempVarCounter = 0;
+
+        while (i < expr.Length)
+        {
+            // Look for "parseInt("
+            if (i + 9 <= expr.Length && expr.Substring(i, 9) == "parseInt(")
+            {
+                // Find the matching closing paren
+                int start = i + 9;
+                int depth = 1;
+                int j = start;
+
+                while (j < expr.Length && depth > 0)
+                {
+                    if (expr[j] == '(') depth++;
+                    else if (expr[j] == ')') depth--;
+                    j++;
+                }
+
+                if (depth == 0)
+                {
+                    // Extract the argument(s)
+                    var args = expr.Substring(start, j - start - 1);
+
+                    // Check if followed by || defaultValue pattern
+                    var afterParen = expr.Substring(j).TrimStart();
+                    if (afterParen.StartsWith("||"))
+                    {
+                        // Find the default value (until end of expression, semicolon, comma, or closing paren)
+                        var defaultStart = j + expr.Substring(j).IndexOf("||") + 2;
+                        var defaultEnd = defaultStart;
+                        int parenDepth = 0;
+
+                        while (defaultEnd < expr.Length)
+                        {
+                            var c = expr[defaultEnd];
+                            if (c == '(') parenDepth++;
+                            else if (c == ')') { if (parenDepth == 0) break; parenDepth--; }
+                            else if ((c == ';' || c == ',') && parenDepth == 0) break;
+                            defaultEnd++;
+                        }
+
+                        var defaultValue = expr.Substring(defaultStart, defaultEnd - defaultStart).Trim();
+                        var tempVar = $"_parseIntResult{tempVarCounter++}";
+
+                        // Use TryParse pattern: (int.TryParse(x?.ToString(), out var v) ? v : default)
+                        result.Append($"(int.TryParse({args}?.ToString(), out var {tempVar}) ? {tempVar} : {defaultValue})");
+                        i = defaultEnd;
+                        continue;
+                    }
+                    else
+                    {
+                        // No default value pattern - use simple int.Parse
+                        // Check for radix (second argument)
+                        var commaIndex = FindTopLevelComma(args);
+                        if (commaIndex >= 0)
+                        {
+                            var value = args.Substring(0, commaIndex).Trim();
+                            var radix = args.Substring(commaIndex + 1).Trim();
+                            result.Append($"Convert.ToInt32({value}.ToString(), {radix})");
+                        }
+                        else
+                        {
+                            result.Append($"int.Parse({args}.ToString())");
+                        }
+                        i = j;
+                        continue;
+                    }
+                }
+            }
+            result.Append(expr[i]);
+            i++;
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Finds the index of a comma at the top level (not inside parentheses).
+    /// </summary>
+    private int FindTopLevelComma(string s)
+    {
+        int depth = 0;
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '(') depth++;
+            else if (s[i] == ')') depth--;
+            else if (s[i] == ',' && depth == 0) return i;
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Converts JS object literals to C# dictionaries or anonymous objects.
+    /// { key: value } -> new Dictionary<string, object> { ["key"] = value }
+    /// </summary>
+    private string ConvertObjectLiterals(string expr)
+    {
+        // Match standalone object literals: { key: value, key2: value2 }
+        // But NOT JSON-like objects within new { } (anonymous types)
+        // Pattern: starts with {, contains key: value pairs, ends with }
+        var objectLiteralPattern = new System.Text.RegularExpressions.Regex(
+            @"(?<!\bnew\s*)(?<!\[)\{(\s*(\w+)\s*:\s*([^,}]+)\s*(?:,\s*(\w+)\s*:\s*([^,}]+)\s*)*)\}(?!\])");
+
+        return objectLiteralPattern.Replace(expr, match =>
+        {
+            var content = match.Groups[1].Value;
+
+            // Parse key-value pairs
+            var pairs = new List<(string key, string value)>();
+            var pairPattern = new System.Text.RegularExpressions.Regex(@"(\w+)\s*:\s*([^,}]+)");
+            foreach (System.Text.RegularExpressions.Match pairMatch in pairPattern.Matches(content))
+            {
+                pairs.Add((pairMatch.Groups[1].Value.Trim(), pairMatch.Groups[2].Value.Trim()));
+            }
+
+            if (pairs.Count == 0)
+                return match.Value;
+
+            // Determine value type - if all numbers, use int; otherwise use object
+            var valueType = "object";
+            if (pairs.All(p => int.TryParse(p.value, out _)))
+                valueType = "int";
+            else if (pairs.All(p => double.TryParse(p.value, out _)))
+                valueType = "double";
+            else if (pairs.All(p => p.value.StartsWith("\"") || p.value.StartsWith("'")))
+                valueType = "string";
+
+            var dictEntries = pairs.Select(p => $"[\"{p.key}\"] = {p.value}");
+            return $"new Dictionary<string, {valueType}> {{ {string.Join(", ", dictEntries)} }}";
+        });
+    }
+
+    /// <summary>
+    /// Converts JS .slice() calls to C# LINQ Skip/Take.
+    /// </summary>
+    private string ConvertSliceMethod(string expr)
+    {
+        // .slice(start, end) -> .Skip(start).Take(end - start)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.slice\((\d+),\s*(\d+)\)",
+            match =>
+            {
+                var start = int.Parse(match.Groups[1].Value);
+                var end = int.Parse(match.Groups[2].Value);
+                var take = end - start;
+                if (start == 0)
+                    return $".Take({take})";
+                return $".Skip({start}).Take({take})";
+            });
+
+        // .slice(start) with variable -> .Skip(start)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.slice\((\w+)\)(?!\.)",
+            ".Skip($1).ToList()");
+
+        // .slice(start, end) with variables
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.slice\((\w+),\s*(\w+)\)",
+            ".Skip($1).Take($2 - $1)");
+
+        return expr;
+    }
+
+    /// <summary>
+    /// Converts JS .sort() calls to C# LINQ OrderBy.
+    /// </summary>
+    private string ConvertSortMethod(string expr)
+    {
+        // Simple .sort() without comparator -> .OrderBy(x => x)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.sort\(\s*\)",
+            ".OrderBy(x => x).ToList()");
+
+        // .sort((a, b) => a - b) -> .OrderBy(x => x)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.sort\(\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*=>\s*\1\s*-\s*\2\s*\)",
+            ".OrderBy(x => x).ToList()");
+
+        // .sort((a, b) => b - a) -> .OrderByDescending(x => x)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.sort\(\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*=>\s*\2\s*-\s*\1\s*\)",
+            ".OrderByDescending(x => x).ToList()");
+
+        // .sort((a, b) => a.prop - b.prop) -> .OrderBy(x => x.prop)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.sort\(\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*=>\s*\1\.(\w+)\s*-\s*\2\.\3\s*\)",
+            ".OrderBy(x => x.$3).ToList()");
+
+        // .sort((a, b) => b.prop - a.prop) -> .OrderByDescending(x => x.prop)
+        expr = System.Text.RegularExpressions.Regex.Replace(
+            expr,
+            @"\.sort\(\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)\s*=>\s*\2\.(\w+)\s*-\s*\1\.\3\s*\)",
+            ".OrderByDescending(x => x.$3).ToList()");
 
         return expr;
     }
@@ -1075,12 +1652,9 @@ public class CSharpGenerator
         // This is used for lifted state writes
         result = result.Replace("setState(", "SetState(");
 
-        // Simple pattern: setXxx(value) -> SetState(nameof(xxx), value)
-        // Exclude "SetState" (already converted above) by requiring lowercase start after "set"
-        var setterPattern = new System.Text.RegularExpressions.Regex(
-            @"(?<!Set)set([A-Z]\w*)\(([^)]+)\)");
-
-        result = setterPattern.Replace(result, match => ConvertSetterCall(match.Value));
+        // Convert setXxx(value) -> SetState(nameof(xxx), value)
+        // Use manual scanning to handle nested parentheses correctly
+        result = ConvertAllSetterCalls(result);
 
         // Ensure statements end with semicolons
         if (!string.IsNullOrEmpty(result) && !result.EndsWith(";") && !result.EndsWith("}"))
@@ -1091,19 +1665,70 @@ public class CSharpGenerator
         return result;
     }
 
+    /// <summary>
+    /// Scans for all setXxx(...) calls and converts them to SetState(nameof(xxx), value).
+    /// Handles nested parentheses correctly.
+    /// </summary>
+    private string ConvertAllSetterCalls(string input)
+    {
+        var result = new System.Text.StringBuilder();
+        int i = 0;
+
+        while (i < input.Length)
+        {
+            // Look for "set" followed by uppercase letter
+            if (i + 4 < input.Length &&
+                input.Substring(i, 3) == "set" &&
+                char.IsUpper(input[i + 3]) &&
+                (i == 0 || !char.IsLetter(input[i - 1]))) // Make sure it's not part of a larger word
+            {
+                // Find the end of the identifier
+                int identEnd = i + 4;
+                while (identEnd < input.Length && char.IsLetterOrDigit(input[identEnd]))
+                    identEnd++;
+
+                // Check for opening paren
+                if (identEnd < input.Length && input[identEnd] == '(')
+                {
+                    var fieldNamePascal = input.Substring(i + 3, identEnd - i - 3);
+                    var fieldName = char.ToLower(fieldNamePascal[0]) + fieldNamePascal[1..];
+
+                    // Find matching closing paren
+                    int start = identEnd + 1;
+                    int depth = 1;
+                    int j = start;
+
+                    while (j < input.Length && depth > 0)
+                    {
+                        if (input[j] == '(') depth++;
+                        else if (input[j] == ')') depth--;
+                        j++;
+                    }
+
+                    if (depth == 0)
+                    {
+                        var value = input.Substring(start, j - start - 1).Trim();
+                        // Normalize spacing around operators
+                        value = System.Text.RegularExpressions.Regex.Replace(value, @"(\w+)\s*([+\-*/])\s*(\d+)", "$1 $2 $3");
+                        // Apply expression conversions (parseInt, etc.)
+                        value = ConvertExpression(value);
+                        result.Append($"SetState(nameof({fieldName}), {value})");
+                        i = j;
+                        continue;
+                    }
+                }
+            }
+            result.Append(input[i]);
+            i++;
+        }
+
+        return result.ToString();
+    }
+
     private string ConvertSetterCall(string call)
     {
-        // Convert setXxx(value) to SetState(nameof(xxx), value)
-        var setterMatch = System.Text.RegularExpressions.Regex.Match(call, @"set([A-Z]\w*)\(([^)]+)\)");
-        if (setterMatch.Success)
-        {
-            var fieldName = char.ToLower(setterMatch.Groups[1].Value[0]) + setterMatch.Groups[1].Value[1..];
-            var value = setterMatch.Groups[2].Value.Trim();
-            // Normalize spacing around operators
-            value = System.Text.RegularExpressions.Regex.Replace(value, @"(\w+)\s*([+\-*/])\s*(\d+)", "$1 $2 $3");
-            return $"SetState(nameof({fieldName}), {value})";
-        }
-        return call;
+        // Legacy method for backwards compatibility (e.g., setTimeout callback conversion)
+        return ConvertAllSetterCalls(call);
     }
 
     private bool HasTextContent(VElementModel element)
@@ -1362,6 +1987,85 @@ public class CSharpGenerator
             var interpolatePart = binding.Interpolate ? ", Interpolate = true" : "";
             WriteLine($"[TimelineStateBinding(\"{binding.StateName}\"{interpolatePart})]");
         }
+    }
+
+    #endregion
+
+    #region Special Hook Attributes
+
+    /// <summary>
+    /// Writes [ServerTask] attribute for useServerTask hooks.
+    /// </summary>
+    private void WriteServerTaskAttribute(ServerTaskModel serverTask)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"[ServerTask(\"{serverTask.Name}\"");
+
+        if (serverTask.IsStreaming)
+        {
+            sb.Append(", Streaming = true");
+            sb.Append($", EstimatedChunks = {serverTask.EstimatedChunks}");
+        }
+
+        if (!string.IsNullOrEmpty(serverTask.Runtime) && serverTask.Runtime != "auto")
+        {
+            sb.Append($", Runtime = \"{serverTask.Runtime}\"");
+        }
+
+        if (serverTask.Parallel)
+        {
+            sb.Append(", Parallel = true");
+        }
+
+        sb.Append(")]");
+        WriteLine(sb.ToString());
+    }
+
+    /// <summary>
+    /// Writes [Validation] attribute for useValidation hooks.
+    /// </summary>
+    private void WriteValidationAttribute(ValidationModel validation)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"[Validation(\"{validation.FieldKey}\"");
+
+        if (validation.Required)
+        {
+            sb.Append(", Required = true");
+        }
+
+        if (validation.MinLength.HasValue)
+        {
+            sb.Append($", MinLength = {validation.MinLength}");
+        }
+
+        if (validation.MaxLength.HasValue)
+        {
+            sb.Append($", MaxLength = {validation.MaxLength}");
+        }
+
+        if (validation.Min.HasValue)
+        {
+            sb.Append($", Min = {validation.Min}");
+        }
+
+        if (validation.Max.HasValue)
+        {
+            sb.Append($", Max = {validation.Max}");
+        }
+
+        if (!string.IsNullOrEmpty(validation.Pattern))
+        {
+            sb.Append($", Pattern = @\"{validation.Pattern}\"");
+        }
+
+        if (!string.IsNullOrEmpty(validation.Message) && validation.Message != "Validation failed")
+        {
+            sb.Append($", Message = \"{validation.Message}\"");
+        }
+
+        sb.Append(")]");
+        WriteLine(sb.ToString());
     }
 
     #endregion

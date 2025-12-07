@@ -7,9 +7,23 @@ using System.Threading.Tasks;
 
 namespace Minimact.Components;
 
+[LoopTemplate("todo.done.done", @"{""stateKey"":""todo.done.done"",""arrayBinding"":""todo.done.done"",""itemVar"":""todo"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""li"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(todo.text)}""],""slots"":[0]}]}}")]
+[LoopTemplate("b.priority.priority", @"{""stateKey"":""b.priority.priority"",""arrayBinding"":""b.priority.priority"",""itemVar"":""todo"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""li"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""[{(todo.priority)}]{(todo.text)}""],""slots"":[0]}]}}")]
+[LoopTemplate("todos.slice.slice", @"{""stateKey"":""todos.slice.slice"",""arrayBinding"":""todos.slice.slice"",""itemVar"":""todo"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""li"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(todo.text)}""],""slots"":[0]}]}}")]
+[LoopTemplate("a.createdAt.createdAt", @"{""stateKey"":""a.createdAt.createdAt"",""arrayBinding"":""a.createdAt.createdAt"",""itemVar"":""todo"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""li"",""propsTemplates"":null,""childrenTemplates"":null}}")]
+[LoopTemplate("slice", @"{""stateKey"":""slice"",""arrayBinding"":""slice"",""itemVar"":""product"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""li"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(product.name)}- ${(product.price)}""],""slots"":[0]}]}}")]
+[LoopTemplate("maxItems", @"{""stateKey"":""maxItems"",""arrayBinding"":""maxItems"",""itemVar"":""product"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":{""class"":{""template"":""product-card"",""bindings"":[],""slots"":[],""type"":""static""}},""childrenTemplates"":[{""type"":""Element"",""tag"":""h4"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(product.name)}""],""slots"":[0]}]},{""type"":""Element"",""tag"":""p"",""propsTemplates"":{""class"":{""template"":""price"",""bindings"":[],""slots"":[],""type"":""static""}},""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""${(product.price)}""],""slots"":[0]}]},{""type"":""Element"",""tag"":""p"",""propsTemplates"":{""class"":{""template"":""rating"",""bindings"":[],""slots"":[],""type"":""static""}},""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""⭐{(product.rating)}""],""slots"":[0]}]},{""type"":""Element"",""tag"":""span"",""propsTemplates"":{""class"":{""template"":""category"",""bindings"":[],""slots"":[],""type"":""static""}},""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(product.category)}""],""slots"":[0]}]}]}}")]
+[LoopTemplate("priority", @"{""stateKey"":""priority"",""arrayBinding"":""priority"",""itemVar"":""todo"",""indexVar"":null,""keyBinding"":""item.id"",""itemTemplate"":{""type"":""Element"",""tag"":""li"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(todo.text)}""],""slots"":[0]}]}}")]
+[LoopTemplate("['high','medium','low']", @"{""stateKey"":""['high','medium','low']"",""arrayBinding"":""['high','medium','low']"",""itemVar"":""priority"",""indexVar"":null,""keyBinding"":""item"",""itemTemplate"":{""type"":""Element"",""tag"":""div"",""propsTemplates"":{""class"":{""template"":""priority-group"",""bindings"":[],""slots"":[],""type"":""static""}},""childrenTemplates"":[{""type"":""Element"",""tag"":""h4"",""propsTemplates"":null,""childrenTemplates"":[{""type"":""Text"",""template"":""{0}"",""bindings"":[""{(priority)}priority""],""slots"":[0]}]},{""type"":""Element"",""tag"":""ul"",""propsTemplates"":null,""childrenTemplates"":null}]}}")]
 [Component]
 public partial class TestChainedArrayMethods : MinimactComponent
 {
+    [State]
+    private object todos = new List<object> { new { id = 1, text = "Learn Minimact", done = true, priority = "high", createdAt = 1000 }, new { id = 2, text = "Build app", done = false, priority = "high", createdAt = 2000 }, new { id = 3, text = "Write tests", done = false, priority = "medium", createdAt = 3000 }, new { id = 4, text = "Deploy", done = false, priority = "low", createdAt = 4000 }, new { id = 5, text = "Celebrate", done = false, priority = "low", createdAt = 5000 } };
+
+    [State]
+    private object products = new List<object> { new { id = 1, name = "Laptop", price = 999, category = "Electronics", inStock = true, rating = 4.5 }, new { id = 2, name = "Phone", price = 699, category = "Electronics", inStock = true, rating = 4.8 }, new { id = 3, name = "Headphones", price = 199, category = "Electronics", inStock = false, rating = 4.2 }, new { id = 4, name = "Shirt", price = 49, category = "Clothing", inStock = true, rating = 4.0 }, new { id = 5, name = "Pants", price = 79, category = "Clothing", inStock = true, rating = 3.9 } };
+
     [State]
     private bool showCompleted = false;
 
@@ -23,7 +37,7 @@ public partial class TestChainedArrayMethods : MinimactComponent
     {
         StateManager.SyncMembersToState(this);
 
-        var priority = {high:0,medium:1,low:2};
+        var priority = new Dictionary<string, int> { ["high"] = 0, ["medium"] = 1, ["low"] = 2 };
 
         return new VElement("div", "1", new Dictionary<string, string> { ["class"] = "chained-methods-test" }, new VNode[]
         {
@@ -31,10 +45,10 @@ public partial class TestChainedArrayMethods : MinimactComponent
             new VElement("section", "1.2", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.2.1", new Dictionary<string, string>(), "Filter + Map (incomplete todos)"),
-                new VElement("ul", "1.2.2", new Dictionary<string, string>(), new VNode[]
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)todos).Where(todo=>!todo.done)).Select(todo => new VElement("li", "1.2.2.1.1", new Dictionary<string, string> { ["key"] = $"{(todo.id)}" }, new VNode[]
                 {
-                    new VText($"{(todos.filter(todo=>!todo.done).map(todo=>(<likey={todo.id}>{todo.text}</li>)))}", "1.2.2.1")
-                })
+                    new VText($"{(todo.text)}", "1.2.2.1.1.1")
+                })).ToArray())
             }),
             new VElement("section", "1.3", new Dictionary<string, string>(), new VNode[]
             {
@@ -44,34 +58,28 @@ public partial class TestChainedArrayMethods : MinimactComponent
                     new VElement("input", "1.3.2.1", new Dictionary<string, string> { ["type"] = "checkbox", ["checked"] = $"{(showCompleted)}", ["onchange"] = "Handle0" }),
                     new VText("Show completed", "1.3.2.2")
                 }),
-                new VElement("ul", "1.3.3", new Dictionary<string, string>(), new VNode[]
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)todos).Where(todo=>showCompleted||!todo.done)).Select(todo => new VElement("li", "1.3.3.1.1", new Dictionary<string, string> { ["key"] = $"{(todo.id)}", ["class"] = $"{(todo.done?"done":"")}" }, new VNode[]
                 {
-                    new VText($"{(todos.filter(todo=>showCompleted||!todo.done).map(todo=>(<likey={todo.id}className={todo.done?'done':''}>{todo.text}</li>)))}", "1.3.3.1")
-                })
+                    new VText($"{(todo.text)}", "1.3.3.1.1.1")
+                })).ToArray())
             }),
             new VElement("section", "1.4", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.4.1", new Dictionary<string, string>(), "Sort + Map (by priority)"),
-                new VElement("ul", "1.4.2", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText($"{([...todos].sort((a,b)=>{constpriority={high:0,medium:1,low:2};returnpriority[a.priority]-priority[b.priority];}).map(todo=>(<likey={todo.id}>[{todo.priority}]{todo.text}</li>)))}", "1.4.2.1")
-                })
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)b.priority.priority).Select(todo => new VElement("li", "1.4.2.1.1", new Dictionary<string, string> { ["key"] = $"{(todo.id)}" }, $"[{(todo.priority)}]{(todo.text)}")).ToArray())
             }),
             new VElement("section", "1.5", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.5.1", new Dictionary<string, string>(), "Slice + Map (first 3)"),
-                new VElement("ul", "1.5.2", new Dictionary<string, string>(), new VNode[]
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)todos).Take(3)).Select(todo => new VElement("li", "1.5.2.1.1", new Dictionary<string, string> { ["key"] = $"{(todo.id)}" }, new VNode[]
                 {
-                    new VText($"{(todos.slice(0,3).map(todo=>(<likey={todo.id}>{todo.text}</li>)))}", "1.5.2.1")
-                })
+                    new VText($"{(todo.text)}", "1.5.2.1.1.1")
+                })).ToArray())
             }),
             new VElement("section", "1.6", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.6.1", new Dictionary<string, string>(), "Filter + Sort + Map (incomplete, by date)"),
-                new VElement("ul", "1.6.2", new Dictionary<string, string>(), new VNode[]
-                {
-                    new VText($"{(todos.filter(todo=>!todo.done).sort((a,b)=>b.createdAt-a.createdAt).map(todo=>(<likey={todo.id}>{todo.text}(created:{todo.createdAt})</li>)))}", "1.6.2.1")
-                })
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)todos).Where(todo=>!todo.done).OrderByDescending(x => x.createdAt)).Select(todo => new VElement("li", "1.6.2.1.1", new Dictionary<string, string> { ["key"] = $"{(todo.id)}" })).ToArray())
             }),
             new VElement("section", "1.7", new Dictionary<string, string>(), new VNode[]
             {
@@ -82,25 +90,40 @@ public partial class TestChainedArrayMethods : MinimactComponent
                     new VElement("option", "1.7.2.2", new Dictionary<string, string> { ["value"] = "Electronics" }, "Electronics"),
                     new VElement("option", "1.7.2.3", new Dictionary<string, string> { ["value"] = "Clothing" }, "Clothing")
                 }),
-                new VElement("ul", "1.7.3", new Dictionary<string, string>(), new VNode[]
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)products).Where(p=>p.inStock).Where(p=>!categoryFilter||p.category==categoryFilter).Take(3)).Select(product => new VElement("li", "1.7.3.1.1", new Dictionary<string, string> { ["key"] = $"{(product.id)}" }, new VNode[]
                 {
-                    new VText($"{(products.filter(p=>p.inStock).filter(p=>!categoryFilter||p.category===categoryFilter).slice(0,3).map(product=>(<likey={product.id}>{product.name}- ${product.price}</li>)))}", "1.7.3.1")
-                })
+                    new VText($"{(product.name)}- ${(product.price)}", "1.7.3.1.1.1")
+                })).ToArray())
             }),
             new VElement("section", "1.8", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.8.1", new Dictionary<string, string>(), "Full Chain: Filter + Sort + Slice + Map"),
                 new VElement("input", "1.8.2", new Dictionary<string, string> { ["type"] = "number", ["value"] = $"{(maxItems)}", ["onchange"] = "Handle2", ["min"] = $"{(1)}", ["max"] = $"{(10)}" }),
-                new VElement("div", "1.8.3", new Dictionary<string, string> { ["class"] = "product-grid" }, new VNode[]
+                MinimactHelpers.createElement("div", new Dictionary<string, string> { ["class"] = "product-grid" }, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)products).Where(p=>p.inStock&&p.rating>=4.0).OrderByDescending(x => x.rating).Skip(0).Take(maxItems - 0)).Select(product => new VElement("div", "1.8.3.1.1", new Dictionary<string, string> { ["key"] = $"{(product.id)}", ["class"] = "product-card" }, new VNode[]
                 {
-                    new VText($"{(products.filter(p=>p.inStock&&p.rating>=4.0).sort((a,b)=>b.rating-a.rating).slice(0,maxItems).map(product=>(<divkey={product.id}className="product-card"><h4>{product.name}</h4><pclassName="price">${product.price}</p><pclassName="rating">⭐{product.rating}</p><spanclassName="category">{product.category}</span></div>)))}", "1.8.3.1")
-                })
+                    new VElement("h4", "1.8.3.1.1.1", new Dictionary<string, string>(), new VNode[]
+                    {
+                        new VText($"{(product.name)}", "1.8.3.1.1.1.1")
+                    }),
+                    new VElement("p", "1.8.3.1.1.2", new Dictionary<string, string> { ["class"] = "price" }, $"${(product.price)}"),
+                    new VElement("p", "1.8.3.1.1.3", new Dictionary<string, string> { ["class"] = "rating" }, $"⭐{(product.rating)}"),
+                    new VElement("span", "1.8.3.1.1.4", new Dictionary<string, string> { ["class"] = "category" }, new VNode[]
+                    {
+                        new VText($"{(product.category)}", "1.8.3.1.1.4.1")
+                    })
+                })).ToArray())
             }),
-            new VElement("section", "1.9", new Dictionary<string, string>(), new VNode[]
+            MinimactHelpers.createElement("section", null, new VElement("h3", "1.9.1", new Dictionary<string, string>(), "Nested Maps with Filter"), ((IEnumerable<dynamic>)["high","medium","low"]).Select(priority => new VElement("div", "1.9.2.1", new Dictionary<string, string> { ["key"] = $"{(priority)}", ["class"] = "priority-group" }, new VNode[]
             {
-                new VElement("h3", "1.9.1", new Dictionary<string, string>(), "Nested Maps with Filter"),
-                new VText($"{(['high','medium','low'].map(priority=>(<divkey={priority}className="priority-group"><h4>{priority}priority</h4><ul>{todos.filter(t=>t.priority===priority).map(todo=>(<likey={todo.id}>{todo.text}</li>))}</ul></div>)))}", "1.9.2")
-            }),
+                new VElement("h4", "1.9.2.1.1", new Dictionary<string, string>(), new VNode[]
+                {
+                    new VText($"{(priority)}priority", "1.9.2.1.1.1")
+                }),
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)((IEnumerable<dynamic>)todos).Where(t=>t.priority==priority)).Select(todo => new VElement("li", "1.9.2.1.2.1.1", new Dictionary<string, string> { ["key"] = $"{(todo.id)}" }, new VNode[]
+                {
+                    new VText($"{(todo.text)}", "1.9.2.1.2.1.1.1")
+                })).ToArray())
+            })).ToArray()),
             new VElement("section", "1.10", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.10.1", new Dictionary<string, string>(), "Filter for Count"),
@@ -115,14 +138,14 @@ public partial class TestChainedArrayMethods : MinimactComponent
         SetState(nameof(showCompleted), !showCompleted);
     }
 
-    public void Handle1()
+    public void Handle1(dynamic e)
     {
         SetState(nameof(categoryFilter), e.target.value);
     }
 
-    public void Handle2()
+    public void Handle2(dynamic e)
     {
-        SetState(nameof(maxItems), parseInt(e.target.value)||5);
+        SetState(nameof(maxItems), (int.TryParse(e.target.value?.ToString(), out var _parseIntResult0) ? _parseIntResult0 : 5));
     }
 
     /// <summary>

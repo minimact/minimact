@@ -1,0 +1,810 @@
+{
+  "componentName": "TestChainedArrayMethods",
+  "timestamp": "2025-12-07T04:02:18.331Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\parity\\TestChainedArrayMethods.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "chained-methods-test"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h2"
+          },
+          {
+            "type": "expression",
+            "path": "1.2",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.4",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.5",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.6",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.7",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.8",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.9",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.10",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.11",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.12",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.13",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.14",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.15",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.16",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.17",
+            "tag": "section"
+          },
+          {
+            "type": "expression",
+            "path": "1.18",
+            "value": "__DYNAMIC__"
+          },
+          {
+            "type": "element",
+            "path": "1.19",
+            "tag": "section"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "Chained Array Methods Test"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.2.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1",
+            "value": "Filter + Map (incomplete todos)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.2.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.2.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2",
+            "tag": "label"
+          },
+          {
+            "type": "element",
+            "path": "1.3.3",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.3.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1.1",
+            "value": "Conditional Filter + Map"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2",
+      "vnode": {
+        "type": "element",
+        "tag": "label",
+        "path": "1.3.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.2.1",
+            "tag": "input"
+          },
+          {
+            "type": "text",
+            "path": "1.3.2.2",
+            "value": "Show completed"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "input",
+        "path": "1.3.2.1",
+        "attributes": {
+          "type": "checkbox",
+          "checked": "__DYNAMIC__",
+          "onChange": "__DYNAMIC__"
+        },
+        "children": []
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.3",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.3.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.3.3.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.4",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.4.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.4.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.1.1",
+            "value": "Sort + Map (by priority)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.4.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.4.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.5",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.5.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.5.2",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.5.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.5.1.1",
+            "value": "Slice + Map (first 3)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.2",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.5.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.5.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.6",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.6.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.6.2",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.6.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.6.1.1",
+            "value": "Filter + Sort + Map (incomplete, by date)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6.2",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.6.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.6.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.7",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.7.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.7.2",
+            "tag": "select"
+          },
+          {
+            "type": "element",
+            "path": "1.7.3",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.7.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.1.1",
+            "value": "Filter + Slice + Map (in stock, first 3)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.2",
+      "vnode": {
+        "type": "element",
+        "tag": "select",
+        "path": "1.7.2",
+        "attributes": {
+          "value": "__DYNAMIC__",
+          "onChange": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.7.2.1",
+            "tag": "option"
+          },
+          {
+            "type": "element",
+            "path": "1.7.2.2",
+            "tag": "option"
+          },
+          {
+            "type": "element",
+            "path": "1.7.2.3",
+            "tag": "option"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.7.2.1",
+        "attributes": {
+          "value": ""
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.2.1.1",
+            "value": "All"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.7.2.2",
+        "attributes": {
+          "value": "Electronics"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.2.2.1",
+            "value": "Electronics"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.2.3",
+      "vnode": {
+        "type": "element",
+        "tag": "option",
+        "path": "1.7.2.3",
+        "attributes": {
+          "value": "Clothing"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.7.2.3.1",
+            "value": "Clothing"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.3",
+      "vnode": {
+        "type": "element",
+        "tag": "ul",
+        "path": "1.7.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.7.3.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.8",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.8.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.8.2",
+            "tag": "input"
+          },
+          {
+            "type": "element",
+            "path": "1.8.3",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.8.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.8.1.1",
+            "value": "Full Chain: Filter + Sort + Slice + Map"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.2",
+      "vnode": {
+        "type": "element",
+        "tag": "input",
+        "path": "1.8.2",
+        "attributes": {
+          "type": "number",
+          "value": "__DYNAMIC__",
+          "onChange": "__DYNAMIC__",
+          "min": "__DYNAMIC__",
+          "max": "__DYNAMIC__"
+        },
+        "children": []
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.8.3",
+        "attributes": {
+          "className": "product-grid"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.3.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.9",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.9.1",
+            "tag": "h3"
+          },
+          {
+            "type": "expression",
+            "path": "1.9.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.9.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.9.1.1",
+            "value": "Nested Maps with Filter"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.a",
+      "vnode": {
+        "type": "element",
+        "tag": "section",
+        "path": "1.a",
+        "attributes": {},
+        "children": [
+          {
+            "type": "element",
+            "path": "1.a.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.a.2",
+            "tag": "p"
+          },
+          {
+            "type": "element",
+            "path": "1.a.3",
+            "tag": "p"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.a.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.a.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.a.1.1",
+            "value": "Filter for Count"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.a.2",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.a.2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.a.2.1",
+            "value": "Incomplete high priority:"
+          },
+          {
+            "type": "expression",
+            "path": "1.a.2.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.a.3",
+      "vnode": {
+        "type": "element",
+        "tag": "p",
+        "path": "1.a.3",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.a.3.1",
+            "value": "In-stock electronics:"
+          },
+          {
+            "type": "expression",
+            "path": "1.a.3.2",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -83,7 +83,8 @@ public class StateVisitor : TokenVisitor
 
     // Match: const [name, setName] = useState<Type>(value) - TypeScript generic syntax
     // Handles: useState<Todo[]>([...]), useState<string>(""), useState<number>(0)
-    [TokenPattern(@"\k""const"" ""["" (\i) "","" (\i) ""]"" ""="" \i""useState"" \go", Priority = 110, Name = "VisitUseStateGeneric")]
+    [TokenPattern(@"\k""const"" ""["" (\i) "","" (\i) ""]"" ""="" \i""useState"" \go", Priority = 110, Name = "VisitUseStateGeneric",
+        Debug = "const [todos, setTodos] = useState<Todo[]>([])")]
     public void VisitUseStateGeneric(TokenMatch match, string stateName, string setterName)
     {
         // Skip if already added (prevent duplicates)
@@ -145,29 +146,12 @@ public class StateVisitor : TokenVisitor
         if (string.IsNullOrWhiteSpace(inner))
             return "new List<object>()";
 
-        // Parse individual object literals
-        var objects = new List<string>();
-        int depth = 0;
-        int start = 0;
-
-        for (int i = 0; i < inner.Length; i++)
-        {
-            var c = inner[i];
-            if (c == '{' || c == '[' || c == '(') depth++;
-            else if (c == '}' || c == ']' || c == ')') depth--;
-            else if (c == ',' && depth == 0)
-            {
-                var obj = inner[start..i].Trim();
-                if (!string.IsNullOrWhiteSpace(obj))
-                    objects.Add(ConvertObjectLiteral(obj));
-                start = i + 1;
-            }
-        }
-
-        // Don't forget the last item
-        var lastObj = inner[start..].Trim();
-        if (!string.IsNullOrWhiteSpace(lastObj))
-            objects.Add(ConvertObjectLiteral(lastObj));
+        // Parse individual object literals using functional approach
+        var objects = SplitAtDepthZero(inner, ',')
+            .Select(obj => obj.Trim())
+            .Where(obj => !string.IsNullOrWhiteSpace(obj))
+            .Select(ConvertObjectLiteral)
+            .ToList();
 
         return $"new List<object> {{ {string.Join(", ", objects)} }}";
     }
@@ -187,29 +171,12 @@ public class StateVisitor : TokenVisitor
         if (string.IsNullOrWhiteSpace(inner))
             return "new { }";
 
-        // Parse key: value pairs
-        var props = new List<string>();
-        int depth = 0;
-        int start = 0;
-
-        for (int i = 0; i < inner.Length; i++)
-        {
-            var c = inner[i];
-            if (c == '{' || c == '[' || c == '(') depth++;
-            else if (c == '}' || c == ']' || c == ')') depth--;
-            else if (c == ',' && depth == 0)
-            {
-                var prop = inner[start..i].Trim();
-                if (!string.IsNullOrWhiteSpace(prop))
-                    props.Add(ConvertProperty(prop));
-                start = i + 1;
-            }
-        }
-
-        // Don't forget the last property
-        var lastProp = inner[start..].Trim();
-        if (!string.IsNullOrWhiteSpace(lastProp))
-            props.Add(ConvertProperty(lastProp));
+        // Parse key: value pairs using functional approach
+        var props = SplitAtDepthZero(inner, ',')
+            .Select(prop => prop.Trim())
+            .Where(prop => !string.IsNullOrWhiteSpace(prop))
+            .Select(ConvertProperty)
+            .ToList();
 
         return $"new {{ {string.Join(", ", props)} }}";
     }
@@ -252,6 +219,44 @@ public class StateVisitor : TokenVisitor
             return ConvertArrayInitializer(value);
 
         return value;
+    }
+
+    /// <summary>
+    /// Splits a string at a delimiter, but only when bracket depth is zero.
+    /// Uses functional Aggregate pattern instead of imperative for loop.
+    /// </summary>
+    private IEnumerable<string> SplitAtDepthZero(string input, char delimiter)
+    {
+        // Use Aggregate to track state: (currentSegment, depth, results)
+        var result = input.Aggregate(
+            (segment: "", depth: 0, results: new List<string>()),
+            (acc, c) =>
+            {
+                var newDepth = c switch
+                {
+                    '{' or '[' or '(' => acc.depth + 1,
+                    '}' or ']' or ')' => acc.depth - 1,
+                    _ => acc.depth
+                };
+
+                if (c == delimiter && acc.depth == 0)
+                {
+                    // Split point: add current segment to results, start new segment
+                    acc.results.Add(acc.segment);
+                    return ("", newDepth, acc.results);
+                }
+                else
+                {
+                    // Continue building current segment
+                    return (acc.segment + c, newDepth, acc.results);
+                }
+            });
+
+        // Don't forget the last segment
+        if (!string.IsNullOrEmpty(result.segment))
+            result.results.Add(result.segment);
+
+        return result.results;
     }
 
     // Match: const [name] = useMvcState<Type>('key') - immutable

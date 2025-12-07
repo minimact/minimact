@@ -266,6 +266,7 @@ public class JsxVisitor : TokenVisitor
                 var textParts = new List<string>();
                 var bindings = new List<string>();
                 bool hasExpression = false;
+                VNodeModel? mapExprResult = null;
 
                 while (i < rawChildren.Count && rawChildren[i].Type != TokenMatchType.Element)
                 {
@@ -277,29 +278,69 @@ public class JsxVisitor : TokenVisitor
                     else if (item.Type == TokenMatchType.Expression)
                     {
                         hasExpression = true;
-                        textParts.Add($"{{({item.Binding})}}");
-                        bindings.Add(item.Binding ?? "");
+                        var binding = item.Binding ?? "";
+
+                        // Check if this expression contains a .map() call
+                        // If so, parse it specially to extract the JSX template
+                        if (binding.Contains(".map(") && mapExprResult == null)
+                        {
+                            // Re-tokenize the expression to get proper tokens for TryParseMapCall
+                            var exprTokens = TokenizeExpression(binding);
+                            if (exprTokens.Length > 0)
+                            {
+                                mapExprResult = TryParseMapCall(exprTokens, $"{parentPath}.{childIndex}");
+                            }
+                        }
+
+                        if (mapExprResult == null)
+                        {
+                            textParts.Add($"{{({binding})}}");
+                            bindings.Add(binding);
+                        }
                     }
                     i++;
                 }
 
-                // Build merged text
-                var mergedText = string.Join("", textParts).Trim();
-                if (!string.IsNullOrWhiteSpace(mergedText))
+                // If we got a map expression result, add it as a child
+                if (mapExprResult != null)
                 {
-                    var child = new VTextModel
-                    {
-                        HexPath = $"{parentPath}.{childIndex}",
-                        Text = hasExpression ? "{0}" : mergedText,  // Placeholder for dynamic
-                        IsDynamic = hasExpression,
-                        Binding = hasExpression ? mergedText : null  // Contains "Count: {(count)}" format
-                    };
-                    child.Parent = parent;
-                    parent.Children.Add(child);
+                    mapExprResult.Parent = parent;
+                    parent.Children.Add(mapExprResult);
                     childIndex++;
+                }
+                else
+                {
+                    // Build merged text
+                    var mergedText = string.Join("", textParts).Trim();
+                    if (!string.IsNullOrWhiteSpace(mergedText))
+                    {
+                        var child = new VTextModel
+                        {
+                            HexPath = $"{parentPath}.{childIndex}",
+                            Text = hasExpression ? "{0}" : mergedText,  // Placeholder for dynamic
+                            IsDynamic = hasExpression,
+                            Binding = hasExpression ? mergedText : null  // Contains "Count: {(count)}" format
+                        };
+                        child.Parent = parent;
+                        parent.Children.Add(child);
+                        childIndex++;
+                    }
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Re-tokenizes an expression string to get tokens for pattern matching.
+    /// Used when we need to parse an expression that was already extracted as a string.
+    /// </summary>
+    private Token[] TokenizeExpression(string expr)
+    {
+        var lexer = new Reluxer.Lexer.TsxLexer(expr);
+        return lexer.Tokenize().Where(t =>
+            t.Type != TokenType.Whitespace &&
+            t.Type != TokenType.Comment &&
+            t.Type != TokenType.Eof).ToArray();
     }
 
     #endregion
@@ -582,7 +623,8 @@ public class JsxVisitor : TokenVisitor
     private VNodeModel? TryParseMapCall(Token[] tokens, string path)
     {
         // Use pattern to match: anything.map(callback) - captures everything before .map
-        var matcher = new PatternMatcher(@"(.*?) ""."" \i""map"" (\Bp)");
+        // Note: the dot is tokenized as Punctuation ".", not Operator
+        var matcher = new PatternMatcher(@"(.*?) \p""."" \i""map"" (\Bp)");
         if (!matcher.TryMatch(tokens, 0, out var match) || match == null)
             return null;
 
@@ -623,60 +665,19 @@ public class JsxVisitor : TokenVisitor
         var baseArray = baseArrayMatch.Groups[1].Value;
         var result = $"((IEnumerable<dynamic>){baseArray})";
 
-        // Parse chain operations in order using regex
+        // Parse chain operations using regex - find all .method(...) patterns
         var remaining = expr.Substring(baseArray.Length);
 
-        // Process each chained method call
-        while (!string.IsNullOrEmpty(remaining))
-        {
-            remaining = remaining.TrimStart();
-            if (!remaining.StartsWith("."))
-                break;
+        // Use regex to find all chained method calls at once
+        var chainPattern = new System.Text.RegularExpressions.Regex(@"\.(\w+)\(([^()]*(?:\([^()]*\)[^()]*)*)\)");
+        var matches = chainPattern.Matches(remaining);
 
-            remaining = remaining.Substring(1); // Skip the dot
-
-            // Match method name and arguments
-            var methodMatch = System.Text.RegularExpressions.Regex.Match(remaining, @"^(\w+)\(");
-            if (!methodMatch.Success)
-                break;
-
-            var methodName = methodMatch.Groups[1].Value;
-            var argsStart = methodMatch.Length;
-
-            // Find the balanced closing parenthesis
-            var argsEnd = FindBalancedParen(remaining, argsStart - 1);
-            if (argsEnd < 0)
-                break;
-
-            var args = remaining.Substring(argsStart, argsEnd - argsStart);
-            remaining = remaining.Substring(argsEnd + 1);
-
-            // Convert method to LINQ equivalent
-            result = ConvertArrayMethodToLinq(result, methodName, args);
-        }
+        // Process each match using LINQ Aggregate
+        result = matches.Cast<System.Text.RegularExpressions.Match>()
+            .Aggregate(result, (current, match) =>
+                ConvertArrayMethodToLinq(current, match.Groups[1].Value, match.Groups[2].Value));
 
         return result;
-    }
-
-    /// <summary>
-    /// Finds the index of the closing parenthesis that matches the opening one at startIdx.
-    /// </summary>
-    private int FindBalancedParen(string s, int startIdx)
-    {
-        if (startIdx < 0 || startIdx >= s.Length || s[startIdx] != '(')
-            return -1;
-
-        int depth = 1;
-        for (int i = startIdx + 1; i < s.Length; i++)
-        {
-            if (s[i] == '(') depth++;
-            else if (s[i] == ')')
-            {
-                depth--;
-                if (depth == 0) return i;
-            }
-        }
-        return -1;
     }
 
     /// <summary>
@@ -785,10 +786,24 @@ public class JsxVisitor : TokenVisitor
 
     private VNodeModel? ParseMapCallback(Token[] arrayExpr, Token[] callbackTokens, string path, string? chainedLinqExpr = null)
     {
-        // Find => in callback using \fa (function arrow) macro
+        // Find => in callback
+        // Try parenthesized form first: (item) => body or (item, index) => body
         var arrowMatcher = new PatternMatcher(@"(\Bp) \fa (.*)");
-        if (!arrowMatcher.TryMatch(callbackTokens, 0, out var arrowMatch) || arrowMatch == null)
-            return null;
+        TokenMatch? arrowMatch = null;
+
+        if (arrowMatcher.TryMatch(callbackTokens, 0, out arrowMatch) && arrowMatch != null)
+        {
+            // Matched parenthesized form
+        }
+        else
+        {
+            // Try unparenthesized form: item => body
+            var unparenMatcher = new PatternMatcher(@"(\i) \fa (.*)");
+            if (!unparenMatcher.TryMatch(callbackTokens, 0, out arrowMatch) || arrowMatch == null)
+            {
+                return null;
+            }
+        }
 
         var paramTokens = arrowMatch.Captures[0].Tokens;
         var bodyTokens = arrowMatch.Captures[1].Tokens;
@@ -1205,14 +1220,19 @@ public class JsxVisitor : TokenVisitor
         {
             var handlerName = $"Handle{_handlerCounter++}";
             var bodyTokens = match.Captures.Length > 1 ? match.Captures[1].Tokens : match.Captures[0].Tokens;
+            var body = TokensToString(bodyTokens);
+
+            // Detect if handler uses event parameter (e.target.value, e.preventDefault(), etc.)
+            var needsEventParam = DetectEventParameterUsage(body);
 
             _component.EventHandlers.Add(new Models.EventHandler
             {
                 GeneratedName = handlerName,
                 IsArrowFunction = true,
                 OriginalExpression = TokensToString(tokens),
-                Body = TokensToString(bodyTokens),
-                LoopItemName = loopItemName
+                Body = body,
+                LoopItemName = loopItemName,
+                NeedsEventParameter = needsEventParam
             });
 
             return (handlerName, true, loopItemName);
@@ -1220,16 +1240,36 @@ public class JsxVisitor : TokenVisitor
 
         // Fallback: treat whole thing as inline handler
         var fallbackName = $"Handle{_handlerCounter++}";
+        var fallbackBody = TokensToString(tokens);
+        var fallbackNeedsEvent = DetectEventParameterUsage(fallbackBody);
+
         _component.EventHandlers.Add(new Models.EventHandler
         {
             GeneratedName = fallbackName,
             IsArrowFunction = false,
             OriginalExpression = TokensToString(tokens),
-            Body = TokensToString(tokens),
-            LoopItemName = loopItemName
+            Body = fallbackBody,
+            LoopItemName = loopItemName,
+            NeedsEventParameter = fallbackNeedsEvent
         });
 
         return (fallbackName, true, loopItemName);
+    }
+
+    /// <summary>
+    /// Detects if the handler body uses the event parameter.
+    /// Looks for patterns like: e.target, e.target.value, e.preventDefault(), e.stopPropagation(), etc.
+    /// </summary>
+    private bool DetectEventParameterUsage(string body)
+    {
+        // Common event object usage patterns
+        // e.target, e.target.value, e.target.checked
+        // e.preventDefault(), e.stopPropagation()
+        // e.currentTarget, e.key, e.keyCode
+        // e.clientX, e.clientY, e.pageX, e.pageY
+        return System.Text.RegularExpressions.Regex.IsMatch(
+            body,
+            @"\be\s*\.\s*(target|currentTarget|preventDefault|stopPropagation|key|keyCode|clientX|clientY|pageX|pageY|nativeEvent|type|bubbles|cancelable)");
     }
 
     #endregion
@@ -1283,8 +1323,53 @@ public class JsxVisitor : TokenVisitor
         _ => name
     };
 
-    private string TokensToString(Token[] tokens) =>
-        string.Join("", tokens.Select(t => t.Value));
+    private string TokensToString(Token[] tokens)
+    {
+        if (tokens.Length == 0) return "";
+
+        var sb = new System.Text.StringBuilder();
+        Token? prev = null;
+
+        foreach (var token in tokens)
+        {
+            // Add space between tokens that need separation
+            if (prev != null && NeedsSpaceBetween(prev, token))
+            {
+                sb.Append(' ');
+            }
+            sb.Append(token.Value);
+            prev = token;
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Determines if a space is needed between two tokens when reconstructing source.
+    /// This prevents tokens like <li and key from merging into <likey.
+    /// </summary>
+    private bool NeedsSpaceBetween(Token prev, Token next)
+    {
+        // After JSX tag open (<div), before attribute names
+        if (prev.Type == TokenType.JsxTagOpen && next.Type == TokenType.JsxAttrName)
+            return true;
+
+        // After attribute value, before next attribute name
+        if ((prev.Type == TokenType.JsxAttrValue || prev.Type == TokenType.JsxExprEnd) &&
+            next.Type == TokenType.JsxAttrName)
+            return true;
+
+        // After identifier or keyword, before another identifier/keyword
+        if ((prev.Type == TokenType.Identifier || prev.Type == TokenType.Keyword) &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.Keyword))
+            return true;
+
+        // After JSX tag end (>), before text that starts with alphanumeric
+        if (prev.Type == TokenType.JsxTagEnd && next.Type == TokenType.Identifier)
+            return true;
+
+        return false;
+    }
 
     /// <summary>
     /// Transforms a JS style object like {marginBottom:'20px',fontSize:'14px'}

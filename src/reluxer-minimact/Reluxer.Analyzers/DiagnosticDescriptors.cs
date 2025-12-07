@@ -141,4 +141,64 @@ public static class DiagnosticDescriptors
         isEnabledByDefault: true,
         description: "Calling visitor methods directly bypasses the pattern matcher. Use Traverse() to ensure patterns are matched correctly."
     );
+
+    /// <summary>
+    /// REL010: Regex usage in generator.
+    /// Severity: Error
+    /// </summary>
+    public static readonly DiagnosticDescriptor RegexInGenerator = new(
+        id: "REL010",
+        title: "Regex not allowed in generator",
+        messageFormat: "Regex usage '{0}' in generator indicates re-parsing. Store tokens in ComponentModel and use token-based conversion instead.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Generators should emit pre-converted C# from tokens. If regex is needed to parse expressions, the conversion should happen in visitors where tokens are available.",
+        helpLinkUri: "https://github.com/anthropics/minimact/blob/main/src/reluxer-minimact/Reluxer/DECLARATIVE_ENFORCEMENT.md#generator-string-manipulation"
+    );
+
+    /// <summary>
+    /// REL011: String manipulation in generator.
+    /// Severity: Error
+    /// </summary>
+    public static readonly DiagnosticDescriptor StringManipulationInGenerator = new(
+        id: "REL011",
+        title: "String manipulation in generator indicates re-parsing",
+        messageFormat: "String method '{0}' in generator indicates re-parsing. Store tokens in ComponentModel instead of raw strings.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Methods like Substring, IndexOf, Split indicate the generator is parsing strings that should have been tokenized. Store Token[] in model fields.",
+        helpLinkUri: "https://github.com/anthropics/minimact/blob/main/src/reluxer-minimact/Reluxer/DECLARATIVE_ENFORCEMENT.md#generator-string-manipulation"
+    );
+
+    /// <summary>
+    /// REL012: Manual bracket depth tracking in generator.
+    /// Severity: Error
+    /// </summary>
+    public static readonly DiagnosticDescriptor BracketDepthInGenerator = new(
+        id: "REL012",
+        title: "Manual bracket depth tracking in generator",
+        messageFormat: "Manual depth tracking ('{0}') in generator indicates re-lexing. Use balanced bracket patterns (\\Bp, \\Bb, \\Bk) in visitors instead.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Tracking bracket depth manually recreates lexer functionality. The lexer already handles balanced brackets - use \\Bp, \\Bb, \\Bk patterns in visitors.",
+        helpLinkUri: "https://github.com/anthropics/minimact/blob/main/src/reluxer-minimact/Reluxer/DECLARATIVE_ENFORCEMENT.md#generator-string-manipulation"
+    );
+
+    /// <summary>
+    /// REL013: StringBuilder for parsing in generator.
+    /// Severity: Error
+    /// </summary>
+    public static readonly DiagnosticDescriptor StringBuilderParsingInGenerator = new(
+        id: "REL013",
+        title: "StringBuilder parsing pattern in generator",
+        messageFormat: "StringBuilder with character-by-character processing indicates re-lexing. Store tokens in ComponentModel instead.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Building strings character-by-character while scanning is effectively re-implementing a lexer. The token stream should already be available.",
+        helpLinkUri: "https://github.com/anthropics/minimact/blob/main/src/reluxer-minimact/Reluxer/DECLARATIVE_ENFORCEMENT.md#generator-string-manipulation"
+    );
 }

@@ -1,6 +1,6 @@
 {
   "componentName": "TestChainedArrayMethods",
-  "timestamp": "2025-12-06T14:39:23.6200556Z",
+  "timestamp": "2025-12-07T04:15:11.3837572Z",
   "changes": [
     {
       "type": "insert",
@@ -148,7 +148,7 @@
         "attributes": {},
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.2.2.1"
           }
         ]
@@ -158,8 +158,35 @@
       "type": "insert",
       "path": "1.2.2.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.2.2.1",
+        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(todo=>!todo.done)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.2.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.2.2.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.2.2.1.1.1",
         "value": "__DYNAMIC__"
       }
     },
@@ -269,7 +296,7 @@
         "attributes": {},
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.3.3.1"
           }
         ]
@@ -279,8 +306,36 @@
       "type": "insert",
       "path": "1.3.3.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.3.3.1",
+        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(todo=>showCompleted||!todo.done)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.3.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.3.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.3.3.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.3.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.3.3.1.1.1",
         "value": "__DYNAMIC__"
       }
     },
@@ -341,7 +396,7 @@
         "attributes": {},
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.4.2.1"
           }
         ]
@@ -351,8 +406,35 @@
       "type": "insert",
       "path": "1.4.2.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.4.2.1",
+        "arrayBinding": "b.priority.priority"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.4.2.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.4.2.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.4.2.1.1.1",
         "value": "__DYNAMIC__"
       }
     },
@@ -413,7 +495,7 @@
         "attributes": {},
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.5.2.1"
           }
         ]
@@ -423,8 +505,35 @@
       "type": "insert",
       "path": "1.5.2.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.5.2.1",
+        "arrayBinding": "((IEnumerable<dynamic>)todos).Take(3)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.2.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.5.2.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.5.2.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.2.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.5.2.1.1.1",
         "value": "__DYNAMIC__"
       }
     },
@@ -485,7 +594,7 @@
         "attributes": {},
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.6.2.1"
           }
         ]
@@ -495,9 +604,21 @@
       "type": "insert",
       "path": "1.6.2.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.6.2.1",
-        "value": "__DYNAMIC__"
+        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(todo=>!todo.done).OrderByDescending(x => x.createdAt)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.6.2.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.6.2.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__"
+        }
       }
     },
     {
@@ -673,7 +794,7 @@
         "attributes": {},
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.7.3.1"
           }
         ]
@@ -683,8 +804,35 @@
       "type": "insert",
       "path": "1.7.3.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.7.3.1",
+        "arrayBinding": "((IEnumerable<dynamic>)products).Where(p=>p.inStock).Where(p=>!categoryFilter||p.category===categoryFilter).Take(3)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.3.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.7.3.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.7.3.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.7.3.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.7.3.1.1.1",
         "value": "__DYNAMIC__"
       }
     },
@@ -768,7 +916,7 @@
         },
         "children": [
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.8.3.1"
           }
         ]
@@ -778,8 +926,149 @@
       "type": "insert",
       "path": "1.8.3.1",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.8.3.1",
+        "arrayBinding": "((IEnumerable<dynamic>)products).Where(p=>p.inStock&&p.rating>=4.0).OrderByDescending(x => x.rating).Skip(0).Take(maxItems - 0)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.8.3.1.1",
+        "tag": "div",
+        "attributes": {
+          "key": "__DYNAMIC__",
+          "className": "product-card"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.8.3.1.1.1",
+            "tag": "h4"
+          },
+          {
+            "type": "element",
+            "path": "1.8.3.1.1.2",
+            "tag": "p"
+          },
+          {
+            "type": "element",
+            "path": "1.8.3.1.1.3",
+            "tag": "p"
+          },
+          {
+            "type": "element",
+            "path": "1.8.3.1.1.4",
+            "tag": "span"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.8.3.1.1.1",
+        "tag": "h4",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.3.1.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.8.3.1.1.1.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.8.3.1.1.2",
+        "tag": "p",
+        "attributes": {
+          "className": "price"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.3.1.1.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.2.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.8.3.1.1.2.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.3",
+      "vNode": {
+        "type": "element",
+        "path": "1.8.3.1.1.3",
+        "tag": "p",
+        "attributes": {
+          "className": "rating"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.3.1.1.3.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.3.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.8.3.1.1.3.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.4",
+      "vNode": {
+        "type": "element",
+        "path": "1.8.3.1.1.4",
+        "tag": "span",
+        "attributes": {
+          "className": "category"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.8.3.1.1.4.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.8.3.1.1.4.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.8.3.1.1.4.1",
         "value": "__DYNAMIC__"
       }
     },
@@ -798,7 +1087,7 @@
             "tag": "h3"
           },
           {
-            "type": "expression",
+            "type": "list",
             "path": "1.9.2"
           }
         ]
@@ -833,8 +1122,110 @@
       "type": "insert",
       "path": "1.9.2",
       "vNode": {
-        "type": "expression",
+        "type": "list",
         "path": "1.9.2",
+        "arrayBinding": "['high','medium','low']"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.9.2.1",
+        "tag": "div",
+        "attributes": {
+          "key": "__DYNAMIC__",
+          "className": "priority-group"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.9.2.1.1",
+            "tag": "h4"
+          },
+          {
+            "type": "element",
+            "path": "1.9.2.1.2",
+            "tag": "ul"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.9.2.1.1",
+        "tag": "h4",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.9.2.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.9.2.1.1.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.9.2.1.2",
+        "tag": "ul",
+        "attributes": {},
+        "children": [
+          {
+            "type": "list",
+            "path": "1.9.2.1.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1.2.1",
+      "vNode": {
+        "type": "list",
+        "path": "1.9.2.1.2.1",
+        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(t=>t.priority===priority)"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1.2.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.9.2.1.2.1.1",
+        "tag": "li",
+        "attributes": {
+          "key": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.9.2.1.2.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.9.2.1.2.1.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.9.2.1.2.1.1.1",
         "value": "__DYNAMIC__"
       }
     },

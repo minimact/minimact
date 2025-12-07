@@ -59,6 +59,75 @@ public class ComponentModel
     /// Used for [LoopTemplate] C# attribute generation.
     /// </summary>
     public List<LoopTemplateInfo> LoopTemplates { get; } = new();
+
+    #region Special Hooks Lists
+
+    /// <summary>
+    /// Server task hooks (useServerTask).
+    /// </summary>
+    public List<ServerTaskModel> ServerTasks { get; } = new();
+
+    /// <summary>
+    /// Validation hooks (useValidation).
+    /// </summary>
+    public List<ValidationModel> Validations { get; } = new();
+
+    /// <summary>
+    /// Predict hint hooks (usePredictHint).
+    /// </summary>
+    public List<PredictHintModel> PredictHints { get; } = new();
+
+    /// <summary>
+    /// Publisher hooks (usePub).
+    /// </summary>
+    public List<PublisherModel> Publishers { get; } = new();
+
+    /// <summary>
+    /// Subscriber hooks (useSub).
+    /// </summary>
+    public List<SubscriberModel> Subscribers { get; } = new();
+
+    /// <summary>
+    /// SignalR hub hooks (useSignalR).
+    /// </summary>
+    public List<SignalRHubModel> SignalRHubs { get; } = new();
+
+    /// <summary>
+    /// Micro task hooks (useMicroTask).
+    /// </summary>
+    public List<MicroTaskModel> MicroTasks { get; } = new();
+
+    /// <summary>
+    /// Macro task hooks (useMacroTask).
+    /// </summary>
+    public List<MacroTaskModel> MacroTasks { get; } = new();
+
+    /// <summary>
+    /// Protected state hooks (useProtectedState).
+    /// </summary>
+    public List<ProtectedStateModel> ProtectedStates { get; } = new();
+
+    /// <summary>
+    /// Markdown hooks (useMarkdown, useRazorMarkdown).
+    /// </summary>
+    public List<MarkdownModel> MarkdownFields { get; } = new();
+
+    /// <summary>
+    /// Template layout hook (useTemplate).
+    /// </summary>
+    public TemplateLayoutModel? TemplateLayout { get; set; }
+
+    /// <summary>
+    /// Base class override (from useTemplate).
+    /// </summary>
+    public string BaseClass { get; set; } = "MinimactComponent";
+
+    /// <summary>
+    /// Render method name override (from useTemplate).
+    /// </summary>
+    public string RenderMethodName { get; set; } = "Render";
+
+    #endregion
 }
 
 /// <summary>
@@ -273,6 +342,12 @@ public class EventHandler
     /// If handler is inside a loop, this is the loop item variable name (e.g., "todo")
     /// </summary>
     public string? LoopItemName { get; set; }
+
+    /// <summary>
+    /// If true, the handler uses the event parameter (e.g., e.target.value, e.preventDefault())
+    /// and needs to have 'dynamic e' in its signature.
+    /// </summary>
+    public bool NeedsEventParameter { get; set; }
 }
 
 /// <summary>
@@ -535,6 +610,158 @@ public class ElementBranchInfo
     // For text nodes
     public string? Value { get; set; }
     public string? Binding { get; set; }
+}
+
+#endregion
+
+#region Special Hook Models
+
+/// <summary>
+/// Represents a useServerTask hook.
+/// Generates [ServerTask] attribute with async method.
+/// </summary>
+public class ServerTaskModel
+{
+    public string Name { get; set; } = "";
+    public bool IsStreaming { get; set; }
+    public List<ParameterInfo> Parameters { get; } = new();
+    public string ReturnType { get; set; } = "Task<object>";
+    public string Body { get; set; } = "";
+    public string Runtime { get; set; } = "auto";
+    public bool Parallel { get; set; }
+    public int EstimatedChunks { get; set; } = 10;
+}
+
+/// <summary>
+/// Represents a useValidation hook.
+/// Generates [Validation] attribute with field validation rules.
+/// </summary>
+public class ValidationModel
+{
+    public string Name { get; set; } = "";
+    public string FieldKey { get; set; } = "";
+    public bool Required { get; set; }
+    public int? MinLength { get; set; }
+    public int? MaxLength { get; set; }
+    public double? Min { get; set; }
+    public double? Max { get; set; }
+    public string? Pattern { get; set; }
+    public string? CustomValidator { get; set; }
+    public string? AsyncValidator { get; set; }
+    public string Message { get; set; } = "Validation failed";
+}
+
+/// <summary>
+/// Represents a usePredictHint hook.
+/// Used for predictive rendering optimization.
+/// </summary>
+public class PredictHintModel
+{
+    public string HintId { get; set; } = "";
+    public Dictionary<string, object> PredictedState { get; } = new();
+}
+
+/// <summary>
+/// Represents a usePub hook (publisher).
+/// </summary>
+public class PublisherModel
+{
+    public string Name { get; set; } = "";
+    public string Channel { get; set; } = "";
+}
+
+/// <summary>
+/// Represents a useSub hook (subscriber).
+/// </summary>
+public class SubscriberModel
+{
+    public string Channel { get; set; } = "";
+    public string Handler { get; set; } = "";
+}
+
+/// <summary>
+/// Represents a useSignalR hook.
+/// </summary>
+public class SignalRHubModel
+{
+    public string Name { get; set; } = "";
+    public string HubUrl { get; set; } = "";
+    public string? OnConnected { get; set; }
+    public string? OnDisconnected { get; set; }
+    public string? OnReconnecting { get; set; }
+    public List<SignalRHandlerInfo> Handlers { get; } = new();
+    public string? ReconnectPolicy { get; set; }
+}
+
+/// <summary>
+/// Represents a SignalR event handler.
+/// </summary>
+public class SignalRHandlerInfo
+{
+    public string MethodName { get; set; } = "";
+    public string Handler { get; set; } = "";
+    public List<ParameterInfo> Parameters { get; } = new();
+}
+
+/// <summary>
+/// Represents a useMicroTask hook.
+/// </summary>
+public class MicroTaskModel
+{
+    public string Name { get; set; } = "";
+    public string Callback { get; set; } = "";
+}
+
+/// <summary>
+/// Represents a useMacroTask hook.
+/// </summary>
+public class MacroTaskModel
+{
+    public string Name { get; set; } = "";
+    public string Callback { get; set; } = "";
+    public int DelayMs { get; set; }
+}
+
+/// <summary>
+/// Represents a useTemplate hook for layout inheritance.
+/// </summary>
+public class TemplateLayoutModel
+{
+    public string LayoutName { get; set; } = "";
+    public Dictionary<string, object> Props { get; } = new();
+}
+
+/// <summary>
+/// Represents a useProtectedState hook.
+/// State that cannot be lifted to parent components.
+/// </summary>
+public class ProtectedStateModel
+{
+    public string Name { get; set; } = "";
+    public string SetterName { get; set; } = "";
+    public string Type { get; set; } = "object";
+    public string? InitialValue { get; set; }
+}
+
+/// <summary>
+/// Represents a useMarkdown hook.
+/// </summary>
+public class MarkdownModel
+{
+    public string Name { get; set; } = "";
+    public string Content { get; set; } = "";
+    public bool Sanitize { get; set; } = true;
+    public List<string>? AllowedTags { get; set; }
+}
+
+/// <summary>
+/// Common parameter info for methods.
+/// </summary>
+public class ParameterInfo
+{
+    public string Name { get; set; } = "";
+    public string Type { get; set; } = "dynamic";
+    public string? DefaultValue { get; set; }
 }
 
 #endregion

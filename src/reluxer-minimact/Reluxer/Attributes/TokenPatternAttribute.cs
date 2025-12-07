@@ -75,6 +75,23 @@ public class TokenPatternAttribute : Attribute
         set => From = value != null ? new[] { value } : null;
     }
 
+    /// <summary>
+    /// Debug sample input to test the pattern during initialization.
+    /// When set, the pattern will be tested against this input and the result
+    /// will be printed to the console showing whether it matched and what was captured.
+    ///
+    /// Example:
+    ///   [TokenPattern(@"\k""const"" ""["" (\i)", Debug = "const [foo, setFoo] = useState()")]
+    ///
+    /// This will output during initialization:
+    ///   [Pattern Debug] VisitUseState: ✓ MATCH
+    ///     Input: const [foo, setFoo] = useState()
+    ///     Pattern: \k"const" "[" (\i)
+    ///     Captures: [foo]
+    ///     Matched tokens: const [ foo
+    /// </summary>
+    public string? Debug { get; set; }
+
     public TokenPatternAttribute(string pattern)
     {
         Pattern = pattern;

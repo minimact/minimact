@@ -1,0 +1,490 @@
+[36m
+╔═══════════════════════════════════════════════════╗[0m
+[36m║   Testing: TestChainedArrayMethods.tsx         ║[0m
+[36m╚═══════════════════════════════════════════════════╝
+[0m
+[33mTokenizing...[0m
+[32mToken count: 1213[0m
+[33mJSX-related tokens: 378[0m
+[0m  [GenericOpen] "<" at 572[0m
+[0m  [GenericClose] ">" at 579[0m
+[0m  [GenericOpen] "<" at 1053[0m
+[0m  [GenericClose] ">" at 1063[0m
+[0m  [Keyword] "return" at 1732[0m
+[0m  [JsxTagOpen] "<div" at 1746[0m
+[0m  [JsxAttrName] "className" at 1751[0m
+[0m  [JsxAttrValue] ""chained-methods-test"" at 1761[0m
+[0m  [JsxTagEnd] ">" at 1783[0m
+[0m  [JsxTagOpen] "<h2" at 1792[0m
+[0m  [JsxTagEnd] ">" at 1795[0m
+[0m  [JsxText] "Chained Array Methods Test" at 1796[0m
+[0m  [JsxTagClose] "</h2" at 1822[0m
+[0m  [JsxTagEnd] ">" at 1826[0m
+[0m  [JsxExprStart] "{" at 1837[0m
+[0m  [JsxExprEnd] "}" at 1863[0m
+[0m  [JsxTagOpen] "<section" at 1872[0m
+[0m  [JsxTagEnd] ">" at 1880[0m
+[0m  [JsxTagOpen] "<h3" at 1891[0m
+[0m  [JsxTagEnd] ">" at 1894[0m
+[33m
+Transpiling with Reluxer...[0m
+[ComponentVisitor] Constructor called
+[ComponentVisitor] OnBegin ENTRY
+[ComponentVisitor] OnBegin: 1213 tokens
+[ComponentVisitor] Unmatched: [Keyword] "import" at 173
+[ComponentVisitor] Unmatched: [Punctuation] "{" at 180
+[ComponentVisitor] Unmatched: [Identifier] "useState" at 182
+[ComponentVisitor] Unmatched: [Punctuation] "}" at 191
+[ComponentVisitor] Unmatched: [Keyword] "from" at 193
+[ComponentVisitor] Unmatched: [String] "'@minimact/core'" at 198
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 214
+[ComponentVisitor] Unmatched: [Keyword] "interface" at 219
+[ComponentVisitor] Unmatched: [Identifier] "Todo" at 229
+[ComponentVisitor] Unmatched: [Punctuation] "{" at 234
+[ComponentVisitor] Unmatched: [Identifier] "id" at 239
+[ComponentVisitor] Unmatched: [Colon] ":" at 241
+[ComponentVisitor] Unmatched: [TypeName] "number" at 243
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 249
+[ComponentVisitor] Unmatched: [Identifier] "text" at 254
+[ComponentVisitor] Unmatched: [Colon] ":" at 258
+[ComponentVisitor] Unmatched: [TypeName] "string" at 260
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 266
+[ComponentVisitor] Unmatched: [Identifier] "done" at 271
+[ComponentVisitor] Unmatched: [Colon] ":" at 275
+[ComponentVisitor] Unmatched: [TypeName] "boolean" at 277
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 284
+[ComponentVisitor] Unmatched: [Identifier] "priority" at 289
+[ComponentVisitor] Unmatched: [Colon] ":" at 297
+[ComponentVisitor] Unmatched: [String] "'low'" at 299
+[ComponentVisitor] Unmatched: [Operator] "|" at 305
+[ComponentVisitor] Unmatched: [String] "'medium'" at 307
+[ComponentVisitor] Unmatched: [Operator] "|" at 316
+[ComponentVisitor] Unmatched: [String] "'high'" at 318
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 324
+[ComponentVisitor] Unmatched: [Identifier] "createdAt" at 329
+[ComponentVisitor] Unmatched: [Colon] ":" at 338
+[ComponentVisitor] Unmatched: [TypeName] "number" at 340
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 346
+[ComponentVisitor] Unmatched: [Punctuation] "}" at 349
+[ComponentVisitor] Unmatched: [Keyword] "interface" at 354
+[ComponentVisitor] Unmatched: [Identifier] "Product" at 364
+[ComponentVisitor] Unmatched: [Punctuation] "{" at 372
+[ComponentVisitor] Unmatched: [Identifier] "id" at 377
+[ComponentVisitor] Unmatched: [Colon] ":" at 379
+[ComponentVisitor] Unmatched: [TypeName] "number" at 381
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 387
+[ComponentVisitor] Unmatched: [Identifier] "name" at 392
+[ComponentVisitor] Unmatched: [Colon] ":" at 396
+[ComponentVisitor] Unmatched: [TypeName] "string" at 398
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 404
+[ComponentVisitor] Unmatched: [Identifier] "price" at 409
+[ComponentVisitor] Unmatched: [Colon] ":" at 414
+[ComponentVisitor] Unmatched: [TypeName] "number" at 416
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 422
+[ComponentVisitor] Unmatched: [Identifier] "category" at 427
+[ComponentVisitor] Unmatched: [Colon] ":" at 435
+[ComponentVisitor] Unmatched: [TypeName] "string" at 437
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 443
+[ComponentVisitor] Unmatched: [Identifier] "inStock" at 448
+[ComponentVisitor] Unmatched: [Colon] ":" at 455
+[ComponentVisitor] Unmatched: [TypeName] "boolean" at 457
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 464
+[ComponentVisitor] Unmatched: [Identifier] "rating" at 469
+[ComponentVisitor] Unmatched: [Colon] ":" at 475
+[ComponentVisitor] Unmatched: [TypeName] "number" at 477
+[ComponentVisitor] Unmatched: [Punctuation] ";" at 483
+[ComponentVisitor] Unmatched: [Punctuation] "}" at 486
+[Pattern Debug] VisitUseStateGeneric: ✓ MATCH
+  Input: const [todos, setTodos] = useState<Todo[]>([])
+  Pattern: \k"const" "[" (\i) "," (\i) "]" "=" \i"useState" \go
+  Tokens: [[Keyword]const, [Punctuation][, [Identifier]todos, [Punctuation],, [Identifier]setTodos, [Punctuation]], [Operator]=, [Identifier]useState, [GenericOpen]<, [TypeName]Todo, [Punctuation][], [GenericClose]>, [Punctuation](, [Punctuation][, [Punctuation]], [Punctuation]), [Eof]]
+  Captures: [0] = "todos", [1] = "setTodos"
+  Matched: const [ todos , setTodos ] = useState <
+
+[StateVisitor] Processing component: TestChainedArrayMethods, body tokens: 1142
+[StateVisitor] First tokens: [Keyword]'const' [Punctuation]'[' [Identifier]'todos' [Punctuation]',' [Identifier]'setTodos' [Punctuation]']' [Operator]'=' [Identifier]'useState' [GenericOpen]'<' [TypeName]'Todo' [Punctuation]'[]' [GenericClose]'>' [Punctuation]'(' [Punctuation]'[' [Punctuation]'{'
+[TryParseMapCall] Input (34 tokens): todos.filter(todo=>!todo.done).map(todo=>(<likey={todo.id}>{todo.text}</li>))...
+[TryParseMapCall] First 10 token types: [Identifier]'todos', [Punctuation]'.', [Identifier]'filter', [Punctuation]'(', [Identifier]'todo', [Arrow]'=>', [Operator]'!', [Identifier]'todo', [Punctuation]'.', [Identifier]'done'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (47 tokens): todos.filter(todo=>showCompleted||!todo.done).map(todo=>(<likey={todo.id}classNa...
+[TryParseMapCall] First 10 token types: [Identifier]'todos', [Punctuation]'.', [Identifier]'filter', [Punctuation]'(', [Identifier]'todo', [Arrow]'=>', [Identifier]'showCompleted', [Operator]'||', [Operator]'!', [Identifier]'todo'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (78 tokens): [...todos].sort((a,b)=>{constpriority={high:0,medium:1,low:2};returnpriority[a.p...
+[TryParseMapCall] First 10 token types: [Punctuation]'[', [Punctuation]'.', [Punctuation]'.', [Punctuation]'.', [Identifier]'todos', [Punctuation]']', [Punctuation]'.', [Identifier]'sort', [Punctuation]'(', [Punctuation]'('
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (31 tokens): todos.slice(0,3).map(todo=>(<likey={todo.id}>{todo.text}</li>))...
+[TryParseMapCall] First 10 token types: [Identifier]'todos', [Punctuation]'.', [Identifier]'slice', [Punctuation]'(', [Number]'0', [Punctuation]',', [Number]'3', [Punctuation]')', [Punctuation]'.', [Identifier]'map'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (58 tokens): todos.filter(todo=>!todo.done).sort((a,b)=>b.createdAt-a.createdAt).map(todo=>(<...
+[TryParseMapCall] First 10 token types: [Identifier]'todos', [Punctuation]'.', [Identifier]'filter', [Punctuation]'(', [Identifier]'todo', [Arrow]'=>', [Operator]'!', [Identifier]'todo', [Punctuation]'.', [Identifier]'done'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (60 tokens): products.filter(p=>p.inStock).filter(p=>!categoryFilter||p.category===categoryFi...
+[TryParseMapCall] First 10 token types: [Identifier]'products', [Punctuation]'.', [Identifier]'filter', [Punctuation]'(', [Identifier]'p', [Arrow]'=>', [Identifier]'p', [Punctuation]'.', [Identifier]'inStock', [Punctuation]')'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (105 tokens): products.filter(p=>p.inStock&&p.rating>=4.0).sort((a,b)=>b.rating-a.rating).slic...
+[TryParseMapCall] First 10 token types: [Identifier]'products', [Punctuation]'.', [Identifier]'filter', [Punctuation]'(', [Identifier]'p', [Arrow]'=>', [Identifier]'p', [Punctuation]'.', [Identifier]'inStock', [Operator]'&&'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (75 tokens): ['high','medium','low'].map(priority=>(<divkey={priority}className="priority-gro...
+[TryParseMapCall] First 10 token types: [Punctuation]'[', [String]''high'', [Punctuation]',', [String]''medium'', [Punctuation]',', [String]''low'', [Punctuation]']', [Punctuation]'.', [Identifier]'map', [Punctuation]'('
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (1 tokens): useState...
+[TryParseMapCall] First 10 token types: [Identifier]'useState'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (24 tokens): id:number;text:string;done:boolean;priority:'low'|'medium'|'high';createdAt:numb...
+[TryParseMapCall] First 10 token types: [Identifier]'id', [Colon]':', [TypeName]'number', [Punctuation]';', [Identifier]'text', [Colon]':', [TypeName]'string', [Punctuation]';', [Identifier]'done', [Colon]':'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (24 tokens): id:number;name:string;price:number;category:string;inStock:boolean;rating:number...
+[TryParseMapCall] First 10 token types: [Identifier]'id', [Colon]':', [TypeName]'number', [Punctuation]';', [Identifier]'name', [Colon]':', [TypeName]'string', [Punctuation]';', [Identifier]'price', [Colon]':'
+[TryParseMapCall] Pattern did not match
+[TryParseMapCall] Input (1142 tokens): const[todos,setTodos]=useState<Todo[]>([{id:1,text:'Learn Minimact',done:true,pr...
+[TryParseMapCall] First 10 token types: [Keyword]'const', [Punctuation]'[', [Identifier]'todos', [Punctuation]',', [Identifier]'setTodos', [Punctuation]']', [Operator]'=', [Identifier]'useState', [GenericOpen]'<', [TypeName]'Todo'
+[TryParseMapCall] Pattern did not match
+[32m
+✓ Transpiled successfully
+[0m
+[36mGenerated C# code:
+[0m
+[36m================================================================================[0m
+[33m   1[0m using Minimact.AspNetCore.Core;
+[33m   2[0m using Minimact.AspNetCore.Extensions;
+[33m   3[0m using MinimactHelpers = Minimact.AspNetCore.Core.Minimact;
+[33m   4[0m using System.Collections.Generic;
+[33m   5[0m using System.Linq;
+[33m   6[0m using System.Threading.Tasks;
+[33m   7[0m 
+[33m   8[0m namespace Minimact.Components;
+[33m   9[0m 
+[33m  10[0m [Component]
+[33m  11[0m public partial class TestChainedArrayMethods : MinimactComponent
+[33m  12[0m {
+[33m  13[0m     [State]
+[33m  14[0m     private object todos = new List<object> { new { id = 1, text = "Learn Minimact", done = true, priority = "high", createdAt = 1000 }, new { id = 2, text = "Build app", done = false, priority = "high", createdAt = 2000 }, new { id = 3, text = "Write tests", done = false, priority = "medium", createdAt = 3000 }, new { id = 4, text = "Deploy", done = false, priority = "low", createdAt = 4000 }, new { id = 5, text = "Celebrate", done = false, priority = "low", createdAt = 5000 } };
+[33m  15[0m 
+[33m  16[0m     [State]
+[33m  17[0m     private object products = new List<object> { new { id = 1, name = "Laptop", price = 999, category = "Electronics", inStock = true, rating = 4.5 }, new { id = 2, name = "Phone", price = 699, category = "Electronics", inStock = true, rating = 4.8 }, new { id = 3, name = "Headphones", price = 199, category = "Electronics", inStock = false, rating = 4.2 }, new { id = 4, name = "Shirt", price = 49, category = "Clothing", inStock = true, rating = 4.0 }, new { id = 5, name = "Pants", price = 79, category = "Clothing", inStock = true, rating = 3.9 } };
+[33m  18[0m 
+[33m  19[0m     [State]
+[33m  20[0m     private bool showCompleted = false;
+[33m  21[0m 
+[33m  22[0m     [State]
+[33m  23[0m     private string categoryFilter = "";
+[33m  24[0m 
+[33m  25[0m     [State]
+[33m  26[0m     private int maxItems = 10;
+[33m  27[0m 
+[33m  28[0m     protected override VNode Render()
+[33m  29[0m     {
+[33m  30[0m         StateManager.SyncMembersToState(this);
+[33m  31[0m 
+[33m  32[0m         var priority = {high:0,medium:1,low:2};
+[33m  33[0m 
+[33m  34[0m         return new VElement("div", "1", new Dictionary<string, string> { ["class"] = "chained-methods-test" }, new VNode[]
+[33m  35[0m         {
+[33m  36[0m             new VElement("h2", "1.1", new Dictionary<string, string>(), "Chained Array Methods Test"),
+[33m  37[0m             new VElement("section", "1.2", new Dictionary<string, string>(), new VNode[]
+[33m  38[0m             {
+[33m  39[0m                 new VElement("h3", "1.2.1", new Dictionary<string, string>(), "Filter + Map (incomplete todos)"),
+[33m  40[0m                 new VElement("ul", "1.2.2", new Dictionary<string, string>(), new VNode[]
+[33m  41[0m                 {
+[33m  42[0m                     new VText($"{(todos.filter(todo=>!todo.done).map(todo=>(<likey={todo.id}>{todo.text}</li>)))}", "1.2.2.1")
+[33m  43[0m                 })
+[33m  44[0m             }),
+[33m  45[0m             new VElement("section", "1.3", new Dictionary<string, string>(), new VNode[]
+[33m  46[0m             {
+[33m  47[0m                 new VElement("h3", "1.3.1", new Dictionary<string, string>(), "Conditional Filter + Map"),
+[33m  48[0m                 new VElement("label", "1.3.2", new Dictionary<string, string>(), new VNode[]
+[33m  49[0m                 {
+[33m  50[0m                     new VElement("input", "1.3.2.1", new Dictionary<string, string> { ["type"] = "checkbox", ["checked"] = $"{(showCompleted)}", ["onchange"] = "Handle0" }),
+[33m  51[0m                     new VText("Show completed", "1.3.2.2")
+[33m  52[0m                 }),
+[33m  53[0m                 new VElement("ul", "1.3.3", new Dictionary<string, string>(), new VNode[]
+[33m  54[0m                 {
+[33m  55[0m                     new VText($"{(todos.filter(todo=>showCompleted||!todo.done).map(todo=>(<likey={todo.id}className={todo.done?'done':''}>{todo.text}</li>)))}", "1.3.3.1")
+[33m  56[0m                 })
+[33m  57[0m             }),
+[33m  58[0m             new VElement("section", "1.4", new Dictionary<string, string>(), new VNode[]
+[33m  59[0m             {
+[33m  60[0m                 new VElement("h3", "1.4.1", new Dictionary<string, string>(), "Sort + Map (by priority)"),
+[33m  61[0m                 new VElement("ul", "1.4.2", new Dictionary<string, string>(), new VNode[]
+[33m  62[0m                 {
+[33m  63[0m                     new VText($"{([...todos].sort((a,b)=>{constpriority={high:0,medium:1,low:2};returnpriority[a.priority]-priority[b.priority];}).map(todo=>(<likey={todo.id}>[{todo.priority}]{todo.text}</li>)))}", "1.4.2.1")
+[33m  64[0m                 })
+[33m  65[0m             }),
+[33m  66[0m             new VElement("section", "1.5", new Dictionary<string, string>(), new VNode[]
+[33m  67[0m             {
+[33m  68[0m                 new VElement("h3", "1.5.1", new Dictionary<string, string>(), "Slice + Map (first 3)"),
+[33m  69[0m                 new VElement("ul", "1.5.2", new Dictionary<string, string>(), new VNode[]
+[33m  70[0m                 {
+[33m  71[0m                     new VText($"{(todos.slice(0,3).map(todo=>(<likey={todo.id}>{todo.text}</li>)))}", "1.5.2.1")
+[33m  72[0m                 })
+[33m  73[0m             }),
+[33m  74[0m             new VElement("section", "1.6", new Dictionary<string, string>(), new VNode[]
+[33m  75[0m             {
+[33m  76[0m                 new VElement("h3", "1.6.1", new Dictionary<string, string>(), "Filter + Sort + Map (incomplete, by date)"),
+[33m  77[0m                 new VElement("ul", "1.6.2", new Dictionary<string, string>(), new VNode[]
+[33m  78[0m                 {
+[33m  79[0m                     new VText($"{(todos.filter(todo=>!todo.done).sort((a,b)=>b.createdAt-a.createdAt).map(todo=>(<likey={todo.id}>{todo.text}(created:{todo.createdAt})</li>)))}", "1.6.2.1")
+[33m  80[0m                 })
+[33m  81[0m             }),
+[33m  82[0m             new VElement("section", "1.7", new Dictionary<string, string>(), new VNode[]
+[33m  83[0m             {
+[33m  84[0m                 new VElement("h3", "1.7.1", new Dictionary<string, string>(), "Filter + Slice + Map (in stock, first 3)"),
+[33m  85[0m                 new VElement("select", "1.7.2", new Dictionary<string, string> { ["value"] = $"{(categoryFilter)}", ["onchange"] = "Handle1" }, new VNode[]
+[33m  86[0m                 {
+[33m  87[0m                     new VElement("option", "1.7.2.1", new Dictionary<string, string> { ["value"] = "" }, "All"),
+[33m  88[0m                     new VElement("option", "1.7.2.2", new Dictionary<string, string> { ["value"] = "Electronics" }, "Electronics"),
+[33m  89[0m                     new VElement("option", "1.7.2.3", new Dictionary<string, string> { ["value"] = "Clothing" }, "Clothing")
+[33m  90[0m                 }),
+[33m  91[0m                 new VElement("ul", "1.7.3", new Dictionary<string, string>(), new VNode[]
+[33m  92[0m                 {
+[33m  93[0m                     new VText($"{(products.filter(p=>p.inStock).filter(p=>!categoryFilter||p.category===categoryFilter).slice(0,3).map(product=>(<likey={product.id}>{product.name}- ${product.price}</li>)))}", "1.7.3.1")
+[33m  94[0m                 })
+[33m  95[0m             }),
+[33m  96[0m             new VElement("section", "1.8", new Dictionary<string, string>(), new VNode[]
+[33m  97[0m             {
+[33m  98[0m                 new VElement("h3", "1.8.1", new Dictionary<string, string>(), "Full Chain: Filter + Sort + Slice + Map"),
+[33m  99[0m                 new VElement("input", "1.8.2", new Dictionary<string, string> { ["type"] = "number", ["value"] = $"{(maxItems)}", ["onchange"] = "Handle2", ["min"] = $"{(1)}", ["max"] = $"{(10)}" }),
+[33m 100[0m                 new VElement("div", "1.8.3", new Dictionary<string, string> { ["class"] = "product-grid" }, new VNode[]
+[33m 101[0m                 {
+[33m 102[0m                     new VText($"{(products.filter(p=>p.inStock&&p.rating>=4.0).sort((a,b)=>b.rating-a.rating).slice(0,maxItems).map(product=>(<divkey={product.id}className="product-card"><h4>{product.name}</h4><pclassName="price">${product.price}</p><pclassName="rating">⭐{product.rating}</p><spanclassName="category">{product.category}</span></div>)))}", "1.8.3.1")
+[33m 103[0m                 })
+[33m 104[0m             }),
+[33m 105[0m             new VElement("section", "1.9", new Dictionary<string, string>(), new VNode[]
+[33m 106[0m             {
+[33m 107[0m                 new VElement("h3", "1.9.1", new Dictionary<string, string>(), "Nested Maps with Filter"),
+[33m 108[0m                 new VText($"{(['high','medium','low'].map(priority=>(<divkey={priority}className="priority-group"><h4>{priority}priority</h4><ul>{todos.filter(t=>t.priority===priority).map(todo=>(<likey={todo.id}>{todo.text}</li>))}</ul></div>)))}", "1.9.2")
+[33m 109[0m             }),
+[33m 110[0m             new VElement("section", "1.10", new Dictionary<string, string>(), new VNode[]
+[33m 111[0m             {
+[33m 112[0m                 new VElement("h3", "1.10.1", new Dictionary<string, string>(), "Filter for Count"),
+[33m 113[0m                 new VElement("p", "1.10.2", new Dictionary<string, string>(), $"Incomplete high priority:{(todos.filter(t=>!t.done&&t.priority==='high').length)}"),
+[33m 114[0m                 new VElement("p", "1.10.3", new Dictionary<string, string>(), $"In-stock electronics:{(products.filter(p=>p.inStock&&p.category==='Electronics').length)}")
+[33m 115[0m             })
+[33m 116[0m         });
+[33m 117[0m     }
+[33m 118[0m 
+[33m 119[0m     public void Handle0()
+[33m 120[0m     {
+[33m 121[0m         SetState(nameof(showCompleted), !showCompleted);
+[33m 122[0m     }
+[33m 123[0m 
+[33m 124[0m     public void Handle1(dynamic e)
+[33m 125[0m     {
+[33m 126[0m         SetState(nameof(categoryFilter), e.target.value);
+[33m 127[0m     }
+[33m 128[0m 
+[33m 129[0m     public void Handle2(dynamic e)
+[33m 130[0m     {
+[33m 131[0m         SetState(nameof(maxItems), parseInt(e.target.value)||5);
+[33m 132[0m     }
+[33m 133[0m 
+[33m 134[0m     /// <summary>
+[33m 135[0m     /// Returns JavaScript event handlers for client-side execution
+[33m 136[0m     /// These execute in the browser with bound hook context
+[33m 137[0m     /// </summary>
+[33m 138[0m     protected override Dictionary<string, string> GetClientHandlers()
+[33m 139[0m     {
+[33m 140[0m         return new Dictionary<string, string>
+[33m 141[0m         {
+[33m 142[0m             ["Handle0"] = @"function () {\n  setShowCompleted(!showCompleted);\n}",
+[33m 143[0m             ["Handle1"] = @"function () {\n  setCategoryFilter(e.target.value);\n}",
+[33m 144[0m             ["Handle2"] = @"function () {\n  setMaxItems(parseInt(e.target.value)||5);\n}"
+[33m 145[0m         };
+[33m 146[0m     }
+[33m 147[0m }
+[33m 148[0m 
+[36m================================================================================
+[0m
+[32m✓ Total lines: 148[0m
+[32m✓ Wrote: TestChainedArrayMethods.cs[0m
+[32m✓ Wrote: TestChainedArrayMethods.templates.json[0m
+[32m✓ Wrote: TestChainedArrayMethods.hooks.json[0m
+[32m✓ Wrote: TestChainedArrayMethods.structural-changes.json[0m
+[32m✓ Wrote: TestChainedArrayMethods.tsx.keys[0m
+[36m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[36m
+Generated Templates JSON:
+[0m
+[36m================================================================================[0m
+[33m   1[0m {
+[33m   2[0m   "component": "TestChainedArrayMethods",
+[33m   3[0m   "version": "1.0",
+[33m   4[0m   "generatedAt": 1765079247531,
+[33m   5[0m   "templates": {
+[33m   6[0m     "1.@class": {
+[33m   7[0m       "template": "chained-methods-test",
+[33m   8[0m       "bindings": [],
+[33m   9[0m       "slots": [],
+[33m  10[0m       "path": [
+[33m  11[0m         "1"
+[33m  12[0m       ],
+[33m  13[0m       "type": "attribute-static"
+[33m  14[0m     },
+[33m  15[0m     "1.@key": {
+[33m  16[0m       "template": "1",
+[33m  17[0m       "bindings": [],
+[33m  18[0m       "slots": [],
+[33m  19[0m       "path": [
+[33m  20[0m         "1"
+[33m  21[0m       ],
+[33m  22[0m       "type": "attribute-static"
+[33m  23[0m     },
+[33m  24[0m     "1.1.@key": {
+[33m  25[0m       "template": "1.1",
+[33m  26[0m       "bindings": [],
+[33m  27[0m       "slots": [],
+[33m  28[0m       "path": [
+[33m  29[0m         "1",
+[33m  30[0m         "1"
+[33m  31[0m       ],
+[33m  32[0m       "type": "attribute-static"
+[33m  33[0m     },
+[33m  34[0m     "1.1.1": {
+[33m  35[0m       "template": "Chained Array Methods Test",
+[33m  36[0m       "bindings": [],
+[33m  37[0m       "slots": [],
+[33m  38[0m       "path": [
+[33m  39[0m         "1",
+[33m  40[0m         "1",
+[33m  41[0m         "1"
+[33m  42[0m       ],
+[33m  43[0m       "type": "static"
+[33m  44[0m     },
+[33m  45[0m     "1.2.@key": {
+[33m  46[0m       "template": "1.2",
+[33m  47[0m       "bindings": [],
+[33m  48[0m       "slots": [],
+[33m  49[0m       "path": [
+[33m  50[0m         "1",
+[33m... (874 more lines)[0m
+[36m================================================================================
+[0m
+[32m✓ Template count: 72[0m
+[36m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[36m
+Generated Hooks JSON:
+[0m
+{
+  "componentName": "TestChainedArrayMethods",
+  "timestamp": "2025-12-07T03:47:27.5560880Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "todos",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "products",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "showCompleted",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "categoryFilter",
+      "index": 3
+    },
+    {
+      "type": "useState",
+      "varName": "maxItems",
+      "index": 4
+    }
+  ]
+}
+[36m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[36m
+Generated Structural Changes JSON:
+[0m
+[32m✓ 944 lines of structural changes[0m
+[36m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[36m
+Generated Keys JSON:
+[0m
+{
+  "version": "1.0",
+  "componentName": "TestChainedArrayMethods",
+  "generatedAt": 1765079247559,
+  "keys": {
+    "div:48:5": "10000000",
+    "h2:49:7": "20000000",
+    "section:52:7": "30000000",
+    "h3:53:9": "40000000",
+    "ul:54:9": "50000000",
+    "li:58:15": "60000000",
+    "section:64:7": "70000000",
+    "h3:65:9": "80000000",
+    "label:66:9": "90000000",
+    "input:67:11": "A0000000",
+    "ul:74:9": "B0000000",
+    "li:78:15": "C0000000",
+    "section:86:7": "D0000000",
+    "h3:87:9": "E0000000",
+    "ul:88:9": "F0000000",
+    "li:95:15": "00000000",
+    "section:103:7": "10000000",
+    "h3:104:9": "20000000",
+    "ul:105:9": "30000000",
+    "li:109:15": "40000000",
+    "section:115:7": "50000000",
+    "h3:116:9": "60000000",
+    "ul:117:9": "70000000",
+    "li:122:15": "80000000",
+    "section:130:7": "90000000",
+    "h3:131:9": "A0000000",
+    "select:132:9": "B0000000",
+    "option:136:11": "C0000000",
+    "option:137:11": "D0000000",
+    "option:138:11": "E0000000",
+    "ul:140:9": "F0000000",
+    "li:146:15": "00000000",
+    "section:154:7": "10000000",
+    "h3:155:9": "20000000",
+    "input:156:9": "30000000",
+    "div:163:9": "40000000",
+    "div:169:15": "50000000",
+    "h4:170:17": "60000000",
+    "p:171:17": "70000000",
+    "p:172:17": "80000000",
+    "span:173:17": "90000000",
+    "section:180:7": "A0000000",
+    "h3:181:9": "B0000000",
+    "div:183:11": "C0000000",
+    "h4:184:13": "D0000000",
+    "ul:185:13": "E0000000",
+    "li:189:19": "F0000000",
+    "section:197:7": "00000000",
+    "h3:198:9": "10000000",
+    "p:199:9": "20000000",
+    "p:200:9": "30000000"
+  },
+  "nextKey": "40000000"
+}
+[36m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[36m
+Component Summary:
+[0m
+[32m  TestChainedArrayMethods:[0m
+[0m    - State fields: 5[0m
+[0m    - Effect hooks: 0[0m
+[0m    - Ref hooks: 0[0m
+[0m    - Event handlers: 3[0m
+[0m    - Local variables: 1[0m
+[0m    - Has render tree: True[0m
+[0m    - Templates: 72[0m
+[36m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[33m
+Compiling C# code...[0m
+[31m
+✗ C# compilation failed![0m
+[32m
+✓ Done![0m
