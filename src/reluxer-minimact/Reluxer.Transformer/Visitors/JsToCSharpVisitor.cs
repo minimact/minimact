@@ -16,6 +16,67 @@ public class JsToCSharpVisitor : TokenVisitor
 {
     #region Global Functions
 
+    // parseInt(x) || default -> int.TryParse(x.ToString(), out var _p) ? _p : default
+    // This handles the JS pattern where parseInt returns NaN and fallback is used
+    // Must come BEFORE the simple parseInt pattern (higher priority)
+    // Use \n for number OR \i for identifier as the fallback
+    [TokenPattern(@"""parseInt"" ""("" (.*?) "")"" ""||"" (\n)", Priority = 10)]
+    public void VisitParseIntWithFallbackNumber(TokenMatch match, Token[] arg, Token[] fallback)
+    {
+        // int.TryParse(arg.ToString(), out var _p) ? _p : fallback
+        ReplaceMatch(match, Concat(
+            Token.Identifier("int"),
+            Token.Punctuation("."),
+            Token.Identifier("TryParse"),
+            Token.Punctuation("(")
+        ).Concat(arg).Concat(new[] {
+            Token.Punctuation("."),
+            Token.Identifier("ToString"),
+            Token.Punctuation("("),
+            Token.Punctuation(")"),
+            Token.Punctuation(","),
+            Token.Keyword("out"),
+            Token.Keyword("var"),
+            Token.Identifier("_p"),
+            Token.Punctuation(")"),
+            Token.Whitespace(" "),
+            Token.Operator("?"),
+            Token.Whitespace(" "),
+            Token.Identifier("_p"),
+            Token.Whitespace(" "),
+            Token.Create(TokenType.Colon, ":")
+        }).Concat(fallback).ToArray());
+    }
+
+    // parseInt(x) || identifier -> int.TryParse(...) (same as above but for identifier fallback)
+    [TokenPattern(@"""parseInt"" ""("" (.*?) "")"" ""||"" (\i)", Priority = 10)]
+    public void VisitParseIntWithFallbackIdentifier(TokenMatch match, Token[] arg, Token[] fallback)
+    {
+        // Delegate to the same logic as number fallback
+        ReplaceMatch(match, Concat(
+            Token.Identifier("int"),
+            Token.Punctuation("."),
+            Token.Identifier("TryParse"),
+            Token.Punctuation("(")
+        ).Concat(arg).Concat(new[] {
+            Token.Punctuation("."),
+            Token.Identifier("ToString"),
+            Token.Punctuation("("),
+            Token.Punctuation(")"),
+            Token.Punctuation(","),
+            Token.Keyword("out"),
+            Token.Keyword("var"),
+            Token.Identifier("_p"),
+            Token.Punctuation(")"),
+            Token.Whitespace(" "),
+            Token.Operator("?"),
+            Token.Whitespace(" "),
+            Token.Identifier("_p"),
+            Token.Whitespace(" "),
+            Token.Create(TokenType.Colon, ":")
+        }).Concat(fallback).ToArray());
+    }
+
     // parseInt(x) -> int.Parse(x.ToString())
     [TokenPattern(@"""parseInt"" ""("" (.*?) "")""")]
     public void VisitParseInt(TokenMatch match, Token[] arg)

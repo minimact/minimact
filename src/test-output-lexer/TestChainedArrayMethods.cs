@@ -142,7 +142,7 @@ public partial class TestChainedArrayMethods : MinimactComponent
 
     public void Handle2(dynamic e)
     {
-        setMaxItems(int.Parse(e.target.value.ToString()) || 5);
+        setMaxItems(int.TryParse(e.target.value.ToString(), out var _p) ? _p : 5);
     }
 
     /// <summary>
