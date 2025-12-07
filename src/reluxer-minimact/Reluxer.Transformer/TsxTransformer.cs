@@ -102,6 +102,13 @@ public class TsxTransformer
             timelineVisitor.Visit(tokens, source, sharedContext);
         }
 
+        // Phase 2.8: Extract special hooks (useServerTask, useValidation, etc.)
+        foreach (var component in components)
+        {
+            var specialHooksVisitor = new SpecialHooksVisitor(component);
+            specialHooksVisitor.Visit(tokens, source, sharedContext);
+        }
+
         // Phase 3: Extract event handlers and local variables
         foreach (var component in components)
         {

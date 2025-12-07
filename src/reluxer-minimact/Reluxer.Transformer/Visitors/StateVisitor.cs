@@ -394,13 +394,22 @@ public class StateVisitor : TokenVisitor
         if (expr.Contains("=>"))
             return;
 
-        // Skip state-related (already handled)
-        if (expr.Contains("useState") || expr.Contains("useMvcState") || expr.Contains("useMvcViewModel"))
+        // Skip state-related and hooks (already handled)
+        if (expr.Contains("useState") || expr.Contains("useMvcState") || expr.Contains("useMvcViewModel") || expr.Contains("useServerTask"))
             return;
 
         // Skip lifted state reads (already handled by VisitLiftedState)
         // Pattern: state["Component.key"]
         if (expr.StartsWith("state["))
+            return;
+
+        // Skip variables that appear to be inside function bodies (JS-specific patterns)
+        // These typically come from inside useServerTask bodies or event handlers
+        if (expr.Contains(".body") || expr.Contains("getReader") || expr.Contains(".read()"))
+            return;
+
+        // Skip await expressions - these are inside async functions, not top-level
+        if (expr.StartsWith("await") || expr.Contains(" await "))
             return;
 
         // Skip if already added (prevent duplicates)

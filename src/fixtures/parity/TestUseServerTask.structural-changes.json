@@ -1,0 +1,221 @@
+{
+  "componentName": "TestUseServerTask",
+  "timestamp": "2025-12-07T14:33:32.345Z",
+  "sourceFile": "J:\\projects\\minimact\\src\\fixtures\\parity\\TestUseServerTask.tsx",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1",
+        "attributes": {
+          "className": "server-task-test"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.4",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h2",
+        "path": "1.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1",
+            "value": "Server Task Test"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.2",
+        "attributes": {
+          "className": "search-section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "input"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vnode": {
+        "type": "element",
+        "tag": "input",
+        "path": "1.2.1",
+        "attributes": {
+          "type": "text",
+          "value": "__DYNAMIC__",
+          "onChange": "__DYNAMIC__",
+          "placeholder": "Search products..."
+        },
+        "children": []
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.2.2",
+        "attributes": {
+          "onClick": "__DYNAMIC__",
+          "disabled": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.2.2.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.3",
+        "attributes": {
+          "className": "results"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.3.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.4",
+        "attributes": {
+          "className": "streaming-section"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.4.1",
+            "tag": "h3"
+          },
+          {
+            "type": "element",
+            "path": "1.4.2",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.4.3",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.1",
+      "vnode": {
+        "type": "element",
+        "tag": "h3",
+        "path": "1.4.1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.1.1",
+            "value": "AI Streaming"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.2",
+      "vnode": {
+        "type": "element",
+        "tag": "button",
+        "path": "1.4.2",
+        "attributes": {
+          "onClick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.4.2.1",
+            "value": "Start Stream"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.3",
+      "vnode": {
+        "type": "element",
+        "tag": "div",
+        "path": "1.4.3",
+        "attributes": {
+          "className": "streamed-content"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.4.3.1",
+            "value": "__DYNAMIC__"
+          }
+        ]
+      }
+    }
+  ]
+}

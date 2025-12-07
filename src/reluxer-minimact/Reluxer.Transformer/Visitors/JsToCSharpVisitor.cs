@@ -23,7 +23,8 @@ public class JsToCSharpVisitor : TokenVisitor
     [TokenPattern(@"""parseInt"" ""("" (.*?) "")"" ""||"" (\n)", Priority = 10)]
     public void VisitParseIntWithFallbackNumber(TokenMatch match, Token[] arg, Token[] fallback)
     {
-        // int.TryParse(arg.ToString(), out var _p) ? _p : fallback
+        // int.TryParse(arg.ToString(), out int _p) ? _p : fallback
+        // Note: Use explicit 'int' type instead of 'var' for proper type inference in ternary context
         ReplaceMatch(match, Concat(
             Token.Identifier("int"),
             Token.Punctuation("."),
@@ -35,8 +36,11 @@ public class JsToCSharpVisitor : TokenVisitor
             Token.Punctuation("("),
             Token.Punctuation(")"),
             Token.Punctuation(","),
+            Token.Whitespace(" "),
             Token.Keyword("out"),
-            Token.Keyword("var"),
+            Token.Whitespace(" "),
+            Token.Identifier("int"),
+            Token.Whitespace(" "),
             Token.Identifier("_p"),
             Token.Punctuation(")"),
             Token.Whitespace(" "),
@@ -52,7 +56,8 @@ public class JsToCSharpVisitor : TokenVisitor
     [TokenPattern(@"""parseInt"" ""("" (.*?) "")"" ""||"" (\i)", Priority = 10)]
     public void VisitParseIntWithFallbackIdentifier(TokenMatch match, Token[] arg, Token[] fallback)
     {
-        // Delegate to the same logic as number fallback
+        // int.TryParse(arg.ToString(), out int _p) ? _p : fallback
+        // Note: Use explicit 'int' type instead of 'var' for proper type inference in ternary context
         ReplaceMatch(match, Concat(
             Token.Identifier("int"),
             Token.Punctuation("."),
@@ -64,8 +69,11 @@ public class JsToCSharpVisitor : TokenVisitor
             Token.Punctuation("("),
             Token.Punctuation(")"),
             Token.Punctuation(","),
+            Token.Whitespace(" "),
             Token.Keyword("out"),
-            Token.Keyword("var"),
+            Token.Whitespace(" "),
+            Token.Identifier("int"),
+            Token.Whitespace(" "),
             Token.Identifier("_p"),
             Token.Punctuation(")"),
             Token.Whitespace(" "),
@@ -149,6 +157,138 @@ public class JsToCSharpVisitor : TokenVisitor
             Token.Identifier("ToBoolean"),
             Token.Punctuation("(")
         ).Concat(arg).Concat(new[] {
+            Token.Punctuation(")")
+        }).ToArray());
+    }
+
+    #endregion
+
+    #region Fetch/HTTP
+
+    // await fetch(url) -> await _httpClient.GetStringAsync(url)
+    // Simple GET without options
+    [TokenPattern(@"\k""await"" ""fetch"" ""("" (\t) "")""", Priority = 20)]
+    public void VisitAwaitFetchTemplateString(TokenMatch match, Token[] url)
+    {
+        // Convert template string backticks to C# interpolated string
+        var urlStr = url.Length > 0 ? url[0].Value : "";
+        if (urlStr.StartsWith("`") && urlStr.EndsWith("`"))
+        {
+            // Convert `...${x}...` to $"...{x}..."
+            urlStr = "$\"" + urlStr[1..^1].Replace("${", "{") + "\"";
+        }
+
+        ReplaceMatch(match, new[] {
+            Token.Keyword("await"),
+            Token.Whitespace(" "),
+            Token.Identifier("_httpClient"),
+            Token.Punctuation("."),
+            Token.Identifier("GetStringAsync"),
+            Token.Punctuation("("),
+            Token.String(urlStr),
+            Token.Punctuation(")")
+        });
+    }
+
+    // await fetch('url') or await fetch("url") -> await _httpClient.GetStringAsync(url)
+    [TokenPattern(@"\k""await"" ""fetch"" ""("" (\s) "")""", Priority = 15)]
+    public void VisitAwaitFetchString(TokenMatch match, Token[] url)
+    {
+        ReplaceMatch(match, new[] {
+            Token.Keyword("await"),
+            Token.Whitespace(" "),
+            Token.Identifier("_httpClient"),
+            Token.Punctuation("."),
+            Token.Identifier("GetStringAsync"),
+            Token.Punctuation("(")
+        }.Concat(url).Concat(new[] {
+            Token.Punctuation(")")
+        }).ToArray());
+    }
+
+    // await fetch(url, { method: 'POST', body: ... }) -> await _httpClient.PostAsync(url, content)
+    // This is complex - for now, convert to a simpler form
+    [TokenPattern(@"\k""await"" ""fetch"" ""("" (\s) "","" (\Bb) "")""", Priority = 25)]
+    public void VisitAwaitFetchWithOptions(TokenMatch match, Token[] url, Token[] options)
+    {
+        // Check if it's a POST
+        var optionsStr = string.Join("", options.Select(t => t.Value));
+        var isPost = optionsStr.Contains("method") && (optionsStr.Contains("'POST'") || optionsStr.Contains("\"POST\""));
+
+        if (isPost)
+        {
+            // Extract body if present - look for body: JSON.stringify(...)
+            // For now, generate a placeholder
+            ReplaceMatch(match, new[] {
+                Token.Keyword("await"),
+                Token.Whitespace(" "),
+                Token.Identifier("_httpClient"),
+                Token.Punctuation("."),
+                Token.Identifier("PostAsync"),
+                Token.Punctuation("(")
+            }.Concat(url).Concat(new[] {
+                Token.Punctuation(","),
+                Token.Whitespace(" "),
+                Token.Keyword("new"),
+                Token.Whitespace(" "),
+                Token.Identifier("StringContent"),
+                Token.Punctuation("("),
+                Token.String("\"{}\""),  // Placeholder - would need proper body extraction
+                Token.Punctuation(")"),
+                Token.Punctuation(")")
+            }).ToArray());
+        }
+        else
+        {
+            // Default to GET
+            ReplaceMatch(match, new[] {
+                Token.Keyword("await"),
+                Token.Whitespace(" "),
+                Token.Identifier("_httpClient"),
+                Token.Punctuation("."),
+                Token.Identifier("GetStringAsync"),
+                Token.Punctuation("(")
+            }.Concat(url).Concat(new[] {
+                Token.Punctuation(")")
+            }).ToArray());
+        }
+    }
+
+    // response.json() -> (remove - we already have string from GetStringAsync)
+    [TokenPattern(@"""."" ""json"" ""("" "")""")]
+    public void VisitResponseJson(TokenMatch match)
+    {
+        // Remove .json() as we're returning string directly from HttpClient
+        ReplaceMatch(match, Array.Empty<Token>());
+    }
+
+    // JSON.stringify(obj) -> JsonSerializer.Serialize(obj)
+    [TokenPattern(@"""JSON"" ""."" ""stringify"" ""("" (.*?) "")""")]
+    public void VisitJsonStringify(TokenMatch match, Token[] obj)
+    {
+        ReplaceMatch(match, new[] {
+            Token.Identifier("JsonSerializer"),
+            Token.Punctuation("."),
+            Token.Identifier("Serialize"),
+            Token.Punctuation("(")
+        }.Concat(obj).Concat(new[] {
+            Token.Punctuation(")")
+        }).ToArray());
+    }
+
+    // JSON.parse(str) -> JsonSerializer.Deserialize<dynamic>(str)
+    [TokenPattern(@"""JSON"" ""."" ""parse"" ""("" (.*?) "")""")]
+    public void VisitJsonParse(TokenMatch match, Token[] str)
+    {
+        ReplaceMatch(match, new[] {
+            Token.Identifier("JsonSerializer"),
+            Token.Punctuation("."),
+            Token.Identifier("Deserialize"),
+            Token.Punctuation("<"),
+            Token.Keyword("dynamic"),
+            Token.Punctuation(">"),
+            Token.Punctuation("(")
+        }.Concat(str).Concat(new[] {
             Token.Punctuation(")")
         }).ToArray());
     }
@@ -444,7 +584,38 @@ public class JsToCSharpVisitor : TokenVisitor
         ));
     }
 
-    // .reduce(fn, init) -> .Aggregate(init, fn)
+    // .reduce((a, b) => expr, init) -> .Aggregate(init, (a, b) => expr)
+    // Uses \Bp to capture balanced parens for the arrow function params
+    [TokenPattern(@"""."" ""reduce"" ""("" (\Bp) \fa (.*?) "","" (.*?) "")""", Priority = 10)]
+    public void VisitReduceArrowWithInit(TokenMatch match, Token[] fnParams, Token[] fnBody, Token[] init)
+    {
+        // Convert integer literal 0 to double 0.0d for type safety with double arrays
+        var initTokens = init;
+        if (init.Length == 1 && init[0].Type == TokenType.Number && init[0].Value == "0")
+        {
+            initTokens = new[] { Token.Number("0.0d") };
+        }
+
+        // Reconstruct: .Aggregate(init, (params) => body)
+        ReplaceMatch(match, Concat(
+            Token.Punctuation("."),
+            Token.Identifier("Aggregate"),
+            Token.Punctuation("(")
+        ).Concat(initTokens).Concat(new[] {
+            Token.Punctuation(","),
+            Token.Whitespace(" "),
+            Token.Punctuation("(")
+        }).Concat(fnParams).Concat(new[] {
+            Token.Punctuation(")"),
+            Token.Whitespace(" "),
+            Token.Operator("=>"),
+            Token.Whitespace(" ")
+        }).Concat(fnBody).Concat(new[] {
+            Token.Punctuation(")")
+        }).ToArray());
+    }
+
+    // .reduce(fn, init) -> .Aggregate(init, fn) - fallback for non-arrow function
     [TokenPattern(@"""."" ""reduce"" ""("" (.*?) "","" (.*?) "")""")]
     public void VisitReduceWithInit(TokenMatch match, Token[] fn, Token[] init)
     {

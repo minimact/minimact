@@ -1,0 +1,26 @@
+{
+  "componentName": "TestUseServerTask",
+  "timestamp": "2025-12-07T19:18:27.4910302Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "query",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "results",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "streamedContent",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "isLoading",
+      "index": 3
+    }
+  ]
+}

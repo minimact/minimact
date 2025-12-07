@@ -91,6 +91,13 @@ public class HandlerVisitor : TokenVisitor
     {
         // Skip if it's a handler (already processed above)
         if (IsHandlerName(name)) return;
+        // Skip if it's a ServerTask (handled by SpecialHooksVisitor)
+        if (_component.ServerTasks.Any(st => st.Name == name))
+        {
+            // Skip the entire useServerTask(...) call
+            SkipBalanced("(", ")");
+            return;
+        }
         // Skip if it's a useState destructuring (handled by StateVisitor)
         if (match.MatchedTokens.Length > match.EndIndex)
         {

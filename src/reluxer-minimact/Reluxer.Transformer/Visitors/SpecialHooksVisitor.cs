@@ -32,11 +32,11 @@ public class SpecialHooksVisitor : TokenVisitor
     {
         _componentBody = Context.Get<Token[]>($"ComponentBody:{_component.Name}");
 
-        Console.WriteLine($"[SpecialHooksVisitor] Processing component: {_component.Name}, body tokens: {_componentBody?.Length ?? 0}");
-
         if (_componentBody != null && _componentBody.Length > 0)
         {
             Traverse(_componentBody,
+                nameof(VisitUseServerTaskInlineStreaming),
+                nameof(VisitUseServerTaskInline),
                 nameof(VisitUseServerTask),
                 nameof(VisitUseServerTaskStreaming),
                 nameof(VisitUsePaginatedServerTask),
@@ -55,6 +55,350 @@ public class SpecialHooksVisitor : TokenVisitor
     }
 
     #region useServerTask
+
+    // Match: const fnName = useServerTask(async function* (params): AsyncGenerator<T> { body }, options)
+    // Streaming version - uses function* (generator) - pattern captures params in balanced parens
+    [TokenPattern(@"\k""const"" (\i) ""="" \i""useServerTask"" ""("" \k""async"" \k""function"" ""*"" (\Bp)", Priority = 120, Name = "VisitUseServerTaskInlineStreaming")]
+    public void VisitUseServerTaskInlineStreaming(TokenMatch match, string fnName, Token[] paramsTokens)
+    {
+        var serverTask = new ServerTaskModel
+        {
+            Name = fnName,
+            IsStreaming = true
+        };
+
+        Console.WriteLine($"[SpecialHooksVisitor] Extracted streaming params for {fnName}: {paramsTokens.Length} tokens");
+        if (paramsTokens.Length > 0)
+        {
+            Console.WriteLine($"[SpecialHooksVisitor] Params tokens: {string.Join(" ", paramsTokens.Take(20).Select(t => $"[{t.Type}]{t.Value}"))}");
+        }
+
+        // Parse parameters
+        if (paramsTokens.Length > 0)
+        {
+            ParseParametersFromTokens(serverTask, paramsTokens);
+        }
+
+        // Extract return type: look for ): AsyncGenerator<Type>
+        ParseReturnTypeFromMatchedTokens(serverTask, match.MatchedTokens, isStreaming: true);
+
+        // Extract the function body { ... }
+        var bodyTokens = ExtractFunctionBody(0);
+        Console.WriteLine($"[SpecialHooksVisitor] Extracted body for {fnName}: {bodyTokens.Length} tokens");
+
+        // Convert body to C#
+        if (bodyTokens.Length > 0)
+        {
+            serverTask.Body = ConvertFunctionBodyToCSharp(bodyTokens, isStreaming: true);
+        }
+
+        _component.ServerTasks.Add(serverTask);
+        Console.WriteLine($"[SpecialHooksVisitor] Added streaming ServerTask: {fnName}, ReturnType: {serverTask.ReturnType}, Params: {serverTask.Parameters.Count}");
+
+        SkipBalanced("(", ")");
+    }
+
+    // Match: const fnName = useServerTask(async function (params): Promise<T> { body }, options)
+    // Regular async version - pattern captures params in balanced parens
+    [TokenPattern(@"\k""const"" (\i) ""="" \i""useServerTask"" ""("" \k""async"" \k""function"" (\Bp)", Priority = 100, Name = "VisitUseServerTaskInline")]
+    public void VisitUseServerTaskInline(TokenMatch match, string fnName, Token[] paramsTokens)
+    {
+        var serverTask = new ServerTaskModel
+        {
+            Name = fnName,
+            IsStreaming = false
+        };
+
+        Console.WriteLine($"[SpecialHooksVisitor] Extracted params for {fnName}: {paramsTokens.Length} tokens");
+        if (paramsTokens.Length > 0)
+        {
+            Console.WriteLine($"[SpecialHooksVisitor] Params tokens: {string.Join(" ", paramsTokens.Take(20).Select(t => $"[{t.Type}]{t.Value}"))}");
+        }
+
+        // Parse parameters
+        if (paramsTokens.Length > 0)
+        {
+            ParseParametersFromTokens(serverTask, paramsTokens);
+        }
+
+        // Extract return type: look for ): Promise<Type> or ): Type
+        // The matched tokens include everything, so we can search for the return type annotation
+        ParseReturnTypeFromMatchedTokens(serverTask, match.MatchedTokens, isStreaming: false);
+
+        // Extract the function body { ... }
+        var bodyTokens = ExtractFunctionBody(0);
+        Console.WriteLine($"[SpecialHooksVisitor] Extracted body for {fnName}: {bodyTokens.Length} tokens");
+
+        // Convert body to C#
+        if (bodyTokens.Length > 0)
+        {
+            serverTask.Body = ConvertFunctionBodyToCSharp(bodyTokens, isStreaming: false);
+        }
+
+        _component.ServerTasks.Add(serverTask);
+        Console.WriteLine($"[SpecialHooksVisitor] Added ServerTask: {fnName}, ReturnType: {serverTask.ReturnType}, Params: {serverTask.Parameters.Count}");
+
+        SkipBalanced("(", ")");
+    }
+
+    /// <summary>
+    /// Parses parameters from token array like (searchQuery: string, options?: Options)
+    /// Uses pattern matching to extract name: type pairs.
+    /// </summary>
+    private void ParseParametersFromTokens(ServerTaskModel serverTask, Token[] paramTokens)
+    {
+        // Pattern: identifier : typename optionally followed by [] for arrays
+        // Use \tn for TypeName and \cl for Colon token types
+        // Try array pattern first (higher priority)
+        var arrayParamMatcher = new PatternMatcher(@"(\i) \cl (\tn) ""[]""", skipWhitespace: true);
+        var simpleParamMatcher = new PatternMatcher(@"(\i) \cl (\tn)", skipWhitespace: true);
+
+        Console.WriteLine($"[ParseParametersFromTokens] Trying to match params: {string.Join(" ", paramTokens.Select(t => $"[{t.Type}]{t.Value}"))}");
+
+        // First try array params
+        var arrayMatches = arrayParamMatcher.FindAll(paramTokens);
+        var matchedNames = new HashSet<string>();
+
+        arrayMatches.ToList().ForEach(match =>
+        {
+            var nameTokens = match.GetCapturedTokens(0);
+            var typeTokens = match.GetCapturedTokens(1);
+
+            if (nameTokens != null && nameTokens.Length > 0)
+            {
+                var name = nameTokens[0].Value.TrimEnd('?');
+                matchedNames.Add(name);
+                var jsType = typeTokens != null && typeTokens.Length > 0
+                    ? typeTokens[0].Value + "[]"
+                    : "dynamic";
+
+                Console.WriteLine($"[ParseParametersFromTokens] Array Match: name={name}, type={jsType}");
+                serverTask.Parameters.Add(new ParameterInfo
+                {
+                    Name = name,
+                    Type = ConvertJsTypeToCSharp(jsType)
+                });
+            }
+        });
+
+        // Then simple params (skip already matched)
+        var simpleMatches = simpleParamMatcher.FindAll(paramTokens);
+        simpleMatches.ToList().ForEach(match =>
+        {
+            var nameTokens = match.GetCapturedTokens(0);
+            var typeTokens = match.GetCapturedTokens(1);
+
+            if (nameTokens != null && nameTokens.Length > 0)
+            {
+                var name = nameTokens[0].Value.TrimEnd('?');
+                if (matchedNames.Contains(name)) return; // Skip already matched
+
+                var jsType = typeTokens != null && typeTokens.Length > 0
+                    ? typeTokens[0].Value
+                    : "dynamic";
+
+                Console.WriteLine($"[ParseParametersFromTokens] Simple Match: name={name}, type={jsType}");
+                serverTask.Parameters.Add(new ParameterInfo
+                {
+                    Name = name,
+                    Type = ConvertJsTypeToCSharp(jsType)
+                });
+            }
+        });
+    }
+
+    /// <summary>
+    /// Parses return type from tokens using pattern matching.
+    /// Looks for ): Promise<T> or ): AsyncGenerator<T>
+    /// </summary>
+    private void ParseReturnTypeFromTokens(ServerTaskModel serverTask, Token[] tokens, bool isStreaming)
+    {
+        // Default return type
+        serverTask.ReturnType = isStreaming ? "IAsyncEnumerable<object>" : "Task<object>";
+
+        // Pattern: ) : Promise < Type > or ) : AsyncGenerator < Type >
+        var returnMatcher = new PatternMatcher(@""":"" (\i) ""<"" (\i) "">""");
+
+        if (returnMatcher.TryMatch(tokens, 0, out var match) && match != null)
+        {
+            var wrapperTokens = match.GetCapturedTokens(0);
+            var typeTokens = match.GetCapturedTokens(1);
+
+            var wrapperType = wrapperTokens?[0].Value ?? "";
+            var innerType = typeTokens?[0].Value ?? "object";
+            innerType = ConvertJsTypeToCSharp(innerType);
+
+            if (isStreaming || wrapperType == "AsyncGenerator")
+            {
+                serverTask.ReturnType = $"IAsyncEnumerable<{innerType}>";
+                serverTask.IsStreaming = true;
+            }
+            else
+            {
+                serverTask.ReturnType = $"Task<{innerType}>";
+            }
+        }
+    }
+
+    /// <summary>
+    /// Parses return type from matched tokens - looks for the return type annotation
+    /// after the parameter list: ): Promise<T> or ): AsyncGenerator<T>
+    /// </summary>
+    private void ParseReturnTypeFromMatchedTokens(ServerTaskModel serverTask, Token[] matchedTokens, bool isStreaming)
+    {
+        // Default return type
+        serverTask.ReturnType = isStreaming ? "IAsyncEnumerable<object>" : "Task<object>";
+
+        // Look for pattern: ) : TypeName < InnerType > (after closing paren of params)
+        // We need to find ) : ... < ... > pattern
+        var returnMatcher = new PatternMatcher(@""":"" (\i) ""<"" (\i) "">""");
+        var matches = returnMatcher.FindAll(matchedTokens);
+
+        if (matches.Any())
+        {
+            var match = matches.Last(); // Take the last one (return type annotation)
+            var wrapperTokens = match.GetCapturedTokens(0);
+            var typeTokens = match.GetCapturedTokens(1);
+
+            var wrapperType = wrapperTokens?[0].Value ?? "";
+            var innerType = typeTokens?[0].Value ?? "object";
+            innerType = ConvertJsTypeToCSharp(innerType);
+
+            Console.WriteLine($"[SpecialHooksVisitor] Found return type: {wrapperType}<{innerType}>");
+
+            if (isStreaming || wrapperType == "AsyncGenerator")
+            {
+                serverTask.ReturnType = $"IAsyncEnumerable<{innerType}>";
+                serverTask.IsStreaming = true;
+            }
+            else
+            {
+                serverTask.ReturnType = $"Task<{innerType}>";
+            }
+        }
+    }
+
+    /// <summary>
+    /// Parses return type by examining the component body tokens.
+    /// </summary>
+    private void ParseReturnTypeFromContext(ServerTaskModel serverTask, bool isStreaming)
+    {
+        // Default return type
+        serverTask.ReturnType = isStreaming ? "IAsyncEnumerable<object>" : "Task<object>";
+
+        if (_componentBody != null)
+        {
+            ParseReturnTypeFromTokens(serverTask, _componentBody, isStreaming);
+        }
+    }
+
+    /// <summary>
+    /// Converts JS/TS types to C# types.
+    /// </summary>
+    private string ConvertJsTypeToCSharp(string jsType)
+    {
+        jsType = jsType.Trim();
+
+        // Handle array types
+        if (jsType.EndsWith("[]"))
+        {
+            var elementType = ConvertJsTypeToCSharp(jsType[..^2]);
+            return $"List<{elementType}>";
+        }
+
+        // Handle generic types like SearchResult[]
+        return jsType switch
+        {
+            "string" => "string",
+            "number" => "double",
+            "boolean" or "bool" => "bool",
+            "void" => "void",
+            "any" => "dynamic",
+            "object" => "object",
+            "undefined" or "null" => "object",
+            _ => jsType // Keep custom types as-is (e.g., User, SearchResult)
+        };
+    }
+
+    /// <summary>
+    /// Converts function body from JS to C#.
+    /// </summary>
+    private string ConvertFunctionBodyToCSharp(Token[] bodyTokens, bool isStreaming)
+    {
+        // Use JsToCSharpVisitor to transform
+        var transformed = JsToCSharpVisitor.Transform(bodyTokens);
+        var body = JsToCSharpVisitor.TransformToString(transformed);
+
+        // Check for streaming pattern - if body still contains JS-specific streaming code, replace with C# pattern
+        if (isStreaming && (body.Contains("getReader") || body.Contains("reader.read")))
+        {
+            // Extract the URL from the fetch call if present
+            var urlMatch = System.Text.RegularExpressions.Regex.Match(body, @"PostAsync\(([^,]+),");
+            var url = urlMatch.Success ? urlMatch.Groups[1].Value.Trim() : "\"/api/stream\"";
+
+            // Generate proper C# streaming code
+            return $@"var response = await _httpClient.GetStreamAsync({url}, cancellationToken);
+        using var reader = new System.IO.StreamReader(response);
+        while (!reader.EndOfStream)
+        {{
+            if (cancellationToken.IsCancellationRequested) yield break;
+            var line = await reader.ReadLineAsync();
+            if (line != null) yield return line;
+        }}";
+        }
+
+        // For simple non-streaming bodies
+        if (isStreaming)
+        {
+            // yield in JS generators → yield return in C#
+            body = body.Replace("yield ", "yield return ");
+        }
+
+        return body;
+    }
+
+    /// <summary>
+    /// Parses server task options like { runtime: 'rust', parallel: true, streaming: true }
+    /// Uses pattern matching to find option values.
+    /// </summary>
+    private void ParseServerTaskOptions(ServerTaskModel serverTask, Token[] optionsTokens)
+    {
+        // Pattern: streaming : true
+        var streamingMatcher = new PatternMatcher(@"\i""streaming"" "":"" \k""true""");
+        if (streamingMatcher.TryMatch(optionsTokens, 0, out _))
+        {
+            serverTask.IsStreaming = true;
+        }
+
+        // Pattern: parallel : true
+        var parallelMatcher = new PatternMatcher(@"\i""parallel"" "":"" \k""true""");
+        if (parallelMatcher.TryMatch(optionsTokens, 0, out _))
+        {
+            serverTask.Parallel = true;
+        }
+
+        // Pattern: runtime : 'value' or runtime : "value"
+        var runtimeMatcher = new PatternMatcher(@"\i""runtime"" "":"" (\s)");
+        if (runtimeMatcher.TryMatch(optionsTokens, 0, out var runtimeMatch) && runtimeMatch != null)
+        {
+            var runtimeTokens = runtimeMatch.GetCapturedTokens(0);
+            if (runtimeTokens != null && runtimeTokens.Length > 0)
+            {
+                serverTask.Runtime = runtimeTokens[0].Value.Trim('"', '\'');
+            }
+        }
+
+        // Pattern: estimatedChunks : number
+        var chunksMatcher = new PatternMatcher(@"\i""estimatedChunks"" "":"" (\n)");
+        if (chunksMatcher.TryMatch(optionsTokens, 0, out var chunksMatch) && chunksMatch != null)
+        {
+            var chunksTokens = chunksMatch.GetCapturedTokens(0);
+            if (chunksTokens != null && chunksTokens.Length > 0 && int.TryParse(chunksTokens[0].Value, out var chunks))
+            {
+                serverTask.EstimatedChunks = chunks;
+            }
+        }
+    }
 
     // Match: const [data, execute, loading] = useServerTask(serverFn, options)
     [TokenPattern(@"\k""const"" ""["" (\i) "","" (\i) "","" (\i) ""]"" ""="" \i""useServerTask"" ""(""", Name = "VisitUseServerTask")]

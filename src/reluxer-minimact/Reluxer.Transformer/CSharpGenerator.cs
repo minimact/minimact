@@ -75,7 +75,7 @@ public class CSharpGenerator
 
         if (_options.IncludeUsings)
         {
-            WriteUsings();
+            WriteUsings(components);
             WriteLine();
         }
 
@@ -93,7 +93,7 @@ public class CSharpGenerator
         return _sb.ToString();
     }
 
-    private void WriteUsings()
+    private void WriteUsings(List<ComponentModel> components)
     {
         // Match proper Minimact output order
         WriteLine("using Minimact.AspNetCore.Core;");
@@ -102,6 +102,12 @@ public class CSharpGenerator
         WriteLine("using System.Collections.Generic;");
         WriteLine("using System.Linq;");
         WriteLine("using System.Threading.Tasks;");
+
+        // Add HttpClient using if any component has ServerTasks
+        if (components.Any(c => c.ServerTasks.Count > 0))
+        {
+            WriteLine("using System.Net.Http;");
+        }
     }
 
     private void GenerateComponent(ComponentModel component)
@@ -127,11 +133,8 @@ public class CSharpGenerator
             WriteTimelineAttributes(component.TimelineConfig);
         }
 
-        // Server task attributes (before [Component])
-        foreach (var serverTask in component.ServerTasks)
-        {
-            WriteServerTaskAttribute(serverTask);
-        }
+        // Note: ServerTask attributes are written on the methods, not on the class.
+        // See GenerateServerTaskMethod for the actual attribute generation.
 
         // Validation attributes (before [Component])
         foreach (var validation in component.Validations)
@@ -215,6 +218,13 @@ public class CSharpGenerator
             var csharpType = ConvertTypeToCSharp(state.Type);
             var initialValue = ConvertInitialValue(state.InitialValue, state.Type);
             WriteLine($"private {csharpType} {state.Name} = {initialValue};");
+            WriteLine();
+        }
+
+        // HttpClient for ServerTask methods
+        if (component.ServerTasks.Count > 0)
+        {
+            WriteLine("private readonly HttpClient _httpClient;");
             WriteLine();
         }
 
@@ -303,6 +313,13 @@ public class CSharpGenerator
         {
             WriteLine();
             GenerateEventHandler(handler);
+        }
+
+        // Server task methods
+        foreach (var serverTask in component.ServerTasks)
+        {
+            WriteLine();
+            GenerateServerTaskMethod(serverTask);
         }
 
         // GetClientHandlers() - returns JS handlers for client-side execution
@@ -909,6 +926,110 @@ public class CSharpGenerator
             }
         }
         #pragma warning restore REL011
+
+        _indentLevel--;
+        WriteLine("}");
+    }
+
+    /// <summary>
+    /// Generates a [ServerTask] method for useServerTask hooks.
+    /// </summary>
+    private void GenerateServerTaskMethod(ServerTaskModel serverTask)
+    {
+        // Write the attribute
+        var attrSb = new StringBuilder();
+        attrSb.Append($"[ServerTask(\"{serverTask.Name}\"");
+        if (serverTask.IsStreaming)
+        {
+            attrSb.Append(", Streaming = true");
+        }
+        if (!string.IsNullOrEmpty(serverTask.Runtime) && serverTask.Runtime != "auto")
+        {
+            attrSb.Append($", Runtime = \"{serverTask.Runtime}\"");
+        }
+        if (serverTask.Parallel)
+        {
+            attrSb.Append(", Parallel = true");
+        }
+        attrSb.Append(")]");
+        WriteLine(attrSb.ToString());
+
+        // Build parameter list
+        var parameters = new List<string>();
+
+        // Add user-defined parameters
+        foreach (var param in serverTask.Parameters)
+        {
+            var csharpType = ConvertTypeToCSharp(param.Type);
+            parameters.Add($"{csharpType} {param.Name}");
+        }
+
+        // Add standard server task parameters
+        if (serverTask.IsStreaming)
+        {
+            parameters.Add("[System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default");
+        }
+        else
+        {
+            parameters.Add("IProgress<double> progress = null");
+            parameters.Add("CancellationToken cancellationToken = default");
+        }
+
+        var paramList = string.Join(", ", parameters);
+
+        // Write method signature
+        var returnType = serverTask.ReturnType ?? "Task<object>";
+        var methodName = serverTask.Name;
+
+        if (serverTask.IsStreaming)
+        {
+            WriteLine($"private async {returnType} {methodName}({paramList})");
+        }
+        else
+        {
+            WriteLine($"private async {returnType} {methodName}({paramList})");
+        }
+
+        WriteLine("{");
+        _indentLevel++;
+
+        // Write method body
+        if (!string.IsNullOrWhiteSpace(serverTask.Body))
+        {
+            // The body should already be converted to C# by SpecialHooksVisitor
+            var body = serverTask.Body;
+
+            // Clean up the body - remove outer braces if present
+            body = body.Trim();
+            if (body.StartsWith("{") && body.EndsWith("}"))
+            {
+                body = body[1..^1].Trim();
+            }
+
+            // Split into lines and write each
+            #pragma warning disable REL011 // Splitting for multi-line output formatting
+            foreach (var line in body.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var trimmedLine = line.Trim();
+                if (!string.IsNullOrWhiteSpace(trimmedLine))
+                {
+                    WriteLine(trimmedLine);
+                }
+            }
+            #pragma warning restore REL011
+        }
+        else
+        {
+            // Empty body - just return default
+            if (serverTask.IsStreaming)
+            {
+                WriteLine("yield break;");
+            }
+            else
+            {
+                WriteLine("return default;");
+            }
+        }
 
         _indentLevel--;
         WriteLine("}");
