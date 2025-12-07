@@ -40,7 +40,6 @@ public sealed class RestrictedScopeAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(
             DiagnosticDescriptors.LoopNotAllowed,
-            DiagnosticDescriptors.DirectTokenAccessNotAllowed,
             DiagnosticDescriptors.FieldMutationNotAllowed,
             DiagnosticDescriptors.UseTraverseInstead,
             DiagnosticDescriptors.AvoidLinqOnTokens,
