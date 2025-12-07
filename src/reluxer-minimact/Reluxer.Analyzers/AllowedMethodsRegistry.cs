@@ -143,6 +143,15 @@ public static class AllowedMethodsRegistry
         "ToList",
         "ToDictionary",
         "ToHashSet",
+
+        // Reordering (non-iterating)
+        "Reverse",
+        "SkipWhile",
+
+        // Slicing (non-iterating)
+        "Take",
+        "TakeWhile",
+        "Skip",
     };
 
     /// <summary>
@@ -166,12 +175,6 @@ public static class AllowedMethodsRegistry
         "Min",
         "Max",
 
-        // Partitioning
-        "Take",
-        "TakeWhile",
-        "Skip",
-        "SkipWhile",
-
         // Ordering
         "OrderBy",
         "OrderByDescending",
@@ -187,7 +190,6 @@ public static class AllowedMethodsRegistry
         "Union",
         "Intersect",
         "Except",
-        "Concat",
 
         // Joining
         "Join",

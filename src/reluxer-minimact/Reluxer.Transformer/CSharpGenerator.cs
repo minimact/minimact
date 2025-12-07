@@ -1,5 +1,7 @@
 using System.Text;
+using Reluxer.Extensions;
 using Reluxer.Lexer;
+using Reluxer.Matching;
 using Reluxer.Tokens;
 using Reluxer.Transformer.Models;
 using Reluxer.Transformer.Visitors;
@@ -59,11 +61,7 @@ public class CSharpGenerator
         if (string.IsNullOrEmpty(jsExpr))
             return "";
         var lexer = new TsxLexer(jsExpr);
-        var tokens = lexer.Tokenize()
-            .Where(t => t.Type != TokenType.Whitespace &&
-                       t.Type != TokenType.Comment &&
-                       t.Type != TokenType.Eof)
-            .ToArray();
+        var tokens = lexer.Tokenize().ToArray().LuxWhere(@"[^\w \c \e]").ToArray();
 #pragma warning disable REL014 // Final output conversion in generator
         return JsToCSharpVisitor.TransformToString(tokens);
 #pragma warning restore REL014
@@ -973,58 +971,24 @@ public class CSharpGenerator
             return $"{expr}.OrderBy(x => x)";
         }
 
-        var tokens = argsTokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
-
-        // Find => token
-        var arrowIndex = tokens.Select((t, i) => (t, i))
-            .FirstOrDefault(x => x.t.Value == "=>").i;
-
-        if (arrowIndex <= 0 || arrowIndex >= tokens.Length - 1)
+        // Pattern: (a, b) => body  OR  (a, b) => { block }
+        var arrowMatcher = new PatternMatcher(@"(\Bp) ""=>"" (.*)", skipWhitespace: true);
+        if (!arrowMatcher.TryMatch(argsTokens, 0, out var arrowMatch) || arrowMatch == null)
             return $"{expr}.OrderBy(x => x)";
 
-        // Extract params before =>: should be (a, b)
-        var paramTokens = tokens.Take(arrowIndex).ToArray();
-        // Extract body after =>
-        var bodyTokens = tokens.Skip(arrowIndex + 1).ToArray();
+        var paramTokens = arrowMatch.Captures[0].Tokens;
+        var bodyTokens = arrowMatch.Captures[1].Tokens;
 
-        // Parse params - look for two identifiers (a, b)
-        var paramIds = paramTokens
-            .Where(t => t.Type == TokenType.Identifier)
-            .Select(t => t.Value)
-            .ToArray();
-
-        if (paramIds.Length < 2)
+        // Extract param identifiers: (a, b) using LuxMatchAll
+        var paramMatches = paramTokens.LuxMatchAll(@"\i").ToArray();
+        if (paramMatches.Length < 2)
             return $"{expr}.OrderBy(x => x)";
 
-        var a = paramIds[0];
-        var b = paramIds[1];
+        var a = paramMatches[0].Captures[0].AsIdentifier()!;
+        var b = paramMatches[1].Captures[0].AsIdentifier()!;
 
-        // Check if body is a block (starts with {)
-        var isBlock = bodyTokens.FirstOrDefault()?.Value == "{";
-
-        // Find the minus operator (subtraction for comparison)
-        var minusToken = bodyTokens
-            .Select((t, i) => (t, i))
-            .FirstOrDefault(x => x.t.Type == TokenType.Operator && x.t.Value == "-");
-
-        if (minusToken.t == null)
-            return $"{expr}.OrderBy(x => x)";
-
-        var minusIndex = minusToken.i;
-
-        // For block bodies, look for pattern: a.prop or b.prop followed by property access
-        // Pattern: identifier[a.prop] - identifier[b.prop]
-        // Or: a.prop - b.prop
-        var beforeMinus = bodyTokens.Take(minusIndex).ToArray();
-        var afterMinus = bodyTokens.Skip(minusIndex + 1).ToArray();
-
-        // Try to extract property from "a.prop" or "xxx[a.prop]" pattern
-        var (propBefore, varBefore) = ExtractSortProperty(beforeMinus, a, b);
-        var (propAfter, varAfter) = ExtractSortProperty(afterMinus, a, b);
-
-        // Use whichever property we found
-        var prop = propBefore ?? propAfter;
-        var firstVar = varBefore ?? varAfter ?? a;
+        // Try to extract property from pattern: a.prop - b.prop or xxx[a.prop] - xxx[b.prop]
+        var (prop, firstVar) = ExtractSortProperty(bodyTokens, a, b);
 
         if (prop != null)
         {
@@ -1040,49 +1004,33 @@ public class CSharpGenerator
     }
 
     /// <summary>
-    /// Extracts the sort property from tokens like "a.prop" or "xxx[a.prop]".
+    /// Extracts the sort property from tokens like "a.prop - b.prop" or "xxx[a.prop] - xxx[b.prop]".
     /// Returns (property, variable) where variable is either a or b.
     /// </summary>
     private (string? prop, string? var) ExtractSortProperty(Token[] tokens, string a, string b)
     {
-        // Look for pattern: identifier.identifier where first identifier is a or b
-        // Or: identifier[identifier.identifier] where inner first is a or b
-
-        var identifiers = tokens
-            .Select((t, i) => (t, i))
-            .Where(x => x.t.Type == TokenType.Identifier)
-            .ToArray();
-
-        // Check for xxx[a.prop] pattern - find identifier after [
-        var bracketIdx = tokens
-            .Select((t, i) => (t, i))
-            .FirstOrDefault(x => x.t.Value == "[").i;
-
-        if (bracketIdx > 0)
+        // Pattern 1: xxx[var.prop] - look for bracket access with member expression inside
+        foreach (var bracketMatch in tokens.LuxMatchAll(@"(\Bk)"))
         {
-            // Get identifiers after bracket
-            var afterBracket = tokens.Skip(bracketIdx + 1)
-                .Where(t => t.Type == TokenType.Identifier)
-                .Select(t => t.Value)
-                .ToArray();
-
-            if (afterBracket.Length >= 2)
+            var innerTokens = bracketMatch.Captures[0].Tokens;
+            // Look for var.prop inside brackets
+            var memberMatcher = new PatternMatcher(@"(\i) ""."" (\i)", skipWhitespace: true);
+            if (memberMatcher.TryMatch(innerTokens, 0, out var memberMatch) && memberMatch != null)
             {
-                var varName = afterBracket[0];
-                var propName = afterBracket[1];
+                var varName = memberMatch.Captures[0].AsIdentifier();
+                var propName = memberMatch.Captures[1].AsIdentifier();
                 if (varName == a || varName == b)
                     return (propName, varName);
             }
         }
 
-        // Check for simple a.prop or b.prop pattern
-        var idValues = identifiers.Select(x => x.t.Value).ToArray();
-        if (idValues.Length >= 2)
+        // Pattern 2: simple var.prop
+        foreach (var simpleMatch in tokens.LuxMatchAll(@"(\i) ""."" (\i)"))
         {
-            var firstId = idValues[0];
-            var secondId = idValues[1];
-            if (firstId == a || firstId == b)
-                return (secondId, firstId);
+            var varName = simpleMatch.Captures[0].AsIdentifier();
+            var propName = simpleMatch.Captures[1].AsIdentifier();
+            if (varName == a || varName == b)
+                return (propName, varName);
         }
 
         return (null, null);
@@ -1094,28 +1042,15 @@ public class CSharpGenerator
     /// </summary>
     private string ConvertSliceToLinq(string expr, Token[] argsTokens)
     {
-        // Find comma to split args
-        var tokens = argsTokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
-
-        // Find comma separator
-        var commaIndex = -1;
-        for (int i = 0; i < tokens.Length; i++)
-        {
-            if (tokens[i].Value == ",")
-            {
-                commaIndex = i;
-                break;
-            }
-        }
-
         string start = "0";
         string end = "";
 
-        if (commaIndex > 0)
+        // Pattern: start, end  OR  just start
+        var twoArgMatcher = new PatternMatcher(@"(.*?) "","" (.*)", skipWhitespace: true);
+        if (twoArgMatcher.TryMatch(argsTokens, 0, out var twoArgMatch) && twoArgMatch != null)
         {
-            // Two args: start, end
-            var startTokens = tokens.Take(commaIndex).ToArray();
-            var endTokens = tokens.Skip(commaIndex + 1).ToArray();
+            var startTokens = twoArgMatch.Captures[0].Tokens;
+            var endTokens = twoArgMatch.Captures[1].Tokens;
 
             start = startTokens.Length == 1 && startTokens[0].Type == TokenType.Number
                 ? startTokens[0].Value
@@ -1124,12 +1059,18 @@ public class CSharpGenerator
                 ? endTokens[0].Value
                 : ToCSharp(endTokens);
         }
-        else if (tokens.Length > 0)
+        else if (argsTokens.Length > 0)
         {
-            // One arg: start only
-            start = tokens.Length == 1 && tokens[0].Type == TokenType.Number
-                ? tokens[0].Value
-                : ToCSharp(tokens);
+            // One arg: start only - match any number
+            var numMatcher = new PatternMatcher(@"(\n)", skipWhitespace: true);
+            if (numMatcher.TryMatch(argsTokens, 0, out var numMatch) && numMatch != null)
+            {
+                start = numMatch.Captures[0].Tokens[0].Value;
+            }
+            else
+            {
+                start = ToCSharp(argsTokens);
+            }
         }
 
         if (string.IsNullOrEmpty(end))

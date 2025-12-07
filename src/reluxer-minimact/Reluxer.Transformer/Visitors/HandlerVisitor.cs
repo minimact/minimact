@@ -1,4 +1,5 @@
 using Reluxer.Attributes;
+using Reluxer.Extensions;
 using Reluxer.Matching;
 using Reluxer.Tokens;
 using Reluxer.Transformer.Models;
@@ -143,11 +144,10 @@ public class HandlerVisitor : TokenVisitor
         var bodyTokens = ExtractArrowBodyTokens(handlerTokens);
 
         // Check if we already have an identical handler (prevent duplicates)
-        // Compare by token sequence
+        // Compare by token sequence using LuxSequenceEqual
         var existing = _component.EventHandlers.FirstOrDefault(h =>
             h.BodyTokens != null &&
-            h.BodyTokens.Length == bodyTokens.Length &&
-            h.BodyTokens.Zip(bodyTokens, (a, b) => a.Value == b.Value).All(x => x));
+            h.BodyTokens.LuxSequenceEqual(bodyTokens));
 
         if (existing != null)
             return existing.GeneratedName;

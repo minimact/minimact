@@ -429,12 +429,48 @@ foreach (var match in matcher.MatchAll(tokens))
 
 **The rule:** If you're using LINQ to iterate over `Token[]` and make decisions based on token values/types, you should be using a pattern instead.
 
+## Lux Extension Methods
+
+Use `Reluxer.Extensions.TokenLinqExtensions` for LINQ-like operations on tokens that use patterns under the hood:
+
+```csharp
+using Reluxer.Extensions;
+
+// Instead of: tokens.Where(t => t.Type == TokenType.Identifier)
+var identifiers = tokens.LuxWhere(@"\i");
+
+// Instead of: tokens.Select((t, i) => ...).FirstOrDefault(x => x.t.Value == "=>")
+var arrowToken = tokens.LuxFind(@"""=>""");
+
+// Get all identifier captures
+var ids = tokens.LuxSelect(@"(\i)", m => m.Captures[0].AsIdentifier());
+
+// Split on commas
+var parts = tokens.LuxSplit(@""",""");
+
+// Take before/skip after a pattern
+var beforeArrow = tokens.LuxTakeBefore(@"""=>""");
+var afterArrow = tokens.LuxSkipAfter(@"""=>""");
+
+// Check if pattern exists
+if (tokens.LuxContains(@"\k""const""")) { ... }
+
+// Get index of pattern
+var idx = tokens.LuxIndexOf(@"""=>""");
+
+// Trim whitespace
+var trimmed = tokens.LuxTrimWhitespace();
+
+// Remove all whitespace
+var noWs = tokens.LuxNoWhitespace();
+```
+
 ## Key Principles
 
 1. **Patterns over loops**: Use `[TokenPattern]` with the DSL instead of iterating
-2. **Patterns over LINQ**: Don't use `Aggregate`/`TakeWhile`/`Select` to simulate loops on tokens
+2. **Patterns over LINQ**: Use `Lux*` extension methods instead of `Where`/`Select` on tokens
 3. **Balanced matchers over depth tracking**: Use `\Bp`, `\Bb`, `\Bk` instead of counting brackets
 4. **Context over fields**: Use `Context.Set()`/`Context.Get()` for cross-visitor state
 5. **Traverse over recursion**: Use `Traverse(tokens, nameof(Method))` for nested visiting
 6. **Tokens over strings**: Store `Token[]` in models, not stringified expressions
-7. **MatchAll over LINQ**: Use `PatternMatcher.MatchAll()` instead of `Where`/`Select` on tokens
+7. **MatchAll over LINQ**: Use `PatternMatcher.MatchAll()` or `LuxMatchAll()` instead of `Where`/`Select` on tokens

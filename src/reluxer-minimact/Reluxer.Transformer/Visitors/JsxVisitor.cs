@@ -1,4 +1,5 @@
 using Reluxer.Attributes;
+using Reluxer.Extensions;
 using Reluxer.Matching;
 using Reluxer.Tokens;
 using Reluxer.Transformer.Models;
@@ -62,12 +63,8 @@ public class JsxVisitor : TokenVisitor
     {
         if (tokens.Length == 0) return null;
 
-        // Filter out leading/trailing whitespace
-        var trimmed = tokens.SkipWhile(t => t.Type == TokenType.Whitespace)
-                           .Reverse()
-                           .SkipWhile(t => t.Type == TokenType.Whitespace)
-                           .Reverse()
-                           .ToArray();
+        // Filter out leading/trailing whitespace using LuxTrimWhitespace
+        var trimmed = tokens.LuxTrimWhitespace();
 
         if (trimmed.Length == 0) return null;
 
@@ -339,10 +336,8 @@ public class JsxVisitor : TokenVisitor
     private Token[] TokenizeExpression(string expr)
     {
         var lexer = new Reluxer.Lexer.TsxLexer(expr);
-        return lexer.Tokenize().Where(t =>
-            t.Type != TokenType.Whitespace &&
-            t.Type != TokenType.Comment &&
-            t.Type != TokenType.Eof).ToArray();
+        // Pattern [^\w] matches non-whitespace, [^\c] matches non-comment, [^\e] matches non-EOF
+        return lexer.Tokenize().ToArray().LuxWhere(@"[^\w \c \e]").ToArray();
     }
 
     #endregion
@@ -364,10 +359,8 @@ public class JsxVisitor : TokenVisitor
     {
         if (tokens.Length == 0) return null;
 
-        // Filter whitespace and comments
-        var significant = tokens.Where(t =>
-            t.Type != TokenType.Whitespace &&
-            t.Type != TokenType.Comment).ToArray();
+        // Filter whitespace and comments using pattern
+        var significant = tokens.LuxWhere(@"[^\w \c]").ToArray();
         if (significant.Length == 0) return null;
 
         // Skip JSX comments: {/* ... */}
@@ -591,27 +584,17 @@ public class JsxVisitor : TokenVisitor
 
     private int FindLastAndBeforeJsx(Token[] tokens)
     {
-        // Functional approach: fold over tokens to find last && at depth 0 with JSX following
-        var result = tokens.Select((t, i) => (token: t, index: i))
-            .Aggregate(
-                (depth: 0, lastAndIdx: -1),
-                (acc, item) =>
-                {
-                    var (t, i) = item;
-                    int depth = acc.depth;
-                    if (t.Value is "(" or "{" or "[") depth++;
-                    else if (t.Value is ")" or "}" or "]") depth--;
+        // Use pattern matching to find all && operators
+        var matches = tokens.LuxMatchAll(@"""&&""").ToArray();
 
-                    if (depth == 0 && t.Type == TokenType.Operator && t.Value == "&&")
-                    {
-                        var remaining = tokens.Skip(i + 1);
-                        if (remaining.Any(r => r.Type == TokenType.JsxTagOpen || r.Value == "("))
-                            return (depth, i);
-                    }
-                    return (depth, acc.lastAndIdx);
-                });
+        // Find last && with JSX or ( following using LastOrDefault
+        var lastMatch = matches.Reverse()
+            .FirstOrDefault(m => {
+                var remaining = tokens[m.EndIndex..];
+                return remaining.LuxContains(@"\jo") || remaining.LuxContains(@"""(""");
+            });
 
-        return result.lastAndIdx;
+        return lastMatch?.StartIndex ?? -1;
     }
 
     #endregion
@@ -655,10 +638,10 @@ public class JsxVisitor : TokenVisitor
         // Uses \Bp for balanced parentheses to handle nested parens/braces correctly
         var chainMatcher = new PatternMatcher(@"""."" (\i) (\Bp)", skipWhitespace: true);
 
-        // Quick check: look for method names that indicate chaining
+        // Quick check: look for method names that indicate chaining using LuxWhere
         var methodNames = new HashSet<string> { "filter", "sort", "slice", "reverse", "concat", "flat", "flatMap", "find", "findIndex", "some", "every", "includes" };
-        var hasChainedMethod = tokens.Where(t => t.Type == TokenType.Identifier)
-            .Any(t => methodNames.Contains(t.Value));
+        var identifiers = tokens.LuxWhere(@"\i").ToArray();
+        var hasChainedMethod = identifiers.Any(t => methodNames.Contains(t.Value));
 
         if (!hasChainedMethod)
             return null;
@@ -667,30 +650,31 @@ public class JsxVisitor : TokenVisitor
         var allMatches = PatternMatcher.MatchAll(tokens, 0, (chainMatcher, TokenMatchType.Unknown, "chain"));
 
         // Extract method calls with their argument tokens
-        var chainedMethods = allMatches
-            .Where(m => m.Match.Captures.Length >= 2)
-            .Select(m => (
-                method: m.Match.Captures[0].AsIdentifier() ?? "",
-                args: m.Match.Captures[1].Tokens
-            ))
-            .Where(x => methodNames.Contains(x.method))
-            .Select(x =>
+        var chainedMethods = new List<ChainedMethodCall>();
+        foreach (var m in allMatches)
+        {
+            if (m.Match.Captures.Length < 2)
+                continue;
+
+            var method = m.Match.Captures[0].AsIdentifier() ?? "";
+            if (!methodNames.Contains(method))
+                continue;
+
+            var argsTokens = m.Match.Captures[1].Tokens;
+            // Strip outer parentheses from captured args tokens
+            if (argsTokens.Length >= 2 &&
+                argsTokens[0].Value == "(" &&
+                argsTokens[^1].Value == ")")
             {
-                // Strip outer parentheses from captured args tokens
-                var argsTokens = x.args;
-                if (argsTokens.Length >= 2 &&
-                    argsTokens[0].Value == "(" &&
-                    argsTokens[^1].Value == ")")
-                {
-                    argsTokens = argsTokens[1..^1];
-                }
-                return new ChainedMethodCall
-                {
-                    MethodName = x.method,
-                    ArgumentTokens = argsTokens
-                };
-            })
-            .ToList();
+                argsTokens = argsTokens[1..^1];
+            }
+
+            chainedMethods.Add(new ChainedMethodCall
+            {
+                MethodName = method,
+                ArgumentTokens = argsTokens
+            });
+        }
 
         return chainedMethods.Count > 0 ? chainedMethods : null;
     }
@@ -831,10 +815,10 @@ public class JsxVisitor : TokenVisitor
         var paramTokens = arrowMatch.Captures[0].Tokens;
         var bodyTokens = arrowMatch.Captures[1].Tokens;
 
-        // Extract parameter names
-        var identifiers = paramTokens.Where(t => t.Type == TokenType.Identifier).ToList();
-        string itemName = identifiers.Count > 0 ? identifiers[0].Value : "item";
-        string? indexName = identifiers.Count > 1 ? identifiers[1].Value : null;
+        // Extract parameter names using LuxWhere
+        var identifiers = paramTokens.LuxWhere(@"\i").ToArray();
+        string itemName = identifiers.Length > 0 ? identifiers[0].Value : "item";
+        string? indexName = identifiers.Length > 1 ? identifiers[1].Value : null;
 
         // Store loop context in VisitorContext for nested handlers to access
         var previousLoopItem = Context.Get<string>("LoopItemName");
@@ -923,7 +907,7 @@ public class JsxVisitor : TokenVisitor
         }
 
         // Alternative pattern: [ . . . identifier ] (three dots as separate tokens)
-        var filtered = tokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+        var filtered = tokens.LuxWhere(@"[^\w]").ToArray();
         if (filtered.Length >= 6 &&
             filtered[0].Value == "[" &&
             filtered[1].Value == "." &&
@@ -939,8 +923,8 @@ public class JsxVisitor : TokenVisitor
         // Look for: identifier or identifier.identifier.identifier at position 0
         // This handles: todos, items.active, etc.
 
-        // Filter whitespace
-        var significant = tokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+        // Filter whitespace using LuxWhere
+        var significant = tokens.LuxWhere(@"[^\w]").ToArray();
         if (significant.Length == 0) return "";
 
         var first = significant[0];
@@ -954,31 +938,21 @@ public class JsxVisitor : TokenVisitor
             if (chainedMethodNames.Contains(first.Value))
                 return "";
 
-            // Extract member chain using Aggregate: identifier(.identifier)*
-            // Process pairs of tokens (dot, identifier) starting from index 1
-            var pairs = significant.Skip(1)
-                .Select((t, i) => (token: t, originalIndex: i + 1))
+            // Extract member chain using pattern: identifier(.identifier)*
+            // Find all member accesses after the first identifier
+            var afterFirst = significant.Skip(1).ToArray();
+            var memberMatches = afterFirst.LuxMatchAll(@"""."" (\i)")
+                .TakeWhile(m => {
+                    var id = m.Captures[0].AsIdentifier();
+                    return id != null && !chainedMethodNames.Contains(id);
+                })
                 .ToArray();
 
-            // Group into potential (dot, identifier) pairs
-            var result = Enumerable.Range(0, pairs.Length / 2)
-                .Select(i => (
-                    dot: pairs[i * 2],
-                    id: i * 2 + 1 < pairs.Length ? pairs[i * 2 + 1] : default
-                ))
-                .TakeWhile(pair =>
-                    pair.dot.token.Type == TokenType.Punctuation &&
-                    pair.dot.token.Value == "." &&
-                    pair.id.token != null &&
-                    pair.id.token.Type == TokenType.Identifier &&
-                    !chainedMethodNames.Contains(pair.id.token.Value))
-                .Select(pair => pair.id.token.Value)
-                .ToList();
+            var members = new[] { first.Value }
+                .Concat(memberMatches.Select(m => m.Captures[0].AsIdentifier()!))
+                .ToArray();
 
-            // Prepend the first identifier
-            result.Insert(0, first.Value);
-
-            return string.Join(".", result);
+            return string.Join(".", members);
         }
 
         // Pattern 3: Array literal like ['a', 'b', 'c'] - return empty (no state binding)
@@ -1270,7 +1244,7 @@ public class JsxVisitor : TokenVisitor
 
         // Pattern 1: Direct reference - single identifier
         var directMatcher = new PatternMatcher(@"\i");
-        var nonWhitespace = tokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+        var nonWhitespace = tokens.LuxWhere(@"[^\w]").ToArray();
         if (nonWhitespace.Length == 1 && nonWhitespace[0].Type == TokenType.Identifier)
         {
             return (nonWhitespace[0].Value, false, null);
@@ -1346,23 +1320,27 @@ public class JsxVisitor : TokenVisitor
 
     /// <summary>
     /// Extracts balanced content including delimiters.
-    /// Uses functional Aggregate for state tracking.
+    /// Uses built-in balanced matchers.
     /// </summary>
     private Token[] ExtractBalanced(Token[] tokens, int start, string open, string close)
     {
-        var slice = tokens.Skip(start).Select((t, i) => (token: t, index: i));
-        var result = slice.Aggregate(
-            (list: new List<Token>(), depth: 0, done: false),
-            (acc, item) =>
-            {
-                if (acc.done) return acc;
-                acc.list.Add(item.token);
-                int depth = acc.depth;
-                if (item.token.Value == open) depth++;
-                else if (item.token.Value == close) { depth--; if (depth == 0) return (acc.list, depth, true); }
-                return (acc.list, depth, false);
-            });
-        return result.list.ToArray();
+        // Select the right balanced matcher based on delimiters
+        var pattern = (open, close) switch
+        {
+            ("(", ")") => @"(\Bp)",
+            ("{", "}") => @"(\Bb)",
+            ("[", "]") => @"(\Bk)",
+            ("<", ">") => @"(\Ba)",
+            _ => @"(\Bp)" // fallback to parens
+        };
+
+        var matcher = new PatternMatcher(pattern);
+        if (matcher.TryMatch(tokens, start, out var match) && match != null)
+        {
+            return match.MatchedTokens;
+        }
+
+        return Array.Empty<Token>();
     }
 
     /// <summary>

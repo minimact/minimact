@@ -203,9 +203,6 @@ public class TimelineVisitor : TokenVisitor
 
     private void ParseKeyframesArray(Token[] arrayTokens)
     {
-        Console.WriteLine($"[TimelineVisitor] ParseKeyframesArray: parsing {arrayTokens.Length} tokens");
-        Console.WriteLine($"[TimelineVisitor] First 10 tokens: {string.Join(" ", arrayTokens.Take(10).Select(t => $"[{t.Type}]{t.Value}"))}");
-
         // Use \Bb to find each balanced brace object in the array
         var objectMatcher = new PatternMatcher(@"(\Bb)", skipWhitespace: true);
         var matches = PatternMatcher.MatchAll(arrayTokens, 0, (objectMatcher, TokenMatchType.Unknown, "obj"));

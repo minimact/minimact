@@ -25,13 +25,8 @@ public class StateVisitor : TokenVisitor
         // Get the component body from shared context (set by ComponentVisitor)
         _componentBody = Context.Get<Token[]>($"ComponentBody:{_component.Name}");
 
-        Console.WriteLine($"[StateVisitor] Processing component: {_component.Name}, body tokens: {_componentBody?.Length ?? 0}");
-
         if (_componentBody != null && _componentBody.Length > 0)
         {
-            // Debug: Show first tokens with more detail
-            var firstTokens = string.Join(" ", _componentBody.Take(15).Select(t => $"[{t.Type}]'{t.Value}'"));
-            Console.WriteLine($"[StateVisitor] First tokens: {firstTokens}");
 
             // Traverse just the component body
             Traverse(_componentBody,

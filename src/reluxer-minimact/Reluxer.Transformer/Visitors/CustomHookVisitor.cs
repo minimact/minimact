@@ -1,4 +1,5 @@
 using Reluxer.Attributes;
+using Reluxer.Extensions;
 using Reluxer.Matching;
 using Reluxer.Tokens;
 using Reluxer.Transformer.Models;
@@ -152,7 +153,7 @@ public class CustomHookVisitor : TokenVisitor
 
                         if (defaultTokens.Count > 0)
                         {
-                            param.DefaultValue = string.Join("", defaultTokens.Select(t => t.Value));
+                            param.DefaultValue = string.Join("", defaultTokens.ToArray().LuxValues(@".*"));
                         }
                     }
 

@@ -1,4 +1,5 @@
 using Reluxer.Attributes;
+using Reluxer.Extensions;
 using Reluxer.Matching;
 using Reluxer.Tokens;
 using Reluxer.Transformer.Models;
@@ -42,7 +43,7 @@ public class EffectVisitor : TokenVisitor
     /// Effect with dependency array containing variables.
     /// </summary>
     [TokenPattern(@"\i""useEffect"" ""("" \Bp \fa \Bb "","" (\Bk) "")""", Priority = 100, Name = "VisitUseEffectWithDeps")]
-    public void VisitUseEffectWithDeps(TokenMatch match, Token[] depsTokens)
+    public void VisitUseEffectWithDeps(TokenMatch match, Token[] depsBracket)
     {
         // Skip if already added (prevent duplicates from overlapping patterns)
         var matchStart = match.StartIndex;
@@ -55,11 +56,10 @@ public class EffectVisitor : TokenVisitor
             HasCleanup = HasReturnStatement(match.MatchedTokens)
         };
 
-        // Extract dependency names from bracket content
-        // depsTokens contains everything inside [...] including the brackets
-        var deps = depsTokens
-            .Where(t => t.Type == TokenType.Identifier)
-            .Select(t => t.Value)
+        // Extract dependency names from bracket content using LuxIdentifiers
+        // depsBracket contains everything inside [...] including the brackets
+        var identifierNames = depsBracket.LuxIdentifiers();
+        var deps = identifierNames
             .Where(v => !IsKeyword(v))
             .ToList();
 

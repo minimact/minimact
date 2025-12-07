@@ -67,12 +67,6 @@ public class SpecialHooksVisitor : TokenVisitor
             IsStreaming = true
         };
 
-        Console.WriteLine($"[SpecialHooksVisitor] Extracted streaming params for {fnName}: {paramsTokens.Length} tokens");
-        if (paramsTokens.Length > 0)
-        {
-            Console.WriteLine($"[SpecialHooksVisitor] Params tokens: {string.Join(" ", paramsTokens.Take(20).Select(t => $"[{t.Type}]{t.Value}"))}");
-        }
-
         // Parse parameters
         if (paramsTokens.Length > 0)
         {
@@ -108,12 +102,6 @@ public class SpecialHooksVisitor : TokenVisitor
             Name = fnName,
             IsStreaming = false
         };
-
-        Console.WriteLine($"[SpecialHooksVisitor] Extracted params for {fnName}: {paramsTokens.Length} tokens");
-        if (paramsTokens.Length > 0)
-        {
-            Console.WriteLine($"[SpecialHooksVisitor] Params tokens: {string.Join(" ", paramsTokens.Take(20).Select(t => $"[{t.Type}]{t.Value}"))}");
-        }
 
         // Parse parameters
         if (paramsTokens.Length > 0)
@@ -152,8 +140,6 @@ public class SpecialHooksVisitor : TokenVisitor
         // Try array pattern first (higher priority)
         var arrayParamMatcher = new PatternMatcher(@"(\i) \cl (\tn) ""[]""", skipWhitespace: true);
         var simpleParamMatcher = new PatternMatcher(@"(\i) \cl (\tn)", skipWhitespace: true);
-
-        Console.WriteLine($"[ParseParametersFromTokens] Trying to match params: {string.Join(" ", paramTokens.Select(t => $"[{t.Type}]{t.Value}"))}");
 
         // First try array params
         var arrayMatches = arrayParamMatcher.FindAll(paramTokens);

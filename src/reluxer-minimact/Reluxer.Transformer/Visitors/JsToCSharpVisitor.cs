@@ -1,4 +1,5 @@
 using Reluxer.Attributes;
+using Reluxer.Extensions;
 using Reluxer.Matching;
 using Reluxer.Tokens;
 using Reluxer.Visitor;
@@ -211,9 +212,9 @@ public class JsToCSharpVisitor : TokenVisitor
     [TokenPattern(@"\k""await"" ""fetch"" ""("" (\s) "","" (\Bb) "")""", Priority = 25)]
     public void VisitAwaitFetchWithOptions(TokenMatch match, Token[] url, Token[] options)
     {
-        // Check if it's a POST
-        var optionsStr = string.Join("", options.Select(t => t.Value));
-        var isPost = optionsStr.Contains("method") && (optionsStr.Contains("'POST'") || optionsStr.Contains("\"POST\""));
+        // Check if it's a POST using LuxContains
+        var isPost = options.LuxContains(@"\i""method""") &&
+            (options.LuxContains(@"\s""'POST'""") || options.LuxContains(@"\s""POST"""));
 
         if (isPost)
         {
