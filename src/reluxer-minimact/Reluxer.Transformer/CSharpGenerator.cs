@@ -312,6 +312,26 @@ public class CSharpGenerator
             GenerateGetClientHandlers(component);
         }
 
+        // State setters (for useState fields)
+        var statesWithSetters = component.StateFields.Where(s => !string.IsNullOrEmpty(s.SetterName)).ToList();
+        if (statesWithSetters.Count > 0)
+        {
+            WriteLine();
+            WriteLine("// State setters");
+            foreach (var state in statesWithSetters)
+            {
+                var csharpType = ConvertTypeToCSharp(state.Type);
+                WriteLine($"private void {state.SetterName}({csharpType} value)");
+                WriteLine("{");
+                _indentLevel++;
+                WriteLine($"{state.Name} = value;");
+                WriteLine($"SetState(nameof({state.Name}), value);");
+                _indentLevel--;
+                WriteLine("}");
+                WriteLine();
+            }
+        }
+
         // MVC State setter methods
         var mutableMvcStates = component.MvcStateFields.Where(m => !string.IsNullOrEmpty(m.SetterName)).ToList();
         foreach (var mvcState in mutableMvcStates)
@@ -933,7 +953,11 @@ public class CSharpGenerator
             "string" => "string",
             "boolean" or "bool" => "bool",
             "List<object>" => "List<object>",
+            "List<dynamic>" => "List<dynamic>",
+            "IEnumerable<dynamic>" => "IEnumerable<dynamic>",
             "Dictionary<string, object>" => "Dictionary<string, object>",
+            _ when tsType.StartsWith("List<") => tsType, // Preserve List<T> types
+            _ when tsType.StartsWith("IEnumerable<") => tsType, // Preserve IEnumerable<T> types
             _ => "object"
         };
     }

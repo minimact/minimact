@@ -652,36 +652,48 @@ public class JsxVisitor : TokenVisitor
     /// </summary>
     private string? TryParseChainedMethods(Token[] tokens)
     {
-        var expr = TokensToString(tokens).Trim();
+        // Pattern to match chained method calls: .method(balanced_parens)
+        // Uses \Bp for balanced parentheses to handle nested parens/braces correctly
+        var chainMatcher = new PatternMatcher(@"""."" (\i) (\Bp)", skipWhitespace: true);
 
-        // Check if expression contains chained method calls
-        // Pattern: identifier followed by .method(...) chains
-        if (!expr.Contains(".filter(") && !expr.Contains(".sort(") &&
-            !expr.Contains(".slice(") && !expr.Contains(".reverse(") &&
-            !expr.Contains(".concat(") && !expr.Contains(".flat("))
+        // Quick check: look for method names that indicate chaining
+        var methodNames = new HashSet<string> { "filter", "sort", "slice", "reverse", "concat", "flat", "flatMap", "find", "findIndex", "some", "every", "includes" };
+        var hasChainedMethod = tokens.Where(t => t.Type == TokenType.Identifier)
+            .Any(t => methodNames.Contains(t.Value));
+
+        if (!hasChainedMethod)
             return null;
 
-        // Extract the base array name (first identifier)
-        var baseArrayMatch = System.Text.RegularExpressions.Regex.Match(expr, @"^(\w+)");
-        if (!baseArrayMatch.Success)
+        // Find the base array (first identifier before any chained methods)
+        var firstIdent = tokens.FirstOrDefault(t => t.Type == TokenType.Identifier);
+        if (firstIdent == null)
             return null;
 
-        var baseArray = baseArrayMatch.Groups[1].Value;
+        var baseArray = firstIdent.Value;
         var result = $"((IEnumerable<dynamic>){baseArray})";
 
-        // Parse chain operations using regex - find all .method(...) patterns
-        var remaining = expr.Substring(baseArray.Length);
+        // Find all chained method calls using pattern matching
+        var allMatches = PatternMatcher.MatchAll(tokens, 0, (chainMatcher, TokenMatchType.Unknown, "chain"));
 
-        // Use regex to find all chained method calls at once
-        var chainPattern = new System.Text.RegularExpressions.Regex(@"\.(\w+)\(([^()]*(?:\([^()]*\)[^()]*)*)\)");
-        var matches = chainPattern.Matches(remaining);
+        // Process each matched chain operation
+        result = allMatches.Where(m => m.Match.Captures.Length >= 2)
+            .Select(m => (
+                method: m.Match.Captures[0].AsIdentifier() ?? "",
+                args: m.Match.Captures[1].Tokens
+            ))
+            .Where(x => methodNames.Contains(x.method))
+            .Aggregate(result, (current, x) =>
+            {
+                // The balanced parens capture includes outer (), so remove exactly one pair
+                var rawArgs = TokensToString(x.args).Trim();
+                var argsStr = rawArgs.StartsWith("(") && rawArgs.EndsWith(")")
+                    ? rawArgs.Substring(1, rawArgs.Length - 2)
+                    : rawArgs;
+                return ConvertArrayMethodToLinq(current, x.method, argsStr);
+            });
 
-        // Process each match using LINQ Aggregate
-        result = matches.Cast<System.Text.RegularExpressions.Match>()
-            .Aggregate(result, (current, match) =>
-                ConvertArrayMethodToLinq(current, match.Groups[1].Value, match.Groups[2].Value));
-
-        return result;
+        // Return null if no transformations were applied
+        return result == $"((IEnumerable<dynamic>){baseArray})" ? null : result;
     }
 
     /// <summary>
@@ -730,9 +742,17 @@ public class JsxVisitor : TokenVisitor
             return $"{expr}.OrderBy(x => x)";
         }
 
+        // Normalize the args - remove extra whitespace between tokens
+        var normalizedArgs = System.Text.RegularExpressions.Regex.Replace(args.Trim(), @"\s+", " ");
+        // Handle "a . prop" -> "a.prop" (space around dots)
+        normalizedArgs = System.Text.RegularExpressions.Regex.Replace(normalizedArgs, @"\s*\.\s*", ".");
+        // Handle "( a" -> "(a" and "a )" -> "a)" (space inside parens)
+        normalizedArgs = System.Text.RegularExpressions.Regex.Replace(normalizedArgs, @"\(\s+", "(");
+        normalizedArgs = System.Text.RegularExpressions.Regex.Replace(normalizedArgs, @"\s+\)", ")");
+
         // Try to parse comparator: (a, b) => a.prop - b.prop or (a, b) => a - b
         var comparatorMatch = System.Text.RegularExpressions.Regex.Match(
-            args.Trim(),
+            normalizedArgs,
             @"\((\w+),\s*(\w+)\)\s*=>\s*(\w+)\.?(\w*)?\s*-\s*(\w+)\.?(\w*)?");
 
         if (comparatorMatch.Success)
@@ -887,45 +907,41 @@ public class JsxVisitor : TokenVisitor
     }
 
     /// <summary>
-    /// Extracts the array binding from a token array.
-    /// Takes the last identifier or member expression chain before .map().
-    /// e.g., "return(<div...><ul>{todos" -> "todos"
-    ///       "items.filter(x => x.active)" -> "items.filter(x => x.active)"
+    /// Extracts the base array binding from a token array.
+    /// Returns the first identifier or member expression before any method calls.
+    /// e.g., "todos.filter(...).sort(...)" -> "todos"
+    ///       "[...todos].sort(...)" -> "todos"
+    ///       "items.active" -> "items.active"
     /// </summary>
     private string ExtractArrayBindingFromTokens(Token[] tokens)
     {
-        // Pattern: identifier followed by optional .identifier chain
-        // \i matches identifier, (\.\i)* matches zero or more .identifier sequences
-        var memberChainMatcher = new PatternMatcher(@"(\i) (""."" (\i))*", skipWhitespace: true);
-
-        // Find member chain patterns in the tokens
-        var matches = PatternMatcher.MatchAll(tokens, 0, (memberChainMatcher, TokenMatchType.Unknown, "chain"));
-
-        // Get the last match (the array expression is typically at the end)
-        var lastMatch = matches.LastOrDefault();
-        if (lastMatch != null && lastMatch.Match.Captures.Length > 0)
+        // Pattern 1: [...identifier].method(...) - spread array
+        var spreadMatcher = new PatternMatcher(@"""["" ""..."" (\i) ""]""", skipWhitespace: true);
+        if (spreadMatcher.TryMatch(tokens, 0, out var spreadMatch) && spreadMatch != null)
         {
-            // Build the member chain from captures
-            var parts = new List<string>();
+            var id = spreadMatch.Captures[0].AsIdentifier();
+            if (id != null) return id;
+        }
 
-            // First capture is the base identifier
-            var baseId = lastMatch.Match.Captures[0].AsIdentifier();
-            if (baseId != null)
-            {
-                parts.Add(baseId);
+        // Pattern 2: identifier.identifier... before any (
+        // Get tokens before first parenthesis
+        var beforeParen = tokens.TakeWhile(t => t.Value != "(").ToArray();
 
-                // Subsequent captures are the .identifier pairs
-                for (int j = 1; j < lastMatch.Match.Captures.Length; j++)
-                {
-                    var propId = lastMatch.Match.Captures[j].AsIdentifier();
-                    if (propId != null)
-                    {
-                        parts.Add(propId);
-                    }
-                }
+        // Find member chain: identifier followed by .identifier pairs
+        var memberMatcher = new PatternMatcher(@"(\i) (""."" (\i))*", skipWhitespace: true);
+        var matches = PatternMatcher.MatchAll(beforeParen, 0, (memberMatcher, TokenMatchType.Unknown, "chain"));
 
-                return string.Join(".", parts);
-            }
+        // Use the first match (base array is at the start)
+        var firstMatch = matches.FirstOrDefault();
+        if (firstMatch != null && firstMatch.Match.Captures.Length > 0)
+        {
+            var parts = firstMatch.Match.Captures
+                .Select(c => c.AsIdentifier())
+                .Where(id => id != null)
+                .ToList();
+
+            if (parts.Count > 0)
+                return string.Join(".", parts!);
         }
 
         // Fallback: just use the whole thing as string (trimmed)

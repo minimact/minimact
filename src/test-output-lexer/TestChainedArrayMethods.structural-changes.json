@@ -1,6 +1,6 @@
 {
   "componentName": "TestChainedArrayMethods",
-  "timestamp": "2025-12-07T13:56:58.2867218Z",
+  "timestamp": "2025-12-07T14:14:39.3503073Z",
   "changes": [
     {
       "type": "insert",
@@ -408,7 +408,7 @@
       "vNode": {
         "type": "list",
         "path": "1.4.2.1",
-        "arrayBinding": "b.priority.priority"
+        "arrayBinding": "((IEnumerable<dynamic>)todos).OrderBy(x => x)"
       }
     },
     {

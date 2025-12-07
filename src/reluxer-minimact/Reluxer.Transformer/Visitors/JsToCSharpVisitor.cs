@@ -113,6 +113,39 @@ public class JsToCSharpVisitor : TokenVisitor
         ReplaceMatch(match, Token.Operator("!="));
     }
 
+    // !identifier || ... where identifier is used in string comparison
+    // Pattern: !identifier || expr === identifier (common optional filter pattern)
+    // Converts to: string.IsNullOrEmpty(identifier) || expr == identifier
+    [TokenPattern(@"""!"" (\i) ""||"" (.*?) ""==="" (\i)")]
+    public void VisitStringTruthyCheck(TokenMatch match, Token[] firstId, Token[] middleExpr, Token[] secondId)
+    {
+        // Check if both identifiers are the same (the optional filter pattern)
+        var first = firstId.FirstOrDefault()?.Value;
+        var second = secondId.FirstOrDefault()?.Value;
+        if (first == second)
+        {
+            // Transform to: string.IsNullOrEmpty(identifier) || expr == identifier
+            var result = Concat(
+                Token.Identifier("string"),
+                Token.Punctuation("."),
+                Token.Identifier("IsNullOrEmpty"),
+                Token.Punctuation("("),
+                Token.Identifier(first ?? ""),
+                Token.Punctuation(")"),
+                Token.Whitespace(" "),
+                Token.Operator("||"),
+                Token.Whitespace(" ")
+            ).Concat(middleExpr).Concat(new[] {
+                Token.Whitespace(" "),
+                Token.Operator("=="),
+                Token.Whitespace(" "),
+                Token.Identifier(second ?? "")
+            }).ToArray();
+            ReplaceMatch(match, result);
+        }
+        // If not the same identifier, don't transform (keep original)
+    }
+
     #endregion
 
     #region Array Methods
@@ -180,13 +213,15 @@ public class JsToCSharpVisitor : TokenVisitor
         ReplaceMatch(match, WrapMethod("Add", arg));
     }
 
-    // .length -> .Count
+    // .length -> .Count() (use method form for LINQ compatibility)
     [TokenPattern(@"""."" ""length""")]
     public void VisitLength(TokenMatch match)
     {
         ReplaceMatch(match,
             Token.Punctuation("."),
-            Token.Identifier("Count")
+            Token.Identifier("Count"),
+            Token.Punctuation("("),
+            Token.Punctuation(")")
         );
     }
 
@@ -327,7 +362,8 @@ public class JsToCSharpVisitor : TokenVisitor
     }
 
     // .sort((a, b) => ...) -> .OrderBy(x => x).ToList() (simplified - comparator ignored)
-    [TokenPattern(@"""."" ""sort"" ""("" (.*?) "")""")]
+    // Use \Bp to match balanced parentheses in the comparator
+    [TokenPattern(@"""."" ""sort"" (\Bp)")]
     public void VisitSortWithComparator(TokenMatch match, Token[] comparator)
     {
         // For complex sort comparators, we use a simplified OrderBy
