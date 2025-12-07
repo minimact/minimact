@@ -370,13 +370,18 @@ public class JsToCSharpVisitor : TokenVisitor
     }
 
     /// <summary>Helper to wrap a method call: .MethodName(args)</summary>
+    /// <param name="methodName">The C# method name</param>
+    /// <param name="args">Arguments to transform and include</param>
     private static Token[] WrapMethod(string methodName, Token[] args)
     {
+        // Transform the arguments (e.g., convert === to == inside callbacks)
+        var transformedArgs = Transform(args);
+
         return Concat(
             Token.Punctuation("."),
             Token.Identifier(methodName),
             Token.Punctuation("(")
-        ).Concat(args).Concat(new[] {
+        ).Concat(transformedArgs).Concat(new[] {
             Token.Punctuation(")")
         }).ToArray();
     }

@@ -24,13 +24,23 @@ class Program
     {
         if (args.Length == 0)
         {
-            Log("Usage: dotnet run -- <path-to-file.tsx>", Red);
+            Log("Usage: dotnet run -- <path-to-file.tsx> [--trace <VisitorName>]", Red);
             Log("Example: dotnet run -- Counter.tsx", Cyan);
-            Log("Example: dotnet run -- ../test-tsx/01-ComplexTemplateLiterals.tsx", Cyan);
+            Log("Example: dotnet run -- Counter.tsx --trace JsToCSharpVisitor", Cyan);
             return;
         }
 
-        var inputPath = args[0];
+        // Handle --trace flag
+        var traceIndex = Array.IndexOf(args, "--trace");
+        if (traceIndex >= 0 && traceIndex + 1 < args.Length)
+        {
+            var traceTarget = args[traceIndex + 1];
+            Reluxer.Visitor.TokenVisitor.TraceVisitor = traceTarget;
+            Reluxer.Matching.PatternMatcher.TraceCallerClass = traceTarget;
+            Log($"Tracing: {traceTarget}", Yellow);
+        }
+
+        var inputPath = args.FirstOrDefault(a => !a.StartsWith("--") && a != Reluxer.Visitor.TokenVisitor.TraceVisitor) ?? "";
         string tsxPath;
 
         if (Path.IsPathRooted(inputPath))

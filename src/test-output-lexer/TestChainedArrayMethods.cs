@@ -127,8 +127,8 @@ public partial class TestChainedArrayMethods : MinimactComponent
             new VElement("section", "1.10", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.10.1", new Dictionary<string, string>(), "Filter for Count"),
-                new VElement("p", "1.10.2", new Dictionary<string, string>(), $"Incomplete high priority:{(todos.filter(t=>!t.done&&t.priority==='high').length)}"),
-                new VElement("p", "1.10.3", new Dictionary<string, string>(), $"In-stock electronics:{(products.filter(p=>p.inStock&&p.category==='Electronics').length)}")
+                new VElement("p", "1.10.2", new Dictionary<string, string>(), $"Incomplete high priority:{(todos.Where(t => !t.done && t.priority == "high").Count)}"),
+                new VElement("p", "1.10.3", new Dictionary<string, string>(), $"In-stock electronics:{(products.Where(p => p.inStock && p.category == "Electronics").Count)}")
             })
         });
     }

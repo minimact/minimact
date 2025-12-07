@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Reluxer.Pattern;
 using Reluxer.Tokens;
 
@@ -9,6 +10,13 @@ namespace Reluxer.Matching;
 /// </summary>
 public class PatternMatcher
 {
+    /// <summary>
+    /// Set to a class name to trace pattern matches called from that class.
+    /// Shared with TokenVisitor.TraceVisitor for unified tracing.
+    /// Example: "JsxVisitor" traces all patterns matched from JsxVisitor methods.
+    /// </summary>
+    public static string? TraceCallerClass { get; set; }
+
     private readonly PatternNode _pattern;
     private readonly string _patternString;
     private readonly bool _skipWhitespace;
@@ -59,6 +67,8 @@ public class PatternMatcher
         _currentDepth = 0;
         _tagStack = new Stack<(string, int)>();
 
+        var shouldTrace = ShouldTrace();
+
         var ctx = new MatchContext(tokens, startIndex, _skipWhitespace);
         var success = Match(_pattern, ctx);
 
@@ -72,7 +82,26 @@ public class PatternMatcher
                 ctx.Index,
                 _patternString
             );
+
+            if (shouldTrace)
+            {
+                Console.WriteLine($"[PatternMatcher] TryMatch SUCCESS at {startIndex}");
+                Console.WriteLine($"  Pattern: {_patternString}");
+                Console.WriteLine($"  Matched: {string.Join(" ", match.MatchedTokens.Select(t => t.Value))}");
+                for (int c = 0; c < match.Captures.Length; c++)
+                    Console.WriteLine($"  Capture[{c}]: {string.Join(" ", match.Captures[c].Tokens.Select(t => t.Value))}");
+                Console.WriteLine();
+            }
+
             return true;
+        }
+
+        if (shouldTrace)
+        {
+            Console.WriteLine($"[PatternMatcher] TryMatch FAILED at {startIndex}");
+            Console.WriteLine($"  Pattern: {_patternString}");
+            Console.WriteLine($"  Tokens: {string.Join(" ", tokens.Skip(startIndex).Take(15).Select(t => t.Value))}...");
+            Console.WriteLine();
         }
 
         match = null;
@@ -104,14 +133,44 @@ public class PatternMatcher
     /// </summary>
     public TokenMatch? FindFirst(IReadOnlyList<Token> tokens)
     {
+        var shouldTrace = ShouldTrace();
+
         for (int i = 0; i < tokens.Count; i++)
         {
             if (TryMatch(tokens, i, out var match))
             {
+                if (shouldTrace)
+                {
+                    Console.WriteLine($"[PatternMatcher] FindFirst SUCCESS at position {i}");
+                }
                 return match;
             }
         }
+
+        if (shouldTrace)
+        {
+            Console.WriteLine($"[PatternMatcher] FindFirst FAILED - no match in {tokens.Count} tokens");
+            Console.WriteLine($"  Pattern: {_patternString}");
+            Console.WriteLine($"  First tokens: {string.Join(" ", tokens.Take(20).Select(t => t.Value))}...");
+            Console.WriteLine();
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// Checks if tracing is enabled for the current caller.
+    /// Uses the call stack to find if the caller class matches TraceCallerClass.
+    /// </summary>
+    private static bool ShouldTrace()
+    {
+        if (TraceCallerClass == null) return false;
+
+        var stackTrace = new StackTrace();
+        var frames = stackTrace.GetFrames();
+
+        return frames?.Any(f =>
+            f.GetMethod()?.DeclaringType?.Name == TraceCallerClass) ?? false;
     }
 
     /// <summary>

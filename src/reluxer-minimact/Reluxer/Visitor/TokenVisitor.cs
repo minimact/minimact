@@ -20,6 +20,12 @@ public abstract class TokenVisitor
     private readonly List<PatternHandler> _defaultHandlers = new();
     private bool _initialized;
 
+    /// <summary>
+    /// Set to a visitor type name to trace all pattern matches for that visitor.
+    /// Example: TokenVisitor.TraceVisitor = "JsToCSharpVisitor";
+    /// </summary>
+    public static string? TraceVisitor { get; set; }
+
     // Current token stream context for balanced extraction
     private IReadOnlyList<Token>? _currentTokens;
     private int _currentIndex;
@@ -789,6 +795,18 @@ public abstract class TokenVisitor
 
     private void InvokeHandler(PatternHandler handler, TokenMatch match)
     {
+        // Trace output if enabled for this visitor type
+        if (TraceVisitor != null && GetType().Name == TraceVisitor)
+        {
+            Console.WriteLine($"[{GetType().Name}] {handler.Method.Name}");
+            Console.WriteLine($"  Matched: {string.Join(" ", match.MatchedTokens.Select(t => t.Value))}");
+            for (int c = 0; c < match.Captures.Length; c++)
+            {
+                Console.WriteLine($"  Capture[{c}]: {string.Join(" ", match.Captures[c].Tokens.Select(t => t.Value))}");
+            }
+            Console.WriteLine();
+        }
+
         var parameters = handler.Method.GetParameters();
         var args = new object?[parameters.Length];
 

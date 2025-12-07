@@ -733,16 +733,22 @@ public class CSharpGenerator
         {
             var binding = text.Binding ?? "";
 
-            // Check if binding already contains interpolation format (merged text + expressions)
-            // e.g., "Count: {(count)}" from merged children
+            // Check if binding is already in merged format (contains {(...)} patterns)
+            // This happens when text+expressions were merged in JsxVisitor
             if (binding.Contains("{(") && binding.Contains(")}"))
             {
                 // Already in interpolated format, just wrap in $"..."
                 Write($"new VText($\"{binding}\", \"{text.HexPath}\")");
             }
+            else if (text.BindingTokens != null && text.BindingTokens.Length > 0)
+            {
+                // Use BindingTokens for proper JS->C# transformation
+                var convertedBinding = JsToCSharpVisitor.TransformToString(text.BindingTokens);
+                Write($"new VText($\"{{({convertedBinding})}}\", \"{text.HexPath}\")");
+            }
             else
             {
-                // Simple binding, convert and wrap
+                // Fallback: use string binding with ConvertExpression
                 var convertedBinding = ConvertExpression(binding);
                 Write($"new VText($\"{{({convertedBinding})}}\", \"{text.HexPath}\")");
             }

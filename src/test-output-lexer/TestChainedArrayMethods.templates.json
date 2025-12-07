@@ -1,7 +1,7 @@
 {
   "component": "TestChainedArrayMethods",
   "version": "1.0",
-  "generatedAt": 1765113008038,
+  "generatedAt": 1765115818261,
   "templates": {
     "1.@class": {
       "template": "chained-methods-test",
@@ -1233,9 +1233,9 @@
       ],
       "type": "transform",
       "transform": {
-        "method": "filter",
+        "method": "Where",
         "args": [
-          "t=>!t.done&&t.priority==='high'"
+          "t => !t.done && t.priority == \"high\""
         ]
       }
     },
@@ -1265,9 +1265,9 @@
       ],
       "type": "transform",
       "transform": {
-        "method": "filter",
+        "method": "Where",
         "args": [
-          "p=>p.inStock&&p.category==='Electronics'"
+          "p => p.inStock && p.category == \"Electronics\""
         ]
       }
     }

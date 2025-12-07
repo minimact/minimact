@@ -206,7 +206,7 @@ public class JsxVisitor : TokenVisitor
     {
         // Declarative child parsing using MatchAll
         // Collect all children first, then merge adjacent text/expressions
-        var rawChildren = new List<(TokenMatchType Type, string? Text, string? Binding, int StartIndex)>();
+        var rawChildren = new List<(TokenMatchType Type, string? Text, string? Binding, Token[]? Tokens, int StartIndex)>();
 
         foreach (var item in PatternMatcher.MatchAllJsxChildren(tokens))
         {
@@ -214,25 +214,25 @@ public class JsxVisitor : TokenVisitor
             {
                 case TokenMatchType.Element:
                     // Elements break text runs - flush any pending text first
-                    rawChildren.Add((TokenMatchType.Element, null, null, item.Match.StartIndex));
+                    rawChildren.Add((TokenMatchType.Element, null, null, null, item.Match.StartIndex));
                     break;
 
                 case TokenMatchType.Expression:
                     var exprContent = item.Captures.Length > 0 ? item.Captures[0].Tokens : Array.Empty<Token>();
-                    var binding = TokensToString(exprContent).Trim();
-                    // Skip JSX comments: {/* ... */}
-                    if (binding.StartsWith("/*") && binding.EndsWith("*/"))
+                    // Skip JSX comments using token check
+                    if (exprContent.Length >= 2 &&
+                        exprContent[0].Type == TokenType.Comment)
                         break;
-                    // Skip empty bindings
-                    if (string.IsNullOrWhiteSpace(binding))
+                    // Skip empty
+                    if (exprContent.Length == 0)
                         break;
-                    rawChildren.Add((TokenMatchType.Expression, null, binding, item.Match.StartIndex));
+                    rawChildren.Add((TokenMatchType.Expression, null, null, exprContent, item.Match.StartIndex));
                     break;
 
                 case TokenMatchType.Text:
                     var text = item.Tokens[0].Value;
                     // Keep whitespace-only text for merging context, filter later
-                    rawChildren.Add((TokenMatchType.Text, text, null, item.Match.StartIndex));
+                    rawChildren.Add((TokenMatchType.Text, text, null, null, item.Match.StartIndex));
                     break;
             }
         }
@@ -264,9 +264,12 @@ public class JsxVisitor : TokenVisitor
             {
                 // Collect consecutive text/expression items
                 var textParts = new List<string>();
-                var bindings = new List<string>();
+                var exprTokensList = new List<Token[]>();
                 bool hasExpression = false;
                 VNodeModel? mapExprResult = null;
+
+                // Pattern to detect .map() calls anywhere in the expression
+                var mapMatcher = new PatternMatcher(@"""."" ""map"" ""(""", skipWhitespace: true);
 
                 while (i < rawChildren.Count && rawChildren[i].Type != TokenMatchType.Element)
                 {
@@ -275,27 +278,24 @@ public class JsxVisitor : TokenVisitor
                     {
                         textParts.Add(item.Text ?? "");
                     }
-                    else if (item.Type == TokenMatchType.Expression)
+                    else if (item.Type == TokenMatchType.Expression && item.Tokens != null)
                     {
                         hasExpression = true;
-                        var binding = item.Binding ?? "";
+                        var exprTokens = item.Tokens;
 
-                        // Check if this expression contains a .map() call
-                        // If so, parse it specially to extract the JSX template
-                        if (binding.Contains(".map(") && mapExprResult == null)
+                        // Check if this expression contains a .map() call anywhere
+                        var hasMapCall = mapMatcher.FindFirst(exprTokens) != null;
+                        if (hasMapCall && mapExprResult == null)
                         {
-                            // Re-tokenize the expression to get proper tokens for TryParseMapCall
-                            var exprTokens = TokenizeExpression(binding);
-                            if (exprTokens.Length > 0)
-                            {
-                                mapExprResult = TryParseMapCall(exprTokens, $"{parentPath}.{childIndex}");
-                            }
+                            mapExprResult = TryParseMapCall(exprTokens, $"{parentPath}.{childIndex}");
                         }
 
                         if (mapExprResult == null)
                         {
-                            textParts.Add($"{{({binding})}}");
-                            bindings.Add(binding);
+                            // Transform JS tokens to C# and wrap in interpolation
+                            var converted = JsToCSharpVisitor.TransformToString(exprTokens);
+                            textParts.Add($"{{({converted})}}");
+                            exprTokensList.Add(exprTokens);
                         }
                     }
                     i++;
@@ -310,16 +310,18 @@ public class JsxVisitor : TokenVisitor
                 }
                 else
                 {
-                    // Build merged text
+                    // Build merged text (already transformed)
                     var mergedText = string.Join("", textParts).Trim();
-                    if (!string.IsNullOrWhiteSpace(mergedText))
+                    if (mergedText.Length > 0)
                     {
                         var child = new VTextModel
                         {
                             HexPath = $"{parentPath}.{childIndex}",
-                            Text = hasExpression ? "{0}" : mergedText,  // Placeholder for dynamic
+                            Text = hasExpression ? "{0}" : mergedText,
                             IsDynamic = hasExpression,
-                            Binding = hasExpression ? mergedText : null  // Contains "Count: {(count)}" format
+                            Binding = hasExpression ? mergedText : null,
+                            // For single expression, store tokens for potential further use
+                            BindingTokens = exprTokensList.Count == 1 ? exprTokensList[0] : null
                         };
                         child.Parent = parent;
                         parent.Children.Add(child);
@@ -394,7 +396,8 @@ public class JsxVisitor : TokenVisitor
             HexPath = path,
             Text = "{0}",
             IsDynamic = true,
-            Binding = TokensToString(tokens)
+            Binding = TokensToString(tokens),
+            BindingTokens = tokens
         };
     }
 
@@ -551,7 +554,8 @@ public class JsxVisitor : TokenVisitor
             HexPath = path,
             Text = "{0}",
             IsDynamic = true,
-            Binding = TokensToString(trimmed)
+            Binding = TokensToString(trimmed),
+            BindingTokens = trimmed
         };
     }
 
