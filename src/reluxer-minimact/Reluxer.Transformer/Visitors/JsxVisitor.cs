@@ -634,6 +634,7 @@ public class JsxVisitor : TokenVisitor
             return null;
 
         var arrayExpr = match.Captures[0].Tokens;
+
         var callbackTokens = match.Captures[1].Tokens;
 
         // Check if arrayExpr contains chained methods (filter, sort, slice, etc.)
@@ -913,6 +914,7 @@ public class JsxVisitor : TokenVisitor
     private string ExtractArrayBindingFromTokens(Token[] tokens)
     {
         // Pattern 1: [...identifier].method(...) - spread array
+        // Handle both cases: "..." as single token OR "." "." "." as three tokens
         var spreadMatcher = new PatternMatcher(@"""["" ""..."" (\i) ""]""", skipWhitespace: true);
         if (spreadMatcher.TryMatch(tokens, 0, out var spreadMatch) && spreadMatch != null)
         {
@@ -920,32 +922,74 @@ public class JsxVisitor : TokenVisitor
             if (id != null) return id;
         }
 
-        // Pattern 2: identifier.identifier... before any (
-        // Get tokens before first parenthesis
-        var beforeParen = tokens.TakeWhile(t => t.Value != "(").ToArray();
-
-        // Find member chain: identifier followed by .identifier pairs
-        var memberMatcher = new PatternMatcher(@"(\i) (""."" (\i))*", skipWhitespace: true);
-        var matches = PatternMatcher.MatchAll(beforeParen, 0, (memberMatcher, TokenMatchType.Unknown, "chain"));
-
-        // Use the first match (base array is at the start)
-        var firstMatch = matches.FirstOrDefault();
-        if (firstMatch != null && firstMatch.Match.Captures.Length > 0)
+        // Alternative pattern: [ . . . identifier ] (three dots as separate tokens)
+        var filtered = tokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+        if (filtered.Length >= 6 &&
+            filtered[0].Value == "[" &&
+            filtered[1].Value == "." &&
+            filtered[2].Value == "." &&
+            filtered[3].Value == "." &&
+            filtered[4].Type == TokenType.Identifier &&
+            filtered[5].Value == "]")
         {
-            var parts = firstMatch.Match.Captures
-                .Select(c => c.AsIdentifier())
-                .Where(id => id != null)
-                .ToList();
-
-            if (parts.Count > 0)
-                return string.Join(".", parts!);
+            return filtered[4].Value;
         }
 
-        // Fallback: build string from identifier and punctuation tokens only
-        var identifiers = tokens
-            .Where(t => t.Type == TokenType.Identifier || (t.Type == TokenType.Punctuation && t.Value == "."))
-            .Select(t => t.Value);
-        return string.Join("", identifiers).Trim();
+        // Pattern 2: Simple identifier or member chain at the START of the expression
+        // Look for: identifier or identifier.identifier.identifier at position 0
+        // This handles: todos, items.active, etc.
+
+        // Filter whitespace
+        var significant = tokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+        if (significant.Length == 0) return "";
+
+        var first = significant[0];
+
+        // If it starts with identifier, extract the member chain
+        if (first.Type == TokenType.Identifier)
+        {
+            var chainedMethodNames = new HashSet<string> { "filter", "sort", "slice", "reverse", "concat", "flat", "flatMap", "find", "findIndex", "some", "every", "includes", "map" };
+
+            // Check if first token is already a chained method
+            if (chainedMethodNames.Contains(first.Value))
+                return "";
+
+            // Extract member chain using Aggregate: identifier(.identifier)*
+            // Process pairs of tokens (dot, identifier) starting from index 1
+            var pairs = significant.Skip(1)
+                .Select((t, i) => (token: t, originalIndex: i + 1))
+                .ToArray();
+
+            // Group into potential (dot, identifier) pairs
+            var result = Enumerable.Range(0, pairs.Length / 2)
+                .Select(i => (
+                    dot: pairs[i * 2],
+                    id: i * 2 + 1 < pairs.Length ? pairs[i * 2 + 1] : default
+                ))
+                .TakeWhile(pair =>
+                    pair.dot.token.Type == TokenType.Punctuation &&
+                    pair.dot.token.Value == "." &&
+                    pair.id.token != null &&
+                    pair.id.token.Type == TokenType.Identifier &&
+                    !chainedMethodNames.Contains(pair.id.token.Value))
+                .Select(pair => pair.id.token.Value)
+                .ToList();
+
+            // Prepend the first identifier
+            result.Insert(0, first.Value);
+
+            return string.Join(".", result);
+        }
+
+        // Pattern 3: Array literal like ['a', 'b', 'c'] - return empty (no state binding)
+        if (first.Value == "[")
+        {
+            return "";
+        }
+
+        // Fallback: return first identifier found
+        var firstIdent = significant.FirstOrDefault(t => t.Type == TokenType.Identifier);
+        return firstIdent?.Value ?? "";
     }
 
     /// <summary>

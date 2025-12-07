@@ -1,6 +1,6 @@
 {
   "componentName": "TestChainedArrayMethods",
-  "timestamp": "2025-12-07T19:20:44.7875372Z",
+  "timestamp": "2025-12-07T21:17:50.0624472Z",
   "changes": [
     {
       "type": "insert",
@@ -160,7 +160,7 @@
       "vNode": {
         "type": "list",
         "path": "1.2.2.1",
-        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(todo=>!todo.done)"
+        "arrayBinding": "todos"
       }
     },
     {
@@ -308,7 +308,7 @@
       "vNode": {
         "type": "list",
         "path": "1.3.3.1",
-        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(todo=>showCompleted||!todo.done)"
+        "arrayBinding": "todos"
       }
     },
     {
@@ -408,7 +408,7 @@
       "vNode": {
         "type": "list",
         "path": "1.4.2.1",
-        "arrayBinding": "((IEnumerable<dynamic>)todos).OrderBy(x => x)"
+        "arrayBinding": "todos"
       }
     },
     {
@@ -507,7 +507,7 @@
       "vNode": {
         "type": "list",
         "path": "1.5.2.1",
-        "arrayBinding": "((IEnumerable<dynamic>)todos).Take(3)"
+        "arrayBinding": "todos"
       }
     },
     {
@@ -606,7 +606,7 @@
       "vNode": {
         "type": "list",
         "path": "1.6.2.1",
-        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(todo=>!todo.done).OrderByDescending(x => x.createdAt)"
+        "arrayBinding": "todos"
       }
     },
     {
@@ -806,7 +806,7 @@
       "vNode": {
         "type": "list",
         "path": "1.7.3.1",
-        "arrayBinding": "((IEnumerable<dynamic>)products).Where(p=>p.inStock).Where(p=>!categoryFilter||p.category===categoryFilter).Take(3)"
+        "arrayBinding": "products"
       }
     },
     {
@@ -928,7 +928,7 @@
       "vNode": {
         "type": "list",
         "path": "1.8.3.1",
-        "arrayBinding": "((IEnumerable<dynamic>)products).Where(p=>p.inStock&&p.rating>=4.0).OrderByDescending(x => x.rating).Skip(0).Take(maxItems - 0)"
+        "arrayBinding": "products"
       }
     },
     {
@@ -1124,7 +1124,7 @@
       "vNode": {
         "type": "list",
         "path": "1.9.2",
-        "arrayBinding": "['high','medium','low']"
+        "arrayBinding": ""
       }
     },
     {
@@ -1199,7 +1199,7 @@
       "vNode": {
         "type": "list",
         "path": "1.9.2.1.2.1",
-        "arrayBinding": "((IEnumerable<dynamic>)todos).Where(t=>t.priority===priority)"
+        "arrayBinding": "todos"
       }
     },
     {

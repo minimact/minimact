@@ -964,6 +964,7 @@ public class CSharpGenerator
     /// <summary>
     /// Converts JS .sort() to LINQ OrderBy/OrderByDescending.
     /// Parses comparator pattern from tokens: (a, b) => a.prop - b.prop
+    /// Also handles complex block body comparators: (a, b) => { ... return xxx[a.prop] - xxx[b.prop]; }
     /// </summary>
     private string ConvertSortToLinq(string expr, Token[] argsTokens)
     {
@@ -972,77 +973,119 @@ public class CSharpGenerator
             return $"{expr}.OrderBy(x => x)";
         }
 
-        // Try to match comparator pattern: ( a , b ) => a . prop - b . prop
-        // Look for: ( identifier , identifier ) => identifier . identifier - identifier
         var tokens = argsTokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
 
         // Find => token
-        var arrowIndex = -1;
-        for (int i = 0; i < tokens.Length; i++)
+        var arrowIndex = tokens.Select((t, i) => (t, i))
+            .FirstOrDefault(x => x.t.Value == "=>").i;
+
+        if (arrowIndex <= 0 || arrowIndex >= tokens.Length - 1)
+            return $"{expr}.OrderBy(x => x)";
+
+        // Extract params before =>: should be (a, b)
+        var paramTokens = tokens.Take(arrowIndex).ToArray();
+        // Extract body after =>
+        var bodyTokens = tokens.Skip(arrowIndex + 1).ToArray();
+
+        // Parse params - look for two identifiers (a, b)
+        var paramIds = paramTokens
+            .Where(t => t.Type == TokenType.Identifier)
+            .Select(t => t.Value)
+            .ToArray();
+
+        if (paramIds.Length < 2)
+            return $"{expr}.OrderBy(x => x)";
+
+        var a = paramIds[0];
+        var b = paramIds[1];
+
+        // Check if body is a block (starts with {)
+        var isBlock = bodyTokens.FirstOrDefault()?.Value == "{";
+
+        // Find the minus operator (subtraction for comparison)
+        var minusToken = bodyTokens
+            .Select((t, i) => (t, i))
+            .FirstOrDefault(x => x.t.Type == TokenType.Operator && x.t.Value == "-");
+
+        if (minusToken.t == null)
+            return $"{expr}.OrderBy(x => x)";
+
+        var minusIndex = minusToken.i;
+
+        // For block bodies, look for pattern: a.prop or b.prop followed by property access
+        // Pattern: identifier[a.prop] - identifier[b.prop]
+        // Or: a.prop - b.prop
+        var beforeMinus = bodyTokens.Take(minusIndex).ToArray();
+        var afterMinus = bodyTokens.Skip(minusIndex + 1).ToArray();
+
+        // Try to extract property from "a.prop" or "xxx[a.prop]" pattern
+        var (propBefore, varBefore) = ExtractSortProperty(beforeMinus, a, b);
+        var (propAfter, varAfter) = ExtractSortProperty(afterMinus, a, b);
+
+        // Use whichever property we found
+        var prop = propBefore ?? propAfter;
+        var firstVar = varBefore ?? varAfter ?? a;
+
+        if (prop != null)
         {
-            if (tokens[i].Value == "=>")
-            {
-                arrowIndex = i;
-                break;
-            }
+            var selector = $"x.{prop}";
+            var isDescending = firstVar == b;
+
+            return isDescending
+                ? $"{expr}.OrderByDescending(x => {selector})"
+                : $"{expr}.OrderBy(x => {selector})";
         }
 
-        if (arrowIndex > 0 && arrowIndex < tokens.Length - 1)
-        {
-            // Extract params before =>: should be (a, b)
-            var paramTokens = tokens.Take(arrowIndex).ToArray();
-            // Extract body after =>: should be a.prop - b.prop
-            var bodyTokens = tokens.Skip(arrowIndex + 1).ToArray();
+        return $"{expr}.OrderBy(x => x)";
+    }
 
-            // Parse params - look for two identifiers
-            var paramIds = paramTokens
+    /// <summary>
+    /// Extracts the sort property from tokens like "a.prop" or "xxx[a.prop]".
+    /// Returns (property, variable) where variable is either a or b.
+    /// </summary>
+    private (string? prop, string? var) ExtractSortProperty(Token[] tokens, string a, string b)
+    {
+        // Look for pattern: identifier.identifier where first identifier is a or b
+        // Or: identifier[identifier.identifier] where inner first is a or b
+
+        var identifiers = tokens
+            .Select((t, i) => (t, i))
+            .Where(x => x.t.Type == TokenType.Identifier)
+            .ToArray();
+
+        // Check for xxx[a.prop] pattern - find identifier after [
+        var bracketIdx = tokens
+            .Select((t, i) => (t, i))
+            .FirstOrDefault(x => x.t.Value == "[").i;
+
+        if (bracketIdx > 0)
+        {
+            // Get identifiers after bracket
+            var afterBracket = tokens.Skip(bracketIdx + 1)
                 .Where(t => t.Type == TokenType.Identifier)
                 .Select(t => t.Value)
                 .ToArray();
 
-            if (paramIds.Length >= 2)
+            if (afterBracket.Length >= 2)
             {
-                var a = paramIds[0];
-                var b = paramIds[1];
-
-                // Parse body - look for identifier.prop - identifier pattern
-                // Find the minus operator
-                var minusIndex = -1;
-                for (int i = 0; i < bodyTokens.Length; i++)
-                {
-                    if (bodyTokens[i].Type == TokenType.Operator && bodyTokens[i].Value == "-")
-                    {
-                        minusIndex = i;
-                        break;
-                    }
-                }
-
-                if (minusIndex > 0)
-                {
-                    // Get identifiers before minus
-                    var beforeMinus = bodyTokens.Take(minusIndex).ToArray();
-                    var firstIds = beforeMinus
-                        .Where(t => t.Type == TokenType.Identifier)
-                        .Select(t => t.Value)
-                        .ToArray();
-
-                    if (firstIds.Length >= 1)
-                    {
-                        var firstVar = firstIds[0];
-                        var firstProp = firstIds.Length > 1 ? firstIds[1] : null;
-
-                        var selector = firstProp != null ? $"x.{firstProp}" : "x";
-                        var isDescending = firstVar == b;
-
-                        return isDescending
-                            ? $"{expr}.OrderByDescending(x => {selector})"
-                            : $"{expr}.OrderBy(x => {selector})";
-                    }
-                }
+                var varName = afterBracket[0];
+                var propName = afterBracket[1];
+                if (varName == a || varName == b)
+                    return (propName, varName);
             }
         }
 
-        return $"{expr}.OrderBy(x => x)";
+        // Check for simple a.prop or b.prop pattern
+        var idValues = identifiers.Select(x => x.t.Value).ToArray();
+        if (idValues.Length >= 2)
+        {
+            var firstId = idValues[0];
+            var secondId = idValues[1];
+            if (firstId == a || firstId == b)
+                return (secondId, firstId);
+        }
+
+        return (null, null);
     }
 
     /// <summary>
