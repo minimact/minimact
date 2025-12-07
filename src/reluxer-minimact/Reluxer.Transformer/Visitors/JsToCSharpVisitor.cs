@@ -528,7 +528,7 @@ public class JsToCSharpVisitor : TokenVisitor
     }
 
     // .toFixed(n) -> .ToString("Fn")
-    [TokenPattern(@"""."" ""toFixed"" ""("" (\d) "")""")]
+    [TokenPattern(@"""."" ""toFixed"" ""("" (\n) "")""")]
     public void VisitToFixed(TokenMatch match, Token[] digits)
     {
         var n = digits.Length > 0 ? digits[0].Value : "2";
@@ -670,21 +670,188 @@ public class JsToCSharpVisitor : TokenVisitor
 
     #region Template Literals and String Quotes
 
-    // Template literal: `text ${expr}` -> $"text {expr}"
-    // This is handled at the token level - TemplateLiteral tokens get converted
-    [TokenPattern(@"(\`)")]
-    public void VisitTemplateLiteralStart(TokenMatch match)
+    // Template literal tokens (\t = TemplateString) get converted to interpolated strings
+    // The lexer produces TemplateString tokens for template literals like `text ${expr}`
+    [TokenPattern(@"(\t)")]
+    public void VisitTemplateString(TokenMatch match, Token[] templateTokens)
     {
-        // Convert backtick to $"
-        ReplaceMatch(match, Token.String("$\""));
+        if (templateTokens.Length == 0) return;
+
+        var template = templateTokens[0].Value;
+        // Template strings are stored with backticks, convert to C# interpolated string
+        if (template.StartsWith("`") && template.EndsWith("`"))
+        {
+            var content = template.Substring(1, template.Length - 2);
+            // Convert ${expr} to {expr}
+            content = content.Replace("${", "{");
+            ReplaceMatch(match, Token.String($"$\"{content}\""));
+        }
+        else
+        {
+            // Already processed or partial template
+            ReplaceMatch(match, templateTokens);
+        }
     }
 
-    // Single quoted string 'text' -> "text"
-    // The lexer produces String tokens for both, but we need to ensure double quotes
-    [TokenPattern(@"(')")]
-    public void VisitSingleQuote(TokenMatch match)
+    // Single quoted strings are converted to double quoted for C#
+    // Match any String token and fix quotes if needed
+    [TokenPattern(@"(\s)")]
+    public void VisitString(TokenMatch match, Token[] stringTokens)
     {
-        ReplaceMatch(match, Token.String("\""));
+        if (stringTokens.Length == 0) return;
+
+        var str = stringTokens[0].Value;
+        if (str.StartsWith("'") && str.EndsWith("'"))
+        {
+            // Convert 'text' to "text"
+            var content = str.Substring(1, str.Length - 2);
+            // Escape any double quotes inside
+            content = content.Replace("\"", "\\\"");
+            ReplaceMatch(match, Token.String($"\"{content}\""));
+        }
+        else
+        {
+            // Already double-quoted or other format, keep as-is
+            ReplaceMatch(match, stringTokens);
+        }
+    }
+
+    #endregion
+
+    #region Object and Array Literals
+
+    // Object literal key: value -> ["key"] = value
+    // Transform individual key-value pairs within object literals
+    // This pattern matches: identifier ":" value (where value is identifier or number)
+    [TokenPattern(@"(\i) "":"" (\i)", Priority = -60)]
+    public void VisitObjectKeyValueIdentifier(TokenMatch match, Token[] key, Token[] value)
+    {
+        // Only transform if we're inside an object literal context
+        // (i.e., this isn't a ternary or type annotation)
+        if (key.Length == 0 || value.Length == 0) return;
+
+        var keyName = key[0].Value;
+
+        // Transform: key: value -> ["key"] = value
+        ReplaceMatch(match, Concat(
+            Token.Punctuation("["),
+            Token.String($"\"{keyName}\""),
+            Token.Punctuation("]"),
+            Token.Operator("=")
+        ).Concat(value).ToArray());
+    }
+
+    // Object literal key: number -> ["key"] = number
+    [TokenPattern(@"(\i) "":"" (\n)", Priority = -60)]
+    public void VisitObjectKeyValueNumber(TokenMatch match, Token[] key, Token[] value)
+    {
+        if (key.Length == 0 || value.Length == 0) return;
+
+        var keyName = key[0].Value;
+
+        ReplaceMatch(match, Concat(
+            Token.Punctuation("["),
+            Token.String($"\"{keyName}\""),
+            Token.Punctuation("]"),
+            Token.Operator("=")
+        ).Concat(value).ToArray());
+    }
+
+    // Object literal braces { key: value, ... } -> new Dictionary<string, object> { ["key"] = value, ... }
+    // Check for identifier:value pattern to distinguish from block statements
+    [TokenPattern(@"""{"" (.*?) ""}""", Priority = -70)]
+    public void VisitObjectLiteralBraces(TokenMatch match, Token[] contents)
+    {
+        if (contents.Length == 0)
+        {
+            // Empty object {} -> keep as empty block (could be statement block)
+            ReplaceMatch(match, match.MatchedTokens);
+            return;
+        }
+
+        // Check if this looks like an object literal using pattern matching
+        var objectLiteralMatcher = new PatternMatcher(@"\i "":""", skipWhitespace: true);
+        var isObjectLiteral = objectLiteralMatcher.TryMatch(contents, 0, out _);
+
+        if (!isObjectLiteral)
+        {
+            // Not an object literal, keep as-is (block statement)
+            ReplaceMatch(match, match.MatchedTokens);
+            return;
+        }
+
+        // Transform the contents (key:value patterns will be converted)
+        var transformedContents = Transform(contents);
+
+        // Build: new Dictionary<string, object> { contents }
+        var result = new List<Token>
+        {
+            Token.Keyword("new"),
+            Token.Identifier("Dictionary"),
+            Token.Punctuation("<"),
+            Token.Identifier("string"),
+            Token.Punctuation(","),
+            Token.Identifier("object"),
+            Token.Punctuation(">"),
+            Token.Punctuation("{")
+        };
+        result.AddRange(transformedContents);
+        result.Add(Token.Punctuation("}"));
+
+        ReplaceMatch(match, result.ToArray());
+    }
+
+    // Array literal [a, b, c] -> new List<object> { a, b, c }
+    // Note: This is for standalone array literals, not array indexing
+    // Match opening bracket, capture balanced content (using .*? since \Bk captures the brackets too)
+    [TokenPattern(@"""["" (.*?) ""]""", Priority = -40)]
+    public void VisitArrayLiteral(TokenMatch match, Token[] contents)
+    {
+        if (contents.Length == 0)
+        {
+            // Empty array [] -> new List<object>()
+            ReplaceMatch(match, Concat(
+                Token.Keyword("new"),
+                Token.Identifier("List"),
+                Token.Punctuation("<"),
+                Token.Identifier("object"),
+                Token.Punctuation(">"),
+                Token.Punctuation("("),
+                Token.Punctuation(")")
+            ));
+            return;
+        }
+
+        // Check if this looks like an array literal (has commas or simple values)
+        // vs array indexing (single expression)
+        var hasComma = contents.Any(t => t.Value == ",");
+        var isSimpleIndex = contents.Length == 1 &&
+            (contents[0].Type == TokenType.Number || contents[0].Type == TokenType.Identifier);
+
+        if (isSimpleIndex && !hasComma)
+        {
+            // This is array indexing like arr[0] or arr[i], keep as-is
+            ReplaceMatch(match, match.MatchedTokens);
+            return;
+        }
+
+        // Transform array contents
+        var transformedContents = Transform(contents);
+
+        // Build: new List<object> { contents }
+        var result = new List<Token>
+        {
+            Token.Keyword("new"),
+            Token.Identifier("List"),
+            Token.Punctuation("<"),
+            Token.Identifier("object"),
+            Token.Punctuation(">"),
+            Token.Punctuation("{")
+        };
+        result.AddRange(transformedContents);
+        result.Add(Token.Punctuation("}"));
+
+        ReplaceMatch(match, result.ToArray());
     }
 
     #endregion
@@ -739,11 +906,124 @@ public class JsToCSharpVisitor : TokenVisitor
 
     /// <summary>
     /// Transforms a token array and returns the result as a string.
+    /// Uses intelligent spacing between tokens.
     /// </summary>
     public static string TransformToString(Token[] jsTokens)
     {
         var transformed = Transform(jsTokens);
-        return string.Join("", transformed.Select(t => t.Value));
+        return TokensToStringWithSpacing(transformed);
+    }
+
+    /// <summary>
+    /// Converts tokens to string with proper spacing between tokens.
+    /// </summary>
+    private static string TokensToStringWithSpacing(Token[] tokens)
+    {
+        if (tokens.Length == 0) return "";
+
+        var sb = new System.Text.StringBuilder();
+        Token? prev = null;
+
+        foreach (var token in tokens)
+        {
+            if (prev != null && NeedsSpaceBetween(prev, token))
+            {
+                sb.Append(' ');
+            }
+            sb.Append(token.Value);
+            prev = token;
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Determines if a space is needed between two tokens.
+    /// </summary>
+    private static bool NeedsSpaceBetween(Token prev, Token next)
+    {
+        // No space around generic brackets
+        if (prev.Value == "<" || next.Value == "<" ||
+            prev.Value == ">" || next.Value == ">")
+        {
+            // Exception: space after > when followed by identifier (e.g., List<T> items)
+            if (prev.Value == ">" && next.Type == TokenType.Identifier)
+                return true;
+            return false;
+        }
+
+        // Keywords (new, var, return, etc.) need space before identifiers/types
+        if (prev.Type == TokenType.Keyword &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.TypeName ||
+             next.Value == "List" || next.Value == "Dictionary"))
+            return true;
+
+        // After identifier/keyword, before another identifier/keyword
+        if ((prev.Type == TokenType.Identifier || prev.Type == TokenType.Keyword) &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.Keyword))
+            return true;
+
+        // After type name, before identifier (but not before <)
+        if (prev.Type == TokenType.TypeName && next.Type == TokenType.Identifier)
+            return true;
+
+        // After ), before { (e.g., () => { })
+        if (prev.Value == ")" && next.Value == "{")
+            return true;
+
+        // After {, before content (for object initializers)
+        if (prev.Value == "{" && next.Type == TokenType.Identifier)
+            return true;
+
+        // After =, before value
+        if (prev.Value == "=" && next.Type != TokenType.Operator)
+            return true;
+
+        // Before =, after identifier
+        if (next.Value == "=" && prev.Type == TokenType.Identifier)
+            return true;
+
+        // Around binary operators (+, -, *, /, etc.) but not unary
+        if (prev.Type == TokenType.Operator && prev.Value.Length > 0 &&
+            "+-*/%".Contains(prev.Value[0]) &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.Number))
+            return true;
+
+        if (next.Type == TokenType.Operator && next.Value.Length > 0 &&
+            "+-*/%".Contains(next.Value[0]) &&
+            (prev.Type == TokenType.Identifier || prev.Type == TokenType.Number ||
+             prev.Value == ")" || prev.Value == "]"))
+            return true;
+
+        // After comma, before next item
+        if (prev.Value == ",")
+            return true;
+
+        // Around comparison operators
+        if ((prev.Value == "==" || prev.Value == "!=" || prev.Value == ">" ||
+             prev.Value == "<" || prev.Value == ">=" || prev.Value == "<=") &&
+            next.Type != TokenType.Operator)
+            return true;
+
+        if ((next.Value == "==" || next.Value == "!=" || next.Value == ">" ||
+             next.Value == "<" || next.Value == ">=" || next.Value == "<=") &&
+            prev.Type != TokenType.Operator)
+            return true;
+
+        // Around logical operators
+        if ((prev.Value == "&&" || prev.Value == "||") ||
+            (next.Value == "&&" || next.Value == "||"))
+            return true;
+
+        // After colon in ternary or object literal
+        if (prev.Value == ":" && prev.Type == TokenType.Colon)
+            return true;
+
+        // Around arrow =>
+        if (prev.Value == "=>" || next.Value == "=>")
+            return true;
+
+        return false;
     }
 
     #endregion

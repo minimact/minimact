@@ -5,6 +5,12 @@ using Reluxer.Transformer.Models;
 
 namespace Reluxer.Transformer;
 
+// Suppress REL010/REL011 for this file - TemplateGenerator does:
+// 1. Hex path manipulation (Split('.') on "1.2.3" paths)
+// 2. Transform detection (Regex for method calls like price.toFixed(2))
+// These are NOT JS→C# conversion, they're template structure extraction.
+#pragma warning disable REL010, REL011
+
 /// <summary>
 /// Generates template JSON files from parsed component models.
 /// These templates are consumed by the Rust prediction engine for 0-2ms patches.
