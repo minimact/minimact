@@ -14,6 +14,7 @@ public enum PatternNodeType
 {
     Sequence,       // A sequence of patterns
     TokenMatch,     // Match a specific token type/value
+    NegatedTokenMatch, // Match any token NOT of this type (\W, \C, etc.)
     Any,            // Match any token (.)
     Quantifier,     // *, +, ?, {n,m}
     Group,          // Capture group
@@ -57,6 +58,26 @@ public class TokenMatchNode : PatternNode
     {
         TokenType = type;
         Value = value;
+    }
+}
+
+/// <summary>
+/// Matches any token that is NOT of the specified types.
+/// Example: \W matches any token that is not Whitespace
+/// Example: \W\C\E matches any token that is not Whitespace, Comment, or Eof
+/// </summary>
+public class NegatedTokenMatchNode : PatternNode
+{
+    public override PatternNodeType NodeType => PatternNodeType.NegatedTokenMatch;
+
+    /// <summary>
+    /// The token types to exclude (match anything BUT these types)
+    /// </summary>
+    public TokenType[] ExcludedTypes { get; set; }
+
+    public NegatedTokenMatchNode(params TokenType[] excludedTypes)
+    {
+        ExcludedTypes = excludedTypes;
     }
 }
 

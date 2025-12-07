@@ -11,10 +11,10 @@ namespace Minimact.Components;
 public partial class Counter : MinimactComponent
 {
     [State]
-    private int count = 0;
+    private int count = null;
 
     [State]
-    private string message = "Hello";
+    private string message = null;
 
     protected override VNode Render()
     {
@@ -36,7 +36,6 @@ public partial class Counter : MinimactComponent
 
     public void Handle0()
     {
-        setCount(count + 1);
     }
 
     /// <summary>

@@ -77,7 +77,10 @@ public partial class TestChainedArrayMethods : MinimactComponent
             new VElement("section", "1.6", new Dictionary<string, string>(), new VNode[]
             {
                 new VElement("h3", "1.6.1", new Dictionary<string, string>(), "Filter + Sort + Map (incomplete, by date)"),
-                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)todos).Where(todo => !todo.done).OrderByDescending(x => x.createdAt).Select(todo => new VElement("li", "1.6.2.1.1", new Dictionary<string, string> { ["key"] = $"{(null)}" })).ToArray())
+                MinimactHelpers.createElement("ul", null, ((IEnumerable<dynamic>)todos).Where(todo => !todo.done).OrderByDescending(x => x.createdAt).Select(todo => new VElement("li", "1.6.2.1.1", new Dictionary<string, string> { ["key"] = $"{(null)}" }, new VNode[]
+                {
+                    new VText($"{(todo.text)}(created:{(todo.createdAt)})", "1.6.2.1.1.1")
+                })).ToArray())
             }),
             new VElement("section", "1.7", new Dictionary<string, string>(), new VNode[]
             {

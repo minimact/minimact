@@ -61,7 +61,7 @@ public class CSharpGenerator
         if (string.IsNullOrEmpty(jsExpr))
             return "";
         var lexer = new TsxLexer(jsExpr);
-        var tokens = lexer.Tokenize().ToArray().LuxWhere(@"[^\w \c \e]").ToArray();
+        var tokens = lexer.Tokenize().ToArray().LuxSignificant();
 #pragma warning disable REL014 // Final output conversion in generator
         return JsToCSharpVisitor.TransformToString(tokens);
 #pragma warning restore REL014
@@ -984,8 +984,14 @@ public class CSharpGenerator
         if (paramMatches.Length < 2)
             return $"{expr}.OrderBy(x => x)";
 
-        var a = paramMatches[0].Captures[0].AsIdentifier()!;
-        var b = paramMatches[1].Captures[0].AsIdentifier()!;
+        // When matching \i without parentheses, the identifier is in MatchedTokens, not Captures
+        var aTokens = paramMatches[0].MatchedTokens;
+        var bTokens = paramMatches[1].MatchedTokens;
+        if (aTokens.Length == 0 || bTokens.Length == 0)
+            return $"{expr}.OrderBy(x => x)";
+
+        var a = aTokens[0].Value;
+        var b = bTokens[0].Value;
 
         // Try to extract property from pattern: a.prop - b.prop or xxx[a.prop] - xxx[b.prop]
         var (prop, firstVar) = ExtractSortProperty(bodyTokens, a, b);

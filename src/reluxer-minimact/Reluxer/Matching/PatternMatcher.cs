@@ -354,6 +354,7 @@ public class PatternMatcher
         {
             SequenceNode seq => MatchSequence(seq, ctx),
             TokenMatchNode tm => MatchToken(tm, ctx),
+            NegatedTokenMatchNode ntm => MatchNegatedToken(ntm, ctx),
             AnyNode _ => MatchAny(ctx),
             LiteralNode lit => MatchLiteral(lit, ctx),
             QuantifierNode quant => MatchQuantifier(quant, ctx),
@@ -463,6 +464,39 @@ public class PatternMatcher
         else if (token.Type == TokenType.JsxTagSelfClose)
         {
             // Self-closing doesn't change depth (opens and closes immediately)
+            if (_tagStack.Count > 0) _tagStack.Pop();
+        }
+
+        ctx.Advance();
+        return true;
+    }
+
+    private bool MatchNegatedToken(NegatedTokenMatchNode ntm, MatchContext ctx)
+    {
+        if (ctx.IsAtEnd) return false;
+
+        var token = ctx.Current;
+
+        // Check if the token type is in the excluded list
+        foreach (var excludedType in ntm.ExcludedTypes)
+        {
+            if (token.Type == excludedType)
+                return false;
+        }
+
+        // Track depth for JSX tags (same as MatchToken)
+        if (token.Type == TokenType.JsxTagOpen)
+        {
+            var tagName = ExtractTagName(token.Value);
+            _tagStack.Push((tagName, _currentDepth));
+            _currentDepth++;
+        }
+        else if (token.Type == TokenType.JsxTagClose)
+        {
+            _currentDepth--;
+        }
+        else if (token.Type == TokenType.JsxTagSelfClose)
+        {
             if (_tagStack.Count > 0) _tagStack.Pop();
         }
 

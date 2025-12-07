@@ -23,7 +23,7 @@ public class PatternParser
     private int _position;
     private int _captureIndex;
 
-    // Single-character token type shorthands
+    // Single-character token type shorthands (lowercase = match, uppercase = negated/not)
     private static readonly Dictionary<char, TokenType> ShorthandMap = new()
     {
         ['k'] = TokenType.Keyword,
@@ -35,6 +35,22 @@ public class PatternParser
         ['c'] = TokenType.Comment,
         ['w'] = TokenType.Whitespace,
         ['t'] = TokenType.TemplateString,
+        ['e'] = TokenType.Eof,
+    };
+
+    // Negated shorthands - uppercase means "not this type"
+    private static readonly HashSet<char> NegatedShorthands = new()
+    {
+        'K', // not Keyword
+        'I', // not Identifier
+        'S', // not String
+        'N', // not Number
+        'O', // not Operator
+        'P', // not Punctuation
+        'C', // not Comment
+        'W', // not Whitespace
+        'T', // not TemplateString
+        'E', // not Eof
     };
 
     // Two-character token type shorthands for TypeScript types
@@ -504,6 +520,18 @@ public class PatternParser
             }
 
             Advance(); // consume the type char
+
+            // Check for negated shorthand (uppercase): \W, \C, \E
+            if (NegatedShorthands.Contains(typeChar))
+            {
+                // Map uppercase to lowercase to get the token type
+                char lowerChar = char.ToLower(typeChar);
+                if (!ShorthandMap.TryGetValue(lowerChar, out var negatedType))
+                {
+                    throw new PatternParseException($"Unknown negated token type shorthand: \\{typeChar}");
+                }
+                return new NegatedTokenMatchNode(negatedType);
+            }
 
             if (!ShorthandMap.TryGetValue(typeChar, out var tokenType))
             {

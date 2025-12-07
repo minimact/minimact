@@ -17,13 +17,21 @@ public static class TokenLinqExtensions
     {
         var matcher = new PatternMatcher(pattern, skipWhitespace: true);
         int pos = 0;
-        while (pos < tokens.Length && matcher.TryMatch(tokens, pos, out var match) && match != null)
+        while (pos < tokens.Length)
         {
-            foreach (var token in match.MatchedTokens)
+            if (matcher.TryMatch(tokens, pos, out var match) && match != null)
             {
-                yield return token;
+                foreach (var token in match.MatchedTokens)
+                {
+                    yield return token;
+                }
+                // Ensure we always advance at least one position
+                pos = Math.Max(pos + 1, match.EndIndex);
             }
-            pos = match.EndIndex;
+            else
+            {
+                pos++;
+            }
         }
     }
 
@@ -35,13 +43,21 @@ public static class TokenLinqExtensions
     {
         var matcher = new PatternMatcher(pattern, skipWhitespace: true);
         int pos = 0;
-        while (pos < tokens.Length && matcher.TryMatch(tokens, pos, out var match) && match != null)
+        while (pos < tokens.Length)
         {
-            if (match.Captures.Length > 0)
+            if (matcher.TryMatch(tokens, pos, out var match) && match != null)
             {
-                yield return match.Captures[0].Tokens;
+                if (match.Captures.Length > 0)
+                {
+                    yield return match.Captures[0].Tokens;
+                }
+                // Ensure we always advance at least one position
+                pos = Math.Max(pos + 1, match.EndIndex);
             }
-            pos = match.EndIndex;
+            else
+            {
+                pos++;
+            }
         }
     }
 
@@ -53,10 +69,18 @@ public static class TokenLinqExtensions
     {
         var matcher = new PatternMatcher(pattern, skipWhitespace: true);
         int pos = 0;
-        while (pos < tokens.Length && matcher.TryMatch(tokens, pos, out var match) && match != null)
+        while (pos < tokens.Length)
         {
-            yield return selector(match);
-            pos = match.EndIndex;
+            if (matcher.TryMatch(tokens, pos, out var match) && match != null)
+            {
+                yield return selector(match);
+                // Ensure we always advance at least one position
+                pos = Math.Max(pos + 1, match.EndIndex);
+            }
+            else
+            {
+                pos++;
+            }
         }
     }
 
@@ -96,10 +120,18 @@ public static class TokenLinqExtensions
     {
         var matcher = new PatternMatcher(pattern, skipWhitespace: true);
         int pos = 0;
-        while (pos < tokens.Length && matcher.TryMatch(tokens, pos, out var match) && match != null)
+        while (pos < tokens.Length)
         {
-            yield return match;
-            pos = match.EndIndex;
+            if (matcher.TryMatch(tokens, pos, out var match) && match != null)
+            {
+                yield return match;
+                // Ensure we always advance at least one position
+                pos = Math.Max(pos + 1, match.EndIndex);
+            }
+            else
+            {
+                pos++;
+            }
         }
     }
 
@@ -200,11 +232,22 @@ public static class TokenLinqExtensions
     }
 
     /// <summary>
-    /// Returns tokens without whitespace.
+    /// Returns tokens without whitespace, comments, or EOF.
+    /// Uses negated pattern \W\C\E - matches any token that is NOT Whitespace, Comment, or Eof.
     /// </summary>
     public static Token[] LuxNoWhitespace(this Token[] tokens)
     {
-        return tokens.LuxWhere(@"[^\w]").ToArray();
+        return tokens.LuxWhere(@"\W").ToArray();
+    }
+
+    /// <summary>
+    /// Returns tokens without whitespace, comments, or EOF (common filter).
+    /// </summary>
+    public static Token[] LuxSignificant(this Token[] tokens)
+    {
+        // Matches any token that is NOT Whitespace (\W), NOT Comment (\C), NOT Eof (\E)
+        // These are separate patterns combined in sequence - each must match for the token to pass
+        return tokens.LuxWhere(@"(?=\W)(?=\C)(?=\E).").ToArray();
     }
 
     /// <summary>

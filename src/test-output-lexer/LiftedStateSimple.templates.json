@@ -2,7 +2,7 @@
   {
     "component": "Counter",
     "version": "1.0",
-    "generatedAt": 1764982019118,
+    "generatedAt": 1765147640641,
     "templates": {
       "1.@class": {
         "template": "counter",
@@ -66,7 +66,7 @@
       "1.2.1": {
         "template": "{0}",
         "bindings": [
-          "Count:{(count)}"
+          ""
         ],
         "slots": [
           0
@@ -123,7 +123,7 @@
   {
     "component": "App",
     "version": "1.0",
-    "generatedAt": 1764982019118,
+    "generatedAt": 1765147640642,
     "templates": {
       "1.@id": {
         "template": "app-root",
@@ -234,7 +234,7 @@
       "1.2.1.2.1": {
         "template": "{0}",
         "bindings": [
-          "{(counterValue)}"
+          ""
         ],
         "slots": [
           0
@@ -437,7 +437,7 @@
       "1.5.1.2.1": {
         "template": "{0}",
         "bindings": [
-          "{(counterValue)}"
+          ""
         ],
         "slots": [
           0

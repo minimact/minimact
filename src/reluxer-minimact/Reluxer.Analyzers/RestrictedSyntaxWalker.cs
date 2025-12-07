@@ -266,6 +266,13 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             if (AllowedMethodsRegistry.IsWarningLinqMethod(methodName) &&
                 (IsTokenExpression(targetExpr) || IsTokenArrayType(memberAccess.Expression, _context)))
             {
+                // Skip if inside Console.Write/WriteLine (debug output is allowed)
+                if (IsInsideConsoleWrite(node))
+                {
+                    base.VisitInvocationExpression(node);
+                    return;
+                }
+
                 _context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.AvoidLinqOnTokens,
                     node.GetLocation(),
@@ -378,6 +385,43 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             }
             parent = parent.Parent;
         }
+        return false;
+    }
+
+    private static bool IsInsideConsoleWrite(InvocationExpressionSyntax invocation)
+    {
+        // Walk up the syntax tree to find if we're inside a Console.Write/WriteLine call
+        // or System.Diagnostics.Debug.Write/WriteLine call.
+        for (var node = invocation.Parent; node != null; node = node.Parent)
+        {
+            if (node is InvocationExpressionSyntax parentInvocation)
+            {
+                if (parentInvocation.Expression is MemberAccessExpressionSyntax parentMemberAccess)
+                {
+                    var parentTarget = parentMemberAccess.Expression.ToString();
+                    var parentMethod = parentMemberAccess.Name.Identifier.Text;
+
+                    // Console.Write / Console.WriteLine
+                    if (parentTarget == "Console" &&
+                        (parentMethod == "Write" || parentMethod == "WriteLine"))
+                    {
+                        return true;
+                    }
+
+                    // System.Diagnostics.Debug.Write / WriteLine
+                    if ((parentTarget == "Debug" || parentTarget == "System.Diagnostics.Debug") &&
+                        (parentMethod == "Write" || parentMethod == "WriteLine"))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Stop at method boundary
+            if (node is MethodDeclarationSyntax)
+                break;
+        }
+
         return false;
     }
 

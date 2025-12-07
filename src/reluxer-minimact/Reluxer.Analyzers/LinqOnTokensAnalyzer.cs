@@ -60,6 +60,13 @@ public sealed class LinqOnTokensAnalyzer : DiagnosticAnalyzer
         // Check if called on token-like expression or Token[] type
         if (IsTokenExpression(targetExpr) || IsTokenArrayType(memberAccess.Expression, context))
         {
+            // Skip if inside Console.Write/WriteLine (debug output is allowed)
+            var isConsole = IsInsideConsoleWrite(invocation);
+            System.Diagnostics.Debug.WriteLine($"[REL005] Method={methodName}, Target={targetExpr}, IsConsole={isConsole}");
+
+            if (isConsole)
+                return;
+
             context.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.AvoidLinqOnTokens,
                 invocation.GetLocation(),
@@ -90,6 +97,43 @@ public sealed class LinqOnTokensAnalyzer : DiagnosticAnalyzer
         return method.AttributeLists
             .SelectMany(al => al.Attributes)
             .Any(attr => IsAllowImperativeAttribute(attr));
+    }
+
+    private static bool IsInsideConsoleWrite(InvocationExpressionSyntax invocation)
+    {
+        // Walk up the syntax tree to find if we're inside a Console.Write/WriteLine call
+        // or System.Diagnostics.Debug.Write/WriteLine call.
+        for (var node = invocation.Parent; node != null; node = node.Parent)
+        {
+            if (node is InvocationExpressionSyntax parentInvocation)
+            {
+                if (parentInvocation.Expression is MemberAccessExpressionSyntax parentMemberAccess)
+                {
+                    var parentTarget = parentMemberAccess.Expression.ToString();
+                    var parentMethod = parentMemberAccess.Name.Identifier.Text;
+
+                    // Console.Write / Console.WriteLine
+                    if (parentTarget == "Console" &&
+                        (parentMethod == "Write" || parentMethod == "WriteLine"))
+                    {
+                        return true;
+                    }
+
+                    // System.Diagnostics.Debug.Write / WriteLine
+                    if ((parentTarget == "Debug" || parentTarget == "System.Diagnostics.Debug") &&
+                        (parentMethod == "Write" || parentMethod == "WriteLine"))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // Stop at method boundary
+            if (node is MethodDeclarationSyntax)
+                break;
+        }
+
+        return false;
     }
 
     private static bool IsAllowImperativeAttribute(AttributeSyntax attr)

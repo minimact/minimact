@@ -1,11 +1,21 @@
 {
   "componentName": "TestUseProtectedState",
-  "timestamp": "2025-12-06T14:42:25.7653073Z",
+  "timestamp": "2025-12-07T23:39:40.4308018Z",
   "hooks": [
     {
       "type": "useState",
       "varName": "publicCounter",
       "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "internalCounter",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "secretValue",
+      "index": 2
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "component": "TestChainedArrayMethods",
   "version": "1.0",
-  "generatedAt": 1765142270039,
+  "generatedAt": 1765149080935,
   "templates": {
     "1.@class": {
       "template": "chained-methods-test",
@@ -494,6 +494,23 @@
         "1"
       ],
       "type": "attribute-dynamic"
+    },
+    "1.6.2.1.1.1": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "6",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "dynamic"
     },
     "1.7.@key": {
       "template": "1.7",

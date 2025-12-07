@@ -60,6 +60,11 @@ public class HandlerVisitor : TokenVisitor
 
         // Extract the handler body as tokens
         var bodyTokens = ExtractFunctionBody(0);
+        Console.WriteLine($"[HandlerVisitor] Handler '{name}' body tokens: {bodyTokens.Length}");
+        if (bodyTokens.Length > 0)
+        {
+            Console.WriteLine($"[HandlerVisitor]   First 10 tokens: {string.Join(", ", bodyTokens.Take(10).Select(t => $"[{t.Type}]{t.Value}"))}");
+        }
 
         // Check if this handler calls setState("X.Y", ...) - lifted state operation
         // These should become [ClientComputed] properties, not methods

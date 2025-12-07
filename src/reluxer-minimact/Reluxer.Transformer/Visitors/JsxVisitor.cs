@@ -336,8 +336,8 @@ public class JsxVisitor : TokenVisitor
     private Token[] TokenizeExpression(string expr)
     {
         var lexer = new Reluxer.Lexer.TsxLexer(expr);
-        // Pattern [^\w] matches non-whitespace, [^\c] matches non-comment, [^\e] matches non-EOF
-        return lexer.Tokenize().ToArray().LuxWhere(@"[^\w \c \e]").ToArray();
+        // Use LuxSignificant to filter out whitespace, comments, and EOF
+        return lexer.Tokenize().ToArray().LuxSignificant();
     }
 
     #endregion
@@ -359,8 +359,8 @@ public class JsxVisitor : TokenVisitor
     {
         if (tokens.Length == 0) return null;
 
-        // Filter whitespace and comments using pattern
-        var significant = tokens.LuxWhere(@"[^\w \c]").ToArray();
+        // Filter whitespace and comments using LuxSignificant
+        var significant = tokens.LuxSignificant();
         if (significant.Length == 0) return null;
 
         // Skip JSX comments: {/* ... */}
@@ -907,7 +907,7 @@ public class JsxVisitor : TokenVisitor
         }
 
         // Alternative pattern: [ . . . identifier ] (three dots as separate tokens)
-        var filtered = tokens.LuxWhere(@"[^\w]").ToArray();
+        var filtered = tokens.LuxNoWhitespace();
         if (filtered.Length >= 6 &&
             filtered[0].Value == "[" &&
             filtered[1].Value == "." &&
@@ -923,8 +923,8 @@ public class JsxVisitor : TokenVisitor
         // Look for: identifier or identifier.identifier.identifier at position 0
         // This handles: todos, items.active, etc.
 
-        // Filter whitespace using LuxWhere
-        var significant = tokens.LuxWhere(@"[^\w]").ToArray();
+        // Filter whitespace using LuxNoWhitespace
+        var significant = tokens.LuxNoWhitespace();
         if (significant.Length == 0) return "";
 
         var first = significant[0];
@@ -1244,7 +1244,7 @@ public class JsxVisitor : TokenVisitor
 
         // Pattern 1: Direct reference - single identifier
         var directMatcher = new PatternMatcher(@"\i");
-        var nonWhitespace = tokens.LuxWhere(@"[^\w]").ToArray();
+        var nonWhitespace = tokens.LuxNoWhitespace();
         if (nonWhitespace.Length == 1 && nonWhitespace[0].Type == TokenType.Identifier)
         {
             return (nonWhitespace[0].Value, false, null);

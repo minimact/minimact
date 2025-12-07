@@ -52,7 +52,51 @@ visitor.Visit(tokens);
 | `\n` | Number literal |
 | `\o` | Operator (`+`, `-`, `=`, `=>`, etc.) |
 | `\p` | Punctuation (`(`, `)`, `{`, `}`, etc.) |
+| `\c` | Comment |
+| `\w` | Whitespace |
+| `\e` | EOF (end of file) |
+| `\t` | Template string |
 | `.` | Any token |
+
+### Negated Token Shorthands (Uppercase)
+
+Uppercase variants match any token that is NOT of that type:
+
+| Pattern | Matches |
+|---------|---------|
+| `\W` | Any token except Whitespace |
+| `\C` | Any token except Comment |
+| `\E` | Any token except EOF |
+| `\K` | Any token except Keyword |
+| `\I` | Any token except Identifier |
+| `\S` | Any token except String |
+| `\N` | Any token except Number |
+| `\O` | Any token except Operator |
+| `\P` | Any token except Punctuation |
+| `\T` | Any token except TemplateString |
+
+```csharp
+// Match all non-whitespace tokens
+[TokenPattern(@"\W+")]
+
+// Use lookahead to combine negations (AND logic)
+// Match tokens that are not whitespace AND not comment AND not EOF
+[TokenPattern(@"(?=\W)(?=\C)(?=\E).")]
+```
+
+### JSX Token Shorthands
+
+| Pattern | Matches |
+|---------|---------|
+| `\jo` | JSX tag open (`<div`, `<Component`) |
+| `\jc` | JSX tag close (`</div>`, `</Component>`) |
+| `\js` | JSX self-closing (`/>`) |
+| `\je` | JSX tag end (`>`) |
+| `\ja` | JSX attribute name |
+| `\jv` | JSX attribute value |
+| `\jt` | JSX text content |
+| `\jx` | JSX expression start (`{`) |
+| `\jy` | JSX expression end (`}`) |
 
 ### TypeScript Type Shorthands
 
@@ -612,6 +656,84 @@ src/TokenLexer/
 │   └── TokenPatternAttribute.cs
 └── Visitor/
     └── TokenVisitor.cs    # Base visitor class
+```
+
+## Token Array Extensions (Lux*)
+
+LINQ-like extension methods for `Token[]` that use PatternMatcher internally. These provide a declarative, pattern-based API for filtering and transforming token arrays.
+
+```csharp
+using Reluxer.Extensions;
+```
+
+### Filtering
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `LuxWhere(pattern)` | Filter tokens matching pattern | `tokens.LuxWhere(@"\i")` |
+| `LuxNoWhitespace()` | Remove whitespace tokens | `tokens.LuxNoWhitespace()` |
+| `LuxSignificant()` | Remove whitespace, comments, EOF | `tokens.LuxSignificant()` |
+| `LuxTrimWhitespace()` | Trim leading/trailing whitespace | `tokens.LuxTrimWhitespace()` |
+
+### Finding
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `LuxFind(pattern)` | First token matching pattern | `tokens.LuxFind(@"""=>""")` |
+| `LuxMatch(pattern)` | First match object | `tokens.LuxMatch(@"(\i) ""=""")` |
+| `LuxMatchAll(pattern)` | All matches | `tokens.LuxMatchAll(@"(\i)")` |
+| `LuxIndexOf(pattern)` | Index of first match | `tokens.LuxIndexOf(@"""=>""")` |
+| `LuxContains(pattern)` | Check if pattern exists | `tokens.LuxContains(@"\k""async""")` |
+
+### Selecting
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `LuxSelect(pattern)` | Captured groups as Token[][] | `tokens.LuxSelect(@"(\i)")` |
+| `LuxSelect(pattern, func)` | Project matches | `tokens.LuxSelect(@"(\i)", m => m.Captures[0].Value)` |
+| `LuxIdentifiers()` | All identifier values | `tokens.LuxIdentifiers()` |
+| `LuxStrings()` | All string values (unquoted) | `tokens.LuxStrings()` |
+| `LuxValues(pattern)` | Values of matching tokens | `tokens.LuxValues(@"\n")` |
+
+### Splitting and Slicing
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `LuxSplit(pattern)` | Split at delimiter | `tokens.LuxSplit(@""",""")` |
+| `LuxTakeBefore(pattern)` | Tokens before match | `tokens.LuxTakeBefore(@"""=>""")` |
+| `LuxSkipAfter(pattern)` | Tokens after match | `tokens.LuxSkipAfter(@"""=>""")` |
+
+### Comparison
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `LuxSequenceEqual(other)` | Compare token values | `tokens.LuxSequenceEqual(other)` |
+
+### Examples
+
+```csharp
+// Get all identifiers from tokens
+var identifiers = tokens.LuxWhere(@"\i").ToArray();
+
+// Find arrow function and split into params/body
+var arrow = tokens.LuxMatch(@"(\Bp) ""=>"" (.*)");
+if (arrow != null)
+{
+    var paramTokens = arrow.Captures[0].Tokens;
+    var bodyTokens = arrow.Captures[1].Tokens;
+}
+
+// Split function arguments by comma
+var args = argTokens.LuxSplit(@""",""");
+
+// Check if expression contains async
+if (tokens.LuxContains(@"\k""async"""))
+{
+    // handle async
+}
+
+// Get significant tokens (no whitespace/comments/EOF)
+var significant = tokens.LuxSignificant();
 ```
 
 ## API Reference

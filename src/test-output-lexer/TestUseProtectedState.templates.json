@@ -1,7 +1,7 @@
 {
   "component": "TestUseProtectedState",
   "version": "1.0",
-  "generatedAt": 1765032145743,
+  "generatedAt": 1765150780404,
   "templates": {
     "1.@class": {
       "template": "protected-state-test",
@@ -99,7 +99,7 @@
     "1.2.2.1": {
       "template": "{0}",
       "bindings": [
-        "Internal Counter:{(internalCounter)}"
+        ""
       ],
       "slots": [
         0
@@ -125,7 +125,7 @@
     "1.2.3.1": {
       "template": "{0}",
       "bindings": [
-        "Secret:{(secretValue)}"
+        ""
       ],
       "slots": [
         0
@@ -240,7 +240,7 @@
     "1.3.2.1": {
       "template": "{0}",
       "bindings": [
-        "Public Counter:{(publicCounter)}"
+        ""
       ],
       "slots": [
         0

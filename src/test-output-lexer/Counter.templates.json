@@ -1,7 +1,7 @@
 {
   "component": "Counter",
   "version": "1.0",
-  "generatedAt": 1765117004429,
+  "generatedAt": 1765147535465,
   "templates": {
     "1.@id": {
       "template": "counter-root",
@@ -44,7 +44,7 @@
     "1.1.1": {
       "template": "{0}",
       "bindings": [
-        "{(count)}"
+        ""
       ],
       "slots": [
         0
@@ -78,7 +78,7 @@
     "1.2.1": {
       "template": "{0}",
       "bindings": [
-        "{(message)}"
+        ""
       ],
       "slots": [
         0

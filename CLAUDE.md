@@ -40,7 +40,36 @@ Methods decorated with `[TokenPattern]` must be **purely declarative**:
 | `\n` | Number literal |
 | `\o` | Operator (`+`, `-`, `=`, `=>`, etc.) |
 | `\p` | Punctuation (`(`, `)`, `{`, `}`, etc.) |
+| `\c` | Comment |
+| `\w` | Whitespace |
+| `\e` | EOF (end of file) |
+| `\t` | Template string |
 | `.` | Any token |
+
+### Negated Token Type Shorthands (Uppercase)
+
+Uppercase variants match any token that is NOT of that type:
+
+| Pattern | Matches |
+|---------|---------|
+| `\W` | Any token except Whitespace |
+| `\C` | Any token except Comment |
+| `\E` | Any token except EOF |
+| `\K` | Any token except Keyword |
+| `\I` | Any token except Identifier |
+| `\S` | Any token except String |
+| `\N` | Any token except Number |
+| `\O` | Any token except Operator |
+| `\P` | Any token except Punctuation |
+| `\T` | Any token except TemplateString |
+
+```csharp
+// Filter all non-whitespace tokens
+tokens.LuxWhere(@"\W")  // matches any token that is NOT whitespace
+
+// Use lookahead to combine negations (AND logic)
+tokens.LuxWhere(@"(?=\W)(?=\C)(?=\E).")  // not whitespace AND not comment AND not EOF
+```
 
 ### Literal Values
 
