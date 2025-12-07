@@ -1,3 +1,5 @@
+using Reluxer.Tokens;
+
 namespace Reluxer.Transformer.Models;
 
 /// <summary>
@@ -245,6 +247,11 @@ public class StateField
     /// Used for hooks.json output.
     /// </summary>
     public int HookIndex { get; set; }
+
+    /// <summary>
+    /// Token-based initial value (replaces string InitialValue).
+    /// </summary>
+    public Token[]? InitialValueTokens { get; set; }
 }
 
 /// <summary>
@@ -315,6 +322,11 @@ public class HelperFunction
     public string Body { get; set; } = "";
     public List<string> Parameters { get; } = new();
     public string ReturnType { get; set; } = "void";
+
+    /// <summary>
+    /// Token-based body (replaces string Body).
+    /// </summary>
+    public Token[]? BodyTokens { get; set; }
 }
 
 /// <summary>
@@ -348,6 +360,17 @@ public class EventHandler
     /// and needs to have 'dynamic e' in its signature.
     /// </summary>
     public bool NeedsEventParameter { get; set; }
+
+    /// <summary>
+    /// Token-based body (replaces string Body).
+    /// Generator should use this instead of parsing Body string.
+    /// </summary>
+    public Token[]? BodyTokens { get; set; }
+
+    /// <summary>
+    /// Token-based original expression (replaces string OriginalExpression).
+    /// </summary>
+    public Token[]? OriginalExpressionTokens { get; set; }
 }
 
 /// <summary>
@@ -358,6 +381,12 @@ public class LocalVariable
     public string Name { get; set; } = "";
     public string Expression { get; set; } = "";
     public bool IsConst { get; set; }
+
+    /// <summary>
+    /// Token-based expression (replaces string Expression).
+    /// Generator should use this instead of parsing Expression string.
+    /// </summary>
+    public Token[]? ExpressionTokens { get; set; }
 }
 
 /// <summary>
@@ -399,6 +428,11 @@ public class VTextModel : VNodeModel
     public string Text { get; set; } = "";
     public bool IsDynamic { get; set; }
     public string? Binding { get; set; }
+
+    /// <summary>
+    /// Token-based binding expression (replaces string Binding).
+    /// </summary>
+    public Token[]? BindingTokens { get; set; }
 }
 
 /// <summary>
@@ -417,6 +451,11 @@ public class VConditionalModel : VNodeModel
     public VNodeModel? TrueNode { get; set; }
     public VNodeModel? FalseNode { get; set; }
     public bool IsSimpleAnd { get; set; }  // For {x && <div>} style
+
+    /// <summary>
+    /// Token-based condition expression (replaces string Condition).
+    /// </summary>
+    public Token[]? ConditionTokens { get; set; }
 }
 
 /// <summary>
@@ -438,6 +477,11 @@ public class VListModel : VNodeModel
     public string ItemName { get; set; } = "";
     public string? IndexName { get; set; }
     public VNodeModel? ItemTemplate { get; set; }
+
+    /// <summary>
+    /// Token-based array expression (replaces string ArrayExpression).
+    /// </summary>
+    public Token[]? ArrayExpressionTokens { get; set; }
 }
 
 /// <summary>
@@ -450,6 +494,11 @@ public class AttributeValue
     public string? Binding { get; set; }
     public bool IsEventHandler { get; set; }
     public string? EventHandlerRef { get; set; }
+
+    /// <summary>
+    /// Token-based binding expression (replaces string Binding).
+    /// </summary>
+    public Token[]? BindingTokens { get; set; }
 }
 
 #region Loop Template Models

@@ -1,10 +1,17 @@
 using System.Text;
+using Reluxer.Lexer;
+using Reluxer.Tokens;
 using Reluxer.Transformer.Models;
+using Reluxer.Transformer.Visitors;
 
 namespace Reluxer.Transformer;
 
 /// <summary>
 /// Generates C# code from parsed component models.
+///
+/// IMPORTANT: This generator should NOT do string manipulation for JS→C# conversion.
+/// All conversions should happen via JsToCSharpVisitor on token arrays.
+/// The analyzer (REL010/REL011) enforces this.
 /// </summary>
 public class CSharpGenerator
 {
@@ -12,6 +19,49 @@ public class CSharpGenerator
     private readonly StringBuilder _sb = new();
     private int _indentLevel;
     private ComponentModel? _component;
+
+    /// <summary>
+    /// Converts JavaScript tokens to C# string using JsToCSharpVisitor.
+    /// This is the ONLY way to convert JS→C# in the generator.
+    /// </summary>
+    private static string ToCSharp(Token[]? tokens)
+    {
+        if (tokens == null || tokens.Length == 0)
+            return "";
+        return JsToCSharpVisitor.TransformToString(tokens);
+    }
+
+    /// <summary>
+    /// Converts JavaScript tokens to C# string, with a fallback string if tokens are null.
+    /// Prefer using token fields; this is for migration from legacy string fields.
+    /// </summary>
+    private static string ToCSharp(Token[]? tokens, string? fallback)
+    {
+        if (tokens != null && tokens.Length > 0)
+            return JsToCSharpVisitor.TransformToString(tokens);
+        if (string.IsNullOrEmpty(fallback))
+            return "";
+        // Legacy fallback: tokenize the string then transform
+        return ToCSharpFromString(fallback);
+    }
+
+    /// <summary>
+    /// Converts a JavaScript string to C# by tokenizing first.
+    /// This is a MIGRATION helper - prefer storing tokens in ComponentModel.
+    /// </summary>
+    [Obsolete("Prefer using token fields in ComponentModel. This exists for legacy code migration.")]
+    private static string ToCSharpFromString(string jsExpr)
+    {
+        if (string.IsNullOrEmpty(jsExpr))
+            return "";
+        var lexer = new TsxLexer(jsExpr);
+        var tokens = lexer.Tokenize()
+            .Where(t => t.Type != TokenType.Whitespace &&
+                       t.Type != TokenType.Comment &&
+                       t.Type != TokenType.Eof)
+            .ToArray();
+        return JsToCSharpVisitor.TransformToString(tokens);
+    }
 
     public CSharpGenerator(TransformOptions options)
     {

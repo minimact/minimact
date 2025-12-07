@@ -57,13 +57,12 @@ public class HandlerVisitor : TokenVisitor
             return;
         }
 
-        // Extract the handler body
+        // Extract the handler body as tokens
         var bodyTokens = ExtractFunctionBody(0);
-        var body = bodyTokens.Length > 0 ? TokensToString(bodyTokens) : "";
 
         // Check if this handler calls setState("X.Y", ...) - lifted state operation
         // These should become [ClientComputed] properties, not methods
-        if (body.Contains("setState("))
+        if (bodyTokens.Any(t => t.Value == "setState"))
         {
             _component.LiftedStateReads.Add(new LiftedStateRead
             {
@@ -78,8 +77,8 @@ public class HandlerVisitor : TokenVisitor
         {
             GeneratedName = name,
             IsArrowFunction = true,
-            Body = body,
-            OriginalExpression = $"() => {{ {body} }}"
+            BodyTokens = bodyTokens,
+            OriginalExpressionTokens = match.MatchedTokens
         };
 
         _component.EventHandlers.Add(handler);
@@ -106,8 +105,8 @@ public class HandlerVisitor : TokenVisitor
             _component.LocalVariables.Add(new LocalVariable
             {
                 Name = name,
-                Expression = TokensToString(exprTokens),
-                IsConst = true
+                IsConst = true,
+                ExpressionTokens = exprTokens
             });
         }
     }
@@ -122,8 +121,8 @@ public class HandlerVisitor : TokenVisitor
             _component.LocalVariables.Add(new LocalVariable
             {
                 Name = name,
-                Expression = TokensToString(exprTokens),
-                IsConst = false
+                IsConst = false,
+                ExpressionTokens = exprTokens
             });
         }
     }
@@ -134,11 +133,15 @@ public class HandlerVisitor : TokenVisitor
     /// </summary>
     public string RegisterInlineHandler(Token[] handlerTokens)
     {
-        var originalExpr = TokensToString(handlerTokens);
-        var body = ExtractArrowBody(handlerTokens);
+        var bodyTokens = ExtractArrowBodyTokens(handlerTokens);
 
         // Check if we already have an identical handler (prevent duplicates)
-        var existing = _component.EventHandlers.FirstOrDefault(h => h.Body == body);
+        // Compare by token sequence
+        var existing = _component.EventHandlers.FirstOrDefault(h =>
+            h.BodyTokens != null &&
+            h.BodyTokens.Length == bodyTokens.Length &&
+            h.BodyTokens.Zip(bodyTokens, (a, b) => a.Value == b.Value).All(x => x));
+
         if (existing != null)
             return existing.GeneratedName;
 
@@ -148,8 +151,8 @@ public class HandlerVisitor : TokenVisitor
         {
             GeneratedName = handlerName,
             IsArrowFunction = true,
-            OriginalExpression = originalExpr,
-            Body = body
+            BodyTokens = bodyTokens,
+            OriginalExpressionTokens = handlerTokens
         };
 
         _component.EventHandlers.Add(handler);
@@ -163,11 +166,6 @@ public class HandlerVisitor : TokenVisitor
                name.StartsWith("on", StringComparison.OrdinalIgnoreCase);
     }
 
-    private string TokensToString(Token[] tokens)
-    {
-        return string.Join("", tokens.Select(t => t.Value));
-    }
-
     private Token[] ExtractExpressionUntilSemicolon(int startOffset)
     {
         // Simple extraction until we hit ; or end of line
@@ -176,7 +174,11 @@ public class HandlerVisitor : TokenVisitor
         return tokens.ToArray();
     }
 
-    private string ExtractArrowBody(Token[] tokens)
+    /// <summary>
+    /// Extracts the body of an arrow function as tokens.
+    /// Handles both block body { ... } and expression body.
+    /// </summary>
+    private Token[] ExtractArrowBodyTokens(Token[] tokens)
     {
         // Pattern: => followed by either { body } or single expression
         // \fa matches the fat arrow (=>)
@@ -185,10 +187,10 @@ public class HandlerVisitor : TokenVisitor
 
         if (arrowBlockMatcher.TryMatch(tokens, 0, out var blockMatch) && blockMatch != null)
         {
-            // Block body - return content inside braces
+            // Block body - return tokens inside braces
             if (blockMatch.Captures.Length > 0)
             {
-                return string.Join("", blockMatch.Captures[0].Tokens.Select(t => t.Value));
+                return blockMatch.Captures[0].Tokens;
             }
         }
 
@@ -197,14 +199,16 @@ public class HandlerVisitor : TokenVisitor
         if (arrowExprMatcher.TryMatch(tokens, 0, out var exprMatch) && exprMatch != null)
         {
             // Get everything after the arrow
-            var afterArrow = tokens.Skip(exprMatch.EndIndex).ToArray();
-            return string.Join("", afterArrow.Select(t => t.Value));
+            return tokens.Skip(exprMatch.EndIndex).ToArray();
         }
 
-        return "";
+        return Array.Empty<Token>();
     }
 
-    private string ExtractBalancedFromTokens(Token[] tokens, string open, string close)
+    /// <summary>
+    /// Extracts balanced content as tokens.
+    /// </summary>
+    private Token[] ExtractBalancedTokens(Token[] tokens, string open)
     {
         // Use PatternMatcher with balanced matchers
         PatternMatcher matcher = open switch
@@ -217,9 +221,9 @@ public class HandlerVisitor : TokenVisitor
 
         if (matcher.TryMatch(tokens, 0, out var match) && match != null && match.Captures.Length > 0)
         {
-            return string.Join("", match.Captures[0].Tokens.Select(t => t.Value));
+            return match.Captures[0].Tokens;
         }
 
-        return "";
+        return Array.Empty<Token>();
     }
 }
