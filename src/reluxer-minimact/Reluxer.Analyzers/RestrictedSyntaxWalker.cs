@@ -263,7 +263,8 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             var targetExpr = memberAccess.Expression.ToString();
 
             // Check if calling warning LINQ methods on token-like expressions
-            if (IsTokenExpression(targetExpr) && AllowedMethodsRegistry.IsWarningLinqMethod(methodName))
+            if (AllowedMethodsRegistry.IsWarningLinqMethod(methodName) &&
+                (IsTokenExpression(targetExpr) || IsTokenArrayType(memberAccess.Expression, _context)))
             {
                 _context.ReportDiagnostic(Diagnostic.Create(
                     DiagnosticDescriptors.AvoidLinqOnTokens,
@@ -298,6 +299,14 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             "Content",
             "match.Captures",
             "match.MatchedTokens",
+            // Additional common token variable names
+            "innerTokens",
+            "valueTokens",
+            "exprTokens",
+            "contentTokens",
+            "bodyTokens",
+            "paramTokens",
+            "argTokens",
         };
 
         foreach (var indicator in tokenIndicators)
@@ -305,6 +314,49 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
             if (expression.IndexOf(indicator, StringComparison.Ordinal) >= 0)
             {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Uses semantic analysis to check if the expression is of type Token[] or IEnumerable&lt;Token&gt;.
+    /// </summary>
+    private static bool IsTokenArrayType(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+    {
+        var typeInfo = context.SemanticModel.GetTypeInfo(expression);
+        var type = typeInfo.Type;
+
+        if (type == null)
+            return false;
+
+        // Check for Token[] array
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            var elementName = arrayType.ElementType.Name;
+            if (elementName == "Token")
+                return true;
+        }
+
+        // Check for IEnumerable<Token>, List<Token>, etc.
+        if (type is INamedTypeSymbol namedType)
+        {
+            // Check if it's a generic type with Token as type argument
+            foreach (var typeArg in namedType.TypeArguments)
+            {
+                if (typeArg.Name == "Token")
+                    return true;
+            }
+
+            // Check interfaces (e.g., Token[] implements IEnumerable<Token>)
+            foreach (var iface in namedType.AllInterfaces)
+            {
+                foreach (var typeArg in iface.TypeArguments)
+                {
+                    if (typeArg.Name == "Token")
+                        return true;
+                }
             }
         }
 

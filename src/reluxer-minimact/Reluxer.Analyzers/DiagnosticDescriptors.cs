@@ -72,16 +72,16 @@ public static class DiagnosticDescriptors
 
     /// <summary>
     /// REL005: Avoid LINQ iteration on raw tokens.
-    /// Severity: Warning
+    /// Severity: Error
     /// </summary>
     public static readonly DiagnosticDescriptor AvoidLinqOnTokens = new(
         id: "REL005",
-        title: "Avoid LINQ iteration on raw tokens",
-        messageFormat: "LINQ method '{0}' on token array may bypass pattern matching. Consider using PatternMatcher.MatchAll() or Traverse().",
+        title: "LINQ iteration on tokens not allowed",
+        messageFormat: "LINQ method '{0}' on tokens simulates imperative looping. Use PatternMatcher.MatchAll() or balanced matchers (\\Bp, \\Bb, \\Bk) instead.",
         category: Category,
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "While some LINQ operations are allowed, iteration methods like Where(), Select(), and ForEach() suggest imperative processing that should use pattern matching instead.",
+        description: "LINQ methods like Aggregate, TakeWhile, Select, Where on Token[] are imperative loops in disguise. Use pattern matching with MatchAll() or balanced matchers instead.",
         helpLinkUri: "https://github.com/anthropics/minimact/blob/main/src/reluxer-minimact/Reluxer/DECLARATIVE_ENFORCEMENT.md#linq-on-tokens-detection"
     );
 
