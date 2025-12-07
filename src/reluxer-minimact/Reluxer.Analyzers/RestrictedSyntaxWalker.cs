@@ -298,6 +298,69 @@ internal sealed class RestrictedSyntaxWalker : CSharpSyntaxWalker
         return false;
     }
 
+    /// <summary>
+    /// Detects direct .Value access on tokens (e.g., token.Value, firstToken.Value).
+    /// This bypasses pattern matching.
+    /// </summary>
+    public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+    {
+        // Check for .Value or .Type access on token-like variables
+        var memberName = node.Name.Identifier.Text;
+        if (memberName == "Value" || memberName == "Type")
+        {
+            var targetExpr = node.Expression.ToString();
+            if (IsTokenVariableAccess(targetExpr))
+            {
+                _context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.DirectTokenAccessNotAllowed,
+                    node.GetLocation(),
+                    targetExpr
+                ));
+            }
+        }
+
+        base.VisitMemberAccessExpression(node);
+    }
+
+    /// <summary>
+    /// Checks if an expression looks like access to a single token variable.
+    /// </summary>
+    private static bool IsTokenVariableAccess(string expression)
+    {
+        // Common patterns for single token access
+        var tokenPatterns = new[]
+        {
+            "token",
+            "firstToken",
+            "nextToken",
+            "prevToken",
+            "currentToken",
+            "t", // common in LINQ lambdas like t => t.Value
+        };
+
+        foreach (var pattern in tokenPatterns)
+        {
+            if (expression.Equals(pattern, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        // Also check for array element access results or LINQ results
+        // e.g., tokens[0], exprTokens.First(), tokens.FirstOrDefault()
+        if (expression.Contains("[") ||
+            expression.EndsWith(".First()") ||
+            expression.EndsWith(".FirstOrDefault()") ||
+            expression.EndsWith(".Last()") ||
+            expression.EndsWith(".LastOrDefault()") ||
+            expression.EndsWith(".ElementAt("))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     #endregion
 
     #region LINQ on Tokens Detection (REL005)

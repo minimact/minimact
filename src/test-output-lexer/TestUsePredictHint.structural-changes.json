@@ -1,0 +1,433 @@
+{
+  "componentName": "TestUsePredictHint",
+  "timestamp": "2025-12-07T19:22:25.0081799Z",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vNode": {
+        "type": "element",
+        "path": "1",
+        "tag": "div",
+        "attributes": {
+          "className": "predict-hint-test"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "h2"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.4",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.5",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1",
+        "tag": "h2",
+        "attributes": {},
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.1.1",
+        "value": "Predictive Hint Test"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2",
+        "tag": "div",
+        "attributes": {
+          "className": "controls"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.2.3",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.1",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.1.1",
+        "value": "Reset View"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.2",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.2.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.2.2.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.3",
+        "tag": "div",
+        "attributes": {
+          "className": "view-toggle"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.3.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.2.3.2",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.3.1",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.3.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.3.1.1",
+        "value": "Grid"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.3.2",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.3.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.3.2.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.3.2.1",
+        "value": "List"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vNode": {
+        "type": "element",
+        "path": "1.3",
+        "tag": "div",
+        "attributes": {
+          "className": "tabs"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.3.3",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.3.4",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.1",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.1.1",
+        "value": "Overview"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.2",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.2.1",
+        "value": "Details"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.3",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.3",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.3.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.3.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.3.1",
+        "value": "Reviews"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.4",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.4",
+        "tag": "button",
+        "attributes": {
+          "onclick": "__DYNAMIC__",
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.4.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.4.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.4.1",
+        "value": "Related"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4",
+      "vNode": {
+        "type": "element",
+        "path": "1.4",
+        "tag": "div",
+        "attributes": {
+          "class": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.4.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.4.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.4.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5",
+      "vNode": {
+        "type": "element",
+        "path": "1.5",
+        "tag": "div",
+        "attributes": {
+          "className": "selection-info"
+        },
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.5.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.5.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.5.1",
+        "value": "__DYNAMIC__"
+      }
+    }
+  ]
+}

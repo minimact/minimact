@@ -1,0 +1,36 @@
+{
+  "componentName": "TestUseValidation",
+  "timestamp": "2025-12-07T19:22:04.2341600Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "email",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "password",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "confirmPassword",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "age",
+      "index": 3
+    },
+    {
+      "type": "useState",
+      "varName": "username",
+      "index": 4
+    },
+    {
+      "type": "useState",
+      "varName": "website",
+      "index": 5
+    }
+  ]
+}

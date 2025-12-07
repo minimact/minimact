@@ -1,7 +1,7 @@
 {
   "component": "TestUseServerTask",
   "version": "1.0",
-  "generatedAt": 1765135107467,
+  "generatedAt": 1765135300219,
   "templates": {
     "1.@class": {
       "template": "server-task-test",

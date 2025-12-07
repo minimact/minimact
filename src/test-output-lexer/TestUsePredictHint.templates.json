@@ -1,0 +1,467 @@
+{
+  "component": "TestUsePredictHint",
+  "version": "1.0",
+  "generatedAt": 1765135344983,
+  "templates": {
+    "1.@class": {
+      "template": "predict-hint-test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.1": {
+      "template": "Predictive Hint Test",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.@class": {
+      "template": "controls",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.@key": {
+      "template": "1.2.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1.1": {
+      "template": "Reset View",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.2.@key": {
+      "template": "1.2.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.2.1": {
+      "template": "{0}",
+      "bindings": [
+        "{(isExpanded?\"Collapse\":\"Expand\")}"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.2.3.@class": {
+      "template": "view-toggle",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.@key": {
+      "template": "1.2.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.1.@class": {
+      "template": "{0}",
+      "bindings": [
+        "viewMode==='grid'?'active':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.3.1.@key": {
+      "template": "1.2.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.1.1": {
+      "template": "Grid",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.2.3.2.@class": {
+      "template": "{0}",
+      "bindings": [
+        "viewMode==='list'?'active':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.2.3.2.@key": {
+      "template": "1.2.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.3.2.1": {
+      "template": "List",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.@class": {
+      "template": "tabs",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1.@class": {
+      "template": "{0}",
+      "bindings": [
+        "activeTab==='overview'?'active':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.1.@key": {
+      "template": "1.3.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1.1": {
+      "template": "Overview",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.2.@class": {
+      "template": "{0}",
+      "bindings": [
+        "activeTab==='details'?'active':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.2.@key": {
+      "template": "1.3.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.2.1": {
+      "template": "Details",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.3.@class": {
+      "template": "{0}",
+      "bindings": [
+        "activeTab==='reviews'?'active':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.3.@key": {
+      "template": "1.3.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.3.1": {
+      "template": "Reviews",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "3",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.3.4.@class": {
+      "template": "{0}",
+      "bindings": [
+        "activeTab==='related'?'active':''"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3",
+        "4"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.3.4.@key": {
+      "template": "1.3.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.4.1": {
+      "template": "Related",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3",
+        "4",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.4.@class": {
+      "template": "{0}",
+      "bindings": [
+        "`content ${isExpanded ? 'expanded' : ''} ${viewMode}`"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.4.1": {
+      "template": "{0}",
+      "bindings": [
+        "{(activeTab == \"overview\" && (<divclassName= \"tab-content overview\"><h3>Product Overview</h3><p>This is the overview content.</p></div>))}{(activeTab == \"details\" && (<divclassName= \"tab-content details\"><h3>Product Details</h3><p>This is the details content.</p></div>))}{(activeTab == \"reviews\" && (<divclassName= \"tab-content reviews\"><h3>Customer Reviews</h3><p>This is the reviews content.</p></div>))}{(activeTab == \"related\" && (<divclassName= \"tab-content related\"><h3>Related Products</h3><p>This is the related products content.</p></div>))}"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "dynamic"
+    },
+    "1.5.@class": {
+      "template": "selection-info",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.@key": {
+      "template": "1.5",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.1": {
+      "template": "{0}",
+      "bindings": [
+        "selectedItems"
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "transform",
+      "transform": {
+        "method": "Count",
+        "args": []
+      }
+    }
+  }
+}

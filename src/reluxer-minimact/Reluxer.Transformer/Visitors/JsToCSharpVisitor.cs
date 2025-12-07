@@ -955,8 +955,19 @@ public class JsToCSharpVisitor : TokenVisitor
         if (template.StartsWith("`") && template.EndsWith("`"))
         {
             var content = template.Substring(1, template.Length - 2);
-            // Convert ${expr} to {expr}
-            content = content.Replace("${", "{");
+            // Convert ${expr} to {(expr)} - wrap in parens for C# ternary safety
+            // Use regex for simple string transformation (not token manipulation)
+            content = System.Text.RegularExpressions.Regex.Replace(
+                content,
+                @"\$\{([^}]+)\}",
+                m => {
+                    var expr = m.Groups[1].Value;
+                    // Convert single quotes to double quotes
+                    expr = expr.Replace("'", "\"");
+                    // Wrap in parens for C# interpolation (handles ternary : conflict)
+                    return $"{{({expr})}}";
+                });
+
             ReplaceMatch(match, Token.String($"$\"{content}\""));
         }
         else
@@ -1184,7 +1195,9 @@ public class JsToCSharpVisitor : TokenVisitor
     public static string TransformToString(Token[] jsTokens)
     {
         var transformed = Transform(jsTokens);
+#pragma warning disable REL014 // Final output conversion - tokens already transformed
         return TokensToStringWithSpacing(transformed);
+#pragma warning restore REL014
     }
 
     /// <summary>

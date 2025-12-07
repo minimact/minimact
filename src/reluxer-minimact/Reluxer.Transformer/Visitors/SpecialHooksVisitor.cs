@@ -86,10 +86,10 @@ public class SpecialHooksVisitor : TokenVisitor
         var bodyTokens = ExtractFunctionBody(0);
         Console.WriteLine($"[SpecialHooksVisitor] Extracted body for {fnName}: {bodyTokens.Length} tokens");
 
-        // Convert body to C#
+        // Store tokens - generator will convert to C#
         if (bodyTokens.Length > 0)
         {
-            serverTask.Body = ConvertFunctionBodyToCSharp(bodyTokens, isStreaming: true);
+            serverTask.BodyTokens = bodyTokens;
         }
 
         _component.ServerTasks.Add(serverTask);
@@ -129,10 +129,10 @@ public class SpecialHooksVisitor : TokenVisitor
         var bodyTokens = ExtractFunctionBody(0);
         Console.WriteLine($"[SpecialHooksVisitor] Extracted body for {fnName}: {bodyTokens.Length} tokens");
 
-        // Convert body to C#
+        // Store tokens - generator will convert to C#
         if (bodyTokens.Length > 0)
         {
-            serverTask.Body = ConvertFunctionBodyToCSharp(bodyTokens, isStreaming: false);
+            serverTask.BodyTokens = bodyTokens;
         }
 
         _component.ServerTasks.Add(serverTask);
@@ -320,42 +320,6 @@ public class SpecialHooksVisitor : TokenVisitor
         };
     }
 
-    /// <summary>
-    /// Converts function body from JS to C#.
-    /// </summary>
-    private string ConvertFunctionBodyToCSharp(Token[] bodyTokens, bool isStreaming)
-    {
-        // Use JsToCSharpVisitor to transform
-        var transformed = JsToCSharpVisitor.Transform(bodyTokens);
-        var body = JsToCSharpVisitor.TransformToString(transformed);
-
-        // Check for streaming pattern - if body still contains JS-specific streaming code, replace with C# pattern
-        if (isStreaming && (body.Contains("getReader") || body.Contains("reader.read")))
-        {
-            // Extract the URL from the fetch call if present
-            var urlMatch = System.Text.RegularExpressions.Regex.Match(body, @"PostAsync\(([^,]+),");
-            var url = urlMatch.Success ? urlMatch.Groups[1].Value.Trim() : "\"/api/stream\"";
-
-            // Generate proper C# streaming code
-            return $@"var response = await _httpClient.GetStreamAsync({url}, cancellationToken);
-        using var reader = new System.IO.StreamReader(response);
-        while (!reader.EndOfStream)
-        {{
-            if (cancellationToken.IsCancellationRequested) yield break;
-            var line = await reader.ReadLineAsync();
-            if (line != null) yield return line;
-        }}";
-        }
-
-        // For simple non-streaming bodies
-        if (isStreaming)
-        {
-            // yield in JS generators → yield return in C#
-            body = body.Replace("yield ", "yield return ");
-        }
-
-        return body;
-    }
 
     /// <summary>
     /// Parses server task options like { runtime: 'rust', parallel: true, streaming: true }
@@ -414,8 +378,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            var argsStr = TokensToString(argsTokens);
-            serverTask.Body = argsStr;
+            serverTask.BodyTokens = argsTokens;
         }
 
         _component.ServerTasks.Add(serverTask);
@@ -457,7 +420,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            serverTask.Body = TokensToString(argsTokens);
+            serverTask.BodyTokens = argsTokens;
         }
 
         _component.ServerTasks.Add(serverTask);
@@ -528,6 +491,110 @@ public class SpecialHooksVisitor : TokenVisitor
 
     #region useValidation
 
+    // Match: const validationObj = useValidation(fieldValue, { rules })
+    // Object-returning form: returns { isValid, hasError, message, validate, isValidating }
+    [TokenPattern(@"\k""const"" (\i) ""="" \i""useValidation"" ""("" (\i) "",""", Name = "VisitUseValidationObject")]
+    public void VisitUseValidationObject(TokenMatch match, string validationObjName, string fieldName)
+    {
+        var validation = new ValidationModel
+        {
+            Name = validationObjName,
+            FieldKey = fieldName
+        };
+
+        // Extract rules from second argument (after the comma)
+        // Pattern: useValidation(email, { required: true, pattern: /.../ })
+        var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
+        if (argsTokens.Length > 0)
+        {
+            ParseValidationRulesFromTokens(validation, argsTokens);
+        }
+
+        _component.Validations.Add(validation);
+
+        // The validation object provides: isValid, hasError, message, validate, isValidating
+        // Add as a local variable that creates this object
+        _component.LocalVariables.Add(new LocalVariable
+        {
+            Name = validationObjName,
+            Expression = $"new {{ isValid = true, hasError = false, message = \"{validation.Message ?? ""}\", isValidating = false }}",
+            IsConst = true
+        });
+
+        SkipBalanced("(", ")");
+    }
+
+    /// <summary>
+    /// Parse validation rules directly from tokens using pattern matching.
+    /// Matches patterns like: required: true, minLength: 8, pattern: /.../, message: "..."
+    /// </summary>
+    private void ParseValidationRulesFromTokens(ValidationModel validation, Token[] tokens)
+    {
+        // required: true
+        var requiredMatcher = new PatternMatcher(@"\i""required"" "":"" \k""true""", skipWhitespace: true);
+        if (requiredMatcher.TryMatch(tokens, 0, out _))
+        {
+            validation.Required = true;
+        }
+
+        // minLength: number
+        var minLenMatcher = new PatternMatcher(@"\i""minLength"" "":"" (\n)", skipWhitespace: true);
+        if (minLenMatcher.TryMatch(tokens, 0, out var minLenMatch) && minLenMatch != null)
+        {
+            if (int.TryParse(minLenMatch.Captures[0].Tokens[0].Value, out var minLen))
+                validation.MinLength = minLen;
+        }
+
+        // maxLength: number
+        var maxLenMatcher = new PatternMatcher(@"\i""maxLength"" "":"" (\n)", skipWhitespace: true);
+        if (maxLenMatcher.TryMatch(tokens, 0, out var maxLenMatch) && maxLenMatch != null)
+        {
+            if (int.TryParse(maxLenMatch.Captures[0].Tokens[0].Value, out var maxLen))
+                validation.MaxLength = maxLen;
+        }
+
+        // min: number
+        var minMatcher = new PatternMatcher(@"\i""min"" "":"" (\n)", skipWhitespace: true);
+        if (minMatcher.TryMatch(tokens, 0, out var minMatch) && minMatch != null)
+        {
+            if (double.TryParse(minMatch.Captures[0].Tokens[0].Value, out var min))
+                validation.Min = min;
+        }
+
+        // max: number
+        var maxMatcher = new PatternMatcher(@"\i""max"" "":"" (\n)", skipWhitespace: true);
+        if (maxMatcher.TryMatch(tokens, 0, out var maxMatch) && maxMatch != null)
+        {
+            if (double.TryParse(maxMatch.Captures[0].Tokens[0].Value, out var max))
+                validation.Max = max;
+        }
+
+        // pattern: /regex/ - match Regex token type
+        var patternMatcher = new PatternMatcher(@"\i""pattern"" "":"" (\r)", skipWhitespace: true);
+        if (patternMatcher.TryMatch(tokens, 0, out var patternMatch) && patternMatch != null)
+        {
+            var regexToken = patternMatch.Captures[0].Tokens[0].Value;
+            // Remove leading/trailing slashes from regex literal
+            if (regexToken.StartsWith("/") && regexToken.EndsWith("/"))
+                validation.Pattern = regexToken.Substring(1, regexToken.Length - 2);
+            else
+                validation.Pattern = regexToken;
+        }
+
+        // message: "string" or message: 'string'
+        var msgMatcher = new PatternMatcher(@"\i""message"" "":"" (\s)", skipWhitespace: true);
+        if (msgMatcher.TryMatch(tokens, 0, out var msgMatch) && msgMatch != null)
+        {
+            var msgToken = msgMatch.Captures[0].Tokens[0].Value;
+            // Remove quotes
+            if ((msgToken.StartsWith("\"") && msgToken.EndsWith("\"")) ||
+                (msgToken.StartsWith("'") && msgToken.EndsWith("'")))
+                validation.Message = msgToken.Substring(1, msgToken.Length - 2);
+            else
+                validation.Message = msgToken;
+        }
+    }
+
     // Match: const [isValid, errors, validate] = useValidation(fieldKey, rules)
     [TokenPattern(@"\k""const"" ""["" (\i) "","" (\i) "","" (\i) ""]"" ""="" \i""useValidation"" ""("" (\s)", Name = "VisitUseValidation")]
     public void VisitUseValidation(TokenMatch match, string isValidName, string errorsName, string validateName, string fieldKeyString)
@@ -544,8 +611,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            var argsStr = TokensToString(argsTokens);
-            ParseValidationRules(validation, argsStr);
+            ParseValidationRulesFromTokens(validation, argsTokens);
         }
 
         _component.Validations.Add(validation);
@@ -570,29 +636,6 @@ public class SpecialHooksVisitor : TokenVisitor
         SkipBalanced("(", ")");
     }
 
-    private void ParseValidationRules(ValidationModel validation, string rulesStr)
-    {
-        if (rulesStr.Contains("required")) validation.Required = true;
-
-        var minLengthMatch = System.Text.RegularExpressions.Regex.Match(rulesStr, @"minLength:\s*(\d+)");
-        if (minLengthMatch.Success) validation.MinLength = int.Parse(minLengthMatch.Groups[1].Value);
-
-        var maxLengthMatch = System.Text.RegularExpressions.Regex.Match(rulesStr, @"maxLength:\s*(\d+)");
-        if (maxLengthMatch.Success) validation.MaxLength = int.Parse(maxLengthMatch.Groups[1].Value);
-
-        var minMatch = System.Text.RegularExpressions.Regex.Match(rulesStr, @"min:\s*([\d.]+)");
-        if (minMatch.Success) validation.Min = double.Parse(minMatch.Groups[1].Value);
-
-        var maxMatch = System.Text.RegularExpressions.Regex.Match(rulesStr, @"max:\s*([\d.]+)");
-        if (maxMatch.Success) validation.Max = double.Parse(maxMatch.Groups[1].Value);
-
-        var patternMatch = System.Text.RegularExpressions.Regex.Match(rulesStr, @"pattern:\s*/([^/]+)/");
-        if (patternMatch.Success) validation.Pattern = patternMatch.Groups[1].Value;
-
-        var messageMatch = System.Text.RegularExpressions.Regex.Match(rulesStr, @"message:\s*['""]([^'""]+)['""]");
-        if (messageMatch.Success) validation.Message = messageMatch.Groups[1].Value;
-    }
-
     #endregion
 
     #region usePredictHint
@@ -610,9 +653,8 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            // Parse predicted state values
-            var argsStr = TokensToString(argsTokens);
-            // TODO: Parse { key: value } pairs into PredictedState dictionary
+            // TODO: Parse { key: value } pairs from argsTokens into PredictedState dictionary
+            // using PatternMatcher patterns for key-value pairs
         }
 
         _component.PredictHints.Add(predictHint);
@@ -682,8 +724,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            var argsStr = TokensToString(argsTokens);
-            ParseSignalROptions(hub, argsStr);
+            ParseSignalROptionsFromTokens(hub, argsTokens);
         }
 
         _component.SignalRHubs.Add(hub);
@@ -700,16 +741,19 @@ public class SpecialHooksVisitor : TokenVisitor
         SkipBalanced("(", ")");
     }
 
-    private void ParseSignalROptions(SignalRHubModel hub, string optionsStr)
+    private void ParseSignalROptionsFromTokens(SignalRHubModel hub, Token[] tokens)
     {
-        var onConnectedMatch = System.Text.RegularExpressions.Regex.Match(optionsStr, @"onConnected:\s*(\w+)");
-        if (onConnectedMatch.Success) hub.OnConnected = onConnectedMatch.Groups[1].Value;
+        var onConnectedMatcher = new PatternMatcher(@"\i""onConnected"" "":"" (\i)", skipWhitespace: true);
+        if (onConnectedMatcher.TryMatch(tokens, 0, out var connMatch) && connMatch != null)
+            hub.OnConnected = connMatch.Captures[0].Tokens[0].Value;
 
-        var onDisconnectedMatch = System.Text.RegularExpressions.Regex.Match(optionsStr, @"onDisconnected:\s*(\w+)");
-        if (onDisconnectedMatch.Success) hub.OnDisconnected = onDisconnectedMatch.Groups[1].Value;
+        var onDisconnectedMatcher = new PatternMatcher(@"\i""onDisconnected"" "":"" (\i)", skipWhitespace: true);
+        if (onDisconnectedMatcher.TryMatch(tokens, 0, out var discMatch) && discMatch != null)
+            hub.OnDisconnected = discMatch.Captures[0].Tokens[0].Value;
 
-        var onReconnectingMatch = System.Text.RegularExpressions.Regex.Match(optionsStr, @"onReconnecting:\s*(\w+)");
-        if (onReconnectingMatch.Success) hub.OnReconnecting = onReconnectingMatch.Groups[1].Value;
+        var onReconnectingMatcher = new PatternMatcher(@"\i""onReconnecting"" "":"" (\i)", skipWhitespace: true);
+        if (onReconnectingMatcher.TryMatch(tokens, 0, out var reconMatch) && reconMatch != null)
+            hub.OnReconnecting = reconMatch.Captures[0].Tokens[0].Value;
     }
 
     #endregion
@@ -809,7 +853,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var initTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (initTokens.Length > 0)
         {
-            protectedState.InitialValue = TokensToString(initTokens);
+            protectedState.InitialValueTokens = initTokens;
             protectedState.Type = InferType(initTokens);
         }
 
@@ -822,7 +866,7 @@ public class SpecialHooksVisitor : TokenVisitor
             Name = stateName,
             SetterName = setterName,
             Type = protectedState.Type,
-            InitialValue = protectedState.InitialValue,
+            InitialValueTokens = initTokens.Length > 0 ? initTokens : null,
             HookIndex = _component.NextHookIndex++
         });
 
@@ -846,7 +890,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            markdown.Content = TokensToString(argsTokens);
+            markdown.ContentTokens = argsTokens;
         }
 
         _component.MarkdownFields.Add(markdown);
@@ -867,7 +911,7 @@ public class SpecialHooksVisitor : TokenVisitor
         var argsTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (argsTokens.Length > 0)
         {
-            markdown.Content = TokensToString(argsTokens);
+            markdown.ContentTokens = argsTokens;
         }
 
         _component.MarkdownFields.Add(markdown);
@@ -878,11 +922,6 @@ public class SpecialHooksVisitor : TokenVisitor
     #endregion
 
     #region Helper Methods
-
-    private string TokensToString(Token[] tokens)
-    {
-        return string.Join("", tokens.Select(t => t.Value));
-    }
 
     private string InferType(Token[] tokens)
     {

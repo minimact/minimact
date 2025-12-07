@@ -28,7 +28,9 @@ public class CSharpGenerator
     {
         if (tokens == null || tokens.Length == 0)
             return "";
+#pragma warning disable REL014 // Final output conversion in generator
         return JsToCSharpVisitor.TransformToString(tokens);
+#pragma warning restore REL014
     }
 
     /// <summary>
@@ -37,8 +39,10 @@ public class CSharpGenerator
     /// </summary>
     private static string ToCSharp(Token[]? tokens, string? fallback)
     {
+#pragma warning disable REL014 // Final output conversion in generator
         if (tokens != null && tokens.Length > 0)
             return JsToCSharpVisitor.TransformToString(tokens);
+#pragma warning restore REL014
         if (string.IsNullOrEmpty(fallback))
             return "";
         // Legacy fallback: tokenize the string then transform
@@ -60,7 +64,9 @@ public class CSharpGenerator
                        t.Type != TokenType.Comment &&
                        t.Type != TokenType.Eof)
             .ToArray();
+#pragma warning disable REL014 // Final output conversion in generator
         return JsToCSharpVisitor.TransformToString(tokens);
+#pragma warning restore REL014
     }
 
     public CSharpGenerator(TransformOptions options)
@@ -592,7 +598,10 @@ public class CSharpGenerator
         for (int i = 0; i < component.EventHandlers.Count; i++)
         {
             var handler = component.EventHandlers[i];
-            var jsBody = FormatJsHandler(handler.OriginalExpression ?? handler.Body);
+            // Prefer token-based fields, fall back to string fields for backwards compatibility
+            var originalExpr = ToCSharp(handler.OriginalExpressionTokens, handler.OriginalExpression);
+            var body = ToCSharp(handler.BodyTokens, handler.Body);
+            var jsBody = FormatJsHandler(!string.IsNullOrEmpty(originalExpr) ? originalExpr : body);
             var comma = i < component.EventHandlers.Count - 1 ? "," : "";
             WriteLine($"[\"{handler.GeneratedName}\"] = @\"{jsBody}\"{comma}");
         }
@@ -768,26 +777,56 @@ public class CSharpGenerator
     {
         if (text.IsDynamic)
         {
-            var binding = text.Binding ?? "";
-
-            // Check if binding is already in merged format (contains {(...)} patterns)
-            // This happens when text+expressions were merged in JsxVisitor
-            if (binding.Contains("{(") && binding.Contains(")}"))
+            // Multiple expressions with text parts
+            if (text.BindingTokensList != null && text.TextParts != null)
             {
-                // Already in interpolated format, just wrap in $"..."
-                Write($"new VText($\"{binding}\", \"{text.HexPath}\")");
+                // Build interpolated string from parts and converted expressions
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < text.TextParts.Count; i++)
+                {
+                    var part = text.TextParts[i];
+                    // Check if this part is a placeholder like "{0}", "{1}", etc.
+#pragma warning disable REL011 // Parsing placeholder format from visitor-provided template
+                    if (part.StartsWith("{") && part.EndsWith("}") &&
+                        int.TryParse(part.Substring(1, part.Length - 2), out var idx) &&
+                        idx >= 0 && idx < text.BindingTokensList.Count)
+#pragma warning restore REL011
+                    {
+                        var converted = ToCSharp(text.BindingTokensList[idx]);
+                        sb.Append($"{{({converted})}}");
+                    }
+                    else
+                    {
+                        sb.Append(EscapeString(part));
+                    }
+                }
+                Write($"new VText($\"{sb}\", \"{text.HexPath}\")");
             }
+            // Single expression with tokens
             else if (text.BindingTokens != null && text.BindingTokens.Length > 0)
             {
-                // Use BindingTokens for proper JS->C# transformation
-                var convertedBinding = JsToCSharpVisitor.TransformToString(text.BindingTokens);
+                var convertedBinding = ToCSharp(text.BindingTokens);
                 Write($"new VText($\"{{({convertedBinding})}}\", \"{text.HexPath}\")");
+            }
+            // Legacy: already converted binding string
+            else if (!string.IsNullOrEmpty(text.Binding))
+            {
+                var binding = text.Binding;
+                if (binding.Contains("{(") && binding.Contains(")}"))
+                {
+                    // Already in interpolated format
+                    Write($"new VText($\"{binding}\", \"{text.HexPath}\")");
+                }
+                else
+                {
+                    var convertedBinding = ConvertExpression(binding);
+                    Write($"new VText($\"{{({convertedBinding})}}\", \"{text.HexPath}\")");
+                }
             }
             else
             {
-                // Fallback: use string binding with ConvertExpression
-                var convertedBinding = ConvertExpression(binding);
-                Write($"new VText($\"{{({convertedBinding})}}\", \"{text.HexPath}\")");
+                // Fallback empty
+                Write($"new VText(\"\", \"{text.HexPath}\")");
             }
         }
         else
@@ -871,16 +910,20 @@ public class CSharpGenerator
         var matchingProp = _component?.Props.FirstOrDefault(p => p.Name == list.ArrayExpression);
         var needsCast = matchingProp?.Type != "List<dynamic>";
 
-        // Generate: arrayExpr.Select(item => ...).ToArray()
-        // Only cast to IEnumerable<dynamic> if needed to avoid dynamic dispatch issues
-        if (needsCast)
+        // Build the base expression with optional cast
+        var baseExpr = needsCast ? $"((IEnumerable<dynamic>){arrayExpr})" : arrayExpr;
+
+        // Apply chained methods (filter, sort, slice, etc.) as LINQ operations
+        if (list.ChainedMethods != null && list.ChainedMethods.Count > 0)
         {
-            Write($"((IEnumerable<dynamic>){arrayExpr}).Select({list.ItemName} => ");
+            foreach (var method in list.ChainedMethods)
+            {
+                baseExpr = ConvertArrayMethodToLinq(baseExpr, method.MethodName, method.ArgumentTokens);
+            }
         }
-        else
-        {
-            Write($"{arrayExpr}.Select({list.ItemName} => ");
-        }
+
+        // Generate: baseExpr.Select(item => ...).ToArray()
+        Write($"{baseExpr}.Select({list.ItemName} => ");
 
         if (list.ItemTemplate != null)
         {
@@ -892,6 +935,174 @@ public class CSharpGenerator
         }
 
         Write(").ToArray()");
+    }
+
+    /// <summary>
+    /// Converts a JS array method call to its LINQ equivalent.
+    /// Works directly on tokens.
+    /// </summary>
+    private string ConvertArrayMethodToLinq(string expr, string method, Token[] argsTokens)
+    {
+        return method switch
+        {
+            "filter" => $"{expr}.Where({ToCSharp(argsTokens)})",
+            "sort" => ConvertSortToLinq(expr, argsTokens),
+            "slice" => ConvertSliceToLinq(expr, argsTokens),
+            "reverse" => $"{expr}.Reverse()",
+            "concat" => $"{expr}.Concat({ToCSharp(argsTokens)})",
+            "flat" => $"{expr}.SelectMany(x => x)",
+            "flatMap" => $"{expr}.SelectMany({ToCSharp(argsTokens)})",
+            "find" => $"{expr}.FirstOrDefault({ToCSharp(argsTokens)})",
+            "findIndex" => $"{expr}.ToList().FindIndex(x => ({ToCSharp(argsTokens)})(x))",
+            "some" => $"{expr}.Any({ToCSharp(argsTokens)})",
+            "every" => $"{expr}.All({ToCSharp(argsTokens)})",
+            "includes" => $"{expr}.Contains({ToCSharp(argsTokens)})",
+            _ => $"{expr}.{method}({ToCSharp(argsTokens)})" // Fallback
+        };
+    }
+
+    /// <summary>
+    /// Converts JS .sort() to LINQ OrderBy/OrderByDescending.
+    /// Parses comparator pattern from tokens: (a, b) => a.prop - b.prop
+    /// </summary>
+    private string ConvertSortToLinq(string expr, Token[] argsTokens)
+    {
+        if (argsTokens.Length == 0)
+        {
+            return $"{expr}.OrderBy(x => x)";
+        }
+
+        // Try to match comparator pattern: ( a , b ) => a . prop - b . prop
+        // Look for: ( identifier , identifier ) => identifier . identifier - identifier
+        var tokens = argsTokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+
+        // Find => token
+        var arrowIndex = -1;
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            if (tokens[i].Value == "=>")
+            {
+                arrowIndex = i;
+                break;
+            }
+        }
+
+        if (arrowIndex > 0 && arrowIndex < tokens.Length - 1)
+        {
+            // Extract params before =>: should be (a, b)
+            var paramTokens = tokens.Take(arrowIndex).ToArray();
+            // Extract body after =>: should be a.prop - b.prop
+            var bodyTokens = tokens.Skip(arrowIndex + 1).ToArray();
+
+            // Parse params - look for two identifiers
+            var paramIds = paramTokens
+                .Where(t => t.Type == TokenType.Identifier)
+                .Select(t => t.Value)
+                .ToArray();
+
+            if (paramIds.Length >= 2)
+            {
+                var a = paramIds[0];
+                var b = paramIds[1];
+
+                // Parse body - look for identifier.prop - identifier pattern
+                // Find the minus operator
+                var minusIndex = -1;
+                for (int i = 0; i < bodyTokens.Length; i++)
+                {
+                    if (bodyTokens[i].Type == TokenType.Operator && bodyTokens[i].Value == "-")
+                    {
+                        minusIndex = i;
+                        break;
+                    }
+                }
+
+                if (minusIndex > 0)
+                {
+                    // Get identifiers before minus
+                    var beforeMinus = bodyTokens.Take(minusIndex).ToArray();
+                    var firstIds = beforeMinus
+                        .Where(t => t.Type == TokenType.Identifier)
+                        .Select(t => t.Value)
+                        .ToArray();
+
+                    if (firstIds.Length >= 1)
+                    {
+                        var firstVar = firstIds[0];
+                        var firstProp = firstIds.Length > 1 ? firstIds[1] : null;
+
+                        var selector = firstProp != null ? $"x.{firstProp}" : "x";
+                        var isDescending = firstVar == b;
+
+                        return isDescending
+                            ? $"{expr}.OrderByDescending(x => {selector})"
+                            : $"{expr}.OrderBy(x => {selector})";
+                    }
+                }
+            }
+        }
+
+        return $"{expr}.OrderBy(x => x)";
+    }
+
+    /// <summary>
+    /// Converts JS .slice() to LINQ Skip/Take.
+    /// Parses args from tokens to find start and end values.
+    /// </summary>
+    private string ConvertSliceToLinq(string expr, Token[] argsTokens)
+    {
+        // Find comma to split args
+        var tokens = argsTokens.Where(t => t.Type != TokenType.Whitespace).ToArray();
+
+        // Find comma separator
+        var commaIndex = -1;
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            if (tokens[i].Value == ",")
+            {
+                commaIndex = i;
+                break;
+            }
+        }
+
+        string start = "0";
+        string end = "";
+
+        if (commaIndex > 0)
+        {
+            // Two args: start, end
+            var startTokens = tokens.Take(commaIndex).ToArray();
+            var endTokens = tokens.Skip(commaIndex + 1).ToArray();
+
+            start = startTokens.Length == 1 && startTokens[0].Type == TokenType.Number
+                ? startTokens[0].Value
+                : ToCSharp(startTokens);
+            end = endTokens.Length == 1 && endTokens[0].Type == TokenType.Number
+                ? endTokens[0].Value
+                : ToCSharp(endTokens);
+        }
+        else if (tokens.Length > 0)
+        {
+            // One arg: start only
+            start = tokens.Length == 1 && tokens[0].Type == TokenType.Number
+                ? tokens[0].Value
+                : ToCSharp(tokens);
+        }
+
+        if (string.IsNullOrEmpty(end))
+        {
+            return int.TryParse(start, out var startNum) && startNum == 0
+                ? expr
+                : $"{expr}.Skip({start})";
+        }
+
+        if (int.TryParse(start, out var s) && int.TryParse(end, out var e))
+        {
+            var count = e - s;
+            return s == 0 ? $"{expr}.Take({count})" : $"{expr}.Skip({s}).Take({count})";
+        }
+
+        return $"{expr}.Skip({start}).Take({end} - {start})";
     }
 
     private void GenerateEventHandler(Models.EventHandler handler)
@@ -994,10 +1205,14 @@ public class CSharpGenerator
         _indentLevel++;
 
         // Write method body
-        if (!string.IsNullOrWhiteSpace(serverTask.Body))
+        // Prefer token-based body, fall back to string for backwards compatibility
+        var bodyStr = serverTask.BodyTokens != null
+            ? ConvertServerTaskBody(serverTask.BodyTokens, serverTask.IsStreaming)
+            : serverTask.Body;
+
+        if (!string.IsNullOrWhiteSpace(bodyStr))
         {
-            // The body should already be converted to C# by SpecialHooksVisitor
-            var body = serverTask.Body;
+            var body = bodyStr;
 
             // Clean up the body - remove outer braces if present
             body = body.Trim();
@@ -1033,6 +1248,90 @@ public class CSharpGenerator
 
         _indentLevel--;
         WriteLine("}");
+    }
+
+    /// <summary>
+    /// Converts server task body tokens to C# string.
+    /// Handles streaming-specific transformations using token inspection.
+    /// </summary>
+    private string ConvertServerTaskBody(Token[] bodyTokens, bool isStreaming)
+    {
+        // Check for JS streaming patterns using token inspection
+        var hasGetReader = bodyTokens.Any(t => t.Type == TokenType.Identifier && t.Value == "getReader");
+        var hasReaderRead = bodyTokens.Any(t => t.Type == TokenType.Identifier && t.Value == "read");
+
+        if (isStreaming && (hasGetReader || hasReaderRead))
+        {
+            // Extract URL from fetch pattern using token matching
+            var url = ExtractFetchUrlFromTokens(bodyTokens) ?? "\"/api/stream\"";
+
+            // Generate proper C# streaming code
+            return $@"var response = await _httpClient.GetStreamAsync({url}, cancellationToken);
+        using var reader = new System.IO.StreamReader(response);
+        while (!reader.EndOfStream)
+        {{
+            if (cancellationToken.IsCancellationRequested) yield break;
+            var line = await reader.ReadLineAsync();
+            if (line != null) yield return line;
+        }}";
+        }
+
+        // For streaming bodies, transform yield to yield return on tokens
+        var tokensToConvert = isStreaming ? TransformYieldToYieldReturn(bodyTokens) : bodyTokens;
+
+        // Transform tokens to C#
+        return ToCSharp(tokensToConvert);
+    }
+
+    /// <summary>
+    /// Extracts the URL from a fetch() call in tokens.
+    /// </summary>
+    private string? ExtractFetchUrlFromTokens(Token[] tokens)
+    {
+        // Look for pattern: fetch ( url or PostAsync ( url
+        for (int i = 0; i < tokens.Length - 2; i++)
+        {
+            if (tokens[i].Type == TokenType.Identifier &&
+                (tokens[i].Value == "fetch" || tokens[i].Value == "PostAsync") &&
+                tokens[i + 1].Value == "(")
+            {
+                // Next token after ( should be the URL (string or identifier)
+                var urlToken = tokens[i + 2];
+                if (urlToken.Type == TokenType.String)
+                {
+                    return urlToken.Value;
+                }
+                if (urlToken.Type == TokenType.TemplateString)
+                {
+                    return "$" + urlToken.Value;
+                }
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Transforms JS yield to C# yield return by inserting "return" token after each "yield" keyword.
+    /// </summary>
+    private Token[] TransformYieldToYieldReturn(Token[] tokens)
+    {
+        var result = new List<Token>();
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            result.Add(tokens[i]);
+
+            // If this is a yield keyword, insert "return" after it
+            if (tokens[i].Type == TokenType.Keyword && tokens[i].Value == "yield")
+            {
+                // Check if next non-whitespace token is already "return"
+                var nextNonWs = tokens.Skip(i + 1).FirstOrDefault(t => t.Type != TokenType.Whitespace);
+                if (nextNonWs == null || nextNonWs.Value != "return")
+                {
+                    result.Add(Token.Keyword("return"));
+                }
+            }
+        }
+        return result.ToArray();
     }
 
     private string GenerateAttributesDictionary(Dictionary<string, AttributeValue> attributes)

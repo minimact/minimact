@@ -292,9 +292,8 @@ public class JsxVisitor : TokenVisitor
 
                         if (mapExprResult == null)
                         {
-                            // Transform JS tokens to C# and wrap in interpolation
-                            var converted = JsToCSharpVisitor.TransformToString(exprTokens);
-                            textParts.Add($"{{({converted})}}");
+                            // Store placeholder for expression - generator will convert tokens to C#
+                            textParts.Add($"{{{exprTokensList.Count}}}");
                             exprTokensList.Add(exprTokens);
                         }
                     }
@@ -310,7 +309,7 @@ public class JsxVisitor : TokenVisitor
                 }
                 else
                 {
-                    // Build merged text (already transformed)
+                    // Build merged text template with placeholders
                     var mergedText = string.Join("", textParts).Trim();
                     if (mergedText.Length > 0)
                     {
@@ -319,9 +318,10 @@ public class JsxVisitor : TokenVisitor
                             HexPath = $"{parentPath}.{childIndex}",
                             Text = hasExpression ? "{0}" : mergedText,
                             IsDynamic = hasExpression,
-                            Binding = hasExpression ? mergedText : null,
-                            // For single expression, store tokens for potential further use
-                            BindingTokens = exprTokensList.Count == 1 ? exprTokensList[0] : null
+                            // Store tokens for generator to convert
+                            BindingTokens = exprTokensList.Count == 1 ? exprTokensList[0] : null,
+                            BindingTokensList = exprTokensList.Count > 1 ? exprTokensList : null,
+                            TextParts = hasExpression ? textParts : null
                         };
                         child.Parent = parent;
                         parent.Children.Add(child);
@@ -371,8 +371,8 @@ public class JsxVisitor : TokenVisitor
         if (significant.Length == 0) return null;
 
         // Skip JSX comments: {/* ... */}
-        var fullText = TokensToString(tokens).Trim();
-        if (fullText.StartsWith("/*") && fullText.EndsWith("*/"))
+        if (significant.Length >= 2 &&
+            significant[0].Type == TokenType.Comment)
             return null;
 
         // Try each expression pattern in priority order
@@ -396,7 +396,6 @@ public class JsxVisitor : TokenVisitor
             HexPath = path,
             Text = "{0}",
             IsDynamic = true,
-            Binding = TokensToString(tokens),
             BindingTokens = tokens
         };
     }
@@ -443,7 +442,7 @@ public class JsxVisitor : TokenVisitor
         return new VConditionalModel
         {
             HexPath = path,
-            Condition = TokensToString(condition),
+            ConditionTokens = condition,
             TrueNode = trueNode,
             FalseNode = falseNode ?? new VNullModel { HexPath = path },
             IsSimpleAnd = false
@@ -554,7 +553,6 @@ public class JsxVisitor : TokenVisitor
             HexPath = path,
             Text = "{0}",
             IsDynamic = true,
-            Binding = TokensToString(trimmed),
             BindingTokens = trimmed
         };
     }
@@ -584,7 +582,7 @@ public class JsxVisitor : TokenVisitor
         return new VConditionalModel
         {
             HexPath = path,
-            Condition = TokensToString(condition),
+            ConditionTokens = condition,
             TrueNode = trueNode,
             FalseNode = new VNullModel { HexPath = path },
             IsSimpleAnd = true
@@ -647,10 +645,10 @@ public class JsxVisitor : TokenVisitor
     }
 
     /// <summary>
-    /// Parses chained array methods like .filter().sort().slice() and converts to LINQ.
-    /// Returns the C# LINQ expression string, or null if no chaining detected.
+    /// Parses chained array methods like .filter().sort().slice().
+    /// Returns a list of method calls with their argument tokens for the generator to convert.
     /// </summary>
-    private string? TryParseChainedMethods(Token[] tokens)
+    private List<ChainedMethodCall>? TryParseChainedMethods(Token[] tokens)
     {
         // Pattern to match chained method calls: .method(balanced_parens)
         // Uses \Bp for balanced parentheses to handle nested parens/braces correctly
@@ -664,36 +662,36 @@ public class JsxVisitor : TokenVisitor
         if (!hasChainedMethod)
             return null;
 
-        // Find the base array (first identifier before any chained methods)
-        var firstIdent = tokens.FirstOrDefault(t => t.Type == TokenType.Identifier);
-        if (firstIdent == null)
-            return null;
-
-        var baseArray = firstIdent.Value;
-        var result = $"((IEnumerable<dynamic>){baseArray})";
-
         // Find all chained method calls using pattern matching
         var allMatches = PatternMatcher.MatchAll(tokens, 0, (chainMatcher, TokenMatchType.Unknown, "chain"));
 
-        // Process each matched chain operation
-        result = allMatches.Where(m => m.Match.Captures.Length >= 2)
+        // Extract method calls with their argument tokens
+        var chainedMethods = allMatches
+            .Where(m => m.Match.Captures.Length >= 2)
             .Select(m => (
                 method: m.Match.Captures[0].AsIdentifier() ?? "",
                 args: m.Match.Captures[1].Tokens
             ))
             .Where(x => methodNames.Contains(x.method))
-            .Aggregate(result, (current, x) =>
+            .Select(x =>
             {
-                // The balanced parens capture includes outer (), so remove exactly one pair
-                var rawArgs = TokensToString(x.args).Trim();
-                var argsStr = rawArgs.StartsWith("(") && rawArgs.EndsWith(")")
-                    ? rawArgs.Substring(1, rawArgs.Length - 2)
-                    : rawArgs;
-                return ConvertArrayMethodToLinq(current, x.method, argsStr);
-            });
+                // Strip outer parentheses from captured args tokens
+                var argsTokens = x.args;
+                if (argsTokens.Length >= 2 &&
+                    argsTokens[0].Value == "(" &&
+                    argsTokens[^1].Value == ")")
+                {
+                    argsTokens = argsTokens[1..^1];
+                }
+                return new ChainedMethodCall
+                {
+                    MethodName = x.method,
+                    ArgumentTokens = argsTokens
+                };
+            })
+            .ToList();
 
-        // Return null if no transformations were applied
-        return result == $"((IEnumerable<dynamic>){baseArray})" ? null : result;
+        return chainedMethods.Count > 0 ? chainedMethods : null;
     }
 
     /// <summary>
@@ -808,7 +806,7 @@ public class JsxVisitor : TokenVisitor
         return $"{expr}.Skip({start}).Take({end} - {start})";
     }
 
-    private VNodeModel? ParseMapCallback(Token[] arrayExpr, Token[] callbackTokens, string path, string? chainedLinqExpr = null)
+    private VNodeModel? ParseMapCallback(Token[] arrayExpr, Token[] callbackTokens, string path, List<ChainedMethodCall>? chainedMethods = null)
     {
         // Find => in callback
         // Try parenthesized form first: (item) => body or (item, index) => body
@@ -858,10 +856,6 @@ public class JsxVisitor : TokenVisitor
         // This prevents capturing too much context like "return(<div...><ul>{todos" -> just "todos"
         var arrayBinding = ExtractArrayBindingFromTokens(arrayExpr);
 
-        // If we have a chained LINQ expression, use that instead of simple array binding
-        // This handles .filter().map(), .sort().map(), etc.
-        var effectiveArrayExpr = chainedLinqExpr ?? arrayBinding;
-
         // Extract key binding from the template if it's an element with a key attribute
         string? keyBinding = null;
         if (template is VElementModel elem && elem.Attributes.TryGetValue("key", out var keyAttr))
@@ -870,10 +864,13 @@ public class JsxVisitor : TokenVisitor
         }
 
         // Create the VListModel for the render tree
+        // Store tokens and chained methods for generator to convert
         var listModel = new VListModel
         {
             HexPath = path,
-            ArrayExpression = effectiveArrayExpr,
+            ArrayExpression = arrayBinding,  // Base array name, generator builds full expression
+            ArrayExpressionTokens = arrayExpr,
+            ChainedMethods = chainedMethods,
             ItemName = itemName,
             IndexName = indexName,
             ItemTemplate = template
@@ -944,8 +941,11 @@ public class JsxVisitor : TokenVisitor
                 return string.Join(".", parts!);
         }
 
-        // Fallback: just use the whole thing as string (trimmed)
-        return TokensToString(tokens).Trim();
+        // Fallback: build string from identifier and punctuation tokens only
+        var identifiers = tokens
+            .Where(t => t.Type == TokenType.Identifier || (t.Type == TokenType.Punctuation && t.Value == "."))
+            .Select(t => t.Value);
+        return string.Join("", identifiers).Trim();
     }
 
     /// <summary>
@@ -1107,9 +1107,8 @@ public class JsxVisitor : TokenVisitor
             {
                 element.Attributes[NormalizeAttributeName(attrName)] = new AttributeValue
                 {
-                    RawValue = TokensToString(exprContent),
                     IsDynamic = true,
-                    Binding = TokensToString(exprContent)
+                    BindingTokens = exprContent
                 };
             }
         }
@@ -1240,17 +1239,16 @@ public class JsxVisitor : TokenVisitor
         {
             var handlerName = $"Handle{_handlerCounter++}";
             var bodyTokens = match.Captures.Length > 1 ? match.Captures[1].Tokens : match.Captures[0].Tokens;
-            var body = TokensToString(bodyTokens);
 
             // Detect if handler uses event parameter (e.target.value, e.preventDefault(), etc.)
-            var needsEventParam = DetectEventParameterUsage(body);
+            var needsEventParam = DetectEventParameterUsage(bodyTokens);
 
             _component.EventHandlers.Add(new Models.EventHandler
             {
                 GeneratedName = handlerName,
                 IsArrowFunction = true,
-                OriginalExpression = TokensToString(tokens),
-                Body = body,
+                OriginalExpressionTokens = tokens,
+                BodyTokens = bodyTokens,
                 LoopItemName = loopItemName,
                 NeedsEventParameter = needsEventParam
             });
@@ -1260,15 +1258,14 @@ public class JsxVisitor : TokenVisitor
 
         // Fallback: treat whole thing as inline handler
         var fallbackName = $"Handle{_handlerCounter++}";
-        var fallbackBody = TokensToString(tokens);
-        var fallbackNeedsEvent = DetectEventParameterUsage(fallbackBody);
+        var fallbackNeedsEvent = DetectEventParameterUsage(tokens);
 
         _component.EventHandlers.Add(new Models.EventHandler
         {
             GeneratedName = fallbackName,
             IsArrowFunction = false,
-            OriginalExpression = TokensToString(tokens),
-            Body = fallbackBody,
+            OriginalExpressionTokens = tokens,
+            BodyTokens = tokens,
             LoopItemName = loopItemName,
             NeedsEventParameter = fallbackNeedsEvent
         });
@@ -1279,17 +1276,24 @@ public class JsxVisitor : TokenVisitor
     /// <summary>
     /// Detects if the handler body uses the event parameter.
     /// Looks for patterns like: e.target, e.target.value, e.preventDefault(), e.stopPropagation(), etc.
+    /// Uses declarative pattern matching.
     /// </summary>
-    private bool DetectEventParameterUsage(string body)
+    private bool DetectEventParameterUsage(Token[] tokens)
     {
-        // Common event object usage patterns
-        // e.target, e.target.value, e.target.checked
-        // e.preventDefault(), e.stopPropagation()
-        // e.currentTarget, e.key, e.keyCode
-        // e.clientX, e.clientY, e.pageX, e.pageY
-        return System.Text.RegularExpressions.Regex.IsMatch(
-            body,
-            @"\be\s*\.\s*(target|currentTarget|preventDefault|stopPropagation|key|keyCode|clientX|clientY|pageX|pageY|nativeEvent|type|bubbles|cancelable)");
+        // Pattern: e.target, e.currentTarget, e.preventDefault, etc.
+        var eventPatternMatcher = new PatternMatcher(@"\i""e"" ""."" \i");
+        var eventProperties = new HashSet<string>
+        {
+            "target", "currentTarget", "preventDefault", "stopPropagation",
+            "key", "keyCode", "clientX", "clientY", "pageX", "pageY",
+            "nativeEvent", "type", "bubbles", "cancelable"
+        };
+
+        // Find all "e.property" matches
+        var matches = PatternMatcher.MatchAll(tokens, 0, (eventPatternMatcher, TokenMatchType.Unknown, "event"));
+        return matches.Any(m =>
+            m.Match.Captures.Length > 0 &&
+            eventProperties.Contains(m.Match.Captures[0].AsIdentifier() ?? ""));
     }
 
     #endregion

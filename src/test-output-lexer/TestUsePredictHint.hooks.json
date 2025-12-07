@@ -1,0 +1,21 @@
+{
+  "componentName": "TestUsePredictHint",
+  "timestamp": "2025-12-07T19:22:25.0065335Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "activeTab",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "isExpanded",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "selectedItems",
+      "index": 2
+    }
+  ]
+}

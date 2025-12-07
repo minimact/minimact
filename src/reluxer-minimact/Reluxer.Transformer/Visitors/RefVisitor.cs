@@ -69,19 +69,9 @@ public class RefVisitor : TokenVisitor
         {
             Name = name,
             Index = _component.NextHookIndex++,
-            InitialValue = initialValueTokens.Length > 0
-                ? TokensToString(initialValueTokens)
-                : null
+            InitialValueTokens = initialValueTokens.Length > 0 ? initialValueTokens : null
         };
 
         _component.RefHooks.Add(refHook);
-    }
-
-    /// <summary>
-    /// Converts token array to string representation.
-    /// </summary>
-    private string TokensToString(Token[] tokens)
-    {
-        return string.Join("", tokens.Select(t => t.Value));
     }
 }

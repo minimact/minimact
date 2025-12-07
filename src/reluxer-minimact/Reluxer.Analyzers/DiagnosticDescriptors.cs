@@ -201,4 +201,18 @@ public static class DiagnosticDescriptors
         description: "Building strings character-by-character while scanning is effectively re-implementing a lexer. The token stream should already be available.",
         helpLinkUri: "https://github.com/anthropics/minimact/blob/main/src/reluxer-minimact/Reluxer/DECLARATIVE_ENFORCEMENT.md#generator-string-manipulation"
     );
+
+    /// <summary>
+    /// REL014: TokensToString not allowed in declarative visitors.
+    /// Severity: Error
+    /// </summary>
+    public static readonly DiagnosticDescriptor TokensToStringNotAllowed = new(
+        id: "REL014",
+        title: "TokensToString not allowed in declarative visitors",
+        messageFormat: "TokensToString() bypasses declarative token processing. Use PatternMatcher.TryMatch() or token patterns instead.",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Converting tokens to strings for parsing is not declarative. Use PatternMatcher to match token patterns directly, or store processed results in the model."
+    );
 }

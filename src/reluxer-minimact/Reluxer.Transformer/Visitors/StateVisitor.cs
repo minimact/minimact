@@ -66,12 +66,11 @@ public class StateVisitor : TokenVisitor
         var initValueTokens = ExtractParenthesized(match.MatchedTokens.Length - 1);
         if (initValueTokens.Length > 0)
         {
-            stateField.InitialValue = TokensToString(initValueTokens);
+            stateField.InitialValueTokens = initValueTokens;
             stateField.Type = InferType(initValueTokens);
         }
         else
         {
-            stateField.InitialValue = "null";
             stateField.Type = "object";
         }
 
@@ -105,14 +104,12 @@ public class StateVisitor : TokenVisitor
         var initValueTokens = ExtractParenthesized(0);
         if (initValueTokens.Length > 0)
         {
-            var initValue = TokensToString(initValueTokens);
-            stateField.InitialValue = initValue;
+            stateField.InitialValueTokens = initValueTokens;
 
             // Check if it's an array initializer with objects
-            if (initValue.TrimStart().StartsWith("["))
+            if (initValueTokens.Length > 0 && initValueTokens[0].Value == "[")
             {
                 stateField.Type = "List<dynamic>";
-                stateField.InitialValue = ConvertArrayInitializer(initValue);
             }
             else
             {
@@ -121,7 +118,6 @@ public class StateVisitor : TokenVisitor
         }
         else
         {
-            stateField.InitialValue = "null";
             stateField.Type = "object";
         }
 
@@ -341,7 +337,7 @@ public class StateVisitor : TokenVisitor
         var helper = new HelperFunction
         {
             Name = funcName,
-            Body = TokensToString(bodyTokens)
+            BodyTokens = bodyTokens
         };
 
         // Extract parameter names using pattern matching
@@ -389,27 +385,32 @@ public class StateVisitor : TokenVisitor
         if (_component.HelperFunctions.Any(h => h.Name == varName))
             return;
 
-        // Skip if it looks like a function (has arrow)
-        var expr = TokensToString(exprTokens);
-        if (expr.Contains("=>"))
+        // Skip if it looks like a function (has arrow token)
+        if (exprTokens.Any(t => t.Type == TokenType.Arrow))
             return;
 
-        // Skip state-related and hooks (already handled)
-        if (expr.Contains("useState") || expr.Contains("useMvcState") || expr.Contains("useMvcViewModel") || expr.Contains("useServerTask"))
+        // Skip state-related and hooks (already handled) - check for identifier tokens
+        var hookNames = new HashSet<string> { "useState", "useMvcState", "useMvcViewModel", "useServerTask" };
+        if (exprTokens.Any(t => t.Type == TokenType.Identifier && hookNames.Contains(t.Value)))
             return;
 
         // Skip lifted state reads (already handled by VisitLiftedState)
         // Pattern: state["Component.key"]
-        if (expr.StartsWith("state["))
+        var stateMatcher = new PatternMatcher(@"\i""state"" ""[""");
+        if (stateMatcher.TryMatch(exprTokens, 0, out _))
             return;
 
         // Skip variables that appear to be inside function bodies (JS-specific patterns)
         // These typically come from inside useServerTask bodies or event handlers
-        if (expr.Contains(".body") || expr.Contains("getReader") || expr.Contains(".read()"))
+        var bodyPatterns = new HashSet<string> { "body", "getReader", "read" };
+        if (exprTokens.Any(t => t.Type == TokenType.Identifier && bodyPatterns.Contains(t.Value)))
             return;
 
         // Skip await expressions - these are inside async functions, not top-level
-        if (expr.StartsWith("await") || expr.Contains(" await "))
+        var awaitMatcher = new PatternMatcher(@"\k""await""");
+        if (awaitMatcher.TryMatch(exprTokens, 0, out _))
+            return;
+        if (exprTokens.Any(t => t.Type == TokenType.Keyword && t.Value == "await"))
             return;
 
         // Skip if already added (prevent duplicates)
@@ -419,7 +420,7 @@ public class StateVisitor : TokenVisitor
         _component.LocalVariables.Add(new LocalVariable
         {
             Name = varName,
-            Expression = expr,
+            ExpressionTokens = exprTokens,
             IsConst = true
         });
     }
@@ -433,11 +434,6 @@ public class StateVisitor : TokenVisitor
             "boolean" => "bool",
             _ => "object"
         };
-    }
-
-    private string TokensToString(Token[] tokens)
-    {
-        return string.Join("", tokens.Select(t => t.Value));
     }
 
     private string InferType(Token[] tokens)

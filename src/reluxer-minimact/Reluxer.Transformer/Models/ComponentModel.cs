@@ -311,6 +311,11 @@ public class RefHook
     /// Initial value passed to useRef.
     /// </summary>
     public string? InitialValue { get; set; }
+
+    /// <summary>
+    /// Token-based initial value (replaces string InitialValue).
+    /// </summary>
+    public Token[]? InitialValueTokens { get; set; }
 }
 
 /// <summary>
@@ -431,8 +436,21 @@ public class VTextModel : VNodeModel
 
     /// <summary>
     /// Token-based binding expression (replaces string Binding).
+    /// For single expression use.
     /// </summary>
     public Token[]? BindingTokens { get; set; }
+
+    /// <summary>
+    /// Multiple token-based binding expressions for merged text nodes.
+    /// Each element corresponds to a {placeholder} in the template.
+    /// </summary>
+    public List<Token[]>? BindingTokensList { get; set; }
+
+    /// <summary>
+    /// Template parts (static text) interleaved with expressions.
+    /// e.g., ["Hello ", "! You have ", " messages."] for "Hello {name}! You have {count} messages."
+    /// </summary>
+    public List<string>? TextParts { get; set; }
 }
 
 /// <summary>
@@ -482,6 +500,21 @@ public class VListModel : VNodeModel
     /// Token-based array expression (replaces string ArrayExpression).
     /// </summary>
     public Token[]? ArrayExpressionTokens { get; set; }
+
+    /// <summary>
+    /// Chained array method calls (filter, sort, slice, etc.) to be converted to LINQ.
+    /// Generator builds the LINQ expression from these.
+    /// </summary>
+    public List<ChainedMethodCall>? ChainedMethods { get; set; }
+}
+
+/// <summary>
+/// Represents a chained method call like .filter(callback), .sort(comparator), etc.
+/// </summary>
+public class ChainedMethodCall
+{
+    public string MethodName { get; set; } = "";
+    public Token[] ArgumentTokens { get; set; } = Array.Empty<Token>();
 }
 
 /// <summary>
@@ -679,6 +712,11 @@ public class ServerTaskModel
     public string Runtime { get; set; } = "auto";
     public bool Parallel { get; set; }
     public int EstimatedChunks { get; set; } = 10;
+
+    /// <summary>
+    /// Token-based body (replaces string Body).
+    /// </summary>
+    public Token[]? BodyTokens { get; set; }
 }
 
 /// <summary>
@@ -790,6 +828,11 @@ public class ProtectedStateModel
     public string SetterName { get; set; } = "";
     public string Type { get; set; } = "object";
     public string? InitialValue { get; set; }
+
+    /// <summary>
+    /// Token-based initial value (replaces string InitialValue).
+    /// </summary>
+    public Token[]? InitialValueTokens { get; set; }
 }
 
 /// <summary>
@@ -801,6 +844,11 @@ public class MarkdownModel
     public string Content { get; set; } = "";
     public bool Sanitize { get; set; } = true;
     public List<string>? AllowedTags { get; set; }
+
+    /// <summary>
+    /// Token-based content (replaces string Content).
+    /// </summary>
+    public Token[]? ContentTokens { get; set; }
 }
 
 /// <summary>
