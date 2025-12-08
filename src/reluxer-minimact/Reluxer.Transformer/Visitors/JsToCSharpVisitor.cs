@@ -1171,6 +1171,50 @@ public class JsToCSharpVisitor : TokenVisitor
         );
     }
 
+    // setXxx(value) -> SetState(nameof(xxx), value)
+    // This pattern matches setter function calls where the function name starts with "set"
+    // followed by a capital letter (setCount, setName, etc.)
+    // Uses balanced parens to capture the argument
+    [TokenPattern(@"(\i) (\Bp)", Priority = -10)]
+    public void VisitSetterCall(TokenMatch match, Token[] funcName, Token[] argsWithParens)
+    {
+        if (funcName.Length == 0) return;
+
+        var name = funcName[0].Value;
+        // Check if it's a setter (starts with "set" followed by uppercase)
+        if (name.Length > 3 && name.StartsWith("set") && char.IsUpper(name[3]))
+        {
+            // Extract the field name (setCount -> count)
+            var fieldName = char.ToLower(name[3]) + name.Substring(4);
+
+            // Remove outer parens from args
+            var argsTokens = argsWithParens;
+            if (argsTokens.Length >= 2 &&
+                argsTokens[0].Value == "(" &&
+                argsTokens[argsTokens.Length - 1].Value == ")")
+            {
+                argsTokens = argsTokens.Skip(1).Take(argsTokens.Length - 2).ToArray();
+            }
+
+            // Transform the arguments
+            var transformedArgs = Transform(argsTokens);
+
+            // Build: SetState(nameof(fieldName), args)
+            ReplaceMatch(match, Concat(
+                Token.Identifier("SetState"),
+                Token.Punctuation("("),
+                Token.Keyword("nameof"),
+                Token.Punctuation("("),
+                Token.Identifier(fieldName),
+                Token.Punctuation(")"),
+                Token.Punctuation(",")
+            ).Concat(transformedArgs).Concat(new[] {
+                Token.Punctuation(")")
+            }).ToArray());
+        }
+        // If not a setter, don't transform - let original tokens pass through
+    }
+
     #endregion
 
     #region Helper Methods

@@ -220,7 +220,10 @@ public class CSharpGenerator
         {
             WriteLine("[State]");
             var csharpType = ConvertTypeToCSharp(state.Type);
-            var initialValue = ConvertInitialValue(state.InitialValue, state.Type);
+            // Prefer token-based initial value, fall back to string
+            var initialValue = state.InitialValueTokens != null && state.InitialValueTokens.Length > 0
+                ? ConvertInitialValueFromTokens(state.InitialValueTokens, state.Type)
+                : ConvertInitialValue(state.InitialValue, state.Type);
             WriteLine($"private {csharpType} {state.Name} = {initialValue};");
             WriteLine();
         }
@@ -1118,7 +1121,10 @@ public class CSharpGenerator
         _indentLevel++;
 
         #pragma warning disable REL011 // Splitting for multi-line output formatting
-        var body = ConvertHandlerBody(handler.Body);
+        // Prefer BodyTokens if available, fall back to Body string
+        var body = handler.BodyTokens != null && handler.BodyTokens.Length > 0
+            ? ConvertHandlerBodyFromTokens(handler.BodyTokens)
+            : ConvertHandlerBody(handler.Body);
         if (!string.IsNullOrWhiteSpace(body))
         {
             foreach (var line in body.Split('\n', StringSplitOptions.RemoveEmptyEntries))
@@ -1390,6 +1396,21 @@ public class CSharpGenerator
     }
 
     /// <summary>
+    /// Converts initial value tokens to C# string.
+    /// Uses JsToCSharpVisitor for transformation.
+    /// </summary>
+    private string ConvertInitialValueFromTokens(Token[] tokens, string type)
+    {
+        if (tokens == null || tokens.Length == 0) return "null";
+
+        // Transform JS tokens to C# tokens
+        var transformed = JsToCSharpVisitor.Transform(tokens);
+
+        // Output tokens as string
+        return OutputTokens(transformed);
+    }
+
+    /// <summary>
     /// Converts a JavaScript expression to C# using token-based transformation.
     /// All JS→C# conversion is handled by JsToCSharpVisitor.
     /// </summary>
@@ -1439,6 +1460,91 @@ public class CSharpGenerator
             result += ";";
 
         return result;
+    }
+
+    /// <summary>
+    /// Converts an event handler body from tokens to C#.
+    /// Uses token-based transformation via JsToCSharpVisitor for:
+    /// - Setter calls (setXxx -> SetState)
+    /// - JS→C# syntax conversions (===, filter, etc.)
+    /// </summary>
+    private string ConvertHandlerBodyFromTokens(Token[] bodyTokens)
+    {
+        if (bodyTokens == null || bodyTokens.Length == 0) return "";
+
+        // Transform JS tokens to C# tokens
+        var transformed = JsToCSharpVisitor.Transform(bodyTokens);
+
+        // Check last significant token to see if we need a semicolon
+        var significant = transformed.LuxTrimWhitespace();
+        if (significant.Length > 0)
+        {
+            var lastToken = significant[significant.Length - 1];
+            // Add semicolon if not already ending with ; or }
+            if (lastToken.Value != ";" && lastToken.Value != "}")
+            {
+                transformed = transformed.Concat(new[] { Token.Punctuation(";") }).ToArray();
+            }
+        }
+
+        // Output tokens with proper spacing
+        return OutputTokens(transformed);
+    }
+
+    /// <summary>
+    /// Outputs tokens as a string with proper spacing.
+    /// This is the final output step - tokens have already been transformed.
+    /// </summary>
+    private static string OutputTokens(Token[] tokens)
+    {
+        if (tokens.Length == 0) return "";
+
+        var sb = new System.Text.StringBuilder();
+        Token? prev = null;
+
+        foreach (var token in tokens)
+        {
+            if (prev != null && NeedsSpaceBetween(prev, token))
+            {
+                sb.Append(' ');
+            }
+            sb.Append(token.Value);
+            prev = token;
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Determines if a space is needed between two tokens for output.
+    /// </summary>
+    private static bool NeedsSpaceBetween(Token prev, Token next)
+    {
+        // Keywords need space before identifiers
+        if (prev.Type == TokenType.Keyword &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.Keyword))
+            return true;
+
+        // After identifier/keyword, before another identifier/keyword
+        if ((prev.Type == TokenType.Identifier || prev.Type == TokenType.Keyword) &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.Keyword))
+            return true;
+
+        // After comma
+        if (prev.Value == ",")
+            return true;
+
+        // Around operators (but not . or parens)
+        if (prev.Type == TokenType.Operator && prev.Value != "." &&
+            (next.Type == TokenType.Identifier || next.Type == TokenType.Number))
+            return true;
+
+        if (next.Type == TokenType.Operator && next.Value != "." &&
+            (prev.Type == TokenType.Identifier || prev.Type == TokenType.Number ||
+             prev.Value == ")" || prev.Value == "]"))
+            return true;
+
+        return false;
     }
 
     private bool HasTextContent(VElementModel element)

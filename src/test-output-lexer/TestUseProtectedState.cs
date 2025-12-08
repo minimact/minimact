@@ -13,13 +13,13 @@ namespace Minimact.Components;
 public partial class TestUseProtectedState : MinimactComponent
 {
     [State]
-    private int publicCounter = null;
+    private int publicCounter = 0;
 
     [State]
-    private int internalCounter = null;
+    private int internalCounter = 0;
 
     [State]
-    private string secretValue = null;
+    private string secretValue = "hidden";
 
     protected override VNode Render()
     {
@@ -56,14 +56,17 @@ public partial class TestUseProtectedState : MinimactComponent
 
     public void handleIncrementInternal()
     {
+        SetState(nameof(internalCounter), internalCounter + 1);
     }
 
     public void handleIncrementPublic()
     {
+        SetState(nameof(publicCounter), publicCounter + 1);
     }
 
     public void handleReveal()
     {
+        SetState(nameof(secretValue), "revealed!");
     }
 
     /// <summary>

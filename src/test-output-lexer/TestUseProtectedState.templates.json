@@ -1,7 +1,7 @@
 {
   "component": "TestUseProtectedState",
   "version": "1.0",
-  "generatedAt": 1765150780404,
+  "generatedAt": 1765151499392,
   "templates": {
     "1.@class": {
       "template": "protected-state-test",
