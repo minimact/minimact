@@ -1,0 +1,249 @@
+{
+  "componentName": "InteractiveForm",
+  "timestamp": "2025-12-08T13:32:18.2670715Z",
+  "changes": [
+    {
+      "type": "insert",
+      "path": "1",
+      "vNode": {
+        "type": "element",
+        "path": "1",
+        "tag": "form",
+        "attributes": {
+          "onsubmit": "__DYNAMIC__",
+          "className": "form"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.2",
+            "tag": "div"
+          },
+          {
+            "type": "element",
+            "path": "1.3",
+            "tag": "div"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1",
+        "tag": "div",
+        "attributes": {
+          "className": "form-group"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1.1",
+            "tag": "label"
+          },
+          {
+            "type": "element",
+            "path": "1.1.2",
+            "tag": "input"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.1",
+        "tag": "label",
+        "attributes": {
+          "for": "name"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.1.1.1",
+        "value": "Name:"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.2",
+        "tag": "input",
+        "attributes": {
+          "id": "name",
+          "type": "text",
+          "onchange": "__DYNAMIC__",
+          "onblur": "__DYNAMIC__",
+          "onfocus": "__DYNAMIC__"
+        }
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2",
+        "tag": "div",
+        "attributes": {
+          "className": "form-group"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.2.1",
+            "tag": "label"
+          },
+          {
+            "type": "element",
+            "path": "1.2.2",
+            "tag": "input"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.1",
+        "tag": "label",
+        "attributes": {
+          "for": "email"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.2.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.2.1.1",
+        "value": "Email:"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.2.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.2.2",
+        "tag": "input",
+        "attributes": {
+          "id": "email",
+          "type": "email",
+          "onchange": "__DYNAMIC__",
+          "onblur": "__DYNAMIC__"
+        }
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3",
+      "vNode": {
+        "type": "element",
+        "path": "1.3",
+        "tag": "div",
+        "attributes": {
+          "className": "actions"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.3.1",
+            "tag": "button"
+          },
+          {
+            "type": "element",
+            "path": "1.3.2",
+            "tag": "button"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.1",
+        "tag": "button",
+        "attributes": {
+          "type": "submit",
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.1.1",
+        "value": "Submit"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.3.2",
+        "tag": "button",
+        "attributes": {
+          "type": "button",
+          "onclick": "__DYNAMIC__"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.3.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.3.2.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.3.2.1",
+        "value": "Cancel"
+      }
+    }
+  ]
+}

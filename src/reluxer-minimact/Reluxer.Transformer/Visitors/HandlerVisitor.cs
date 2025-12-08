@@ -25,6 +25,7 @@ public class HandlerVisitor : TokenVisitor
     {
         _componentBody = Context.Get<Token[]>($"ComponentBody:{_component.Name}");
         _handlerCounter = 0;
+        Console.WriteLine($"[HandlerVisitor] OnBegin: componentBody has {_componentBody?.Length ?? 0} tokens");
 
         if (_componentBody != null && _componentBody.Length > 0)
         {
@@ -95,6 +96,10 @@ public class HandlerVisitor : TokenVisitor
     [TokenPattern(@"\k""const"" (\i) ""=""", Priority = -10, Name = "VisitConstVariable")]
     public void VisitConstVariable(TokenMatch match, string name)
     {
+        // Skip if inside a nested function/callback (e.g., .sort((a,b) => { const x = ... }))
+        var isNested = IsInsideNestedFunction(match);
+        Console.WriteLine($"[HandlerVisitor] VisitConstVariable: name={name}, startIndex={match.StartIndex}, isNested={isNested}");
+        if (isNested) return;
         // Skip if it's a handler (already processed above)
         if (IsHandlerName(name)) return;
         // Skip if it's a ServerTask (handled by SpecialHooksVisitor)
@@ -128,6 +133,9 @@ public class HandlerVisitor : TokenVisitor
     [TokenPattern(@"\k""let"" (\i) ""=""", Name = "VisitLetVariable")]
     public void VisitLetVariable(TokenMatch match, string name)
     {
+        // Skip if inside a nested function/callback
+        if (IsInsideNestedFunction(match)) return;
+
         var exprTokens = ExtractExpressionUntilSemicolon(0);
         if (exprTokens.Length > 0)
         {
@@ -237,5 +245,24 @@ public class HandlerVisitor : TokenVisitor
         }
 
         return Array.Empty<Token>();
+    }
+
+    /// <summary>
+    /// Checks if the current match position is inside a nested function/callback.
+    /// Returns true if brace depth > 0 (inside a callback body).
+    /// Uses functional approach to count brace depth.
+    /// </summary>
+    private bool IsInsideNestedFunction(TokenMatch match)
+    {
+        if (_componentBody == null) return false;
+
+        // Count open and close braces before match position
+        var tokensBefore = _componentBody.Take(match.StartIndex);
+        var openBraces = tokensBefore.Count(t => t.Value == "{");
+        var closeBraces = tokensBefore.Count(t => t.Value == "}");
+        var depth = openBraces - closeBraces;
+
+        // depth > 0 means we're inside a nested block (callback, arrow function, etc.)
+        return depth > 0;
     }
 }

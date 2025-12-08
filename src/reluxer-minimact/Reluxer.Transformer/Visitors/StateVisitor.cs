@@ -376,6 +376,9 @@ public class StateVisitor : TokenVisitor
     [TokenPattern(@"\k""const"" (\i) ""="" (.*?) "";""", Priority = 10, Name = "VisitLocalVariable")]
     public void VisitLocalVariable(TokenMatch match, string varName, Token[] exprTokens)
     {
+        // Skip if inside a nested function/callback (e.g., .sort((a,b) => { const x = ... }))
+        if (IsInsideNestedFunction(match)) return;
+
         // Skip helper functions (already handled)
         if (_component.HelperFunctions.Any(h => h.Name == varName))
             return;
@@ -474,5 +477,23 @@ public class StateVisitor : TokenVisitor
         }
 
         return "object";
+    }
+
+    /// <summary>
+    /// Checks if the current match position is inside a nested function/callback.
+    /// Returns true if brace depth > 0 (inside a callback body).
+    /// </summary>
+    private bool IsInsideNestedFunction(TokenMatch match)
+    {
+        if (_componentBody == null) return false;
+
+        // Count open and close braces before match position
+        var tokensBefore = _componentBody.Take(match.StartIndex);
+        var openBraces = tokensBefore.Count(t => t.Value == "{");
+        var closeBraces = tokensBefore.Count(t => t.Value == "}");
+        var depth = openBraces - closeBraces;
+
+        // depth > 0 means we're inside a nested block (callback, arrow function, etc.)
+        return depth > 0;
     }
 }

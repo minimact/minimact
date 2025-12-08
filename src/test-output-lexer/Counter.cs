@@ -11,10 +11,10 @@ namespace Minimact.Components;
 public partial class Counter : MinimactComponent
 {
     [State]
-    private int count = null;
+    private int count = 0;
 
     [State]
-    private string message = null;
+    private string message = "Hello";
 
     protected override VNode Render()
     {
@@ -36,6 +36,7 @@ public partial class Counter : MinimactComponent
 
     public void Handle0()
     {
+        SetState(nameof(count), count + 1);
     }
 
     /// <summary>
@@ -46,7 +47,7 @@ public partial class Counter : MinimactComponent
     {
         return new Dictionary<string, string>
         {
-            ["Handle0"] = @"function () {\n  setCount(count + 1);\n}"
+            ["Handle0"] = @"function () {\n  SetState(nameof(count), count + 1);\n}"
         };
     }
 

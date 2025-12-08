@@ -286,7 +286,11 @@ public class CSharpGenerator
         foreach (var local in component.LocalVariables)
         {
             var keyword = local.IsConst ? "var" : "var";
-            WriteLine($"{keyword} {local.Name} = {ConvertExpression(local.Expression)};");
+            // Prefer token-based expression, fall back to string
+            var expr = local.ExpressionTokens != null && local.ExpressionTokens.Length > 0
+                ? OutputTokens(JsToCSharpVisitor.Transform(local.ExpressionTokens))
+                : ConvertExpression(local.Expression);
+            WriteLine($"{keyword} {local.Name} = {expr};");
         }
 
         if (component.LocalVariables.Count > 0)
@@ -839,7 +843,10 @@ public class CSharpGenerator
 
     private void GenerateConditional(VConditionalModel conditional)
     {
-        var condition = ConvertCondition(conditional.Condition);
+        // Prefer token-based condition, fall back to string
+        var condition = conditional.ConditionTokens != null && conditional.ConditionTokens.Length > 0
+            ? OutputTokens(JsToCSharpVisitor.Transform(conditional.ConditionTokens))
+            : ConvertCondition(conditional.Condition);
 
         if (conditional.IsSimpleAnd)
         {
@@ -1346,7 +1353,11 @@ public class CSharpGenerator
             else if (attr.Value.IsDynamic)
             {
                 // Dynamic attribute - use interpolation
-                value = $"$\"{{({ConvertExpression(attr.Value.Binding ?? "")})}}\"";
+                // Prefer token-based binding, fall back to string
+                var bindingExpr = attr.Value.BindingTokens != null && attr.Value.BindingTokens.Length > 0
+                    ? OutputTokens(JsToCSharpVisitor.Transform(attr.Value.BindingTokens))
+                    : ConvertExpression(attr.Value.Binding ?? "");
+                value = $"$\"{{({bindingExpr})}}\"";
             }
             else
             {

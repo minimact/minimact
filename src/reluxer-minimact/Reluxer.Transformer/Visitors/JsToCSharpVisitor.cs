@@ -1022,7 +1022,9 @@ public class JsToCSharpVisitor : TokenVisitor
             Token.Punctuation("["),
             Token.String($"\"{keyName}\""),
             Token.Punctuation("]"),
-            Token.Operator("=")
+            Token.Whitespace(" "),
+            Token.Operator("="),
+            Token.Whitespace(" ")
         ).Concat(value).ToArray());
     }
 
@@ -1038,7 +1040,55 @@ public class JsToCSharpVisitor : TokenVisitor
             Token.Punctuation("["),
             Token.String($"\"{keyName}\""),
             Token.Punctuation("]"),
-            Token.Operator("=")
+            Token.Whitespace(" "),
+            Token.Operator("="),
+            Token.Whitespace(" ")
+        ).Concat(value).ToArray());
+    }
+
+    // Object literal key: string -> ["key"] = "string"
+    [TokenPattern(@"(\i) "":"" (\s)", Priority = -60)]
+    public void VisitObjectKeyValueString(TokenMatch match, Token[] key, Token[] value)
+    {
+        if (key.Length == 0 || value.Length == 0) return;
+
+        var keyName = key[0].Value;
+
+        // Convert single quotes to double quotes
+        var strValue = value[0].Value;
+        if (strValue.StartsWith("'") && strValue.EndsWith("'"))
+        {
+            var content = strValue.Substring(1, strValue.Length - 2);
+            content = content.Replace("\"", "\\\"");
+            strValue = $"\"{content}\"";
+        }
+
+        ReplaceMatch(match, Concat(
+            Token.Punctuation("["),
+            Token.String($"\"{keyName}\""),
+            Token.Punctuation("]"),
+            Token.Whitespace(" "),
+            Token.Operator("="),
+            Token.Whitespace(" "),
+            Token.String(strValue)
+        ));
+    }
+
+    // Object literal key: true/false -> ["key"] = true/false
+    [TokenPattern(@"(\i) "":"" (\k)", Priority = -60)]
+    public void VisitObjectKeyValueKeyword(TokenMatch match, Token[] key, Token[] value)
+    {
+        if (key.Length == 0 || value.Length == 0) return;
+
+        var keyName = key[0].Value;
+
+        ReplaceMatch(match, Concat(
+            Token.Punctuation("["),
+            Token.String($"\"{keyName}\""),
+            Token.Punctuation("]"),
+            Token.Whitespace(" "),
+            Token.Operator("="),
+            Token.Whitespace(" ")
         ).Concat(value).ToArray());
     }
 

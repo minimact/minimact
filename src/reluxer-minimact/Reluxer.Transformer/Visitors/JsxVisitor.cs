@@ -265,9 +265,6 @@ public class JsxVisitor : TokenVisitor
                 bool hasExpression = false;
                 VNodeModel? mapExprResult = null;
 
-                // Pattern to detect .map() calls anywhere in the expression
-                var mapMatcher = new PatternMatcher(@"""."" ""map"" ""(""", skipWhitespace: true);
-
                 while (i < rawChildren.Count && rawChildren[i].Type != TokenMatchType.Element)
                 {
                     var item = rawChildren[i];
@@ -280,16 +277,21 @@ public class JsxVisitor : TokenVisitor
                         hasExpression = true;
                         var exprTokens = item.Tokens;
 
-                        // Check if this expression contains a .map() call anywhere
-                        var hasMapCall = mapMatcher.FindFirst(exprTokens) != null;
-                        if (hasMapCall && mapExprResult == null)
-                        {
-                            mapExprResult = TryParseMapCall(exprTokens, $"{parentPath}.{childIndex}");
-                        }
-
+                        // Try to parse as a complex expression (ternary, &&, .map())
                         if (mapExprResult == null)
                         {
-                            // Store placeholder for expression - generator will convert tokens to C#
+                            mapExprResult = ParseExpression(exprTokens, $"{parentPath}.{childIndex}");
+                            // If ParseExpression returned a VTextModel, it's a simple binding - treat inline
+                            if (mapExprResult is VTextModel)
+                            {
+                                mapExprResult = null;
+                                textParts.Add($"{{{exprTokensList.Count}}}");
+                                exprTokensList.Add(exprTokens);
+                            }
+                        }
+                        else
+                        {
+                            // Already have a complex result, store remaining as binding
                             textParts.Add($"{{{exprTokensList.Count}}}");
                             exprTokensList.Add(exprTokens);
                         }
@@ -403,31 +405,16 @@ public class JsxVisitor : TokenVisitor
     /// </summary>
     private VNodeModel? TryParseTernary(Token[] tokens, string path)
     {
-        // Use PatternMatcher to find ternary structure
-        // The pattern captures: condition, true branch, false branch
-        // We need balanced matching that handles nested ternaries
-
-        var matcher = new PatternMatcher(@"(.*?) \qm (.*?) \co (.*)");
-        if (!matcher.TryMatch(tokens, 0, out var match) || match == null)
-            return null;
-
-        // Verify this is a valid ternary (? and : at depth 0)
-        if (match.Captures.Length < 3)
-            return null;
-
-        var conditionTokens = match.Captures[0].Tokens;
-        var trueTokens = match.Captures[1].Tokens;
-        var falseTokens = match.Captures[2].Tokens;
-
-        // Validate: ? must be at depth 0 in condition
+        // Validate: ? must be at depth 0 (not inside parens/braces)
         if (!IsOperatorAtDepthZero(tokens, "?"))
             return null;
 
-        // Handle nested ternaries by finding the balanced :
+        // Split into condition, true branch, false branch
         var (trueBranch, falseBranch) = SplitTernaryBranches(tokens);
         if (trueBranch == null) return null;
 
         var condition = ExtractCondition(tokens);
+        if (condition.Length == 0) return null;
 
         var trueNode = ParseBranch(trueBranch, $"{path}.1");
         var falseNode = ParseBranch(falseBranch ?? Array.Empty<Token>(), $"{path}.2");
@@ -1299,7 +1286,8 @@ public class JsxVisitor : TokenVisitor
     private bool DetectEventParameterUsage(Token[] tokens)
     {
         // Pattern: e.target, e.currentTarget, e.preventDefault, etc.
-        var eventPatternMatcher = new PatternMatcher(@"\i""e"" ""."" \i");
+        // Use (\i) to capture the property name
+        var eventPatternMatcher = new PatternMatcher(@"\i""e"" ""."" (\i)");
         var eventProperties = new HashSet<string>
         {
             "target", "currentTarget", "preventDefault", "stopPropagation",

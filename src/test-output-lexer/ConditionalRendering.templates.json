@@ -1,7 +1,7 @@
 {
   "component": "UserProfile",
   "version": "1.0",
-  "generatedAt": 1764977603587,
+  "generatedAt": 1765201089596,
   "templates": {
     "1.@class": {
       "template": "profile",
@@ -21,18 +21,189 @@
       ],
       "type": "attribute-static"
     },
-    "1.1": {
+    "1.1.1.@class": {
+      "template": "spinner",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.1.1": {
+      "template": "Loading...",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.1.2.@class": {
+      "template": "user-info",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.2.1.1": {
       "template": "{0}",
       "bindings": [
-        "loading?(<divclassName=\"spinner\">Loading...</div>):(<divclassName=\"user-info\"><h1>{user.name}</h1><p>{user.email}</p>{user.isAdmin&&<spanclassName=\"badge\">Admin</span>}</div>)"
+        ""
       ],
       "slots": [
         0
       ],
       "path": [
+        "1",
+        "1",
+        "2",
         "1"
       ],
       "type": "dynamic"
+    },
+    "1.1.2.2.1": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.1.2.3.1.@class": {
+      "template": "badge",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "3",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.2.3.1.1": {
+      "template": "Admin",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1",
+        "2",
+        "3",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    }
+  },
+  "conditionalElements": {
+    "1.1.2.3": {
+      "type": "conditional-element",
+      "conditionExpression": "",
+      "conditionBindings": [],
+      "evaluable": true,
+      "operator": "&&",
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "span",
+          "hexPath": "1.1.2.3.1",
+          "attributes": {
+            "key": "1.1.2.3.1",
+            "className": "badge"
+          },
+          "children": [
+            {
+              "type": "text",
+              "hexPath": "1.1.2.3.1.1",
+              "value": "Admin"
+            }
+          ]
+        }
+      }
+    },
+    "1.1": {
+      "type": "conditional-element",
+      "conditionExpression": "",
+      "conditionBindings": [],
+      "evaluable": true,
+      "operator": "?",
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.1.1",
+          "attributes": {
+            "key": "1.1.1",
+            "className": "spinner"
+          },
+          "children": [
+            {
+              "type": "text",
+              "hexPath": "1.1.1.1",
+              "value": "Loading..."
+            }
+          ]
+        },
+        "false": {
+          "type": "element",
+          "tag": "div",
+          "hexPath": "1.1.2",
+          "attributes": {
+            "key": "1.1.2",
+            "className": "user-info"
+          },
+          "children": [
+            {
+              "type": "element",
+              "tag": "h1",
+              "hexPath": "1.1.2.1",
+              "attributes": {
+                "key": "1.1.2.1"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "hexPath": "1.1.2.1.1"
+                }
+              ]
+            },
+            {
+              "type": "element",
+              "tag": "p",
+              "hexPath": "1.1.2.2",
+              "attributes": {
+                "key": "1.1.2.2"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "hexPath": "1.1.2.2.1"
+                }
+              ]
+            }
+          ]
+        }
+      }
     }
   }
 }

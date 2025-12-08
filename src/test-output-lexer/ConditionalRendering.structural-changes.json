@@ -1,6 +1,6 @@
 {
   "componentName": "UserProfile",
-  "timestamp": "2025-12-05T23:33:23.6097132Z",
+  "timestamp": "2025-12-08T13:38:09.6224880Z",
   "changes": [
     {
       "type": "insert",
@@ -14,7 +14,7 @@
         },
         "children": [
           {
-            "type": "expression",
+            "type": "conditional",
             "path": "1.1"
           }
         ]
@@ -24,9 +24,158 @@
       "type": "insert",
       "path": "1.1",
       "vNode": {
-        "type": "expression",
+        "type": "conditional",
         "path": "1.1",
+        "condition": ""
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.1",
+        "tag": "div",
+        "attributes": {
+          "className": "spinner"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.1.1.1",
+        "value": "Loading..."
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.2",
+        "tag": "div",
+        "attributes": {
+          "className": "user-info"
+        },
+        "children": [
+          {
+            "type": "element",
+            "path": "1.1.2.1",
+            "tag": "h1"
+          },
+          {
+            "type": "element",
+            "path": "1.1.2.2",
+            "tag": "p"
+          },
+          {
+            "type": "conditional",
+            "path": "1.1.2.3"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.2.1",
+        "tag": "h1",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.1.2.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.1.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.1.2.1.1",
         "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.2",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.2.2",
+        "tag": "p",
+        "attributes": {},
+        "children": [
+          {
+            "type": "expression",
+            "path": "1.1.2.2.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.2.1",
+      "vNode": {
+        "type": "expression",
+        "path": "1.1.2.2.1",
+        "value": "__DYNAMIC__"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.3",
+      "vNode": {
+        "type": "conditional",
+        "path": "1.1.2.3",
+        "condition": ""
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.3.1",
+      "vNode": {
+        "type": "element",
+        "path": "1.1.2.3.1",
+        "tag": "span",
+        "attributes": {
+          "className": "badge"
+        },
+        "children": [
+          {
+            "type": "text",
+            "path": "1.1.2.3.1.1"
+          }
+        ]
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.3.1.1",
+      "vNode": {
+        "type": "text",
+        "path": "1.1.2.3.1.1",
+        "value": "Admin"
+      }
+    },
+    {
+      "type": "insert",
+      "path": "1.1.2.3",
+      "vNode": {
+        "type": "null",
+        "path": "1.1.2.3"
       }
     }
   ]
