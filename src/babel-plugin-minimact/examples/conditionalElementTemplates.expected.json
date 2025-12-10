@@ -1,0 +1,74 @@
+{
+  "componentName": "ConditionalElementTemplatesExample",
+  "conditionalElementTemplates": {
+    "1.1": {
+      "type": "ternary",
+      "conditionExpression": "isLoggedIn",
+      "evaluable": true,
+      "conditionType": "boolean",
+      "trueBranchPath": "1.1",
+      "falseBranchPath": "1.2",
+      "trueBranch": { "tag": "p", "content": "Welcome!" },
+      "falseBranch": { "tag": "p", "content": "Please login" }
+    },
+    "1.3": {
+      "type": "ternary",
+      "conditionExpression": "user",
+      "evaluable": false,
+      "conditionType": "truthy",
+      "runtimeCheck": "new MObject(user)",
+      "trueBranchPath": "1.3",
+      "falseBranchPath": "1.4"
+    },
+    "1.5": {
+      "type": "logicalAnd",
+      "conditionExpression": "hasPermission",
+      "evaluable": true,
+      "conditionType": "boolean",
+      "elementPath": "1.5",
+      "element": { "tag": "button", "content": "Delete" }
+    },
+    "1.6": {
+      "type": "logicalAnd",
+      "conditionExpression": "user",
+      "evaluable": false,
+      "conditionType": "truthy",
+      "runtimeCheck": "new MObject(user)",
+      "elementPath": "1.6"
+    },
+    "1.7": {
+      "type": "logicalAnd",
+      "conditionExpression": "items.length > 0",
+      "evaluable": true,
+      "conditionType": "comparison",
+      "csharpCondition": "items.Count > 0",
+      "elementPath": "1.7"
+    },
+    "1.8": {
+      "type": "ternary",
+      "conditionExpression": "isLoggedIn",
+      "evaluable": true,
+      "nested": [
+        {
+          "type": "ternary",
+          "conditionExpression": "user",
+          "evaluable": false,
+          "path": "1.8.1"
+        },
+        {
+          "type": "logicalAnd",
+          "conditionExpression": "hasPermission",
+          "evaluable": true,
+          "path": "1.8.1.2"
+        }
+      ]
+    },
+    "1.9": {
+      "type": "ternary",
+      "conditionExpression": "items.length > 0",
+      "evaluable": true,
+      "falseBranchIsNull": true,
+      "csharpFalseBranch": "new VNull(\"1.9\")"
+    }
+  }
+}

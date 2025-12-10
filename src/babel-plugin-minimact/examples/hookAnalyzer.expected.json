@@ -1,0 +1,74 @@
+{
+  "hookName": "useAdvancedForm",
+  "className": "UseAdvancedFormHook",
+  "parameters": [
+    { "name": "namespace", "type": "string" },
+    { "name": "initialValues", "type": "object" },
+    { "name": "validationRules", "type": "object" }
+  ],
+  "states": [
+    { "varName": "values", "setterName": "setValues", "initialValue": "initialValues", "type": "dynamic" },
+    { "varName": "errors", "setterName": "setErrors", "initialValue": "{}", "type": "dynamic" },
+    { "varName": "touched", "setterName": "setTouched", "initialValue": "{}", "type": "dynamic" },
+    { "varName": "isSubmitting", "setterName": "setIsSubmitting", "initialValue": "false", "type": "bool" }
+  ],
+  "refs": [
+    { "name": "formRef", "initialValue": "null" }
+  ],
+  "effects": [
+    { "dependencies": ["values"], "bodyHasCallTo": ["validate"] }
+  ],
+  "methods": [
+    {
+      "name": "setValue",
+      "params": [{ "name": "field", "type": "string" }, { "name": "value", "type": "dynamic" }],
+      "returnType": "void",
+      "modifiesState": ["values"]
+    },
+    {
+      "name": "setFieldTouched",
+      "params": [{ "name": "field", "type": "string" }],
+      "returnType": "void",
+      "modifiesState": ["touched"]
+    },
+    {
+      "name": "validate",
+      "params": [],
+      "returnType": "bool",
+      "modifiesState": ["errors"]
+    },
+    {
+      "name": "handleSubmit",
+      "params": [{ "name": "onSubmit", "type": "Action<object>" }],
+      "returnType": "Task",
+      "isAsync": true,
+      "modifiesState": ["isSubmitting"]
+    },
+    {
+      "name": "reset",
+      "params": [],
+      "returnType": "void",
+      "modifiesState": ["values", "errors", "touched"]
+    }
+  ],
+  "jsxElements": {
+    "hasJSX": true,
+    "rootElement": "form",
+    "usesRef": ["formRef"],
+    "hasMap": true,
+    "mapSource": "Object.keys(values)"
+  },
+  "returnValues": [
+    { "name": "values", "type": "state", "index": 0 },
+    { "name": "errors", "type": "state", "index": 1 },
+    { "name": "isSubmitting", "type": "state", "index": 2 },
+    { "name": "setValue", "type": "method", "index": 3 },
+    { "name": "handleSubmit", "type": "method", "index": 4 },
+    { "name": "reset", "type": "method", "index": 5 },
+    { "name": "formUI", "type": "jsx", "index": 6 }
+  ],
+  "eventHandlers": [
+    { "type": "onChange", "target": "input", "handler": "setValue" },
+    { "type": "onBlur", "target": "input", "handler": "setFieldTouched" }
+  ]
+}

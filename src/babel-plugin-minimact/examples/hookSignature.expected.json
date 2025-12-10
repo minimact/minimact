@@ -1,0 +1,38 @@
+{
+  "componentName": "HookSignatureExample",
+  "previousSignature": {
+    "hooks": [
+      { "type": "useState", "name": "count", "initialValue": "0" },
+      { "type": "useEffect", "dependencies": ["count"] }
+    ]
+  },
+  "currentSignature": {
+    "hooks": [
+      { "type": "useState", "name": "count", "initialValue": "0" },
+      { "type": "useState", "name": "name", "initialValue": "''" },
+      { "type": "useRef", "name": "inputRef", "initialValue": "null" },
+      { "type": "useEffect", "dependencies": ["count", "name"] }
+    ]
+  },
+  "detectedChanges": [
+    {
+      "type": "hook_added",
+      "hookType": "useState",
+      "index": 1,
+      "details": { "name": "name", "initialValue": "''" }
+    },
+    {
+      "type": "hook_added",
+      "hookType": "useRef",
+      "index": 2,
+      "details": { "name": "inputRef" }
+    },
+    {
+      "type": "deps_changed",
+      "hookType": "useEffect",
+      "index": 3,
+      "previousDeps": ["count"],
+      "currentDeps": ["count", "name"]
+    }
+  ]
+}
