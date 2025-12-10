@@ -1,0 +1,63 @@
+{
+  "componentName": "HooksExample",
+  "timestamp": "2025-12-10T06:49:53.7800503Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "name",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "items",
+      "index": 2
+    },
+    {
+      "type": "useState",
+      "varName": "price",
+      "index": 3
+    },
+    {
+      "type": "useMvcState",
+      "varName": "userName",
+      "index": 4,
+      "viewModelKey": "userName",
+      "mutable": true
+    },
+    {
+      "type": "useMvcState",
+      "varName": "userEmail",
+      "index": 5,
+      "viewModelKey": "userEmail",
+      "mutable": false
+    },
+    {
+      "type": "useEffect",
+      "index": 6,
+      "deps": [
+        "count"
+      ],
+      "hasCleanup": true
+    },
+    {
+      "type": "useRef",
+      "varName": "inputRef",
+      "index": 7
+    },
+    {
+      "type": "useRef",
+      "varName": "formRef",
+      "index": 8
+    },
+    {
+      "type": "useState",
+      "varName": "secret",
+      "index": 9
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "componentName": "ComponentExample",
+  "timestamp": "2025-12-10T06:46:07.4397646Z",
+  "hooks": [
+    {
+      "type": "useState",
+      "varName": "count",
+      "index": 0
+    },
+    {
+      "type": "useState",
+      "varName": "items",
+      "index": 1
+    },
+    {
+      "type": "useState",
+      "varName": "isLoading",
+      "index": 2
+    },
+    {
+      "type": "useEffect",
+      "index": 3,
+      "deps": [
+        "count"
+      ]
+    },
+    {
+      "type": "useEffect",
+      "index": 4
+    },
+    {
+      "type": "useRef",
+      "varName": "inputRef",
+      "index": 5
+    },
+    {
+      "type": "useRef",
+      "varName": "containerRef",
+      "index": 6
+    }
+  ]
+}

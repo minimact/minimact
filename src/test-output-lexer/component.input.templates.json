@@ -1,0 +1,346 @@
+{
+  "component": "ComponentExample",
+  "version": "1.0",
+  "generatedAt": 1765349167417,
+  "templates": {
+    "1.@ref": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.@class": {
+      "template": "card",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.@key": {
+      "template": "1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.@key": {
+      "template": "1.1",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "attribute-static"
+    },
+    "1.1.1": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.2.@key": {
+      "template": "1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.2.1": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "2"
+      ],
+      "type": "dynamic"
+    },
+    "1.3.@key": {
+      "template": "1.3",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "attribute-static"
+    },
+    "1.3.1": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "3"
+      ],
+      "type": "dynamic"
+    },
+    "1.4.@ref": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.4.@key": {
+      "template": "1.4",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "4"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.@key": {
+      "template": "1.5",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5"
+      ],
+      "type": "attribute-static"
+    },
+    "1.5.1": {
+      "template": "+",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "5",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.6.@key": {
+      "template": "1.6",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6"
+      ],
+      "type": "attribute-static"
+    },
+    "1.6.1": {
+      "template": "Reset",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "6",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.7.@key": {
+      "template": "1.7",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7"
+      ],
+      "type": "attribute-static"
+    },
+    "1.7.1": {
+      "template": "Submit",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "7",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.8.@key": {
+      "template": "1.8",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8"
+      ],
+      "type": "attribute-static"
+    },
+    "1.8.1": {
+      "template": "Load",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "8",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.9.@key": {
+      "template": "1.9",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "9"
+      ],
+      "type": "attribute-static"
+    },
+    "1.9.1": {
+      "template": "Toggle",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "9",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.10.1.1": {
+      "template": "Loading...",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "10",
+        "1",
+        "1"
+      ],
+      "type": "static"
+    },
+    "1.11.@key": {
+      "template": "1.11",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "11"
+      ],
+      "type": "attribute-static"
+    },
+    "1.11.1.1.@key": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "11",
+        "1",
+        "1"
+      ],
+      "type": "attribute-dynamic"
+    },
+    "1.11.1.1.1": {
+      "template": "{0}",
+      "bindings": [
+        ""
+      ],
+      "slots": [
+        0
+      ],
+      "path": [
+        "1",
+        "11",
+        "1",
+        "1"
+      ],
+      "type": "dynamic"
+    },
+    "1.11.1.1.2.@key": {
+      "template": "1.11.1.1.2",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "11",
+        "1",
+        "1",
+        "2"
+      ],
+      "type": "attribute-static"
+    },
+    "1.11.1.1.2.1": {
+      "template": "Remove",
+      "bindings": [],
+      "slots": [],
+      "path": [
+        "1",
+        "11",
+        "1",
+        "1",
+        "2",
+        "1"
+      ],
+      "type": "static"
+    }
+  },
+  "conditionalElements": {
+    "1.10": {
+      "type": "conditional-element",
+      "conditionExpression": "",
+      "conditionBindings": [],
+      "evaluable": true,
+      "operator": "&&",
+      "branches": {
+        "true": {
+          "type": "element",
+          "tag": "span",
+          "hexPath": "1.10.1",
+          "attributes": {
+            "key": "1.10.1"
+          },
+          "children": [
+            {
+              "type": "text",
+              "hexPath": "1.10.1.1",
+              "value": "Loading..."
+            }
+          ]
+        }
+      }
+    }
+  }
+}
